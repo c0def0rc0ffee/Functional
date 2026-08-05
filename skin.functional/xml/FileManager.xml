@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  File Manager (window id 32).
+
+  Kodi-hardcoded control IDs:
+     20 = left  file list
+     21 = right file list
+     60 = left  scrollbar
+     61 = right scrollbar
+    101 = left  current-path label
+    102 = right current-path label
+-->
+<window>
+	<defaultcontrol always="true">20</defaultcontrol>
+	<controls>
+
+		<include content="WindowBackground"/>
+		<include content="HeaderBar">
+			<param name="title" value="     File Manager"/>
+		</include>
+
+		<!-- Logo in header -->
+		<control type="image">
+			<left>20</left>
+			<top>5</top>
+			<width>80</width>
+			<height>80</height>
+			<aspectratio>keep</aspectratio>
+			<texture>logo.png</texture>
+		</control>
+
+		<!-- Centre divider -->
+		<control type="image">
+			<left>959</left>
+			<top>180</top>
+			<width>2</width>
+			<height>800</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- ===== LEFT PANEL ===== -->
+		<control type="label" id="101">
+			<left>40</left>
+			<top>120</top>
+			<width>900</width>
+			<height>50</height>
+			<font>font_med</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>$INFO[Container(20).FolderPath]</label>
+			<haspath>true</haspath>
+			<scroll>true</scroll>
+		</control>
+
+		<control type="fixedlist" id="20">
+			<focusposition>5</focusposition>
+			<movement>3</movement>
+			<left>40</left>
+			<top>180</top>
+			<width>900</width>
+			<height>800</height>
+			<onleft>20</onleft>
+			<onright>21</onright>
+			<pagecontrol>60</pagecontrol>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+			<itemlayout height="50" width="900">
+				<control type="image">
+					<left>10</left>
+					<top>5</top>
+					<width>40</width>
+					<height>40</height>
+					<texture fallback="DefaultFolder.png">$INFO[ListItem.Icon]</texture>
+				</control>
+				<control type="label">
+					<left>60</left>
+					<top>0</top>
+					<width>660</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<right>20</right>
+					<top>0</top>
+					<width>160</width>
+					<height>50</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label2]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="50" width="900">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>900</width>
+					<height>50</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+					<visible>Control.HasFocus(20)</visible>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>900</width>
+					<height>50</height>
+					<texture colordiffuse="40FFFFFF">white.png</texture>
+					<visible>!Control.HasFocus(20)</visible>
+				</control>
+				<control type="image">
+					<left>10</left>
+					<top>5</top>
+					<width>40</width>
+					<height>40</height>
+					<texture fallback="DefaultFolder.png">$INFO[ListItem.Icon]</texture>
+				</control>
+				<control type="label">
+					<left>60</left>
+					<top>0</top>
+					<width>660</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<right>20</right>
+					<top>0</top>
+					<width>160</width>
+					<height>50</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label2]</label>
+				</control>
+			</focusedlayout>
+		</control>
+
+		<control type="scrollbar" id="60">
+			<left>946</left>
+			<top>180</top>
+			<width>10</width>
+			<height>800</height>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>20</onleft>
+			<onright>21</onright>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- ===== RIGHT PANEL ===== -->
+		<control type="label" id="102">
+			<left>980</left>
+			<top>120</top>
+			<width>900</width>
+			<height>50</height>
+			<font>font_med</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>$INFO[Container(21).FolderPath]</label>
+			<haspath>true</haspath>
+			<scroll>true</scroll>
+		</control>
+
+		<control type="fixedlist" id="21">
+			<focusposition>5</focusposition>
+			<movement>3</movement>
+			<left>980</left>
+			<top>180</top>
+			<width>900</width>
+			<height>800</height>
+			<onleft>20</onleft>
+			<onright>21</onright>
+			<pagecontrol>61</pagecontrol>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+			<itemlayout height="50" width="900">
+				<control type="image">
+					<left>10</left>
+					<top>5</top>
+					<width>40</width>
+					<height>40</height>
+					<texture fallback="DefaultFolder.png">$INFO[ListItem.Icon]</texture>
+				</control>
+				<control type="label">
+					<left>60</left>
+					<top>0</top>
+					<width>660</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<right>20</right>
+					<top>0</top>
+					<width>160</width>
+					<height>50</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label2]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="50" width="900">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>900</width>
+					<height>50</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+					<visible>Control.HasFocus(21)</visible>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>900</width>
+					<height>50</height>
+					<texture colordiffuse="40FFFFFF">white.png</texture>
+					<visible>!Control.HasFocus(21)</visible>
+				</control>
+				<control type="image">
+					<left>10</left>
+					<top>5</top>
+					<width>40</width>
+					<height>40</height>
+					<texture fallback="DefaultFolder.png">$INFO[ListItem.Icon]</texture>
+				</control>
+				<control type="label">
+					<left>60</left>
+					<top>0</top>
+					<width>660</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<right>20</right>
+					<top>0</top>
+					<width>160</width>
+					<height>50</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label2]</label>
+				</control>
+			</focusedlayout>
+		</control>
+
+		<control type="scrollbar" id="61">
+			<right>14</right>
+			<top>180</top>
+			<width>10</width>
+			<height>800</height>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>20</onleft>
+			<onright>21</onright>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- Footer: item counts -->
+		<control type="label">
+			<left>40</left>
+			<bottom>30</bottom>
+			<width>900</width>
+			<height>40</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<label>$INFO[Container(20).CurrentItem] / $INFO[Container(20).NumItems] items</label>
+		</control>
+		<control type="label">
+			<right>40</right>
+			<bottom>30</bottom>
+			<width>900</width>
+			<height>40</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<align>right</align>
+			<label>$INFO[Container(21).CurrentItem] / $INFO[Container(21).NumItems] items</label>
+		</control>
+
+	</controls>
+</window>

@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+	<defaultcontrol always="true">55</defaultcontrol>
+	<views>55</views>
+	<controls>
+
+		<include content="WindowBackground"/>
+
+		<!-- Header -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>90</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+
+		<control type="label">
+			<left>40</left>
+			<top>0</top>
+			<width>1200</width>
+			<height>90</height>
+			<font>font_med</font>
+			<textcolor>text</textcolor>
+			<aligny>center</aligny>
+			<label>Video Queue</label>
+			<visible>Window.IsActive(videoplaylist)</visible>
+		</control>
+		<control type="label">
+			<left>40</left>
+			<top>0</top>
+			<width>1200</width>
+			<height>90</height>
+			<font>font_med</font>
+			<textcolor>text</textcolor>
+			<aligny>center</aligny>
+			<label>Music Queue</label>
+			<visible>Window.IsActive(musicplaylist)</visible>
+		</control>
+
+		<!-- Right of header: counts + total time + current ETA -->
+		<control type="label">
+			<right>40</right>
+			<top>10</top>
+			<width>800</width>
+			<height>40</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<align>right</align>
+			<aligny>center</aligny>
+			<label>$INFO[Container.NumItems] items · Total $INFO[Container.TotalTime]</label>
+		</control>
+		<control type="label">
+			<right>40</right>
+			<top>50</top>
+			<width>800</width>
+			<height>34</height>
+			<font>font_small</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<align>right</align>
+			<aligny>center</aligny>
+			<label>Now playing ends at $INFO[Player.FinishTime]</label>
+			<visible>Player.HasMedia</visible>
+		</control>
+
+		<!-- Playlist list -->
+		<control type="list" id="55">
+			<left>40</left>
+			<top>110</top>
+			<right>40</right>
+			<bottom>140</bottom>
+			<onleft>55</onleft>
+			<onright>55</onright>
+			<onback>PreviousMenu</onback>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+			<pagecontrol>60</pagecontrol>
+
+			<itemlayout height="80" width="1840">
+				<!-- Index -->
+				<control type="label">
+					<left>10</left>
+					<top>0</top>
+					<width>60</width>
+					<height>80</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.CurrentItem]</label>
+				</control>
+				<!-- Thumb -->
+				<control type="image">
+					<left>90</left>
+					<top>10</top>
+					<width>108</width>
+					<height>60</height>
+					<aspectratio>scale</aspectratio>
+					<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Art(thumb)]</texture>
+				</control>
+				<!-- Title -->
+				<control type="label">
+					<left>220</left>
+					<top>0</top>
+					<width>1300</width>
+					<height>80</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<!-- Duration -->
+				<control type="label">
+					<right>20</right>
+					<top>0</top>
+					<width>200</width>
+					<height>80</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Duration]</label>
+				</control>
+			</itemlayout>
+
+			<focusedlayout height="80" width="1840">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1840</width>
+					<height>80</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>10</left>
+					<top>0</top>
+					<width>60</width>
+					<height>80</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.CurrentItem]</label>
+				</control>
+				<control type="image">
+					<left>90</left>
+					<top>10</top>
+					<width>108</width>
+					<height>60</height>
+					<aspectratio>scale</aspectratio>
+					<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Art(thumb)]</texture>
+				</control>
+				<control type="label">
+					<left>220</left>
+					<top>0</top>
+					<width>1300</width>
+					<height>80</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<right>20</right>
+					<top>0</top>
+					<width>200</width>
+					<height>80</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Duration]</label>
+				</control>
+				<!-- Now-playing indicator -->
+				<control type="label">
+					<left>10</left>
+					<top>0</top>
+					<width>60</width>
+					<height>80</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<label>▶</label>
+					<visible>String.IsEqual(ListItem.Property(playlistposition),Playlist.Position)</visible>
+				</control>
+			</focusedlayout>
+		</control>
+
+		<!-- Scrollbar -->
+		<control type="scrollbar" id="60">
+			<right>10</right>
+			<top>110</top>
+			<width>16</width>
+			<bottom>140</bottom>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>55</onleft>
+			<onright>55</onright>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- Footer / actions -->
+		<control type="image">
+			<left>0</left>
+			<bottom>0</bottom>
+			<width>1920</width>
+			<height>120</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+		<control type="image">
+			<left>0</left>
+			<bottom>120</bottom>
+			<width>1920</width>
+			<height>2</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<control type="grouplist" id="9000">
+			<left>40</left>
+			<bottom>30</bottom>
+			<width>1840</width>
+			<height>60</height>
+			<orientation>horizontal</orientation>
+			<itemgap>14</itemgap>
+			<onup>55</onup>
+
+			<control type="button" id="9001">
+				<width>220</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Play All</label>
+				<onclick>PlayerControl(Play)</onclick>
+			</control>
+
+			<control type="button" id="9002">
+				<width>220</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Shuffle</label>
+				<onclick>PlayerControl(Random)</onclick>
+			</control>
+
+			<control type="button" id="9003">
+				<width>220</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Repeat: $INFO[Playlist.IsRepeat]$INFO[Playlist.IsRepeatOne]</label>
+				<onclick>PlayerControl(Repeat)</onclick>
+			</control>
+
+			<control type="button" id="9004">
+				<width>220</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Clear Queue</label>
+				<onclick>Playlist.Clear</onclick>
+			</control>
+
+		</control>
+
+	</controls>
+</window>

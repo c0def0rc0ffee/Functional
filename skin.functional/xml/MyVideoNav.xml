@@ -1,0 +1,1184 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+	<defaultcontrol always="true">51</defaultcontrol>
+	<views>51,50</views>
+	<!-- Seed the sort tracker on first load so the Sort dropdown
+	     always has a radio selected. Calling SetSortMethod here also
+	     guarantees the displayed selection matches the actual sort. -->
+	<onload condition="String.IsEmpty(Skin.String(sort_active))">Skin.SetString(sort_active,title)</onload>
+	<onload condition="String.IsEqual(Skin.String(sort_active),title)">Container.SetSortMethod(29)</onload>
+	<!-- Start with the filter sub-menu collapsed (also tidies up after the
+	     Local Only disable, which reloads this window via ReplaceWindow). -->
+	<onload>Skin.Reset(filter_menu_open)</onload>
+	<controls>
+
+		<include content="WindowBackground"/>
+
+		<!-- ========== FILTER DEBUG OVERLAY (visible when filter_debug is on) ========== -->
+		<control type="group">
+			<visible>Skin.HasSetting(filter_debug)</visible>
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>1920</width>
+				<height>110</height>
+				<texture colordiffuse="C0000000">white.png</texture>
+			</control>
+			<control type="label">
+				<left>40</left>
+				<top>10</top>
+				<width>1840</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>FILTER DEBUG: Content / FolderPath / Items / IsFiltered</label>
+			</control>
+			<control type="label">
+				<left>40</left>
+				<top>40</top>
+				<width>1840</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>white</textcolor>
+				<label>Content: $INFO[Container.Content]    Items: $INFO[Container(51).NumItems]    Filtered: $INFO[Container.Filtered]    Updating: $INFO[Container.IsUpdating]</label>
+			</control>
+			<control type="label">
+				<left>40</left>
+				<top>70</top>
+				<width>1840</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>Path: $INFO[Container.FolderPath]</label>
+			</control>
+		</control>
+
+		<!-- ========== GALLERY VIEW (id 51) ==========
+		     Wrapped in a group whose vertical position is driven by 52
+		     pre-baked conditional slide animations (one per discrete
+		     clearance value). Animations on the GROUP move it without
+		     touching the panel's own tile-layout maths inside, which
+		     was the source of the spacing weirdness when the animations
+		     were on the panel directly. -->
+		<control type="group">
+			<left>30</left>
+			<top>0</top>
+			<right>30</right>
+			<bottom>0</bottom>
+			<include content="ClearanceAnimations"/>
+		<control type="panel" id="51">
+			<left>0</left>
+			<top>0</top>
+			<right>0</right>
+			<bottom>0</bottom>
+			<onleft>8001</onleft>
+			<onright>51</onright>
+			<onup>51</onup>
+			<onfocus>Skin.Reset(left_menu_open)</onfocus>
+			<orientation>vertical</orientation>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+			<pagecontrol>60</pagecontrol>
+			<viewtype label="Gallery">icon</viewtype>
+
+			<!-- ===== GALLERY TILE SIZE VARIANTS =====
+			     Two ratio modes:
+			       * Tall (default): poster ~1:1.95, tile_h adds 8 px frame.
+			         Helps absorb the cropping that aspectratio="scale" does
+			         on near-2:3 art.
+			       * Compact (Skin.HasSetting(compact_posters)): strict 2:3
+			         (poster_h = poster_w * 1.5). Use on TVs whose overscan
+			         clips the bottom of the taller boxes. -->
+
+			<!-- ===== COMPACT (2:3) variants, listed first so they win when set ===== -->
+			<itemlayout height="249" width="169" condition="Skin.HasSetting(compact_posters) + String.IsEqual(Skin.String(gallery_size),small) + String.IsEqual(Skin.String(small_cols),11)">
+				<include content="GalleryTileBody">
+					<param name="poster_w" value="161"/>
+					<param name="poster_h" value="241"/>
+				</include>
+			</itemlayout>
+			<itemlayout height="228" width="155" condition="Skin.HasSetting(compact_posters) + String.IsEqual(Skin.String(gallery_size),small)">
+				<include content="GalleryTileBody">
+					<param name="poster_w" value="147"/>
+					<param name="poster_h" value="220"/>
+				</include>
+			</itemlayout>
+			<itemlayout height="344" width="232" condition="Skin.HasSetting(compact_posters) + String.IsEqual(Skin.String(gallery_size),large)">
+				<include content="GalleryTileBody">
+					<param name="poster_w" value="224"/>
+					<param name="poster_h" value="336"/>
+				</include>
+			</itemlayout>
+			<itemlayout height="461" width="310" condition="Skin.HasSetting(compact_posters) + String.IsEqual(Skin.String(gallery_size),xlarge)">
+				<include content="GalleryTileBody">
+					<param name="poster_w" value="302"/>
+					<param name="poster_h" value="453"/>
+				</include>
+			</itemlayout>
+			<itemlayout height="305" width="206" condition="Skin.HasSetting(compact_posters)">
+				<include content="GalleryTileBody">
+					<param name="poster_w" value="198"/>
+					<param name="poster_h" value="297"/>
+				</include>
+			</itemlayout>
+
+			<!-- ===== TALL (default) variants ===== -->
+			<itemlayout height="312" width="169" condition="String.IsEqual(Skin.String(gallery_size),small) + String.IsEqual(Skin.String(small_cols),11)">
+				<include content="GalleryTileBody">
+					<param name="poster_w" value="161"/>
+					<param name="poster_h" value="304"/>
+				</include>
+			</itemlayout>
+			<itemlayout height="312" width="155" condition="String.IsEqual(Skin.String(gallery_size),small)">
+				<include content="GalleryTileBody">
+					<param name="poster_w" value="147"/>
+					<param name="poster_h" value="304"/>
+				</include>
+			</itemlayout>
+			<itemlayout height="494" width="232" condition="String.IsEqual(Skin.String(gallery_size),large)">
+				<include content="GalleryTileBody">
+					<param name="poster_w" value="224"/>
+					<param name="poster_h" value="486"/>
+				</include>
+			</itemlayout>
+			<itemlayout height="585" width="310" condition="String.IsEqual(Skin.String(gallery_size),xlarge)">
+				<include content="GalleryTileBody">
+					<param name="poster_w" value="302"/>
+					<param name="poster_h" value="577"/>
+				</include>
+			</itemlayout>
+			<itemlayout height="403" width="206">
+				<include content="GalleryTileBody">
+					<param name="poster_w" value="198"/>
+					<param name="poster_h" value="395"/>
+				</include>
+			</itemlayout>
+
+			<!-- COMPACT focused variants -->
+			<focusedlayout height="249" width="169" condition="Skin.HasSetting(compact_posters) + String.IsEqual(Skin.String(gallery_size),small) + String.IsEqual(Skin.String(small_cols),11)">
+				<include content="GalleryFocusedBody">
+					<param name="tile_w" value="169"/>
+					<param name="bg_h" value="249"/>
+					<param name="poster_w" value="161"/>
+					<param name="poster_h" value="241"/>
+				</include>
+			</focusedlayout>
+			<focusedlayout height="228" width="155" condition="Skin.HasSetting(compact_posters) + String.IsEqual(Skin.String(gallery_size),small)">
+				<include content="GalleryFocusedBody">
+					<param name="tile_w" value="155"/>
+					<param name="bg_h" value="228"/>
+					<param name="poster_w" value="147"/>
+					<param name="poster_h" value="220"/>
+				</include>
+			</focusedlayout>
+			<focusedlayout height="344" width="232" condition="Skin.HasSetting(compact_posters) + String.IsEqual(Skin.String(gallery_size),large)">
+				<include content="GalleryFocusedBody">
+					<param name="tile_w" value="232"/>
+					<param name="bg_h" value="344"/>
+					<param name="poster_w" value="224"/>
+					<param name="poster_h" value="336"/>
+				</include>
+			</focusedlayout>
+			<focusedlayout height="461" width="310" condition="Skin.HasSetting(compact_posters) + String.IsEqual(Skin.String(gallery_size),xlarge)">
+				<include content="GalleryFocusedBody">
+					<param name="tile_w" value="310"/>
+					<param name="bg_h" value="461"/>
+					<param name="poster_w" value="302"/>
+					<param name="poster_h" value="453"/>
+				</include>
+			</focusedlayout>
+			<focusedlayout height="305" width="206" condition="Skin.HasSetting(compact_posters)">
+				<include content="GalleryFocusedBody">
+					<param name="tile_w" value="206"/>
+					<param name="bg_h" value="305"/>
+					<param name="poster_w" value="198"/>
+					<param name="poster_h" value="297"/>
+				</include>
+			</focusedlayout>
+
+			<!-- TALL focused variants -->
+			<focusedlayout height="312" width="169" condition="String.IsEqual(Skin.String(gallery_size),small) + String.IsEqual(Skin.String(small_cols),11)">
+				<include content="GalleryFocusedBody">
+					<param name="tile_w" value="169"/>
+					<param name="bg_h" value="312"/>
+					<param name="poster_w" value="161"/>
+					<param name="poster_h" value="304"/>
+				</include>
+			</focusedlayout>
+			<focusedlayout height="312" width="155" condition="String.IsEqual(Skin.String(gallery_size),small)">
+				<include content="GalleryFocusedBody">
+					<param name="tile_w" value="155"/>
+					<param name="bg_h" value="312"/>
+					<param name="poster_w" value="147"/>
+					<param name="poster_h" value="304"/>
+				</include>
+			</focusedlayout>
+			<focusedlayout height="494" width="232" condition="String.IsEqual(Skin.String(gallery_size),large)">
+				<include content="GalleryFocusedBody">
+					<param name="tile_w" value="232"/>
+					<param name="bg_h" value="494"/>
+					<param name="poster_w" value="224"/>
+					<param name="poster_h" value="486"/>
+				</include>
+			</focusedlayout>
+			<focusedlayout height="585" width="310" condition="String.IsEqual(Skin.String(gallery_size),xlarge)">
+				<include content="GalleryFocusedBody">
+					<param name="tile_w" value="310"/>
+					<param name="bg_h" value="585"/>
+					<param name="poster_w" value="302"/>
+					<param name="poster_h" value="577"/>
+				</include>
+			</focusedlayout>
+			<focusedlayout height="403" width="206">
+				<include content="GalleryFocusedBody">
+					<param name="tile_w" value="206"/>
+					<param name="bg_h" value="403"/>
+					<param name="poster_w" value="198"/>
+					<param name="poster_h" value="395"/>
+				</include>
+			</focusedlayout>
+		</control>
+		</control>
+		<!-- ========== /gallery wrapping group ========== -->
+
+		<!-- ========== LIST VIEW (id 50) ========== -->
+		<control type="group">
+			<left>30</left>
+			<top>0</top>
+			<right>30</right>
+			<bottom>0</bottom>
+			<include content="ClearanceAnimations"/>
+		<control type="list" id="50">
+			<left>0</left>
+			<top>0</top>
+			<right>0</right>
+			<bottom>0</bottom>
+			<onleft>8001</onleft>
+			<onright>50</onright>
+			<onfocus>Skin.Reset(left_menu_open)</onfocus>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+			<pagecontrol>60</pagecontrol>
+			<viewtype label="List">list</viewtype>
+
+			<itemlayout height="60" width="1860">
+				<control type="image">
+					<left>10</left>
+					<top>5</top>
+					<width>50</width>
+					<height>50</height>
+					<texture fallback="DefaultFolder.png">$INFO[ListItem.Icon]</texture>
+				</control>
+				<control type="label">
+					<left>80</left>
+					<top>0</top>
+					<width>1500</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<right>20</right>
+					<top>0</top>
+					<width>240</width>
+					<height>60</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label2]</label>
+				</control>
+			</itemlayout>
+
+			<focusedlayout height="60" width="1860">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1860</width>
+					<height>60</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="image">
+					<left>10</left>
+					<top>5</top>
+					<width>50</width>
+					<height>50</height>
+					<texture fallback="DefaultFolder.png">$INFO[ListItem.Icon]</texture>
+				</control>
+				<control type="label">
+					<left>80</left>
+					<top>0</top>
+					<width>1500</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<right>20</right>
+					<top>0</top>
+					<width>240</width>
+					<height>60</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label2]</label>
+				</control>
+			</focusedlayout>
+		</control>
+		</control>
+		<!-- ========== /list wrapping group ========== -->
+
+		<!-- Scrollbar, sits OUTSIDE the wrapping groups so it doesn't get
+		     translated by the clearance animations. Bounds match the panels'
+		     effective area at the default 140px clearance, slight visual
+		     offset at extreme clearance values is acceptable. -->
+		<control type="scrollbar" id="60">
+			<right>10</right>
+			<top>$INFO[Skin.String(infobar_clearance_top)]</top>
+			<width>16</width>
+			<bottom>$INFO[Skin.String(infobar_clearance_bottom)]</bottom>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>50</onleft>
+			<onright>50</onright>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- ========== FAST-SCROLL LETTER BADGE ==========
+		     A big letter of the focused item's sort position, shown while the
+		     list is being flicked, so you can see roughly where you are. It
+		     rides the right-hand end of the info bar and pops out of it: up
+		     out of the top edge when the bar is at the bottom (default), and
+		     down out of the bottom edge when the bar is at the top. Gated on
+		     ListItem.SortLetter being non-empty so it only appears when the
+		     current sort actually yields a letter/number. -->
+
+		<!-- Bottom bar: badge pops UP from the bar's top edge, lower-right -->
+		<control type="group">
+			<visible>[Container(51).Scrolling | Container(50).Scrolling] + !String.IsEmpty(ListItem.SortLetter) + !Skin.HasSetting(infobar_top)</visible>
+			<animation effect="fade" start="0" end="100" time="100">Visible</animation>
+			<animation effect="fade" start="100" end="0" time="250">Hidden</animation>
+			<control type="image">
+				<right>50</right>
+				<bottom>122</bottom>
+				<width>150</width>
+				<height>150</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+			<control type="label">
+				<right>50</right>
+				<bottom>122</bottom>
+				<width>150</width>
+				<height>150</height>
+				<font>font60</font>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textcolor>white</textcolor>
+				<label>$INFO[ListItem.SortLetter]</label>
+			</control>
+		</control>
+
+		<!-- Top bar: badge hangs DOWN from the bar's bottom edge, upper-right -->
+		<control type="group">
+			<visible>[Container(51).Scrolling | Container(50).Scrolling] + !String.IsEmpty(ListItem.SortLetter) + Skin.HasSetting(infobar_top)</visible>
+			<animation effect="fade" start="0" end="100" time="100">Visible</animation>
+			<animation effect="fade" start="100" end="0" time="250">Hidden</animation>
+			<control type="image">
+				<right>50</right>
+				<top>122</top>
+				<width>150</width>
+				<height>150</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+			<control type="label">
+				<right>50</right>
+				<top>122</top>
+				<width>150</width>
+				<height>150</height>
+				<font>font60</font>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textcolor>white</textcolor>
+				<label>$INFO[ListItem.SortLetter]</label>
+			</control>
+		</control>
+
+		<!-- ========== INFO STRIP (BOTTOM, default) ========== -->
+		<control type="group">
+			<visible>!Skin.HasSetting(infobar_top)</visible>
+
+			<control type="image">
+				<left>0</left>
+				<bottom>0</bottom>
+				<width>1920</width>
+				<height>120</height>
+				<texture colordiffuse="FF0F1217">white.png</texture>
+			</control>
+			<control type="image">
+				<left>0</left>
+				<bottom>120</bottom>
+				<width>1920</width>
+				<height>2</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+
+			<control type="label">
+				<left>40</left>
+				<bottom>72</bottom>
+				<width>1500</width>
+				<height>40</height>
+				<font>font_big</font>
+				<textcolor>text</textcolor>
+				<label>$INFO[ListItem.Label]$VAR[ItemTitleSuffix]</label>
+				<scroll>true</scroll>
+			</control>
+			<!-- Bottom-left: time-related metadata (anchored, doesn't jump) -->
+			<control type="label">
+				<left>40</left>
+				<bottom>30</bottom>
+				<width>800</width>
+				<height>30</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<label>$INFO[ListItem.Duration]$VAR[ItemEndsAtLabel]$VAR[ItemStarRatingLabel]</label>
+			</control>
+
+			<!-- Top-right: combined position/total -->
+			<control type="label">
+				<right>40</right>
+				<bottom>72</bottom>
+				<width>340</width>
+				<height>40</height>
+				<font>font_med</font>
+				<textcolor>accent_hi</textcolor>
+				<align>right</align>
+				<label>$INFO[Container.CurrentItem] / $INFO[Container.NumItems] items</label>
+			</control>
+			<!-- Bottom-right: descriptive metadata, right-aligned so it grows leftward -->
+			<control type="label">
+				<right>40</right>
+				<bottom>30</bottom>
+				<width>1000</width>
+				<height>30</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<align>right</align>
+				<label>$VAR[ItemGenreLabel]$VAR[ItemMPAALabel]$VAR[ItemResolutionLabelGated]$VAR[ItemLastPlayedLabel]</label>
+			</control>
+		</control>
+
+		<!-- ========== INFO STRIP (TOP, optional) ========== -->
+		<control type="group">
+			<visible>Skin.HasSetting(infobar_top)</visible>
+
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>1920</width>
+				<height>120</height>
+				<texture colordiffuse="FF0F1217">white.png</texture>
+			</control>
+			<control type="image">
+				<left>0</left>
+				<top>120</top>
+				<width>1920</width>
+				<height>2</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+
+			<control type="label">
+				<left>40</left>
+				<top>10</top>
+				<width>1500</width>
+				<height>40</height>
+				<font>font_big</font>
+				<textcolor>text</textcolor>
+				<label>$INFO[ListItem.Label]$VAR[ItemTitleSuffix]</label>
+				<scroll>true</scroll>
+			</control>
+			<!-- Bottom-left: time metadata (stable position) -->
+			<control type="label">
+				<left>40</left>
+				<top>60</top>
+				<width>800</width>
+				<height>30</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<label>$INFO[ListItem.Duration]$VAR[ItemEndsAtLabel]$VAR[ItemStarRatingLabel]</label>
+			</control>
+
+			<!-- Top-right: combined position/total -->
+			<control type="label">
+				<right>40</right>
+				<top>10</top>
+				<width>340</width>
+				<height>40</height>
+				<font>font_med</font>
+				<textcolor>accent_hi</textcolor>
+				<align>right</align>
+				<label>$INFO[Container.CurrentItem] / $INFO[Container.NumItems] items</label>
+			</control>
+			<!-- Bottom-right: descriptive metadata, right-aligned so it grows leftward -->
+			<control type="label">
+				<right>40</right>
+				<top>60</top>
+				<width>1000</width>
+				<height>30</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<align>right</align>
+				<label>$VAR[ItemGenreLabel]$VAR[ItemMPAALabel]$VAR[ItemResolutionLabelGated]$VAR[ItemLastPlayedLabel]</label>
+			</control>
+		</control>
+
+		<!-- ========== LEFT SLIDE-OUT MENU ========== -->
+		<!-- Default off-screen at left=-360. Slides right by 360 when any of its buttons is focused. -->
+		<control type="group">
+			<left>-440</left>
+			<top>0</top>
+			<width>440</width>
+			<height>1080</height>
+			<animation effect="slide" start="0,0" end="440,0" time="220" tween="cubic" easing="out" condition="Skin.HasSetting(left_menu_open)">Conditional</animation>
+
+			<!-- Backdrop -->
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>440</width>
+				<height>1080</height>
+				<texture colordiffuse="F2101418">white.png</texture>
+			</control>
+
+			<!-- Right edge accent -->
+			<control type="image">
+				<right>0</right>
+				<top>0</top>
+				<width>2</width>
+				<height>1080</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+
+			<!-- Title -->
+			<control type="label">
+				<left>30</left>
+				<top>30</top>
+				<width>380</width>
+				<height>50</height>
+				<font>font_med</font>
+				<textcolor>accent_hi</textcolor>
+				<label>Library Options</label>
+			</control>
+			<control type="label">
+				<left>30</left>
+				<top>80</top>
+				<width>380</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>← / right to close</label>
+			</control>
+
+			<!-- Buttons stacked vertically -->
+			<control type="grouplist">
+				<left>30</left>
+				<top>140</top>
+				<width>380</width>
+				<height>920</height>
+				<itemgap>10</itemgap>
+				<orientation>vertical</orientation>
+
+				<!-- ===== VIEW (collapsed) =====
+				     Toggle button + sub-list mirroring the Filter pattern. -->
+				<control type="button" id="8001">
+					<width>380</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>View: $INFO[Container.Viewmode]</label>
+					<onclick>Skin.ToggleSetting(view_menu_open)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8008</onup>
+					<ondown>8021</ondown>
+				</control>
+
+				<!-- View: Gallery -->
+				<control type="button" id="8021">
+					<visible>Skin.HasSetting(view_menu_open)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Gallery</label>
+					<onclick>Container.SetViewMode(51)</onclick>
+					<onclick>Skin.Reset(view_menu_open)</onclick>
+					<onclick>SetFocus(8001)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8001</onup>
+					<ondown>8022</ondown>
+				</control>
+
+				<!-- View: List -->
+				<control type="button" id="8022">
+					<visible>Skin.HasSetting(view_menu_open)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>List</label>
+					<onclick>Container.SetViewMode(50)</onclick>
+					<onclick>Skin.Reset(view_menu_open)</onclick>
+					<onclick>SetFocus(8001)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8021</onup>
+					<ondown>8002</ondown>
+				</control>
+
+				<!-- ===== SORT (collapsed) =====
+				     Sub-buttons call Container.SetSortMethod(id). Kodi
+				     silently ignores ids that aren't valid for the current
+				     content type, so the same list works for movies / shows
+				     / episodes, invalid ones just no-op. -->
+				<control type="button" id="8002">
+					<width>380</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Sort: $INFO[Container.SortMethod]</label>
+					<onclick>Skin.ToggleSetting(sort_menu_open)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8001</onup>
+					<ondown>8031</ondown>
+				</control>
+
+				<!-- Sort: Title -->
+				<control type="button" id="8031">
+					<visible>Skin.HasSetting(sort_menu_open)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Title</label>
+					<!-- Movie/TV title nodes sort by "sorttitle" = SortBySortTitle
+					     (29). SortByTitle (7) and SortByLabel (1) aren't
+					     registered for these nodes, so they're silently ignored.
+					     (Confirmed against Kodi's library node definitions.) -->
+					<onclick>Container.SetSortMethod(29)</onclick>
+					<!-- Always A→Z, even if the previous sort left the container
+					     descending (service applies it once state settles). -->
+					<onclick>Skin.SetString(sort_want,asc)</onclick>
+					<onclick>Skin.SetString(sort_active,title)</onclick>
+					<onclick>Skin.Reset(sort_menu_open)</onclick>
+					<onclick>SetFocus(8002)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8002</onup>
+					<ondown>8032</ondown>
+				</control>
+
+				<!-- Sort: Year -->
+				<control type="button" id="8032">
+					<visible>Skin.HasSetting(sort_menu_open)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Year</label>
+					<onclick>Container.SetSortMethod(16)</onclick>
+					<onclick>Skin.SetString(sort_want,desc)</onclick>
+					<onclick>Skin.SetString(sort_active,year)</onclick>
+					<onclick>Skin.Reset(sort_menu_open)</onclick>
+					<onclick>SetFocus(8002)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8031</onup>
+					<ondown>8033</ondown>
+				</control>
+
+				<!-- Sort: Rating -->
+				<control type="button" id="8033">
+					<visible>Skin.HasSetting(sort_menu_open)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Rating</label>
+					<onclick>Container.SetSortMethod(17)</onclick>
+					<onclick>Skin.SetString(sort_want,desc)</onclick>
+					<onclick>Skin.SetString(sort_active,rating)</onclick>
+					<onclick>Skin.Reset(sort_menu_open)</onclick>
+					<onclick>SetFocus(8002)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8032</onup>
+					<ondown>8034</ondown>
+				</control>
+
+				<!-- Sort: Date Added -->
+				<control type="button" id="8034">
+					<visible>Skin.HasSetting(sort_menu_open)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Date Added</label>
+					<onclick>Container.SetSortMethod(40)</onclick>
+					<!-- Newest first by default. Reading the direction in the same
+					     click as SetSortMethod is racy (stale state), so we ask the
+					     helper service to force descending on its next tick, once
+					     the new sort method has settled. -->
+					<onclick>Skin.SetString(sort_want,desc)</onclick>
+					<onclick>Skin.SetString(sort_active,dateadded)</onclick>
+					<onclick>Skin.Reset(sort_menu_open)</onclick>
+					<onclick>SetFocus(8002)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8033</onup>
+					<ondown>8035</ondown>
+				</control>
+
+				<!-- Sort: Last Played -->
+				<control type="button" id="8035">
+					<visible>Skin.HasSetting(sort_menu_open)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Last Played</label>
+					<onclick>Container.SetSortMethod(41)</onclick>
+					<!-- Most recent first by default (see Date Added note above). -->
+					<onclick>Skin.SetString(sort_want,desc)</onclick>
+					<onclick>Skin.SetString(sort_active,lastplayed)</onclick>
+					<onclick>Skin.Reset(sort_menu_open)</onclick>
+					<onclick>SetFocus(8002)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8034</onup>
+					<ondown>8003</ondown>
+				</control>
+
+				<control type="button" id="8003">
+					<width>380</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Direction: $VAR[SortDirectionLabel]</label>
+					<onclick>Skin.Reset(sort_want)</onclick>
+					<onclick>Container.SetSortDirection</onclick>
+					<onclick>SetFocus(8003)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8002</onup>
+					<ondown>8004</ondown>
+				</control>
+
+				<!-- ===== FILTER (collapsed) =====
+				     Single button that displays the current filter and toggles
+				     a sub-list with the native watched-status toggle (id 10)
+				     beneath it when filter_menu_open is set. The sub-button applies
+				     its filter, sets filter_active for the label, and collapses
+				     the sub-list. -->
+
+				<control type="button" id="8004">
+					<width>380</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Filter: $VAR[FilterStateLabel]</label>
+					<onclick>Skin.ToggleSetting(filter_menu_open)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8003</onup>
+					<ondown>10</ondown>
+				</control>
+
+				<!-- Watched status, NATIVE Kodi control. The video window owns
+				     id 10: clicking cycles All → Unwatched → Watched, Kodi
+				     rewrites the label with the current state, and the filter
+				     applies at every level (shows, seasons, episodes, movies)
+				     and persists per content type. Exactly what Estuary uses.
+				     The Skin.Reset clears any stale custom-filter indicator. -->
+				<control type="button" id="10">
+					<visible>Skin.HasSetting(filter_menu_open)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[20367]</label>
+					<!-- Picking a watched mode clears the Local Only filter so the
+					     Filter label reflects the watched state. -->
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8004</onup>
+					<ondown>8009</ondown>
+				</control>
+
+				<!-- View queue (only when something queued) -->
+				<control type="button" id="8009">
+					<visible>Integer.IsGreater(Playlist.Length(video),0)</visible>
+					<width>380</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>View Queue ($INFO[Playlist.Length(video)])</label>
+					<onclick>ActivateWindow(VideoPlaylist)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>10</onup>
+					<ondown>8499</ondown>
+				</control>
+
+				<!-- ===== LAYOUT ADJUST =====
+				     Live-tunable info-bar clearance. Toggle is always visible;
+				     the sliders + keypad-fallback buttons appear when on.
+				     service.py polls the slider values every 250 ms and
+				     writes Skin.String(infobar_clearance_top/bottom). The
+				     panel's <top>/<bottom> read those via $INFO[...] and
+				     re-render. Symmetric for both info-bar positions. -->
+
+				<control type="button" id="8499">
+					<width>380</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Layout Adjust</label>
+					<onclick>Skin.ToggleSetting(layout_adjust)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8009</onup>
+					<ondown>8507</ondown>
+				</control>
+
+				<!-- Thumbnail size cycle (mirrors SkinSettings 7220).
+				     Cycle: medium(unset) → small → large → xlarge → medium. -->
+				<control type="button" id="8507">
+					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<width>380</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Size: $VAR[GallerySizeLabel]</label>
+					<onclick condition="String.IsEmpty(Skin.String(gallery_size))">Skin.SetString(gallery_size,small)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(gallery_size),small)">Skin.SetString(gallery_size,large)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(gallery_size),large)">Skin.SetString(gallery_size,xlarge)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(gallery_size),xlarge)">Skin.Reset(gallery_size)</onclick>
+					<onclick>Container.Refresh</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8499</onup>
+					<ondown>8508</ondown>
+				</control>
+
+				<!-- Info bar position toggle (top vs bottom). -->
+				<control type="button" id="8508">
+					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<width>380</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Info Bar: $VAR[InfoBarPositionLabel]</label>
+					<onclick>Skin.ToggleSetting(infobar_top)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8507</onup>
+					<ondown>8509</ondown>
+				</control>
+
+				<!-- Poster ratio toggle. Tall (default) gives 1:1.95 boxes that
+				     absorb scale-cropping on near-2:3 art. Compact snaps to
+				     strict 2:3, shorter, for TVs with vertical overscan. -->
+				<control type="button" id="8509">
+					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<width>380</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Poster Shape: $VAR[PosterShapeLabel]</label>
+					<onclick>Skin.ToggleSetting(compact_posters)</onclick>
+					<onclick>Container.Refresh</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8508</onup>
+					<ondown>8500</ondown>
+				</control>
+
+				<!-- Top: − 10 px -->
+				<control type="button" id="8500">
+					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<width>380</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Top  −  10 px</label>
+					<onclick>Skin.SetString(layout_command,top_dec)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8509</onup>
+					<ondown>8502</ondown>
+				</control>
+
+				<!-- Top value display + keypad fallback -->
+				<control type="button" id="8502">
+					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<width>380</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Top: $INFO[Skin.String(infobar_clearance_top)] px · tap to type</label>
+					<onclick>Skin.SetNumeric(infobar_clearance_top)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8500</onup>
+					<ondown>8504</ondown>
+				</control>
+
+				<!-- Top: + 10 px -->
+				<control type="button" id="8504">
+					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<width>380</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Top  +  10 px</label>
+					<onclick>Skin.SetString(layout_command,top_inc)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8502</onup>
+					<ondown>8501</ondown>
+				</control>
+
+				<!-- Bottom: − 10 px -->
+				<control type="button" id="8501">
+					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<width>380</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Bottom  −  10 px</label>
+					<onclick>Skin.SetString(layout_command,bottom_dec)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8504</onup>
+					<ondown>8503</ondown>
+				</control>
+
+				<!-- Bottom value display + keypad fallback -->
+				<control type="button" id="8503">
+					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<width>380</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Bottom: $INFO[Skin.String(infobar_clearance_bottom)] px · tap to type</label>
+					<onclick>Skin.SetNumeric(infobar_clearance_bottom)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8501</onup>
+					<ondown>8505</ondown>
+				</control>
+
+				<!-- Bottom: + 10 px -->
+				<control type="button" id="8505">
+					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<width>380</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Bottom  +  10 px</label>
+					<onclick>Skin.SetString(layout_command,bottom_inc)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8503</onup>
+					<ondown>8506</ondown>
+				</control>
+
+				<!-- Small-gallery column count toggle (11 vs 12).
+				     Default unset = 12 (panel 1860 / 155). Set to 11 for
+				     TVs with overscan where the rightmost tile is clipped. -->
+				<control type="button" id="8506">
+					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<width>380</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Small Cols: $VAR[SmallColsLabel]</label>
+					<onclick condition="String.IsEqual(Skin.String(small_cols),11)">Skin.Reset(small_cols)</onclick>
+					<onclick condition="!String.IsEqual(Skin.String(small_cols),11)">Skin.SetString(small_cols,11)</onclick>
+					<onclick>Container.Refresh</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8505</onup>
+					<ondown>8008</ondown>
+				</control>
+
+				<!-- Close -->
+				<control type="button" id="8008">
+					<width>380</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Close</label>
+					<onclick>SetFocus(51)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8506</onup>
+					<ondown>8001</ondown>
+				</control>
+
+			</control>
+
+		</control>
+
+	</controls>
+</window>

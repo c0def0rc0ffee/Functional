@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Toast notification. Compact 640x150 panel. Position comes from
+  Skin.String(notification_position) via the NotificationPos X/Y variables,
+  which are computed for THIS box size, keep them in sync if you resize.
+-->
+<window type="dialog">
+	<animation effect="fade" time="200">WindowOpen</animation>
+	<animation effect="fade" time="200">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>$VAR[NotificationPosX]</posx>
+		<posy>$VAR[NotificationPosY]</posy>
+	</coordinates>
+	<controls>
+
+		<!-- Panel -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>640</width>
+			<height>150</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+		<!-- Accent strip -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>640</width>
+			<height>4</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Icon -->
+		<control type="image" id="401">
+			<left>24</left>
+			<top>40</top>
+			<width>70</width>
+			<height>70</height>
+			<aspectratio>keep</aspectratio>
+		</control>
+
+		<!-- Heading -->
+		<control type="label" id="402">
+			<left>110</left>
+			<top>20</top>
+			<width>506</width>
+			<height>36</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<label></label>
+		</control>
+
+		<!-- Body, wraps over multiple lines -->
+		<control type="textbox" id="403">
+			<left>110</left>
+			<top>58</top>
+			<width>506</width>
+			<height>80</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+		</control>
+
+	</controls>
+</window>

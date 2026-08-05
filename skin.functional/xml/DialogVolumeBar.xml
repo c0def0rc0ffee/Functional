@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window type="dialog">
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>660</posx>
+		<posy>900</posy>
+	</coordinates>
+	<controls>
+
+		<!-- Panel -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>600</width>
+			<height>100</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+		<!-- Top accent stripe -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>600</width>
+			<height>3</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Heading: shows "Volume" or "Muted" -->
+		<control type="label">
+			<left>20</left>
+			<top>0</top>
+			<width>140</width>
+			<height>100</height>
+			<font>font_reg</font>
+			<aligny>center</aligny>
+			<textcolor>text</textcolor>
+			<label>Volume</label>
+			<visible>!Player.Muted</visible>
+		</control>
+		<control type="label">
+			<left>20</left>
+			<top>0</top>
+			<width>140</width>
+			<height>100</height>
+			<font>font_reg</font>
+			<aligny>center</aligny>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>Muted</label>
+			<visible>Player.Muted</visible>
+		</control>
+
+		<!-- Slider (id 12), Kodi-populated -->
+		<control type="slider" id="12">
+			<left>160</left>
+			<top>40</top>
+			<width>340</width>
+			<height>20</height>
+			<orientation>horizontal</orientation>
+			<texturesliderbar colordiffuse="grey_mid">white.png</texturesliderbar>
+			<textureslidernib colordiffuse="white">slider_nib.png</textureslidernib>
+			<textureslidernibfocus colordiffuse="accent_hi">slider_nib.png</textureslidernibfocus>
+		</control>
+
+		<!-- Numeric readout (Kodi reports Player.Volume as dB, e.g. "-6.0 dB") -->
+		<control type="label">
+			<right>20</right>
+			<top>0</top>
+			<width>80</width>
+			<height>100</height>
+			<font>font_reg</font>
+			<align>right</align>
+			<aligny>center</aligny>
+			<textcolor>text</textcolor>
+			<label>$INFO[Player.Volume]</label>
+		</control>
+
+	</controls>
+</window>

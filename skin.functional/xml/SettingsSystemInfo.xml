@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  System Info window (id 7).
+
+  Category buttons MUST use the hardcoded IDs Kodi expects:
+    95 = Summary (default focus)
+    94 = Storage
+    96 = Network
+    97 = Video
+    98 = Hardware
+    99 = PVR
+   100 = Privacy policy (uses textbox 30)
+   101 = Thank you (uses group 102)
+
+  Info content slots:
+    label  ids 2..13  -> Kodi fills each line based on focused category
+    textbox id 30     -> long-form text (privacy policy)
+    group   id 102    -> donate / thank-you panel
+-->
+<window>
+	<defaultcontrol always="true">95</defaultcontrol>
+	<controls>
+		<include content="WindowBackground"/>
+		<include content="HeaderBar">
+			<param name="title" value="     System Info"/>
+		</include>
+
+		<!-- Logo in header -->
+		<control type="image">
+			<left>20</left>
+			<top>5</top>
+			<width>80</width>
+			<height>80</height>
+			<aspectratio>keep</aspectratio>
+			<texture>logo.png</texture>
+		</control>
+
+		<!-- ===== LEFT: CATEGORY NAV ===== -->
+		<control type="grouplist" id="9000">
+			<left>40</left>
+			<top>120</top>
+			<width>360</width>
+			<height>800</height>
+			<itemgap>4</itemgap>
+			<orientation>vertical</orientation>
+			<onright>9100</onright>
+
+			<control type="button" id="95">
+				<width>360</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[20037]</label>
+				<onright>9100</onright>
+			</control>
+			<control type="button" id="94">
+				<width>360</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[13277]</label>
+				<onright>9100</onright>
+			</control>
+			<control type="button" id="96">
+				<width>360</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[13279]</label>
+				<onright>9100</onright>
+			</control>
+			<control type="button" id="97">
+				<width>360</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[13280]</label>
+				<onright>9100</onright>
+			</control>
+			<control type="button" id="98">
+				<width>360</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[13281]</label>
+				<onright>9100</onright>
+			</control>
+			<control type="button" id="99">
+				<width>360</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[19191]</label>
+				<onright>9100</onright>
+			</control>
+			<control type="button" id="100">
+				<width>360</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[12389]</label>
+				<onright>9100</onright>
+			</control>
+			<control type="button" id="101">
+				<width>360</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[12396]</label>
+				<onright>9100</onright>
+			</control>
+		</control>
+
+		<!-- ===== RIGHT: INFO PANEL ===== -->
+		<!-- Heading: focused category label -->
+		<control type="label">
+			<left>440</left>
+			<top>120</top>
+			<width>1400</width>
+			<height>50</height>
+			<font>font_med</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>$INFO[Container(9000).ListItem.Label]</label>
+		</control>
+		<control type="image">
+			<left>440</left>
+			<top>166</top>
+			<width>1400</width>
+			<height>2</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Kodi-populated info lines (labels 2..13). -->
+		<control type="grouplist" id="9100">
+			<left>440</left>
+			<top>190</top>
+			<width>1400</width>
+			<height>720</height>
+			<itemgap>4</itemgap>
+			<orientation>vertical</orientation>
+			<onleft>9000</onleft>
+
+			<control type="label" id="2">
+				<width>1400</width>
+				<height>44</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+			</control>
+			<control type="label" id="3">
+				<width>1400</width>
+				<height>44</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+			</control>
+			<control type="label" id="4">
+				<width>1400</width>
+				<height>44</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+			</control>
+			<control type="label" id="5">
+				<width>1400</width>
+				<height>44</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+			</control>
+			<control type="label" id="6">
+				<width>1400</width>
+				<height>44</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+			</control>
+			<control type="label" id="7">
+				<width>1400</width>
+				<height>44</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+			</control>
+			<control type="label" id="8">
+				<width>1400</width>
+				<height>44</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+			</control>
+			<control type="label" id="9">
+				<width>1400</width>
+				<height>44</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+			</control>
+			<control type="label" id="10">
+				<width>1400</width>
+				<height>44</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+			</control>
+			<control type="label" id="11">
+				<width>1400</width>
+				<height>44</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+			</control>
+			<control type="label" id="12">
+				<width>1400</width>
+				<height>44</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+			</control>
+			<control type="label" id="13">
+				<width>1400</width>
+				<height>44</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+			</control>
+		</control>
+
+		<!-- Privacy-policy textbox (Kodi fills with the policy text). -->
+		<control type="textbox" id="30">
+			<left>440</left>
+			<top>190</top>
+			<width>1400</width>
+			<height>820</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<visible>Control.IsVisible(100) | ControlGroup(9000).HasFocus(100)</visible>
+		</control>
+
+		<!-- Footer: build line -->
+		<control type="label">
+			<left>40</left>
+			<bottom>30</bottom>
+			<width>1840</width>
+			<height>40</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<label>$INFO[System.BuildVersion]   ·   $INFO[System.BuildDate]</label>
+		</control>
+
+	</controls>
+</window>

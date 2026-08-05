@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<includes>
+
+	<default type="label">
+		<font>font_reg</font>
+		<textcolor>text</textcolor>
+		<align>left</align>
+		<aligny>center</aligny>
+	</default>
+
+	<default type="button">
+		<height>60</height>
+		<width>400</width>
+		<font>font_reg</font>
+		<textcolor>text</textcolor>
+		<focusedcolor>white</focusedcolor>
+		<disabledcolor>disabled</disabledcolor>
+		<align>left</align>
+		<aligny>center</aligny>
+		<textoffsetx>20</textoffsetx>
+		<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+		<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+	</default>
+
+	<default type="togglebutton">
+		<height>60</height>
+		<width>400</width>
+		<font>font_reg</font>
+		<textcolor>text</textcolor>
+		<focusedcolor>white</focusedcolor>
+		<align>left</align>
+		<aligny>center</aligny>
+		<textoffsetx>20</textoffsetx>
+		<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+		<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+	</default>
+
+	<default type="radiobutton">
+		<height>60</height>
+		<width>600</width>
+		<font>font_reg</font>
+		<textcolor>text</textcolor>
+		<focusedcolor>white</focusedcolor>
+		<align>left</align>
+		<aligny>center</aligny>
+		<textoffsetx>20</textoffsetx>
+		<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+		<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+		<textureradioonfocus colordiffuse="white">white.png</textureradioonfocus>
+		<textureradioonnofocus colordiffuse="$VAR[AccentColor]">white.png</textureradioonnofocus>
+		<textureradioofffocus colordiffuse="grey">white.png</textureradioofffocus>
+		<textureradiooffnofocus colordiffuse="grey_dark">white.png</textureradiooffnofocus>
+	</default>
+
+	<default type="spincontrol">
+		<height>60</height>
+		<width>200</width>
+		<font>font_reg</font>
+		<textcolor>text</textcolor>
+		<align>center</align>
+		<aligny>center</aligny>
+	</default>
+
+	<default type="spincontrolex">
+		<height>60</height>
+		<width>600</width>
+		<font>font_reg</font>
+		<textcolor>text</textcolor>
+		<focusedcolor>white</focusedcolor>
+		<align>left</align>
+		<aligny>center</aligny>
+		<textoffsetx>20</textoffsetx>
+		<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+		<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+	</default>
+
+	<default type="edit">
+		<height>60</height>
+		<width>600</width>
+		<font>font_reg</font>
+		<textcolor>text</textcolor>
+		<focusedcolor>white</focusedcolor>
+		<align>left</align>
+		<aligny>center</aligny>
+		<textoffsetx>20</textoffsetx>
+		<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+		<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+	</default>
+
+	<default type="slider">
+		<height>28</height>
+		<width>400</width>
+		<orientation>horizontal</orientation>
+		<texturesliderbar colordiffuse="grey_mid">white.png</texturesliderbar>
+		<textureslidernib colordiffuse="white">slider_nib.png</textureslidernib>
+		<textureslidernibfocus colordiffuse="accent_hi">slider_nib.png</textureslidernibfocus>
+	</default>
+
+	<default type="sliderex">
+		<height>70</height>
+		<width>600</width>
+		<font>font_reg</font>
+		<textcolor>text</textcolor>
+		<focusedcolor>white</focusedcolor>
+		<align>left</align>
+		<aligny>center</aligny>
+		<textoffsetx>20</textoffsetx>
+		<sliderwidth>320</sliderwidth>
+		<sliderheight>20</sliderheight>
+		<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+		<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+		<texturesliderbar colordiffuse="40FFFFFF">white.png</texturesliderbar>
+		<textureslidernib colordiffuse="white">slider_nib.png</textureslidernib>
+		<textureslidernibfocus colordiffuse="accent_hi">slider_nib.png</textureslidernibfocus>
+	</default>
+
+	<default type="progress">
+		<height>20</height>
+		<width>400</width>
+		<texturebg colordiffuse="grey_mid">white.png</texturebg>
+		<lefttexture colordiffuse="$VAR[AccentColor]">white.png</lefttexture>
+		<midtexture colordiffuse="$VAR[AccentColor]">white.png</midtexture>
+		<righttexture colordiffuse="$VAR[AccentColor]">white.png</righttexture>
+		<overlaytexture>-</overlaytexture>
+	</default>
+
+	<default type="list">
+		<scrolltime tween="cubic" easing="out">200</scrolltime>
+	</default>
+
+	<default type="grouplist">
+		<scrolltime tween="cubic" easing="out">200</scrolltime>
+	</default>
+
+	<default type="image">
+		<aspectratio>keep</aspectratio>
+	</default>
+
+</includes>

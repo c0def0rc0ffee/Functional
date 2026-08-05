@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window type="dialog">
+	<defaultcontrol>3</defaultcontrol>
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>360</posx>
+		<posy>165</posy>
+	</coordinates>
+	<controls>
+
+		<!-- Backdrop dim, slightly less opaque so when stacked over another dialog the heading is still readable -->
+		<control type="image">
+			<left>-360</left>
+			<top>-165</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="80000000">white.png</texture>
+		</control>
+
+		<!-- Panel, solid colour so it stands out from anything underneath -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1200</width>
+			<height>750</height>
+			<texture colordiffuse="FF181C22">white.png</texture>
+		</control>
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1200</width>
+			<height>4</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+		<!-- Coloured border so the panel is clearly distinguishable from the parent dialog -->
+		<control type="image">
+			<left>0</left>
+			<bottom>0</bottom>
+			<width>1200</width>
+			<height>4</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Heading (id 1) -->
+		<control type="label" id="1">
+			<left>0</left>
+			<top>20</top>
+			<width>1200</width>
+			<height>50</height>
+			<font>font_med</font>
+			<align>center</align>
+			<textcolor>text</textcolor>
+			<label></label>
+		</control>
+
+		<!-- Empty-state message: shows when the active list has no items -->
+		<control type="label">
+			<left>20</left>
+			<top>90</top>
+			<width>880</width>
+			<height>640</height>
+			<font>font_med</font>
+			<align>center</align>
+			<aligny>center</aligny>
+			<textcolor>text_dim</textcolor>
+			<label>No items available</label>
+			<visible>Integer.IsEqual(Container(3).NumItems,0)</visible>
+		</control>
+
+		<!-- Main list (id 3) -->
+		<control type="list" id="3">
+			<left>20</left>
+			<top>90</top>
+			<width>880</width>
+			<height>640</height>
+			<onleft>9001</onleft>
+			<onright>9001</onright>
+			<onup>3</onup>
+			<ondown>3</ondown>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+			<pagecontrol>61</pagecontrol>
+
+			<itemlayout height="60" width="880">
+				<control type="label">
+					<left>30</left>
+					<top>0</top>
+					<width>700</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<right>30</right>
+					<top>0</top>
+					<width>120</width>
+					<height>60</height>
+					<font>font_small</font>
+					<align>right</align>
+					<aligny>center</aligny>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[ListItem.Label2]</label>
+				</control>
+			</itemlayout>
+
+			<focusedlayout height="60" width="880">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>880</width>
+					<height>60</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+					<visible>Control.HasFocus(3)</visible>
+				</control>
+				<control type="label">
+					<left>30</left>
+					<top>0</top>
+					<width>700</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<right>30</right>
+					<top>0</top>
+					<width>120</width>
+					<height>60</height>
+					<font>font_small</font>
+					<align>right</align>
+					<aligny>center</aligny>
+					<textcolor>white</textcolor>
+					<label>$INFO[ListItem.Label2]</label>
+				</control>
+			</focusedlayout>
+		</control>
+
+		<!-- Alternate list view (id 6) -->
+		<control type="list" id="6">
+			<left>20</left>
+			<top>90</top>
+			<width>880</width>
+			<height>640</height>
+			<onleft>9001</onleft>
+			<onright>9001</onright>
+			<onup>6</onup>
+			<ondown>6</ondown>
+			<pagecontrol>61</pagecontrol>
+
+			<itemlayout height="60" width="880">
+				<control type="label">
+					<left>30</left>
+					<top>0</top>
+					<width>820</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="60" width="880">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>880</width>
+					<height>60</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+					<visible>Control.HasFocus(6)</visible>
+				</control>
+				<control type="label">
+					<left>30</left>
+					<top>0</top>
+					<width>820</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</focusedlayout>
+		</control>
+
+		<!-- Scrollbar (id 61) -->
+		<control type="scrollbar" id="61">
+			<left>912</left>
+			<top>90</top>
+			<width>16</width>
+			<height>640</height>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>3</onleft>
+			<onright>9001</onright>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- Action buttons grouplist (id 9001), right column -->
+		<control type="grouplist" id="9001">
+			<left>950</left>
+			<top>90</top>
+			<width>230</width>
+			<height>640</height>
+			<orientation>vertical</orientation>
+			<itemgap>10</itemgap>
+			<onleft>61</onleft>
+			<onright>3</onright>
+
+			<!-- 5 = OK / Accept -->
+			<control type="button" id="5">
+				<width>230</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			</control>
+			<!-- 8 = Custom action (e.g. Add) -->
+			<control type="button" id="8">
+				<width>230</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>Control.IsEnabled(8)</visible>
+			</control>
+			<!-- 7 = Cancel -->
+			<control type="button" id="7">
+				<width>230</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			</control>
+		</control>
+
+	</controls>
+</window>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+	<defaultcontrol always="true">50</defaultcontrol>
+	<views>50</views>
+	<menucontrol>9000</menucontrol>
+	<controls>
+
+		<include content="MediaBrowseContent">
+			<param name="title" value="Add-ons"/>
+			<!-- Shift the list right of the 340-px sidebar (40..380 + 20 gap). -->
+			<param name="list_left" value="400"/>
+			<param name="list_width" value="760"/>
+		</include>
+
+		<!-- ===== ADDON BROWSER SIDEBAR (id 9000) =====
+		     Kodi populates these specific control IDs:
+		       7  = Hide foreign-language add-ons (radiobutton)
+		       8  = Hide incompatible add-ons (radiobutton)
+		       9  = Check for updates (button)
+		       5  = Add-on settings (button)
+		     Each is gated by Control.IsEnabled so Kodi can show/hide as relevant. -->
+		<control type="grouplist" id="9000">
+			<left>40</left>
+			<top>120</top>
+			<width>340</width>
+			<height>820</height>
+			<itemgap>8</itemgap>
+			<orientation>vertical</orientation>
+			<onleft>9000</onleft>
+			<onright>50</onright>
+
+			<control type="radiobutton" id="7">
+				<width>340</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">white.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">white.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="grey">white.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_dark">white.png</textureradiooffnofocus>
+				<label>Hide foreign</label>
+				<visible>Control.IsEnabled(7)</visible>
+			</control>
+
+			<control type="radiobutton" id="8">
+				<width>340</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">white.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">white.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="grey">white.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_dark">white.png</textureradiooffnofocus>
+				<label>Hide incompatible</label>
+				<visible>Control.IsEnabled(8)</visible>
+			</control>
+
+			<control type="button" id="9">
+				<width>340</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Check for updates</label>
+			</control>
+
+			<control type="button" id="5">
+				<width>340</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Add-on settings</label>
+			</control>
+
+		</control>
+
+	</controls>
+</window>

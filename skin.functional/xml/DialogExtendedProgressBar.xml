@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window type="dialog">
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>1300</posx>
+		<posy>900</posy>
+	</coordinates>
+	<controls>
+
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>580</width>
+			<height>140</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+
+		<control type="group" id="900">
+			<left>20</left>
+			<top>20</top>
+
+			<control type="label" id="30">
+				<left>0</left>
+				<top>0</top>
+				<width>540</width>
+				<height>30</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<label></label>
+			</control>
+			<control type="label" id="31">
+				<left>0</left>
+				<top>34</top>
+				<width>540</width>
+				<height>26</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label></label>
+			</control>
+			<control type="progress" id="32">
+				<left>0</left>
+				<top>70</top>
+				<width>540</width>
+				<height>20</height>
+			</control>
+
+		</control>
+
+	</controls>
+</window>

@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window type="dialog">
+	<defaultcontrol always="true">5</defaultcontrol>
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>160</posx>
+		<posy>80</posy>
+	</coordinates>
+	<controls>
+
+		<!-- Dim backdrop -->
+		<control type="image">
+			<left>-160</left>
+			<top>-80</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="C0000000">white.png</texture>
+		</control>
+
+		<!-- Panel -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1600</width>
+			<height>920</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1600</width>
+			<height>4</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Heading (Kodi populates id=2) -->
+		<control type="label" id="2">
+			<left>0</left>
+			<top>20</top>
+			<width>1600</width>
+			<height>50</height>
+			<font>font_med</font>
+			<align>center</align>
+			<textcolor>text</textcolor>
+			<label></label>
+		</control>
+
+		<!-- LEFT: category buttons (Kodi clones button id=10) -->
+		<control type="grouplist" id="3">
+			<left>40</left>
+			<top>90</top>
+			<width>400</width>
+			<height>700</height>
+			<itemgap>4</itemgap>
+			<orientation>vertical</orientation>
+			<usecontrolcoords>true</usecontrolcoords>
+			<onleft>9000</onleft>
+			<onright>5</onright>
+			<onup>3</onup>
+			<ondown>20</ondown>
+		</control>
+
+		<!-- Settings level toggle -->
+		<control type="button" id="20">
+			<left>40</left>
+			<top>800</top>
+			<width>400</width>
+			<height>60</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<onclick>SettingsLevelChange</onclick>
+			<onleft>20</onleft>
+			<onright>9000</onright>
+			<onup>3</onup>
+			<ondown>3</ondown>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+		</control>
+
+		<!-- RIGHT: settings controls grouplist (Kodi populates with cloned templates) -->
+		<control type="grouplist" id="5">
+			<left>480</left>
+			<top>90</top>
+			<width>1080</width>
+			<height>700</height>
+			<itemgap>10</itemgap>
+			<orientation>vertical</orientation>
+			<usecontrolcoords>true</usecontrolcoords>
+			<pagecontrol>60</pagecontrol>
+			<onleft>3</onleft>
+			<onright>60</onright>
+			<onup>5</onup>
+			<ondown>9000</ondown>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+		</control>
+
+		<!-- Description textbox -->
+		<control type="textbox" id="6">
+			<left>40</left>
+			<top>820</top>
+			<width>1100</width>
+			<height>50</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<align>justify</align>
+			<autoscroll time="3000" delay="5000" repeat="5000">true</autoscroll>
+		</control>
+
+		<!-- Scrollbar -->
+		<control type="scrollbar" id="60">
+			<left>1568</left>
+			<top>90</top>
+			<width>16</width>
+			<height>700</height>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>5</onleft>
+			<onright>9000</onright>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- Action buttons (OK / Cancel / Defaults) -->
+		<control type="grouplist" id="9000">
+			<left>1180</left>
+			<top>800</top>
+			<width>400</width>
+			<height>60</height>
+			<orientation>horizontal</orientation>
+			<itemgap>10</itemgap>
+			<align>right</align>
+			<onleft>20</onleft>
+			<onright>9000</onright>
+			<onup>5</onup>
+			<ondown>5</ondown>
+
+			<control type="button" id="28">
+				<width>120</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			</control>
+			<control type="button" id="29">
+				<width>120</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			</control>
+			<control type="button" id="30">
+				<width>140</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			</control>
+		</control>
+
+		<!-- ===== TEMPLATES (Kodi clones one of these per setting) ===== -->
+
+		<!-- Category button (left list). Empty texturenofocus = no background
+		     when unfocused (Kodi renders colordiffuse=00000000 as opaque white). -->
+		<control type="button" id="10">
+			<width>400</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus />
+		</control>
+
+		<!-- Default button setting -->
+		<control type="button" id="7">
+			<width>1080</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+		</control>
+
+		<!-- Default radiobutton setting -->
+		<control type="radiobutton" id="8">
+			<width>1080</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+			<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+			<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+			<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+		</control>
+
+		<!-- Default spincontrolex setting -->
+		<control type="spincontrolex" id="9">
+			<width>1080</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+		</control>
+
+		<!-- Separator -->
+		<control type="image" id="11">
+			<width>1080</width>
+			<height>2</height>
+			<texture colordiffuse="grey_mid">white.png</texture>
+		</control>
+
+		<!-- Edit (text input) -->
+		<control type="edit" id="12">
+			<width>1080</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+		</control>
+
+		<!-- Default sliderex setting -->
+		<control type="sliderex" id="13">
+			<width>1080</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+		</control>
+
+		<!-- Group label -->
+		<control type="label" id="14">
+			<width>1080</width>
+			<height>50</height>
+			<font>font_med</font>
+			<textcolor>accent_hi</textcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+		</control>
+
+		<!-- Color picker -->
+		<control type="colorbutton" id="15">
+			<width>1080</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+		</control>
+
+	</controls>
+</window>

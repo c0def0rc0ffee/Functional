@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<colors>
+	<color name="white">FFFFFFFF</color>
+	<color name="black">FF000000</color>
+	<color name="grey">FF808080</color>
+	<color name="grey_dark">FF202020</color>
+	<color name="grey_mid">FF3A3A3A</color>
+	<color name="accent">FF1E88E5</color>
+	<color name="accent_hi">FF42A5F5</color>
+	<color name="text">FFE8E8E8</color>
+	<color name="text_dim">FFB0B0B0</color>
+	<color name="bg">FF101418</color>
+	<color name="bg_panel">CC181C22</color>
+	<color name="selected">FF1E88E5</color>
+	<color name="disabled">66FFFFFF</color>
+</colors>

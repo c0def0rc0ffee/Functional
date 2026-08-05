@@ -1,0 +1,1061 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<includes>
+
+	<!-- Variables -->
+	<variable name="PlayPauseLabel">
+		<value condition="Player.Paused">▶</value>
+		<value>⏸</value>
+	</variable>
+
+	<variable name="SortDirectionLabel">
+		<value condition="Container.SortDirection(ascending)">↑ Asc</value>
+		<value condition="Container.SortDirection(descending)">↓ Desc</value>
+		<value condition="String.IsEqual(Container.SortDirection,ascending)">↑ Asc</value>
+		<value condition="String.IsEqual(Container.SortDirection,descending)">↓ Desc</value>
+		<value condition="String.IsEqual(Container.SortDirection,asc)">↑ Asc</value>
+		<value condition="String.IsEqual(Container.SortDirection,desc)">↓ Desc</value>
+		<value>$INFO[Container.SortDirection,(,)]</value>
+	</variable>
+
+	<!-- ===== Background slideshow caption position =====
+	     Coordinates the slideshow label's anchor / alignment based on the
+	     user's chosen position. Six options including "off" which hides it. -->
+	<variable name="BgLabelLeft">
+		<value condition="String.IsEqual(Skin.String(bg_label_position),topleft)">60</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">0</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomleft)">60</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomright)">0</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomcenter)">0</value>
+		<value>60</value>
+	</variable>
+	<variable name="BgLabelTop">
+		<value condition="String.IsEqual(Skin.String(bg_label_position),topleft)">100</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">100</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomleft)">980</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomright)">980</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomcenter)">980</value>
+		<value>980</value>
+	</variable>
+	<variable name="BgLabelAlign">
+		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">right</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomright)">right</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomcenter)">center</value>
+		<value>left</value>
+	</variable>
+	<variable name="BgLabelPositionLabel">
+		<value condition="String.IsEqual(Skin.String(bg_label_position),topleft)">Top Left</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">Top Right</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomleft)">Bottom Left</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomright)">Bottom Right</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomcenter)">Bottom Centre</value>
+		<value>Off</value>
+	</variable>
+
+	<!-- Unified background mode, one mutually-exclusive selector so the
+	     static image and slideshow can never override each other.
+	     Empty = Off. -->
+	<variable name="BgModeLabel">
+		<value condition="String.IsEqual(Skin.String(bg_mode),image)">Static Image</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),recent)">Slideshow: Recently Watched</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),random)">Slideshow: Random Library</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),folder)">Slideshow: Folder</value>
+		<value>Off</value>
+	</variable>
+
+	<!-- Slideshow interval in milliseconds, for the folder multiimage control
+	     (which counts in ms). Mirrors the seconds presets below. -->
+	<variable name="BgSlideshowMs">
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),10)">10000</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),30)">30000</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),60)">60000</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),120)">120000</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),300)">300000</value>
+		<value>20000</value>
+	</variable>
+
+	<!-- Background slideshow rotate interval (seconds); cycle through presets -->
+	<variable name="BgSlideshowIntervalLabel">
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),10)">10s</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),30)">30s</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),60)">1 min</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),120)">2 min</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),300)">5 min</value>
+		<value>20s</value>
+	</variable>
+
+	<!-- Pretty resolution label for the currently-playing item (used by VideoOSD) -->
+	<variable name="OsdResolutionLabel">
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,2160)">4K</value>
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,1080)">1080p</value>
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,720)">720p</value>
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,576)">576p</value>
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,480)">480p</value>
+		<value condition="!String.IsEmpty(VideoPlayer.VideoResolution)">$INFO[VideoPlayer.VideoResolution]p</value>
+		<value></value>
+	</variable>
+
+	<!-- Pretty resolution label (ListItem.VideoResolution returns 480/720/1080/2160) -->
+	<variable name="ItemResolutionLabel">
+		<value condition="String.IsEqual(ListItem.VideoResolution,2160)">4K</value>
+		<value condition="String.IsEqual(ListItem.VideoResolution,1080)">1080p</value>
+		<value condition="String.IsEqual(ListItem.VideoResolution,720)">720p</value>
+		<value condition="String.IsEqual(ListItem.VideoResolution,480)">480p</value>
+		<value condition="!String.IsEmpty(ListItem.VideoResolution)">$INFO[ListItem.VideoResolution]p</value>
+		<value></value>
+	</variable>
+
+	<!-- Toggleable info-bar fields. Most use hide_X (visible by default).
+	     show_filesize and show_lastplayed are off by default. -->
+	<variable name="ItemGenreLabel">
+		<value condition="!Skin.HasSetting(hide_genre) + !String.IsEmpty(ListItem.Genre)">$INFO[ListItem.Genre]</value>
+		<value></value>
+	</variable>
+	<variable name="ItemDurationLabel">
+		<value condition="!Skin.HasSetting(hide_duration) + !String.IsEmpty(ListItem.Duration)"> · $INFO[ListItem.Duration]</value>
+		<value></value>
+	</variable>
+	<variable name="ItemEndsAtLabel">
+		<value condition="!Skin.HasSetting(hide_endsat) + !String.IsEmpty(Window(home).Property(focused_finish_time))"> · Ends at $INFO[Window(home).Property(focused_finish_time)]</value>
+		<value></value>
+	</variable>
+	<variable name="ItemStarRatingLabel">
+		<value condition="!Skin.HasSetting(hide_rating) + !String.IsEmpty(ListItem.Rating)"> · ★ $INFO[ListItem.Rating]</value>
+		<value></value>
+	</variable>
+	<variable name="ItemMPAALabel">
+		<value condition="!Skin.HasSetting(hide_mpaa) + !String.IsEmpty(ListItem.MPAA)"> · $INFO[ListItem.MPAA]</value>
+		<value></value>
+	</variable>
+	<variable name="ItemResolutionLabelGated">
+		<value condition="!Skin.HasSetting(hide_resolution) + !String.IsEmpty(ListItem.VideoResolution)"> · $VAR[ItemResolutionLabel]</value>
+		<value></value>
+	</variable>
+
+	<!-- Override label for the small-gallery column count toggle.
+	     Default 12 columns (panel-width / 155 = 12). Some TVs with overscan
+	     prefer 11 (panel-width / 169 ≈ 11). -->
+	<variable name="SmallColsLabel">
+		<value condition="String.IsEqual(Skin.String(small_cols),11)">11</value>
+		<value>12</value>
+	</variable>
+
+	<!-- Info bar position label (left-menu mirror of SkinSettings 7200). -->
+	<variable name="InfoBarPositionLabel">
+		<value condition="Skin.HasSetting(infobar_top)">Top</value>
+		<value>Bottom</value>
+	</variable>
+
+	<!-- Poster shape: Tall (default) absorbs scale-crop on 2:3 art;
+	     Compact uses strict 2:3 for TVs whose overscan clips bottom. -->
+	<variable name="PosterShapeLabel">
+		<value condition="Skin.HasSetting(compact_posters)">Compact (2:3)</value>
+		<value>Tall</value>
+	</variable>
+
+	<!-- Dim level for the video-playing backdrop behind the video
+	     settings dialog. Stored as a 0-100 string; the variable maps
+	     to a 0xAA000000 alpha byte. 0 = no dim (video at full
+	     brightness), 100 = solid black. -->
+	<variable name="VideoDimColor">
+		<value condition="String.IsEqual(Skin.String(video_dim),0)">00000000</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),25)">40000000</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),50)">80000000</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),90)">E5000000</value>
+		<value>C0000000</value>
+	</variable>
+	<variable name="VideoDimLabel">
+		<value condition="String.IsEqual(Skin.String(video_dim),0)">Off</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),25)">25 %</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),50)">50 %</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),90)">90 %</value>
+		<value>75 % (default)</value>
+	</variable>
+
+	<!-- Idle (no-focus) colordiffuse for the home round buttons.
+	     Kodi renders colordiffuse=00000000 as opaque white (alpha-0
+	     quirk seen elsewhere), which incidentally gives the cleanest
+	     icon look, so that's the default. The "hide" setting swaps
+	     in FF181C22 (the home-panel bg colour) which blends the disc
+	     into the background, leaving the focused-only reveal effect. -->
+	<variable name="HomeRoundButtonIdleColor">
+		<value condition="Skin.HasSetting(hide_round_buttons)">FF181C22</value>
+		<value>00000000</value>
+	</variable>
+
+	<!-- Active filter label for the collapsed Filter button on MyVideoNav side menu -->
+	<!-- Filter button label mirrors the native watched-status toggle
+	     (control 10), whose label Kodi keeps in sync as
+	     "All Videos / Unwatched / Watched". -->
+	<variable name="FilterStateLabel">
+		<value>$INFO[Control.GetLabel(10)]</value>
+	</variable>
+
+	<!-- Pre-baked conditional slide animations for the gallery / list panels.
+	     One animation per discrete clearance value (0, 10, ..., 250 px).
+	     Whichever value the Skin.String currently equals, that animation
+	     activates and translates the panel by that many pixels. Bypasses
+	     a build-specific bug where $INFO substitution doesn't evaluate live
+	     in panel coordinate attributes. Used via <include content="ClearanceAnimations"/>. -->
+	<include name="ClearanceAnimations">
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),0)" end="0,0" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),10)" end="0,10" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),20)" end="0,20" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),30)" end="0,30" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),40)" end="0,40" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),50)" end="0,50" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),60)" end="0,60" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),70)" end="0,70" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),80)" end="0,80" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),90)" end="0,90" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),100)" end="0,100" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),110)" end="0,110" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),120)" end="0,120" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),130)" end="0,130" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),140)" end="0,140" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),150)" end="0,150" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),160)" end="0,160" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),170)" end="0,170" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),180)" end="0,180" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),190)" end="0,190" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),200)" end="0,200" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),210)" end="0,210" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),220)" end="0,220" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),230)" end="0,230" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),240)" end="0,240" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),250)" end="0,250" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),0)" end="0,0" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),10)" end="0,-10" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),20)" end="0,-20" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),30)" end="0,-30" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),40)" end="0,-40" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),50)" end="0,-50" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),60)" end="0,-60" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),70)" end="0,-70" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),80)" end="0,-80" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),90)" end="0,-90" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),100)" end="0,-100" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),110)" end="0,-110" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),120)" end="0,-120" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),130)" end="0,-130" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),140)" end="0,-140" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),150)" end="0,-150" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),160)" end="0,-160" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),170)" end="0,-170" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),180)" end="0,-180" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),190)" end="0,-190" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),200)" end="0,-200" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),210)" end="0,-210" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),220)" end="0,-220" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),230)" end="0,-230" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),240)" end="0,-240" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),250)" end="0,-250" reversible="true">Conditional</animation>
+	</include>
+
+
+	<!-- Title suffix: TV episode shows first air date, movies show year -->
+	<variable name="ItemTitleSuffix">
+		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.Premiered)"> · Aired $INFO[ListItem.Premiered]</value>
+		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.FirstAired)"> · Aired $INFO[ListItem.FirstAired]</value>
+		<value condition="!String.IsEmpty(ListItem.Year)"> ($INFO[ListItem.Year])</value>
+		<value></value>
+	</variable>
+
+	<!-- Date label for info dialog: air date for episodes, year for everything else -->
+	<variable name="InfoDateLabel">
+		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.Premiered)">Aired $INFO[ListItem.Premiered]</value>
+		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.FirstAired)">Aired $INFO[ListItem.FirstAired]</value>
+		<value>$INFO[ListItem.Year]</value>
+	</variable>
+
+	<!-- Notification placement (notification dialog 460x140; screen 1920x1080)
+	     Setting: notification_position = tl | tc | tr | bl | bc | br (default br)
+	     Centre x: (1920-460)/2 = 730 -->
+	<!-- Notification position for a 640x150 box on a 1920x1080 screen,
+	     40px margins: left=40, centre=(1920-640)/2=640, right=1920-640-40=1240;
+	     top=40, bottom=1080-150-40=890. -->
+	<variable name="NotificationPosX">
+		<value condition="String.IsEqual(Skin.String(notification_position),tl)">40</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),bl)">40</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),tc)">640</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),bc)">640</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),tr)">1240</value>
+		<value>1240</value>
+	</variable>
+	<variable name="NotificationPosY">
+		<value condition="String.IsEqual(Skin.String(notification_position),tl)">40</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),tc)">40</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),tr)">40</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),bl)">890</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),bc)">890</value>
+		<value>890</value>
+	</variable>
+	<!-- Home background dim overlay (alpha-on-black) -->
+	<variable name="BgOverlayColor">
+		<value condition="String.IsEqual(Skin.String(bg_dim),0)">00000000</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),25)">40000000</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),50)">80000000</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),75)">C0000000</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),90)">E6000000</value>
+		<value>A0000000</value>
+	</variable>
+	<!-- Same dim levels expressed as an image brightness multiplier, for the
+	     folder multiimage (dimmed via colordiffuse rather than a separate
+	     overlay, which doesn't reliably sit over a background multiimage). -->
+	<variable name="BgImageDiffuse">
+		<value condition="String.IsEqual(Skin.String(bg_dim),0)">FFFFFFFF</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),25)">FFBFBFBF</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),50)">FF808080</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),75)">FF404040</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),90)">FF1A1A1A</value>
+		<value>FF666666</value>
+	</variable>
+	<variable name="BgDimLabel">
+		<value condition="String.IsEqual(Skin.String(bg_dim),0)">0% (none)</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),25)">25%</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),50)">50%</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),75)">75%</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),90)">90%</value>
+		<value>60% (default)</value>
+	</variable>
+
+	<!-- Video OSD vertical position -->
+	<variable name="OsdPositionLabel">
+		<value condition="String.IsEqual(Skin.String(osd_position),top)">Top</value>
+		<value>Bottom</value>
+	</variable>
+
+	<!-- Applied to VideoOSD's wrapper group (via include condition, i.e. at
+	     skin load) when osd_position=top: shifts the bottom-anchored 190px
+	     panel to the top of the screen. Explicit height keeps the group the
+	     full 1080 so the children's <bottom> anchors are unaffected. -->
+	<include name="OsdTopModeShift">
+		<top>-890</top>
+		<height>1080</height>
+	</include>
+
+	<!-- Default category the Favourites screen opens on -->
+	<variable name="FavDefaultCategoryLabel">
+		<value condition="String.IsEqual(Skin.String(fav_default_category),movies)">Movies</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),tvshows)">TV</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),music)">Music</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),apps)">Apps</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),other)">Other</value>
+		<value>All</value>
+	</variable>
+
+<!-- Main menu vertical position on home -->
+	<variable name="MainMenuTop">
+		<value condition="String.IsEqual(Skin.String(menu_position),top)">220</value>
+		<value condition="String.IsEqual(Skin.String(menu_position),bottom)">800</value>
+		<value>480</value>
+	</variable>
+	<variable name="MainMenuPositionLabel">
+		<value condition="String.IsEqual(Skin.String(menu_position),top)">Top</value>
+		<value condition="String.IsEqual(Skin.String(menu_position),bottom)">Bottom</value>
+		<value>Centre</value>
+	</variable>
+
+	<variable name="NotificationPositionLabel">
+		<value condition="String.IsEqual(Skin.String(notification_position),tl)">Top Left</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),tc)">Top Centre</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),tr)">Top Right</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),bl)">Bottom Left</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),bc)">Bottom Centre</value>
+		<value>Bottom Right</value>
+	</variable>
+	<!-- ItemSizeLabel removed; see PROJECT_NOTES "Focused-item file size". -->
+	<variable name="ItemSizeLabel">
+		<value></value>
+	</variable>
+	<variable name="ItemLastPlayedLabel">
+		<value condition="Skin.HasSetting(show_lastplayed) + !String.IsEmpty(ListItem.LastPlayed)"> · Played $INFO[ListItem.LastPlayed]</value>
+		<value></value>
+	</variable>
+
+	<variable name="UnwatchedFilterLabel">
+		<value condition="!String.IsEmpty(Container.Filter)">Unwatched</value>
+		<value>All</value>
+	</variable>
+
+	<!-- Configurable accent colour (Skin.String(accent_color)) -->
+	<variable name="AccentColor">
+		<value condition="String.IsEqual(Skin.String(accent_color),red)">FFE53935</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),green)">FF43A047</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),orange)">FFFB8C00</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),purple)">FF8E24AA</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),teal)">FF00897B</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),pink)">FFEC407A</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),amber)">FFFFB300</value>
+		<value>FF1E88E5</value>
+	</variable>
+	<variable name="QueueCountLabel">
+		<value condition="Integer.IsGreater(Playlist.Length(video),0)">Queue ($INFO[Playlist.Length(video)])</value>
+		<value condition="Integer.IsGreater(Playlist.Length(music),0)">Queue ($INFO[Playlist.Length(music)])</value>
+		<value>Queue</value>
+	</variable>
+
+	<variable name="AccentColorLabel">
+		<value condition="String.IsEqual(Skin.String(accent_color),red)">Red</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),green)">Green</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),orange)">Orange</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),purple)">Purple</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),teal)">Teal</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),pink)">Pink</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),amber)">Amber</value>
+		<value>Blue</value>
+	</variable>
+
+	<!-- Solid color textures via diffuse -->
+	<include name="SolidBG">
+		<texture colordiffuse="bg">white.png</texture>
+	</include>
+
+	<!-- ===== Gallery view tile content =====
+	     Used by MyVideoNav's panel; called once per size variant from inside
+	     conditional <itemlayout>/<focusedlayout> blocks. Pass poster_w/h
+	     matching the outer tile (which has a 4px margin all round). -->
+	<variable name="GallerySizeLabel">
+		<value condition="String.IsEqual(Skin.String(gallery_size),small)">Small</value>
+		<value condition="String.IsEqual(Skin.String(gallery_size),large)">Large</value>
+		<value condition="String.IsEqual(Skin.String(gallery_size),xlarge)">Extra Large</value>
+		<value>Medium</value>
+	</variable>
+
+	<include name="GalleryTileBody">
+		<param name="poster_w">200</param>
+		<param name="poster_h">300</param>
+		<definition>
+			<control type="image">
+				<left>4</left>
+				<top>4</top>
+				<width>$PARAM[poster_w]</width>
+				<height>$PARAM[poster_h]</height>
+				<aspectratio>scale</aspectratio>
+				<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+			</control>
+			<!-- Items without poster art (add-on / plugin menu entries) get a
+			     name label so the tile isn't a blank square. Library items with
+			     posters stay clean. Shows the icon above the name when present. -->
+			<control type="image">
+				<left>4</left>
+				<top>4</top>
+				<width>$PARAM[poster_w]</width>
+				<height>$PARAM[poster_h]</height>
+				<texture colordiffuse="bg_panel">white.png</texture>
+				<visible>String.IsEmpty(ListItem.Art(poster))</visible>
+			</control>
+			<control type="image">
+				<centerleft>50%</centerleft>
+				<top>18</top>
+				<width>$PARAM[poster_w]</width>
+				<height>72</height>
+				<aspectratio>keep</aspectratio>
+				<texture fallback="DefaultAddon.png">$INFO[ListItem.Icon]</texture>
+				<visible>String.IsEmpty(ListItem.Art(poster))</visible>
+			</control>
+			<control type="label">
+				<left>8</left>
+				<top>100</top>
+				<width>$PARAM[poster_w]</width>
+				<height>180</height>
+				<font>font_small</font>
+				<textcolor>text</textcolor>
+				<align>center</align>
+				<aligny>top</aligny>
+				<label>$INFO[ListItem.Label]</label>
+				<wrapmultiline>true</wrapmultiline>
+				<visible>String.IsEmpty(ListItem.Art(poster))</visible>
+			</control>
+			<!-- Watched corner-triangle badge -->
+			<control type="image">
+				<right>4</right>
+				<top>4</top>
+				<width>64</width>
+				<height>64</height>
+				<aspectratio>stretch</aspectratio>
+				<texture colordiffuse="$VAR[AccentColor]">corner_triangle.png</texture>
+				<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
+			</control>
+			<control type="label">
+				<right>10</right>
+				<top>6</top>
+				<width>26</width>
+				<height>26</height>
+				<font>font_reg</font>
+				<textcolor>white</textcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<label>✓</label>
+				<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
+			</control>
+		</definition>
+	</include>
+
+	<include name="GalleryFocusedBody">
+		<param name="tile_w">208</param>
+		<param name="bg_h">308</param>
+		<param name="poster_w">200</param>
+		<param name="poster_h">300</param>
+		<definition>
+			<!-- Focused tile background (sits behind poster, clipped 4px shorter at bottom) -->
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>$PARAM[tile_w]</width>
+				<height>$PARAM[bg_h]</height>
+				<texture colordiffuse="accent_hi">white.png</texture>
+			</control>
+			<include content="GalleryTileBody">
+				<param name="poster_w" value="$PARAM[poster_w]"/>
+				<param name="poster_h" value="$PARAM[poster_h]"/>
+			</include>
+		</definition>
+	</include>
+
+	<!-- Window background -->
+	<include name="WindowBackground">
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="bg">white.png</texture>
+		</control>
+	</include>
+
+	<!-- Header bar at top -->
+	<include name="HeaderBar">
+		<param name="title" default="" />
+		<definition>
+			<control type="group">
+				<left>0</left>
+				<top>0</top>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>90</height>
+					<texture colordiffuse="bg_panel">white.png</texture>
+				</control>
+				<control type="label">
+					<left>60</left>
+					<top>0</top>
+					<width>1800</width>
+					<height>90</height>
+					<font>font_med</font>
+					<textcolor>text</textcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<label>$PARAM[title]</label>
+				</control>
+				<control type="label">
+					<right>60</right>
+					<top>0</top>
+					<width>600</width>
+					<height>90</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[System.Time]</label>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- A standard menu button used on Home -->
+	<include name="HomeMenuButton">
+		<param name="label" />
+		<param name="onclick" />
+		<param name="icon" default="" />
+		<definition>
+			<control type="button">
+				<width>240</width>
+				<height>120</height>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<label>$PARAM[label]</label>
+				<onclick>$PARAM[onclick]</onclick>
+			</control>
+		</definition>
+	</include>
+
+	<!-- Standard list item layout (used by lists) -->
+	<include name="ListItemLayout">
+		<itemlayout height="60" width="900">
+			<control type="label">
+				<left>20</left>
+				<top>0</top>
+				<width>860</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+				<label>$INFO[ListItem.Label]</label>
+			</control>
+		</itemlayout>
+		<focusedlayout height="60" width="900">
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>900</width>
+				<height>60</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				<visible>Control.HasFocus(50)</visible>
+			</control>
+			<control type="label">
+				<left>20</left>
+				<top>0</top>
+				<width>860</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+				<label>$INFO[ListItem.Label]</label>
+			</control>
+		</focusedlayout>
+	</include>
+
+	<!-- One column in the hourly forecast strip on MyWeather. -->
+	<include name="ForecastHour">
+		<param name="n" />
+		<definition>
+			<control type="group">
+				<width>210</width>
+				<height>160</height>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>210</width>
+					<height>160</height>
+					<texture colordiffuse="bg_panel">white.png</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>8</top>
+					<width>210</width>
+					<height>30</height>
+					<font>font_reg</font>
+					<align>center</align>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>$INFO[Window(Weather).Property(Hourly.$PARAM[n].ShortTime),,$INFO[Window(Weather).Property(Hourly.$PARAM[n].Time)]]</label>
+				</control>
+				<control type="image">
+					<centerleft>50%</centerleft>
+					<top>42</top>
+					<width>70</width>
+					<height>70</height>
+					<aspectratio>keep</aspectratio>
+					<texture>$INFO[Window(Weather).Property(Hourly.$PARAM[n].OutlookIcon)]</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>116</top>
+					<width>210</width>
+					<height>34</height>
+					<font>font_med</font>
+					<align>center</align>
+					<textcolor>text</textcolor>
+					<label>$INFO[Window(Weather).Property(Hourly.$PARAM[n].Temperature)]$INFO[System.TemperatureUnits]</label>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- One column in the 5-day forecast strip on MyWeather. -->
+	<include name="ForecastDay">
+		<param name="n" />
+		<definition>
+			<control type="group">
+				<width>340</width>
+				<height>320</height>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>340</width>
+					<height>320</height>
+					<texture colordiffuse="bg_panel">white.png</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>10</top>
+					<width>340</width>
+					<height>40</height>
+					<font>font_med</font>
+					<align>center</align>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>$INFO[Window(Weather).Property(Day$PARAM[n].Title)]</label>
+				</control>
+				<control type="image">
+					<centerleft>50%</centerleft>
+					<top>60</top>
+					<width>140</width>
+					<height>140</height>
+					<aspectratio>keep</aspectratio>
+					<texture>$INFO[Window(Weather).Property(Day$PARAM[n].OutlookIcon)]</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>210</top>
+					<width>340</width>
+					<height>40</height>
+					<font>font_reg</font>
+					<align>center</align>
+					<textcolor>text</textcolor>
+					<label>$INFO[Window(Weather).Property(Day$PARAM[n].Outlook)]</label>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>260</top>
+					<width>340</width>
+					<height>40</height>
+					<font>font_reg</font>
+					<align>center</align>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[Window(Weather).Property(Day$PARAM[n].HighTemp)]$INFO[System.TemperatureUnits] / $INFO[Window(Weather).Property(Day$PARAM[n].LowTemp)]$INFO[System.TemperatureUnits]</label>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- One full-screen folder slideshow instance. multiimage's timeperimage
+	     must be a literal int (it ignores $VAR/$INFO), so we instantiate one
+	     per interval preset and show only the one whose 'when' matches.
+	     'ms' = milliseconds per image, 'when' = the interval-match condition. -->
+	<include name="FolderSlideshow">
+		<param name="ms" />
+		<param name="when" />
+		<definition>
+			<control type="multiimage">
+				<left>0</left>
+				<top>0</top>
+				<width>1920</width>
+				<height>1080</height>
+				<aspectratio>scale</aspectratio>
+				<fadetime>800</fadetime>
+				<timeperimage>$PARAM[ms]</timeperimage>
+				<randomize>true</randomize>
+				<!-- Dim applied directly to the images (the separate overlay
+				     doesn't reliably cover a background multiimage). -->
+				<colordiffuse>$VAR[BgImageDiffuse]</colordiffuse>
+				<imagepath background="true">$INFO[Skin.String(bg_slideshow_dir)]</imagepath>
+				<visible>String.IsEqual(Skin.String(bg_mode),folder) + !String.IsEmpty(Skin.String(bg_slideshow_dir)) + [$PARAM[when]]</visible>
+			</control>
+		</definition>
+	</include>
+
+	<!-- One key in DialogKeyboard. For the character grid (IDs 100-112,
+	     120-132, 140-152, 160-172) leave label empty, Kodi's keyboard
+	     engine fills the glyph from the active layout and routes the click
+	     by control ID. Special keys (space/shift/etc.) pass their own
+	     static label since Kodi doesn't overwrite those. -->
+	<include name="KeyboardKey">
+		<param name="id" />
+		<param name="width" default="80" />
+		<param name="label" default="" />
+		<definition>
+			<control type="button" id="$PARAM[id]">
+				<width>$PARAM[width]</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$PARAM[label]</label>
+			</control>
+		</definition>
+	</include>
+
+	<!-- Generic browse window content area (header + list + footer) -->
+	<include name="MediaBrowseContent">
+		<param name="title" />
+		<param name="list_left" value="60" />
+		<param name="list_width" value="1100" />
+		<definition>
+			<include content="WindowBackground"/>
+			<include content="HeaderBar">
+				<param name="title" value="$PARAM[title]"/>
+			</include>
+
+			<!-- Main list -->
+			<control type="list" id="50">
+				<left>$PARAM[list_left]</left>
+				<top>120</top>
+				<width>$PARAM[list_width]</width>
+				<height>880</height>
+				<onleft>9000</onleft>
+				<onright>9000</onright>
+				<pagecontrol>60</pagecontrol>
+				<scrolltime tween="cubic" easing="out">200</scrolltime>
+				<itemlayout height="60" width="$PARAM[list_width]">
+					<control type="image">
+						<left>10</left>
+						<top>5</top>
+						<width>50</width>
+						<height>50</height>
+						<texture fallback="DefaultFolder.png">$INFO[ListItem.Icon]</texture>
+					</control>
+					<control type="label">
+						<left>80</left>
+						<top>0</top>
+						<width>800</width>
+						<height>60</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<control type="label">
+						<right>20</right>
+						<top>0</top>
+						<width>200</width>
+						<height>60</height>
+						<font>font_small</font>
+						<textcolor>text_dim</textcolor>
+						<align>right</align>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label2]</label>
+					</control>
+				</itemlayout>
+				<focusedlayout height="60" width="$PARAM[list_width]">
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>$PARAM[list_width]</width>
+						<height>60</height>
+						<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+						<visible>Control.HasFocus(50)</visible>
+					</control>
+					<control type="image">
+						<left>10</left>
+						<top>5</top>
+						<width>50</width>
+						<height>50</height>
+						<texture fallback="DefaultFolder.png">$INFO[ListItem.Icon]</texture>
+					</control>
+					<control type="label">
+						<left>80</left>
+						<top>0</top>
+						<width>800</width>
+						<height>60</height>
+						<font>font_reg</font>
+						<textcolor>white</textcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<control type="label">
+						<right>20</right>
+						<top>0</top>
+						<width>200</width>
+						<height>60</height>
+						<font>font_small</font>
+						<textcolor>white</textcolor>
+						<align>right</align>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label2]</label>
+					</control>
+				</focusedlayout>
+			</control>
+
+			<!-- Side info panel -->
+			<control type="group">
+				<left>1200</left>
+				<top>120</top>
+
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>660</width>
+					<height>880</height>
+					<texture colordiffuse="bg_panel">white.png</texture>
+				</control>
+
+				<control type="image">
+					<left>20</left>
+					<top>20</top>
+					<width>620</width>
+					<height>400</height>
+					<aspectratio>keep</aspectratio>
+					<texture background="true" fallback="DefaultFolder.png">$INFO[ListItem.Art(thumb)]</texture>
+				</control>
+
+				<control type="label">
+					<left>20</left>
+					<top>440</top>
+					<width>620</width>
+					<height>50</height>
+					<font>font_med</font>
+					<textcolor>text</textcolor>
+					<label>$INFO[ListItem.Label]</label>
+					<scroll>true</scroll>
+				</control>
+
+				<control type="textbox">
+					<left>20</left>
+					<top>500</top>
+					<width>620</width>
+					<height>360</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[ListItem.Plot]</label>
+				</control>
+
+			</control>
+
+			<!-- Page count overlay -->
+			<control type="label">
+				<left>60</left>
+				<bottom>20</bottom>
+				<width>600</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>$INFO[Container(50).CurrentPage] / $INFO[Container(50).NumPages] · $INFO[Container(50).NumItems] items</label>
+			</control>
+
+			<control type="scrollbar" id="60">
+				<left>1160</left>
+				<top>120</top>
+				<width>20</width>
+				<height>880</height>
+				<orientation>vertical</orientation>
+				<showonepage>false</showonepage>
+				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			</control>
+
+		</definition>
+	</include>
+
+	<!-- Settings list window content -->
+	<include name="SettingsListContent">
+		<param name="title" />
+		<definition>
+			<include content="WindowBackground"/>
+			<include content="HeaderBar">
+				<param name="title" value="$PARAM[title]"/>
+			</include>
+
+			<control type="list" id="50">
+				<left>60</left>
+				<top>120</top>
+				<width>1800</width>
+				<height>880</height>
+				<onleft>50</onleft>
+				<onright>50</onright>
+				<pagecontrol>60</pagecontrol>
+				<itemlayout height="80" width="1800">
+					<control type="label">
+						<left>40</left>
+						<top>0</top>
+						<width>1700</width>
+						<height>80</height>
+						<font>font_med</font>
+						<textcolor>text</textcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+				</itemlayout>
+				<focusedlayout height="80" width="1800">
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>1800</width>
+						<height>80</height>
+						<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+						<visible>Control.HasFocus(50)</visible>
+					</control>
+					<control type="label">
+						<left>40</left>
+						<top>0</top>
+						<width>1700</width>
+						<height>80</height>
+						<font>font_med</font>
+						<textcolor>white</textcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+				</focusedlayout>
+			</control>
+		</definition>
+	</include>
+
+	<!-- Standard dialog frame -->
+	<include name="DialogFrame">
+		<param name="width" default="800" />
+		<param name="height" default="400" />
+		<definition>
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>$PARAM[width]</width>
+				<height>$PARAM[height]</height>
+				<texture colordiffuse="bg_panel">white.png</texture>
+			</control>
+		</definition>
+	</include>
+
+	<!-- One entry in the categorised Favourites list. The helper service fills
+	     Fav.N.Label / Fav.N.Thumb / Fav.N.Cat on the Home window for the items
+	     matching the currently-selected category; clicking sets fav_run so the
+	     service runs that favourite's stored action. Items with no label are
+	     hidden, so the list length follows the active filter automatically. -->
+	<include name="FavItem">
+		<param name="n" />
+		<definition>
+			<item>
+				<label>$INFO[Window(home).Property(Fav.$PARAM[n].Label)]</label>
+				<icon>$INFO[Window(home).Property(Fav.$PARAM[n].Thumb)]</icon>
+				<property name="favcat">$INFO[Window(home).Property(Fav.$PARAM[n].Cat)]</property>
+				<onclick>Skin.SetString(fav_run,$PARAM[n])</onclick>
+				<visible>!String.IsEmpty(Window(home).Property(Fav.$PARAM[n].Label))</visible>
+			</item>
+		</definition>
+	</include>
+
+	<!-- A category filter chip on the Favourites screen. Hidden when its
+	     category has no items (except All, which is always shown). Shows an
+	     accent underline while it is the active filter. -->
+	<include name="FavCategoryButton">
+		<param name="cat" />
+		<param name="label" />
+		<definition>
+			<control type="group">
+				<width>230</width>
+				<height>72</height>
+				<visible>String.IsEqual($PARAM[cat],all) | !String.IsEqual(Window(home).Property(Fav.CatCount.$PARAM[cat]),0)</visible>
+				<control type="button">
+					<width>220</width>
+					<height>60</height>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<label>$PARAM[label]  $INFO[Window(home).Property(Fav.CatCount.$PARAM[cat]),(,)]</label>
+					<onclick>Skin.SetString(fav_category,$PARAM[cat])</onclick>
+				</control>
+				<control type="image">
+					<left>10</left>
+					<top>62</top>
+					<width>200</width>
+					<height>4</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+					<visible>String.IsEqual(Window(home).Property(Fav.Category),$PARAM[cat])</visible>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+</includes>

@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  On-screen keyboard (CGUIDialogKeyboardGeneric).
+
+  CRITICAL: the character keys MUST use Kodi's hardcoded grid IDs or the
+  engine can't fill their glyphs or route clicks. The grid is 4 rows × up
+  to 13 columns, IDs offset by 100 with rows stepping by 20:
+      row 0: 100-112
+      row 1: 120-132
+      row 2: 140-152
+      row 3: 160-172
+  Kodi assigns each key's character from the active keyboard layout, the
+  skin must NOT set labels on these (leave empty). Special keys keep their
+  own labels; Kodi handles them by ID:
+      8  = backspace      32  = space
+     300 = done/OK       301 = cancel       309 = clear
+     302 = shift         303 = caps lock    304 = symbols
+     305 = cursor left   306 = cursor right
+     311 = heading        312 = edit field
+
+  Earlier versions gave every letter id=32 (the spacebar), so on-screen
+  clicks did nothing and only a physical keyboard could type. This version
+  uses the correct IDs, so both work.
+
+  Navigation: all rows live inside ONE outer vertical grouplist (id 9500).
+  Kodi then auto-navigates up/down between rows and left/right within a row.
+  Sibling grouplists do NOT link vertically, that's why an earlier version
+  only responded to the mouse.
+-->
+<window type="dialog">
+	<defaultcontrol always="true">312</defaultcontrol>
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>370</posx>
+		<posy>190</posy>
+	</coordinates>
+	<controls>
+
+		<!-- Dim backdrop -->
+		<control type="image">
+			<left>-370</left>
+			<top>-190</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="C0000000">white.png</texture>
+		</control>
+
+		<!-- Panel -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1180</width>
+			<height>700</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1180</width>
+			<height>4</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Heading -->
+		<control type="label" id="311">
+			<left>0</left>
+			<top>20</top>
+			<width>1180</width>
+			<height>44</height>
+			<font>font_med</font>
+			<align>center</align>
+			<textcolor>text</textcolor>
+			<label></label>
+		</control>
+
+		<!-- Edit field -->
+		<control type="edit" id="312">
+			<left>40</left>
+			<top>76</top>
+			<width>1100</width>
+			<height>64</height>
+			<font>font_med</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_dark">white.png</texturenofocus>
+			<ondown>9500</ondown>
+		</control>
+
+		<!-- ===== KEY GRID, single outer vertical grouplist ===== -->
+		<control type="grouplist" id="9500">
+			<left>40</left>
+			<top>156</top>
+			<width>1100</width>
+			<height>520</height>
+			<orientation>vertical</orientation>
+			<itemgap>8</itemgap>
+			<onup>312</onup>
+
+		<!-- Row 0: 100-112 -->
+		<control type="grouplist">
+			<width>1100</width>
+			<height>80</height>
+			<orientation>horizontal</orientation>
+			<itemgap>5</itemgap>
+			<include content="KeyboardKey"><param name="id" value="100"/></include>
+			<include content="KeyboardKey"><param name="id" value="101"/></include>
+			<include content="KeyboardKey"><param name="id" value="102"/></include>
+			<include content="KeyboardKey"><param name="id" value="103"/></include>
+			<include content="KeyboardKey"><param name="id" value="104"/></include>
+			<include content="KeyboardKey"><param name="id" value="105"/></include>
+			<include content="KeyboardKey"><param name="id" value="106"/></include>
+			<include content="KeyboardKey"><param name="id" value="107"/></include>
+			<include content="KeyboardKey"><param name="id" value="108"/></include>
+			<include content="KeyboardKey"><param name="id" value="109"/></include>
+			<include content="KeyboardKey"><param name="id" value="110"/></include>
+			<include content="KeyboardKey"><param name="id" value="111"/></include>
+			<include content="KeyboardKey"><param name="id" value="112"/></include>
+		</control>
+
+		<!-- Row 1: 120-132 -->
+		<control type="grouplist">
+			<width>1100</width>
+			<height>80</height>
+			<orientation>horizontal</orientation>
+			<itemgap>5</itemgap>
+			<include content="KeyboardKey"><param name="id" value="120"/></include>
+			<include content="KeyboardKey"><param name="id" value="121"/></include>
+			<include content="KeyboardKey"><param name="id" value="122"/></include>
+			<include content="KeyboardKey"><param name="id" value="123"/></include>
+			<include content="KeyboardKey"><param name="id" value="124"/></include>
+			<include content="KeyboardKey"><param name="id" value="125"/></include>
+			<include content="KeyboardKey"><param name="id" value="126"/></include>
+			<include content="KeyboardKey"><param name="id" value="127"/></include>
+			<include content="KeyboardKey"><param name="id" value="128"/></include>
+			<include content="KeyboardKey"><param name="id" value="129"/></include>
+			<include content="KeyboardKey"><param name="id" value="130"/></include>
+			<include content="KeyboardKey"><param name="id" value="131"/></include>
+			<include content="KeyboardKey"><param name="id" value="132"/></include>
+		</control>
+
+		<!-- Row 2: 140-152 -->
+		<control type="grouplist">
+			<width>1100</width>
+			<height>80</height>
+			<orientation>horizontal</orientation>
+			<itemgap>5</itemgap>
+			<include content="KeyboardKey"><param name="id" value="140"/></include>
+			<include content="KeyboardKey"><param name="id" value="141"/></include>
+			<include content="KeyboardKey"><param name="id" value="142"/></include>
+			<include content="KeyboardKey"><param name="id" value="143"/></include>
+			<include content="KeyboardKey"><param name="id" value="144"/></include>
+			<include content="KeyboardKey"><param name="id" value="145"/></include>
+			<include content="KeyboardKey"><param name="id" value="146"/></include>
+			<include content="KeyboardKey"><param name="id" value="147"/></include>
+			<include content="KeyboardKey"><param name="id" value="148"/></include>
+			<include content="KeyboardKey"><param name="id" value="149"/></include>
+			<include content="KeyboardKey"><param name="id" value="150"/></include>
+			<include content="KeyboardKey"><param name="id" value="151"/></include>
+			<include content="KeyboardKey"><param name="id" value="152"/></include>
+		</control>
+
+		<!-- Row 3: 160-172 -->
+		<control type="grouplist">
+			<width>1100</width>
+			<height>80</height>
+			<orientation>horizontal</orientation>
+			<itemgap>5</itemgap>
+			<include content="KeyboardKey"><param name="id" value="160"/></include>
+			<include content="KeyboardKey"><param name="id" value="161"/></include>
+			<include content="KeyboardKey"><param name="id" value="162"/></include>
+			<include content="KeyboardKey"><param name="id" value="163"/></include>
+			<include content="KeyboardKey"><param name="id" value="164"/></include>
+			<include content="KeyboardKey"><param name="id" value="165"/></include>
+			<include content="KeyboardKey"><param name="id" value="166"/></include>
+			<include content="KeyboardKey"><param name="id" value="167"/></include>
+			<include content="KeyboardKey"><param name="id" value="168"/></include>
+			<include content="KeyboardKey"><param name="id" value="169"/></include>
+			<include content="KeyboardKey"><param name="id" value="170"/></include>
+			<include content="KeyboardKey"><param name="id" value="171"/></include>
+			<include content="KeyboardKey"><param name="id" value="172"/></include>
+		</control>
+
+		<!-- ===== SPECIAL KEYS ROW ===== -->
+		<control type="grouplist">
+			<width>1100</width>
+			<height>80</height>
+			<orientation>horizontal</orientation>
+			<itemgap>5</itemgap>
+			<align>center</align>
+			<include content="KeyboardKey"><param name="id" value="302"/><param name="width" value="150"/><param name="label" value="Shift"/></include>
+			<include content="KeyboardKey"><param name="id" value="303"/><param name="width" value="150"/><param name="label" value="Caps"/></include>
+			<include content="KeyboardKey"><param name="id" value="304"/><param name="width" value="150"/><param name="label" value="Sym"/></include>
+			<include content="KeyboardKey"><param name="id" value="32"/><param name="width" value="320"/><param name="label" value="Space"/></include>
+			<include content="KeyboardKey"><param name="id" value="305"/><param name="width" value="90"/><param name="label" value="◄"/></include>
+			<include content="KeyboardKey"><param name="id" value="306"/><param name="width" value="90"/><param name="label" value="►"/></include>
+			<include content="KeyboardKey"><param name="id" value="8"/><param name="width" value="120"/><param name="label" value="Backspace"/></include>
+		</control>
+
+		<!-- ===== ACTION ROW (Done / Cancel / Clear) ===== -->
+		<control type="grouplist">
+			<width>1100</width>
+			<height>70</height>
+			<orientation>horizontal</orientation>
+			<itemgap>20</itemgap>
+			<align>center</align>
+			<control type="button" id="300">
+				<width>340</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[186]</label>
+			</control>
+			<control type="button" id="301">
+				<width>340</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[222]</label>
+			</control>
+			<control type="button" id="309">
+				<width>300</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[192]</label>
+			</control>
+		</control>
+
+		</control>
+		<!-- ===== /outer key grid grouplist (9500) ===== -->
+
+	</controls>
+</window>

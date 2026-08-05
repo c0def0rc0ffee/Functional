@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window type="dialog">
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>860</posx>
+		<posy>490</posy>
+	</coordinates>
+	<controls>
+
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>200</width>
+			<height>100</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+		<control type="label">
+			<left>0</left>
+			<top>0</top>
+			<width>200</width>
+			<height>100</height>
+			<align>center</align>
+			<aligny>center</aligny>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<label>Loading…</label>
+		</control>
+
+	</controls>
+</window>

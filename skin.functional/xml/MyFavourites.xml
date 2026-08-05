@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Favourites window (favouritesbrowser, id 10060).
+
+  Rebuilt as a categorised, filterable list. The helper service parses
+  favourites.xml, classifies each entry (Movies / TV / Music / Apps / Other)
+  and publishes Fav.* properties on the Home window for the selected category.
+  The category chips set Skin.String(fav_category); the list is a static list
+  whose items bind to Fav.N.* and hide themselves when empty, so its length
+  follows the active filter. Clicking an item sets Skin.String(fav_run) and the
+  service executes that favourite's stored action.
+-->
+<window>
+	<defaultcontrol>50</defaultcontrol>
+	<views>50</views>
+	<controls>
+
+		<include content="WindowBackground"/>
+		<include content="HeaderBar">
+			<param name="title" value="     Favourites"/>
+		</include>
+
+		<!-- Logo -->
+		<control type="image">
+			<left>20</left>
+			<top>5</top>
+			<width>80</width>
+			<height>80</height>
+			<aspectratio>keep</aspectratio>
+			<texture>logo.png</texture>
+		</control>
+
+		<!-- Category filter chips -->
+		<control type="grouplist" id="70">
+			<left>60</left>
+			<top>104</top>
+			<width>1440</width>
+			<height>72</height>
+			<orientation>horizontal</orientation>
+			<itemgap>10</itemgap>
+			<ondown>50</ondown>
+			<onup>50</onup>
+			<onleft>50</onleft>
+			<onright>50</onright>
+				<include content="FavCategoryButton"><param name="cat" value="all" /><param name="label" value="All" /></include>
+				<include content="FavCategoryButton"><param name="cat" value="movies" /><param name="label" value="Movies" /></include>
+				<include content="FavCategoryButton"><param name="cat" value="tvshows" /><param name="label" value="TV" /></include>
+				<include content="FavCategoryButton"><param name="cat" value="music" /><param name="label" value="Music" /></include>
+				<include content="FavCategoryButton"><param name="cat" value="apps" /><param name="label" value="Apps" /></include>
+				<include content="FavCategoryButton"><param name="cat" value="other" /><param name="label" value="Other" /></include>
+		</control>
+
+		<!-- Favourites list (static; items follow the selected category) -->
+		<control type="list" id="50">
+			<left>60</left>
+			<top>190</top>
+			<width>1800</width>
+			<height>810</height>
+			<onup>70</onup>
+			<onleft>50</onleft>
+			<onright>60</onright>
+			<pagecontrol>60</pagecontrol>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+			<viewtype label="List">list</viewtype>
+
+			<itemlayout height="70" width="1800">
+				<control type="image">
+					<left>10</left>
+					<top>10</top>
+					<width>50</width>
+					<height>50</height>
+					<aspectratio>keep</aspectratio>
+					<texture fallback="DefaultAddon.png">$INFO[ListItem.Icon]</texture>
+				</control>
+				<control type="label">
+					<left>80</left>
+					<top>0</top>
+					<width>1450</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<right>30</right>
+					<top>0</top>
+					<width>240</width>
+					<height>70</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Property(favcat)]</label>
+				</control>
+			</itemlayout>
+
+			<focusedlayout height="70" width="1800">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1800</width>
+					<height>70</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+					<visible>Control.HasFocus(50)</visible>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1800</width>
+					<height>70</height>
+					<texture colordiffuse="40FFFFFF">white.png</texture>
+					<visible>!Control.HasFocus(50)</visible>
+				</control>
+				<control type="image">
+					<left>10</left>
+					<top>10</top>
+					<width>50</width>
+					<height>50</height>
+					<aspectratio>keep</aspectratio>
+					<texture fallback="DefaultAddon.png">$INFO[ListItem.Icon]</texture>
+				</control>
+				<control type="label">
+					<left>80</left>
+					<top>0</top>
+					<width>1450</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<right>30</right>
+					<top>0</top>
+					<width>240</width>
+					<height>70</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Property(favcat)]</label>
+				</control>
+			</focusedlayout>
+
+			<content>
+				<include content="FavItem"><param name="n" value="1" /></include>
+				<include content="FavItem"><param name="n" value="2" /></include>
+				<include content="FavItem"><param name="n" value="3" /></include>
+				<include content="FavItem"><param name="n" value="4" /></include>
+				<include content="FavItem"><param name="n" value="5" /></include>
+				<include content="FavItem"><param name="n" value="6" /></include>
+				<include content="FavItem"><param name="n" value="7" /></include>
+				<include content="FavItem"><param name="n" value="8" /></include>
+				<include content="FavItem"><param name="n" value="9" /></include>
+				<include content="FavItem"><param name="n" value="10" /></include>
+				<include content="FavItem"><param name="n" value="11" /></include>
+				<include content="FavItem"><param name="n" value="12" /></include>
+				<include content="FavItem"><param name="n" value="13" /></include>
+				<include content="FavItem"><param name="n" value="14" /></include>
+				<include content="FavItem"><param name="n" value="15" /></include>
+				<include content="FavItem"><param name="n" value="16" /></include>
+				<include content="FavItem"><param name="n" value="17" /></include>
+				<include content="FavItem"><param name="n" value="18" /></include>
+				<include content="FavItem"><param name="n" value="19" /></include>
+				<include content="FavItem"><param name="n" value="20" /></include>
+				<include content="FavItem"><param name="n" value="21" /></include>
+				<include content="FavItem"><param name="n" value="22" /></include>
+				<include content="FavItem"><param name="n" value="23" /></include>
+				<include content="FavItem"><param name="n" value="24" /></include>
+				<include content="FavItem"><param name="n" value="25" /></include>
+				<include content="FavItem"><param name="n" value="26" /></include>
+				<include content="FavItem"><param name="n" value="27" /></include>
+				<include content="FavItem"><param name="n" value="28" /></include>
+				<include content="FavItem"><param name="n" value="29" /></include>
+				<include content="FavItem"><param name="n" value="30" /></include>
+				<include content="FavItem"><param name="n" value="31" /></include>
+				<include content="FavItem"><param name="n" value="32" /></include>
+				<include content="FavItem"><param name="n" value="33" /></include>
+				<include content="FavItem"><param name="n" value="34" /></include>
+				<include content="FavItem"><param name="n" value="35" /></include>
+				<include content="FavItem"><param name="n" value="36" /></include>
+				<include content="FavItem"><param name="n" value="37" /></include>
+				<include content="FavItem"><param name="n" value="38" /></include>
+				<include content="FavItem"><param name="n" value="39" /></include>
+				<include content="FavItem"><param name="n" value="40" /></include>
+				<include content="FavItem"><param name="n" value="41" /></include>
+				<include content="FavItem"><param name="n" value="42" /></include>
+				<include content="FavItem"><param name="n" value="43" /></include>
+				<include content="FavItem"><param name="n" value="44" /></include>
+				<include content="FavItem"><param name="n" value="45" /></include>
+				<include content="FavItem"><param name="n" value="46" /></include>
+				<include content="FavItem"><param name="n" value="47" /></include>
+				<include content="FavItem"><param name="n" value="48" /></include>
+				<include content="FavItem"><param name="n" value="49" /></include>
+				<include content="FavItem"><param name="n" value="50" /></include>
+				<include content="FavItem"><param name="n" value="51" /></include>
+				<include content="FavItem"><param name="n" value="52" /></include>
+				<include content="FavItem"><param name="n" value="53" /></include>
+				<include content="FavItem"><param name="n" value="54" /></include>
+				<include content="FavItem"><param name="n" value="55" /></include>
+				<include content="FavItem"><param name="n" value="56" /></include>
+				<include content="FavItem"><param name="n" value="57" /></include>
+				<include content="FavItem"><param name="n" value="58" /></include>
+				<include content="FavItem"><param name="n" value="59" /></include>
+				<include content="FavItem"><param name="n" value="60" /></include>
+				<include content="FavItem"><param name="n" value="61" /></include>
+				<include content="FavItem"><param name="n" value="62" /></include>
+				<include content="FavItem"><param name="n" value="63" /></include>
+				<include content="FavItem"><param name="n" value="64" /></include>
+				<include content="FavItem"><param name="n" value="65" /></include>
+				<include content="FavItem"><param name="n" value="66" /></include>
+				<include content="FavItem"><param name="n" value="67" /></include>
+				<include content="FavItem"><param name="n" value="68" /></include>
+				<include content="FavItem"><param name="n" value="69" /></include>
+				<include content="FavItem"><param name="n" value="70" /></include>
+				<include content="FavItem"><param name="n" value="71" /></include>
+				<include content="FavItem"><param name="n" value="72" /></include>
+				<include content="FavItem"><param name="n" value="73" /></include>
+				<include content="FavItem"><param name="n" value="74" /></include>
+				<include content="FavItem"><param name="n" value="75" /></include>
+				<include content="FavItem"><param name="n" value="76" /></include>
+				<include content="FavItem"><param name="n" value="77" /></include>
+				<include content="FavItem"><param name="n" value="78" /></include>
+				<include content="FavItem"><param name="n" value="79" /></include>
+				<include content="FavItem"><param name="n" value="80" /></include>
+				<include content="FavItem"><param name="n" value="81" /></include>
+				<include content="FavItem"><param name="n" value="82" /></include>
+				<include content="FavItem"><param name="n" value="83" /></include>
+				<include content="FavItem"><param name="n" value="84" /></include>
+				<include content="FavItem"><param name="n" value="85" /></include>
+				<include content="FavItem"><param name="n" value="86" /></include>
+				<include content="FavItem"><param name="n" value="87" /></include>
+				<include content="FavItem"><param name="n" value="88" /></include>
+				<include content="FavItem"><param name="n" value="89" /></include>
+				<include content="FavItem"><param name="n" value="90" /></include>
+				<include content="FavItem"><param name="n" value="91" /></include>
+				<include content="FavItem"><param name="n" value="92" /></include>
+				<include content="FavItem"><param name="n" value="93" /></include>
+				<include content="FavItem"><param name="n" value="94" /></include>
+				<include content="FavItem"><param name="n" value="95" /></include>
+				<include content="FavItem"><param name="n" value="96" /></include>
+				<include content="FavItem"><param name="n" value="97" /></include>
+				<include content="FavItem"><param name="n" value="98" /></include>
+				<include content="FavItem"><param name="n" value="99" /></include>
+				<include content="FavItem"><param name="n" value="100" /></include>
+				<include content="FavItem"><param name="n" value="101" /></include>
+				<include content="FavItem"><param name="n" value="102" /></include>
+				<include content="FavItem"><param name="n" value="103" /></include>
+				<include content="FavItem"><param name="n" value="104" /></include>
+				<include content="FavItem"><param name="n" value="105" /></include>
+				<include content="FavItem"><param name="n" value="106" /></include>
+				<include content="FavItem"><param name="n" value="107" /></include>
+				<include content="FavItem"><param name="n" value="108" /></include>
+				<include content="FavItem"><param name="n" value="109" /></include>
+				<include content="FavItem"><param name="n" value="110" /></include>
+				<include content="FavItem"><param name="n" value="111" /></include>
+				<include content="FavItem"><param name="n" value="112" /></include>
+				<include content="FavItem"><param name="n" value="113" /></include>
+				<include content="FavItem"><param name="n" value="114" /></include>
+				<include content="FavItem"><param name="n" value="115" /></include>
+				<include content="FavItem"><param name="n" value="116" /></include>
+				<include content="FavItem"><param name="n" value="117" /></include>
+				<include content="FavItem"><param name="n" value="118" /></include>
+				<include content="FavItem"><param name="n" value="119" /></include>
+				<include content="FavItem"><param name="n" value="120" /></include>
+				<include content="FavItem"><param name="n" value="121" /></include>
+				<include content="FavItem"><param name="n" value="122" /></include>
+				<include content="FavItem"><param name="n" value="123" /></include>
+				<include content="FavItem"><param name="n" value="124" /></include>
+				<include content="FavItem"><param name="n" value="125" /></include>
+				<include content="FavItem"><param name="n" value="126" /></include>
+				<include content="FavItem"><param name="n" value="127" /></include>
+				<include content="FavItem"><param name="n" value="128" /></include>
+				<include content="FavItem"><param name="n" value="129" /></include>
+				<include content="FavItem"><param name="n" value="130" /></include>
+				<include content="FavItem"><param name="n" value="131" /></include>
+				<include content="FavItem"><param name="n" value="132" /></include>
+				<include content="FavItem"><param name="n" value="133" /></include>
+				<include content="FavItem"><param name="n" value="134" /></include>
+				<include content="FavItem"><param name="n" value="135" /></include>
+				<include content="FavItem"><param name="n" value="136" /></include>
+				<include content="FavItem"><param name="n" value="137" /></include>
+				<include content="FavItem"><param name="n" value="138" /></include>
+				<include content="FavItem"><param name="n" value="139" /></include>
+				<include content="FavItem"><param name="n" value="140" /></include>
+				<include content="FavItem"><param name="n" value="141" /></include>
+				<include content="FavItem"><param name="n" value="142" /></include>
+				<include content="FavItem"><param name="n" value="143" /></include>
+				<include content="FavItem"><param name="n" value="144" /></include>
+				<include content="FavItem"><param name="n" value="145" /></include>
+				<include content="FavItem"><param name="n" value="146" /></include>
+				<include content="FavItem"><param name="n" value="147" /></include>
+				<include content="FavItem"><param name="n" value="148" /></include>
+				<include content="FavItem"><param name="n" value="149" /></include>
+				<include content="FavItem"><param name="n" value="150" /></include>
+			</content>
+		</control>
+
+		<!-- Scrollbar -->
+		<control type="scrollbar" id="60">
+			<right>14</right>
+			<top>190</top>
+			<width>10</width>
+			<height>810</height>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>50</onleft>
+			<onright>50</onright>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- Empty-state hint -->
+		<control type="label">
+			<visible>String.IsEqual(Window(home).Property(Fav.Count),0) | String.IsEmpty(Window(home).Property(Fav.Count))</visible>
+			<left>60</left>
+			<top>460</top>
+			<width>1800</width>
+			<height>60</height>
+			<font>font_med</font>
+			<align>center</align>
+			<textcolor>text_dim</textcolor>
+			<label>No favourites in this category. Highlight any item, open its context menu, and choose "Add to favourites".</label>
+		</control>
+
+	</controls>
+</window>

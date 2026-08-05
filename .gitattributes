@@ -1,0 +1,12 @@
+# Normalise to LF in the repository. The skin is edited on Windows and runs on
+# Kodi under Linux, so without this the licence and font files churn between
+# CRLF and LF on every commit.
+* text=auto eol=lf
+
+# Keep the boot scripts LF whatever happens: they run under a Linux shell.
+*.sh text eol=lf
+
+# Binary assets must never be touched.
+*.png binary
+*.jpg binary
+*.zip binary

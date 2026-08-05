@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+	<defaultcontrol always="true">9000</defaultcontrol>
+	<controls>
+
+		<include content="WindowBackground"/>
+
+		<!-- Slideshow background: rotates through recently watched movies' fanart.
+		     Service writes the current URL into Window(home).Property(home_bg_fanart)
+		     every ~20s. Hidden when bg_slideshow is off or the property is empty. -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<aspectratio>scale</aspectratio>
+			<fadetime>800</fadetime>
+			<texture background="true">$INFO[Window(home).Property(home_bg_fanart)]</texture>
+			<!-- The service only populates this property while a
+			     bg_slideshow_source is active, so the property check
+			     alone tells us whether the slideshow is running. -->
+			<visible>!String.IsEmpty(Window(home).Property(home_bg_fanart))</visible>
+		</control>
+
+		<!-- User-selected static background image (Skin.String(home_background)).
+		     Hidden when slideshow is active so the rotating fanart shows through. -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<aspectratio>scale</aspectratio>
+			<texture background="true">$INFO[Skin.String(home_background)]</texture>
+			<!-- Static image shows only in 'image' mode. The service clears
+			     home_bg_fanart in non-slideshow modes, so there's never a
+			     clash with the slideshow. -->
+			<visible>String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))</visible>
+			<animation effect="fade" time="400">VisibleChange</animation>
+		</control>
+
+		<!-- Folder slideshow (mode = folder). One instance per interval preset;
+		     only the matching one is visible. timeperimage needs a literal, so
+		     it can't be a single dynamic control. The service publishes the
+		     resolved folder as Skin.String(bg_slideshow_dir). -->
+		<include content="FolderSlideshow"><param name="ms" value="20000"/><param name="when" value="String.IsEmpty(Skin.String(bg_slideshow_interval))"/></include>
+		<include content="FolderSlideshow"><param name="ms" value="10000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),10)"/></include>
+		<include content="FolderSlideshow"><param name="ms" value="30000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),30)"/></include>
+		<include content="FolderSlideshow"><param name="ms" value="60000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),60)"/></include>
+		<include content="FolderSlideshow"><param name="ms" value="120000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),120)"/></include>
+		<include content="FolderSlideshow"><param name="ms" value="300000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),300)"/></include>
+
+		<!-- Slideshow caption (Title (Year)), position controlled by skin string -->
+		<control type="label">
+			<left>$VAR[BgLabelLeft]</left>
+			<top>$VAR[BgLabelTop]</top>
+			<right>60</right>
+			<height>40</height>
+			<font>font_med</font>
+			<align>$VAR[BgLabelAlign]</align>
+			<aligny>center</aligny>
+			<textcolor>white</textcolor>
+			<shadowcolor>FF000000</shadowcolor>
+			<scroll>true</scroll>
+			<label>$INFO[Window(home).Property(home_bg_label)]</label>
+			<visible>!String.IsEmpty(Window(home).Property(home_bg_label)) + !String.IsEqual(Skin.String(bg_label_position),off) + !String.IsEmpty(Skin.String(bg_label_position))</visible>
+			<animation effect="fade" time="400">VisibleChange</animation>
+		</control>
+
+		<!-- Dim overlay over whichever background is showing -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<!-- Folder mode dims via colordiffuse on the multiimage itself, so
+			     it's excluded here to avoid double-dimming. -->
+			<texture colordiffuse="$VAR[BgOverlayColor]">white.png</texture>
+			<visible>!String.IsEmpty(Window(home).Property(home_bg_fanart)) | [String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))]</visible>
+		</control>
+
+		<!-- Hidden containers used purely to count library items -->
+		<!-- 1000: all movies (total) -->
+		<control type="list" id="1000">
+			<left>-2000</left>
+			<top>0</top>
+			<width>1</width>
+			<height>1</height>
+			<content>videodb://movies/titles/</content>
+			<itemlayout height="1" width="1"/>
+			<focusedlayout height="1" width="1"/>
+		</control>
+		<!-- 1001: unwatched movies (playcount is 0) -->
+		<control type="list" id="1001">
+			<left>-2000</left>
+			<top>0</top>
+			<width>1</width>
+			<height>1</height>
+			<content>videodb://movies/titles/?xsp=%7B%22rules%22%3A%7B%22and%22%3A%5B%7B%22field%22%3A%22playcount%22%2C%22operator%22%3A%22is%22%2C%22value%22%3A%5B%220%22%5D%7D%5D%7D%2C%22type%22%3A%22movies%22%7D</content>
+			<itemlayout height="1" width="1"/>
+			<focusedlayout height="1" width="1"/>
+		</control>
+		<!-- 1002: watched movies (playcount isnot 0) -->
+		<control type="list" id="1002">
+			<left>-2000</left>
+			<top>0</top>
+			<width>1</width>
+			<height>1</height>
+			<content>videodb://movies/titles/?xsp=%7B%22rules%22%3A%7B%22and%22%3A%5B%7B%22field%22%3A%22playcount%22%2C%22operator%22%3A%22isnot%22%2C%22value%22%3A%5B%220%22%5D%7D%5D%7D%2C%22type%22%3A%22movies%22%7D</content>
+			<itemlayout height="1" width="1"/>
+			<focusedlayout height="1" width="1"/>
+		</control>
+		<!-- 1010: all TV shows (total) -->
+		<control type="list" id="1010">
+			<left>-2000</left>
+			<top>0</top>
+			<width>1</width>
+			<height>1</height>
+			<content>videodb://tvshows/titles/</content>
+			<itemlayout height="1" width="1"/>
+			<focusedlayout height="1" width="1"/>
+		</control>
+		<!-- 1011: all episodes -->
+		<control type="list" id="1011">
+			<left>-2000</left>
+			<top>0</top>
+			<width>1</width>
+			<height>1</height>
+			<content>videodb://tvshows/titles/?xsp=%7B%22type%22%3A%22episodes%22%7D</content>
+			<itemlayout height="1" width="1"/>
+			<focusedlayout height="1" width="1"/>
+		</control>
+		<!-- 1012: TV shows with at least one unwatched episode (playcount is 0 at show level) -->
+		<control type="list" id="1012">
+			<left>-2000</left>
+			<top>0</top>
+			<width>1</width>
+			<height>1</height>
+			<content>videodb://tvshows/titles/?xsp=%7B%22rules%22%3A%7B%22and%22%3A%5B%7B%22field%22%3A%22playcount%22%2C%22operator%22%3A%22is%22%2C%22value%22%3A%5B%220%22%5D%7D%5D%7D%2C%22type%22%3A%22tvshows%22%7D</content>
+			<itemlayout height="1" width="1"/>
+			<focusedlayout height="1" width="1"/>
+		</control>
+
+		<!-- Right-side fixed stats panel (always visible) -->
+		<control type="group">
+			<right>60</right>
+			<top>180</top>
+			<width>310</width>
+
+			<!-- MOVIES section -->
+			<control type="group">
+				<visible>!Skin.HasSetting(hide_movies_count)</visible>
+			<control type="label">
+				<left>0</left>
+				<top>0</top>
+				<width>310</width>
+				<height>40</height>
+				<font>font_med</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>MOVIES</label>
+			</control>
+			<control type="image">
+				<left>0</left>
+				<top>44</top>
+				<width>310</width>
+				<height>2</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+
+			<control type="label">
+				<left>0</left>
+				<top>60</top>
+				<width>160</width>
+				<height>34</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<label>Total</label>
+			</control>
+			<control type="label">
+				<left>180</left>
+				<top>60</top>
+				<width>130</width>
+				<height>34</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<label>$INFO[Skin.String(stat_movies_total)]</label>
+			</control>
+
+			<control type="label">
+				<left>0</left>
+				<top>100</top>
+				<width>160</width>
+				<height>34</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<label>Unwatched</label>
+			</control>
+			<control type="label">
+				<left>180</left>
+				<top>100</top>
+				<width>130</width>
+				<height>34</height>
+				<font>font_reg</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>$INFO[Skin.String(stat_movies_unwatched)]</label>
+			</control>
+
+			<control type="label">
+				<left>0</left>
+				<top>140</top>
+				<width>160</width>
+				<height>34</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<label>Watched</label>
+			</control>
+			<control type="label">
+				<left>180</left>
+				<top>140</top>
+				<width>130</width>
+				<height>34</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<label>$INFO[Skin.String(stat_movies_watched)]</label>
+			</control>
+			</control>
+
+			<!-- TV SHOWS section -->
+			<control type="group">
+				<visible>!Skin.HasSetting(hide_tvshows_count)</visible>
+			<control type="label">
+				<left>0</left>
+				<top>220</top>
+				<width>310</width>
+				<height>40</height>
+				<font>font_med</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>TV SHOWS</label>
+			</control>
+			<control type="image">
+				<left>0</left>
+				<top>264</top>
+				<width>310</width>
+				<height>2</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+
+			<control type="label">
+				<left>0</left>
+				<top>280</top>
+				<width>160</width>
+				<height>34</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<label>Shows</label>
+			</control>
+			<control type="label">
+				<left>180</left>
+				<top>280</top>
+				<width>130</width>
+				<height>34</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<label>$INFO[Skin.String(stat_tvshows_total)]</label>
+			</control>
+
+			<control type="label">
+				<left>0</left>
+				<top>320</top>
+				<width>160</width>
+				<height>34</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<label>Episodes</label>
+			</control>
+			<control type="label">
+				<left>180</left>
+				<top>320</top>
+				<width>130</width>
+				<height>34</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<label>$INFO[Skin.String(stat_episodes_total)]</label>
+			</control>
+
+			<control type="label">
+				<left>0</left>
+				<top>360</top>
+				<width>160</width>
+				<height>34</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<label>Unwatched</label>
+			</control>
+			<control type="label">
+				<left>180</left>
+				<top>360</top>
+				<width>130</width>
+				<height>34</height>
+				<font>font_reg</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>$INFO[Skin.String(stat_tvshows_unwatched)]</label>
+			</control>
+			</control>
+
+		</control>
+
+		<!-- Functional logo top-left -->
+		<control type="image">
+			<left>40</left>
+			<top>30</top>
+			<width>120</width>
+			<height>120</height>
+			<aspectratio>keep</aspectratio>
+			<texture>logo.png</texture>
+			<visible>!Skin.HasSetting(hide_logo)</visible>
+		</control>
+
+		<!-- Weather widget, sits beneath the date, right-aligned in the
+		     same column. Same font_small as the date so the three lines
+		     (time / date / weather) read as one block. -->
+		<control type="group">
+			<visible>Skin.HasSetting(show_weather_widget) + Weather.IsFetched</visible>
+			<control type="label">
+				<right>40</right>
+				<top>118</top>
+				<width>700</width>
+				<height>32</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<align>right</align>
+				<aligny>center</aligny>
+				<label>$INFO[Weather.Temperature], $INFO[Weather.Conditions]</label>
+			</control>
+			<control type="button" id="9006">
+				<right>20</right>
+				<top>118</top>
+				<width>720</width>
+				<height>32</height>
+				<texturefocus colordiffuse="40FFFFFF">white.png</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<onclick>ActivateWindow(Weather)</onclick>
+			</control>
+		</control>
+
+		<!-- Date / time top-right. Only the time label slides left
+		     when the weather widget is visible, the date stays at
+		     right=40, beneath the weather. -->
+		<control type="group">
+			<visible>!Skin.HasSetting(hide_datetime)</visible>
+			<control type="label">
+				<right>40</right>
+				<top>40</top>
+				<width>600</width>
+				<height>40</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<align>right</align>
+				<aligny>center</aligny>
+				<label>$INFO[System.Time]</label>
+			</control>
+			<control type="label">
+				<right>40</right>
+				<top>84</top>
+				<width>600</width>
+				<height>32</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<align>right</align>
+				<aligny>center</aligny>
+				<label>$INFO[System.Date]</label>
+			</control>
+		</control>
+
+		<!-- Main menu, vertical position via Skin.String(menu_position) -->
+		<control type="grouplist" id="9000">
+			<animation effect="slide" end="0,-460" time="0" condition="String.IsEqual(Skin.String(menu_position),top)">Conditional</animation>
+			<animation effect="slide" end="0,440" time="0" condition="String.IsEqual(Skin.String(menu_position),bottom)">Conditional</animation>
+			<left>0</left>
+			<top>480</top>
+			<width>1920</width>
+			<height>140</height>
+			<itemgap>20</itemgap>
+			<orientation>horizontal</orientation>
+			<align>center</align>
+			<ondown>9100</ondown>
+
+			<control type="button" id="9001">
+				<visible>!Skin.HasSetting(hide_movies)</visible>
+				<width>240</width>
+				<height>120</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<label>Movies</label>
+				<onclick>ActivateWindow(Videos,MovieTitles,return)</onclick>
+			</control>
+
+			<control type="button" id="9002">
+				<visible>!Skin.HasSetting(hide_tvshows)</visible>
+				<width>240</width>
+				<height>120</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<label>TV Shows</label>
+				<onclick>ActivateWindow(Videos,TvShowTitles,return)</onclick>
+			</control>
+
+			<control type="button" id="9003">
+				<visible>!Skin.HasSetting(hide_music)</visible>
+				<width>240</width>
+				<height>120</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<label>Music</label>
+				<onclick>ActivateWindow(MusicLibrary,Root,return)</onclick>
+			</control>
+
+			<control type="button" id="9004">
+				<visible>!Skin.HasSetting(hide_pictures)</visible>
+				<width>240</width>
+				<height>120</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<label>Pictures</label>
+				<onclick>ActivateWindow(Pictures)</onclick>
+			</control>
+
+			<control type="button" id="9005">
+				<visible>Skin.HasSetting(show_weather)</visible>
+				<width>240</width>
+				<height>120</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<label>Weather</label>
+				<onclick>ActivateWindow(Weather)</onclick>
+			</control>
+
+		</control>
+
+		<!-- Bottom-right corner icons -->
+		<control type="grouplist" id="9100">
+			<right>40</right>
+			<bottom>40</bottom>
+			<width>900</width>
+			<height>70</height>
+			<itemgap>10</itemgap>
+			<orientation>horizontal</orientation>
+			<align>right</align>
+			<onup>9000</onup>
+
+			<!-- Resume / now-playing button (only visible when media is playing) -->
+			<control type="button" id="9099">
+				<visible>Player.HasMedia</visible>
+				<width>520</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="accent_hi">white.png</texturenofocus>
+				<label>▶  Back to: $INFO[VideoPlayer.Title]$INFO[MusicPlayer.Title]</label>
+				<onclick condition="Player.HasVideo">ActivateWindow(fullscreenvideo)</onclick>
+				<onclick condition="Player.HasAudio + !Player.HasVideo">ActivateWindow(visualisation)</onclick>
+				<animation effect="fade" time="200">VisibleChange</animation>
+			</control>
+
+			<!-- Queue (only visible when there's something queued) -->
+			<control type="button" id="9098">
+				<visible>Integer.IsGreater(Playlist.Length(video),0) | Integer.IsGreater(Playlist.Length(music),0)</visible>
+				<width>140</width>
+				<height>70</height>
+				<font>font_small</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
+				<label>$VAR[QueueCountLabel]</label>
+				<onclick condition="Integer.IsGreater(Playlist.Length(video),0)">ActivateWindow(VideoPlaylist)</onclick>
+				<onclick condition="!Integer.IsGreater(Playlist.Length(video),0) + Integer.IsGreater(Playlist.Length(music),0)">ActivateWindow(MusicPlaylist)</onclick>
+				<animation effect="fade" time="200">VisibleChange</animation>
+			</control>
+
+			<!-- Round icon buttons (Add-ons / Settings / Power).
+			     Each icon PNG is a single texture combining a semi-transparent
+			     disc with an opaque glyph, so a colordiffuse renders the disc
+			     at half strength and the glyph at full, readable contrast on
+			     both focused (accent) and unfocused (bg_panel) buttons. Plain
+			     <button> so the parent grouplist's left/right arrow nav reaches
+			     them. -->
+
+			<control type="button" id="9104">
+				<visible>!Skin.HasSetting(hide_favourites)</visible>
+				<width>70</width>
+				<height>70</height>
+				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_favourites.png</texturefocus>
+				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_favourites.png</texturenofocus>
+				<onclick>ActivateWindow(favouritesbrowser)</onclick>
+			</control>
+
+			<control type="button" id="9101">
+				<visible>!Skin.HasSetting(hide_addons)</visible>
+				<width>70</width>
+				<height>70</height>
+				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_addons.png</texturefocus>
+				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_addons.png</texturenofocus>
+				<onclick>ActivateWindow(AddonBrowser)</onclick>
+			</control>
+
+			<control type="button" id="9102">
+				<width>70</width>
+				<height>70</height>
+				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_settings.png</texturefocus>
+				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_settings.png</texturenofocus>
+				<onclick>ActivateWindow(Settings)</onclick>
+			</control>
+
+			<control type="button" id="9103">
+				<visible>!Skin.HasSetting(hide_power)</visible>
+				<width>70</width>
+				<height>70</height>
+				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_power.png</texturefocus>
+				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_power.png</texturenofocus>
+				<onclick>ActivateWindow(ShutdownMenu)</onclick>
+			</control>
+
+		</control>
+
+		<!-- Footer hint -->
+		<control type="label">
+			<left>60</left>
+			<bottom>40</bottom>
+			<width>1000</width>
+			<height>40</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<label>Functional v$INFO[System.AddonVersion(skin.functional)]</label>
+			<visible>!Skin.HasSetting(hide_version)</visible>
+		</control>
+
+	</controls>
+</window>

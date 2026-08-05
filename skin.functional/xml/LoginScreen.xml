@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+	<defaultcontrol always="true">2</defaultcontrol>
+	<controls>
+		<include content="WindowBackground"/>
+		<control type="label">
+			<left>0</left>
+			<top>200</top>
+			<width>1920</width>
+			<height>120</height>
+			<font>font_huge</font>
+			<align>center</align>
+			<textcolor>text</textcolor>
+			<label>Select Profile</label>
+		</control>
+		<control type="list" id="2">
+			<left>460</left>
+			<top>360</top>
+			<width>1000</width>
+			<height>600</height>
+			<itemlayout height="80" width="1000">
+				<control type="label">
+					<left>40</left>
+					<top>0</top>
+					<width>920</width>
+					<height>80</height>
+					<font>font_med</font>
+					<textcolor>text</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="80" width="1000">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1000</width>
+					<height>80</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>40</left>
+					<top>0</top>
+					<width>920</width>
+					<height>80</height>
+					<font>font_med</font>
+					<textcolor>white</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</focusedlayout>
+		</control>
+	</controls>
+</window>

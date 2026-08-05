@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+	<defaultcontrol always="true">9000</defaultcontrol>
+	<controls>
+
+		<include content="WindowBackground"/>
+		<include content="HeaderBar">
+			<param name="title" value="Settings"/>
+		</include>
+
+		<control type="panel" id="9000">
+			<left>60</left>
+			<top>140</top>
+			<width>1800</width>
+			<height>880</height>
+			<onleft>9000</onleft>
+			<onright>9000</onright>
+			<onup>9000</onup>
+			<ondown>9000</ondown>
+			<orientation>vertical</orientation>
+			<itemlayout height="100" width="900">
+				<control type="image">
+					<left>10</left>
+					<top>10</top>
+					<width>880</width>
+					<height>80</height>
+					<texture colordiffuse="grey_mid">white.png</texture>
+				</control>
+				<control type="label">
+					<left>40</left>
+					<top>10</top>
+					<width>820</width>
+					<height>80</height>
+					<font>font_med</font>
+					<textcolor>text</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="100" width="900">
+				<control type="image">
+					<left>10</left>
+					<top>10</top>
+					<width>880</width>
+					<height>80</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>40</left>
+					<top>10</top>
+					<width>820</width>
+					<height>80</height>
+					<font>font_med</font>
+					<textcolor>white</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</focusedlayout>
+			<content>
+				<item>
+					<label>Player</label>
+					<onclick>ActivateWindow(PlayerSettings)</onclick>
+				</item>
+				<item>
+					<label>Media</label>
+					<onclick>ActivateWindow(MediaSettings)</onclick>
+				</item>
+				<item>
+					<label>PVR &amp; Live TV</label>
+					<onclick>ActivateWindow(PVRSettings)</onclick>
+				</item>
+				<item>
+					<label>Services</label>
+					<onclick>ActivateWindow(ServiceSettings)</onclick>
+				</item>
+				<item>
+					<label>Interface</label>
+					<onclick>ActivateWindow(InterfaceSettings)</onclick>
+				</item>
+				<item>
+					<label>Profiles</label>
+					<onclick>ActivateWindow(Profiles)</onclick>
+				</item>
+				<item>
+					<label>System</label>
+					<onclick>ActivateWindow(SystemSettings)</onclick>
+				</item>
+				<item>
+					<label>System Info</label>
+					<onclick>ActivateWindow(SystemInfo)</onclick>
+				</item>
+				<item>
+					<label>Add-ons</label>
+					<onclick>ActivateWindow(AddonBrowser)</onclick>
+				</item>
+				<item>
+					<label>File Manager</label>
+					<onclick>ActivateWindow(FileManager)</onclick>
+				</item>
+				<item>
+					<label>Event Log</label>
+					<onclick>ActivateWindow(EventLog)</onclick>
+				</item>
+				<item>
+					<label>Skin Settings</label>
+					<onclick>ActivateWindow(SkinSettings)</onclick>
+				</item>
+			</content>
+		</control>
+
+	</controls>
+</window>

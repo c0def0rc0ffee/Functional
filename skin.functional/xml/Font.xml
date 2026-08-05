@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<fonts>
+	<fontset id="Default" idloc="31000">
+
+		<!-- ===== Skin's own named fonts ===== -->
+		<font>
+			<name>font_small</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>20</size>
+		</font>
+		<font>
+			<name>font_reg</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>26</size>
+		</font>
+		<font>
+			<name>font_med</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>32</size>
+		</font>
+		<font>
+			<name>font_big</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>44</size>
+		</font>
+		<font>
+			<name>font_huge</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>72</size>
+		</font>
+
+		<!-- ===== Estuary-style numeric font aliases =====
+		     Many third-party add-ons (Trakt, OEM scripts, etc.) ship custom
+		     WindowXMLDialogs that hardcode font names like 'font12'/'font14'.
+		     If these aren't defined the labels render blank. Map them onto
+		     similarly-sized fonts here. -->
+		<font>
+			<name>font10</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>16</size>
+		</font>
+		<font>
+			<name>font11</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>18</size>
+		</font>
+		<font>
+			<name>font12</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>20</size>
+		</font>
+		<font>
+			<name>font13</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>22</size>
+		</font>
+		<font>
+			<name>font14</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>26</size>
+		</font>
+		<font>
+			<name>font16</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>30</size>
+		</font>
+		<font>
+			<name>font20</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>36</size>
+		</font>
+		<font>
+			<name>font24</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>40</size>
+		</font>
+		<font>
+			<name>font28</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>44</size>
+		</font>
+		<font>
+			<name>font32</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>48</size>
+		</font>
+		<font>
+			<name>font36</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>56</size>
+		</font>
+		<font>
+			<name>font40</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>62</size>
+		</font>
+		<font>
+			<name>font45</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>72</size>
+		</font>
+		<font>
+			<name>font60</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>92</size>
+		</font>
+
+		<!-- Title (bold) variants used by Trakt and several Estuary-derived add-ons -->
+		<font>
+			<name>font10_title</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>16</size>
+			<style>bold</style>
+		</font>
+		<font>
+			<name>font12_title</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>20</size>
+			<style>bold</style>
+		</font>
+		<font>
+			<name>font13_title</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>22</size>
+			<style>bold</style>
+		</font>
+		<font>
+			<name>font14_title</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>26</size>
+			<style>bold</style>
+		</font>
+		<font>
+			<name>font16_title</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>30</size>
+			<style>bold</style>
+		</font>
+		<font>
+			<name>font24_title</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>40</size>
+			<style>bold</style>
+		</font>
+		<font>
+			<name>font32_title</name>
+			<filename>NotoSans-Regular.ttf</filename>
+			<size>48</size>
+			<style>bold</style>
+		</font>
+
+	</fontset>
+</fonts>

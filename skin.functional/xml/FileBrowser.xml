@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window type="dialog">
+	<defaultcontrol always="true">450</defaultcontrol>
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>160</posx>
+		<posy>80</posy>
+	</coordinates>
+	<controls>
+
+		<!-- Dim backdrop -->
+		<control type="image">
+			<left>-160</left>
+			<top>-80</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="C0000000">white.png</texture>
+		</control>
+
+		<!-- Panel -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1600</width>
+			<height>920</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1600</width>
+			<height>4</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Header label (Kodi populates id=411) -->
+		<control type="label" id="411">
+			<left>0</left>
+			<top>20</top>
+			<width>1600</width>
+			<height>50</height>
+			<font>font_med</font>
+			<align>center</align>
+			<textcolor>text</textcolor>
+			<label></label>
+		</control>
+
+		<!-- Files list -->
+		<control type="list" id="450">
+			<left>40</left>
+			<top>90</top>
+			<width>1140</width>
+			<height>700</height>
+			<onleft>9000</onleft>
+			<onright>9000</onright>
+			<pagecontrol>60</pagecontrol>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+
+			<itemlayout height="60" width="1140">
+				<control type="image">
+					<left>10</left>
+					<top>5</top>
+					<width>50</width>
+					<height>50</height>
+					<aspectratio>keep</aspectratio>
+					<texture fallback="DefaultFolder.png">$INFO[ListItem.Icon]</texture>
+				</control>
+				<control type="label">
+					<left>80</left>
+					<top>0</top>
+					<width>1040</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</itemlayout>
+
+			<focusedlayout height="60" width="1140">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1140</width>
+					<height>60</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+					<visible>Control.HasFocus(450)</visible>
+				</control>
+				<control type="image">
+					<left>10</left>
+					<top>5</top>
+					<width>50</width>
+					<height>50</height>
+					<aspectratio>keep</aspectratio>
+					<texture fallback="DefaultFolder.png">$INFO[ListItem.Icon]</texture>
+				</control>
+				<control type="label">
+					<left>80</left>
+					<top>0</top>
+					<width>1040</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</focusedlayout>
+		</control>
+
+		<!-- Alternative thumbnail-grid panel (id 451), Kodi uses this for image-heavy directories -->
+		<control type="panel" id="451">
+			<left>40</left>
+			<top>90</top>
+			<width>1140</width>
+			<height>700</height>
+			<onleft>9000</onleft>
+			<onright>9000</onright>
+			<onup>451</onup>
+			<ondown>451</ondown>
+			<pagecontrol>60</pagecontrol>
+			<orientation>vertical</orientation>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+
+			<itemlayout height="200" width="190">
+				<control type="image">
+					<left>4</left>
+					<top>4</top>
+					<width>182</width>
+					<height>140</height>
+					<aspectratio>scale</aspectratio>
+					<texture fallback="DefaultFolder.png" background="true">$INFO[ListItem.Icon]</texture>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<top>146</top>
+					<width>182</width>
+					<height>50</height>
+					<font>font_small</font>
+					<textcolor>text</textcolor>
+					<align>center</align>
+					<aligny>top</aligny>
+					<wrapmultiline>true</wrapmultiline>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="200" width="190">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>190</width>
+					<height>148</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+					<visible>Control.HasFocus(451)</visible>
+				</control>
+				<control type="image">
+					<left>4</left>
+					<top>4</top>
+					<width>182</width>
+					<height>140</height>
+					<aspectratio>scale</aspectratio>
+					<texture fallback="DefaultFolder.png" background="true">$INFO[ListItem.Icon]</texture>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<top>146</top>
+					<width>182</width>
+					<height>50</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<align>center</align>
+					<aligny>top</aligny>
+					<wrapmultiline>true</wrapmultiline>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</focusedlayout>
+		</control>
+
+		<!-- Scrollbar -->
+		<control type="scrollbar" id="60">
+			<left>1190</left>
+			<top>90</top>
+			<width>16</width>
+			<height>700</height>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>450</onleft>
+			<onright>9000</onright>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- Action buttons grouplist (right side) -->
+		<control type="grouplist" id="9000">
+			<left>1240</left>
+			<top>90</top>
+			<width>320</width>
+			<height>700</height>
+			<orientation>vertical</orientation>
+			<itemgap>10</itemgap>
+			<onleft>450</onleft>
+			<onright>450</onright>
+
+			<control type="button" id="413">
+				<width>320</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			</control>
+			<control type="button" id="414">
+				<width>320</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			</control>
+			<control type="button" id="415">
+				<width>320</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>Control.IsEnabled(415)</visible>
+			</control>
+			<control type="button" id="416">
+				<width>320</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>Control.IsEnabled(416)</visible>
+			</control>
+		</control>
+
+		<!-- Path label at bottom (Kodi populates id=412) -->
+		<control type="label" id="412">
+			<left>40</left>
+			<bottom>30</bottom>
+			<width>1520</width>
+			<height>40</height>
+			<haspath>true</haspath>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<aligny>center</aligny>
+			<label></label>
+		</control>
+
+	</controls>
+</window>

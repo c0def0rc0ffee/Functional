@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+	<controls>
+		<control type="image" id="2">
+			<width>32</width>
+			<height>32</height>
+			<texture>-</texture>
+		</control>
+	</controls>
+</window>

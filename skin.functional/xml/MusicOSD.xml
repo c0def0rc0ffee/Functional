@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window type="dialog">
+	<defaultcontrol always="true">222</defaultcontrol>
+	<animation effect="slide" start="0,200" end="0,0" time="200" tween="cubic" easing="out">WindowOpen</animation>
+	<animation effect="slide" start="0,0" end="0,200" time="200" tween="cubic" easing="in">WindowClose</animation>
+	<controls>
+
+		<!-- Backdrop -->
+		<control type="image">
+			<left>0</left>
+			<bottom>0</bottom>
+			<width>1920</width>
+			<height>200</height>
+			<texture colordiffuse="E0181C22">white.png</texture>
+		</control>
+		<!-- Top accent stripe -->
+		<control type="image">
+			<left>0</left>
+			<bottom>198</bottom>
+			<width>1920</width>
+			<height>2</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Album art -->
+		<control type="image">
+			<left>20</left>
+			<bottom>20</bottom>
+			<width>160</width>
+			<height>160</height>
+			<aspectratio>keep</aspectratio>
+			<texture fallback="DefaultAlbumCover.png" background="true">$INFO[Player.Art(thumb)]</texture>
+		</control>
+
+		<!-- Track / Artist · Album -->
+		<control type="label">
+			<left>200</left>
+			<bottom>140</bottom>
+			<width>900</width>
+			<height>40</height>
+			<font>font_big</font>
+			<textcolor>text</textcolor>
+			<scroll>true</scroll>
+			<label>$INFO[MusicPlayer.Title]</label>
+		</control>
+		<control type="label">
+			<left>200</left>
+			<bottom>108</bottom>
+			<width>900</width>
+			<height>30</height>
+			<font>font_reg</font>
+			<textcolor>accent_hi</textcolor>
+			<scroll>true</scroll>
+			<label>$INFO[MusicPlayer.Artist]$INFO[MusicPlayer.Album, · ,]</label>
+		</control>
+
+		<!-- Progress bar + times -->
+		<control type="label">
+			<left>200</left>
+			<bottom>76</bottom>
+			<width>140</width>
+			<height>24</height>
+			<font>font_reg</font>
+			<textcolor>text_dim</textcolor>
+			<label>$INFO[MusicPlayer.Time]</label>
+		</control>
+		<control type="image">
+			<left>360</left>
+			<bottom>86</bottom>
+			<width>1240</width>
+			<height>6</height>
+			<texture colordiffuse="40FFFFFF">white.png</texture>
+		</control>
+		<control type="progress">
+			<left>360</left>
+			<bottom>86</bottom>
+			<width>1240</width>
+			<height>6</height>
+			<info>Player.Progress</info>
+			<texturebg>-</texturebg>
+			<lefttexture colordiffuse="accent_hi">white.png</lefttexture>
+			<midtexture colordiffuse="accent_hi">white.png</midtexture>
+			<righttexture colordiffuse="accent_hi">white.png</righttexture>
+			<overlaytexture>-</overlaytexture>
+		</control>
+		<control type="label">
+			<right>180</right>
+			<bottom>76</bottom>
+			<width>140</width>
+			<height>24</height>
+			<font>font_reg</font>
+			<textcolor>text_dim</textcolor>
+			<align>right</align>
+			<label>$INFO[MusicPlayer.Duration]</label>
+		</control>
+
+		<!-- Wall-clock + ends-at, top right -->
+		<control type="label">
+			<right>40</right>
+			<bottom>150</bottom>
+			<width>480</width>
+			<height>30</height>
+			<font>font_med</font>
+			<textcolor>text</textcolor>
+			<align>right</align>
+			<label>$INFO[System.Time]</label>
+		</control>
+		<control type="label">
+			<right>40</right>
+			<bottom>118</bottom>
+			<width>480</width>
+			<height>30</height>
+			<font>font_reg</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<align>right</align>
+			<label>Ends at $INFO[Player.FinishTime]</label>
+			<visible>Player.HasMedia + !Player.Paused</visible>
+		</control>
+
+		<!-- ========== TRANSPORT BUTTONS ========== -->
+
+		<!-- 200 Previous -->
+		<control type="button" id="200">
+			<left>620</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>PlayerControl(Previous)</onclick>
+			<onleft>200</onleft>
+			<onright>222</onright>
+		</control>
+		<control type="image">
+			<left>636</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/prev.png</texture>
+		</control>
+
+		<!-- 222 Play / Pause -->
+		<control type="button" id="222">
+			<left>714</left>
+			<bottom>10</bottom>
+			<width>112</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>PlayerControl(Play)</onclick>
+			<onleft>200</onleft>
+			<onright>223</onright>
+		</control>
+		<control type="image">
+			<left>746</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/pause.png</texture>
+			<visible>!Player.Paused</visible>
+		</control>
+		<control type="image">
+			<left>746</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/play.png</texture>
+			<visible>Player.Paused</visible>
+		</control>
+
+		<!-- 223 Stop -->
+		<control type="button" id="223">
+			<left>840</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>PlayerControl(Stop)</onclick>
+			<onleft>222</onleft>
+			<onright>201</onright>
+		</control>
+		<control type="image">
+			<left>856</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/stop.png</texture>
+		</control>
+
+		<!-- 201 Next -->
+		<control type="button" id="201">
+			<left>934</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>PlayerControl(Next)</onclick>
+			<onleft>223</onleft>
+			<onright>606</onright>
+		</control>
+		<control type="image">
+			<left>950</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/next.png</texture>
+		</control>
+
+		<!-- 606 Repeat (Kodi-managed cycle: off → all → one) -->
+		<control type="button" id="606">
+			<left>1028</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label>$LOCALIZE[19216]</label>
+			<font>font_small</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<textoffsetx>0</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onleft>201</onleft>
+			<onright>607</onright>
+		</control>
+
+		<!-- 607 Shuffle (Kodi-managed toggle) -->
+		<control type="button" id="607">
+			<left>1122</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label>$LOCALIZE[590]</label>
+			<font>font_small</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<textoffsetx>0</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onleft>606</onleft>
+			<onright>600</onright>
+		</control>
+
+		<!-- 600 Rating up -->
+		<control type="button" id="600">
+			<left>1216</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label>★+</label>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<textoffsetx>0</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onleft>607</onleft>
+			<onright>601</onright>
+		</control>
+
+		<!-- 601 Rating down -->
+		<control type="button" id="601">
+			<left>1310</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label>★-</label>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<textoffsetx>0</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onleft>600</onleft>
+			<onright>601</onright>
+		</control>
+
+	</controls>
+</window>

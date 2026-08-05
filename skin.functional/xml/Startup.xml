@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+	<animation effect="fade" time="200">WindowOpen</animation>
+	<animation effect="fade" time="400">WindowClose</animation>
+
+	<!-- Brief startup splash. Kodi gets a moment to settle, then we activate Home.
+	     If the user has hidden the splash, we go straight there. -->
+	<onload condition="Skin.HasSetting(hide_loading)">ActivateWindow(Home)</onload>
+	<onload condition="!Skin.HasSetting(hide_loading)">AlarmClock(loadhome,ActivateWindow(Home),0:01,silent)</onload>
+
+	<controls>
+
+		<!-- Solid background -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="FF0F1217">white.png</texture>
+		</control>
+
+		<!-- Logo -->
+		<control type="image">
+			<left>660</left>
+			<top>320</top>
+			<width>600</width>
+			<height>400</height>
+			<aspectratio>keep</aspectratio>
+			<texture>logo.png</texture>
+		</control>
+
+		<!-- Loading caption -->
+		<control type="label">
+			<left>0</left>
+			<top>740</top>
+			<width>1920</width>
+			<height>40</height>
+			<font>font_med</font>
+			<align>center</align>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>Loading…</label>
+		</control>
+
+	</controls>
+</window>

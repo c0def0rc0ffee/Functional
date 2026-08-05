@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+	<defaultcontrol always="true">3</defaultcontrol>
+	<controls>
+
+		<include content="WindowBackground"/>
+		<include content="HeaderBar">
+			<param name="title" value="$INFO[Control.GetLabel(2)]"/>
+		</include>
+
+		<!-- Hidden breadcrumbs label, populated by Kodi -->
+		<control type="label" id="2">
+			<visible>false</visible>
+		</control>
+
+		<!-- LEFT: category buttons (populated by Kodi using button id=10 template) -->
+		<control type="grouplist" id="3">
+			<left>40</left>
+			<top>120</top>
+			<width>500</width>
+			<height>820</height>
+			<itemgap>4</itemgap>
+			<orientation>vertical</orientation>
+			<usecontrolcoords>true</usecontrolcoords>
+			<onleft>5</onleft>
+			<onright>5</onright>
+			<onup>3</onup>
+			<ondown>20</ondown>
+		</control>
+
+		<!-- Settings level toggle (Standard/Advanced/Expert) -->
+		<control type="button" id="20">
+			<left>40</left>
+			<bottom>30</bottom>
+			<width>500</width>
+			<height>60</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<onclick>SettingsLevelChange</onclick>
+			<onleft>5</onleft>
+			<onright>5</onright>
+			<onup>3</onup>
+			<ondown>3</ondown>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<!-- No radio indicator: cycles the settings level, shown as text. -->
+		</control>
+
+		<!-- RIGHT: settings controls (populated by Kodi cloning the templates below) -->
+		<control type="grouplist" id="5">
+			<left>580</left>
+			<top>120</top>
+			<width>1280</width>
+			<height>700</height>
+			<itemgap>10</itemgap>
+			<orientation>vertical</orientation>
+			<usecontrolcoords>true</usecontrolcoords>
+			<pagecontrol>60</pagecontrol>
+			<onleft>3</onleft>
+			<onright>60</onright>
+			<onup>5</onup>
+			<ondown>5</ondown>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+		</control>
+
+		<!-- Description textbox shown at bottom right -->
+		<control type="textbox" id="6">
+			<left>580</left>
+			<bottom>30</bottom>
+			<right>40</right>
+			<height>140</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<align>justify</align>
+			<autoscroll time="3000" delay="5000" repeat="5000">true</autoscroll>
+		</control>
+
+		<!-- Scrollbar -->
+		<control type="scrollbar" id="60">
+			<right>20</right>
+			<top>120</top>
+			<width>16</width>
+			<height>700</height>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>5</onleft>
+			<onright>5</onright>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- ===== TEMPLATES (cloned by Kodi to render each setting) ===== -->
+
+		<!-- Category button (left list). Empty texturenofocus = no background
+		     when unfocused; the focused row gets the accent fill. -->
+		<control type="button" id="10">
+			<width>500</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus />
+		</control>
+
+		<!-- Default button setting -->
+		<control type="button" id="7">
+			<width>1280</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+		</control>
+
+		<!-- Default radiobutton setting -->
+		<control type="radiobutton" id="8">
+			<width>1280</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+			<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+			<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+			<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+		</control>
+
+		<!-- Default spincontrolex setting -->
+		<control type="spincontrolex" id="9">
+			<width>1280</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<reverse>true</reverse>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<textureup colordiffuse="text">icons/prev.png</textureup>
+			<textureupfocus colordiffuse="white">icons/prev.png</textureupfocus>
+			<texturedown colordiffuse="text">icons/next.png</texturedown>
+			<texturedownfocus colordiffuse="white">icons/next.png</texturedownfocus>
+		</control>
+
+		<!-- Separator -->
+		<control type="image" id="11">
+			<width>1280</width>
+			<height>2</height>
+			<texture colordiffuse="grey_mid">white.png</texture>
+		</control>
+
+		<!-- Default sliderex setting -->
+		<control type="sliderex" id="13">
+			<width>1280</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<sliderwidth>400</sliderwidth>
+			<sliderheight>20</sliderheight>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<texturesliderbar colordiffuse="40FFFFFF">white.png</texturesliderbar>
+			<textureslidernib colordiffuse="white">slider_nib.png</textureslidernib>
+			<textureslidernibfocus colordiffuse="accent_hi">slider_nib.png</textureslidernibfocus>
+		</control>
+
+		<!-- Group label inside settings -->
+		<control type="label" id="14">
+			<width>1280</width>
+			<height>50</height>
+			<font>font_med</font>
+			<textcolor>accent_hi</textcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+		</control>
+
+		<!-- Color picker setting -->
+		<control type="colorbutton" id="15">
+			<width>1280</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+		</control>
+
+	</controls>
+</window>

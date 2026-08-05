@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+	<defaultcontrol always="true">2</defaultcontrol>
+	<controls>
+		<include content="WindowBackground"/>
+		<include content="HeaderBar">
+			<param name="title" value="Profiles"/>
+		</include>
+		<control type="list" id="2">
+			<left>60</left>
+			<top>120</top>
+			<width>1800</width>
+			<height>880</height>
+			<itemlayout height="80" width="1800">
+				<control type="label">
+					<left>40</left>
+					<top>0</top>
+					<width>1700</width>
+					<height>80</height>
+					<font>font_med</font>
+					<textcolor>text</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="80" width="1800">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1800</width>
+					<height>80</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>40</left>
+					<top>0</top>
+					<width>1700</width>
+					<height>80</height>
+					<font>font_med</font>
+					<textcolor>white</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</focusedlayout>
+		</control>
+	</controls>
+</window>

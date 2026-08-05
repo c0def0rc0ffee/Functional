@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+	<defaultcontrol always="true">2</defaultcontrol>
+	<allowoverlay>no</allowoverlay>
+	<controls>
+		<control type="visualisation" id="2">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+		</control>
+		<control type="label">
+			<left>40</left>
+			<bottom>40</bottom>
+			<width>1840</width>
+			<height>60</height>
+			<font>font_big</font>
+			<textcolor>text</textcolor>
+			<label>$INFO[MusicPlayer.Artist] - $INFO[MusicPlayer.Title]</label>
+		</control>
+	</controls>
+</window>

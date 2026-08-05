@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Addon info dialog.
+
+  Kodi-assigned action button IDs:
+     6 = Install / Uninstall (togglebutton, depends on installed state)
+     7 = Enable / Disable    (togglebutton)
+     8 = Install
+     9 = Configure (open addon settings)
+    10 = Choose version
+    12 = Open / Launch
+    13 = Auto-update         (radio)
+    14 = Update
+
+  Kodi enables/disables these per addon state; we visible-gate each one
+  on Control.IsEnabled so the row stays tight (no blank greys).
+-->
+<window type="dialog">
+	<defaultcontrol always="true">9000</defaultcontrol>
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>360</posx>
+		<posy>180</posy>
+	</coordinates>
+	<controls>
+
+		<!-- Dim backdrop -->
+		<control type="image">
+			<left>-360</left>
+			<top>-180</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="C0000000">white.png</texture>
+		</control>
+
+		<!-- Panel -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1200</width>
+			<height>720</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1200</width>
+			<height>4</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Thumb left -->
+		<control type="image">
+			<left>30</left>
+			<top>30</top>
+			<width>240</width>
+			<height>240</height>
+			<aspectratio>scale</aspectratio>
+			<texture fallback="DefaultAddon.png" background="true">$INFO[ListItem.Art(thumb)]</texture>
+		</control>
+
+		<!-- Title -->
+		<control type="label">
+			<left>300</left>
+			<top>30</top>
+			<width>870</width>
+			<height>50</height>
+			<font>font_big</font>
+			<textcolor>text</textcolor>
+			<label>$INFO[ListItem.AddonName]</label>
+			<scroll>true</scroll>
+		</control>
+		<!-- Version + author -->
+		<control type="label">
+			<left>300</left>
+			<top>84</top>
+			<width>870</width>
+			<height>26</height>
+			<font>font_small</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>v$INFO[ListItem.AddonVersion]$INFO[ListItem.AddonCreator, · ,]</label>
+		</control>
+		<!-- Type / origin / size -->
+		<control type="label">
+			<left>300</left>
+			<top>114</top>
+			<width>870</width>
+			<height>26</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<label>$INFO[ListItem.AddonType]$INFO[ListItem.AddonOrigin,   ·   ]$INFO[ListItem.AddonSize,   ·   ]</label>
+		</control>
+
+		<!-- Description -->
+		<control type="textbox">
+			<left>300</left>
+			<top>160</top>
+			<width>870</width>
+			<height>340</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<label>$INFO[ListItem.AddonSummary,[B],[/B][CR][CR]]$INFO[ListItem.AddonDescription]</label>
+			<autoscroll delay="5000" repeat="7500" time="5000">true</autoscroll>
+		</control>
+
+		<!-- Disclaimer (only if present) -->
+		<control type="textbox">
+			<left>30</left>
+			<top>510</top>
+			<width>1140</width>
+			<height>60</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<align>center</align>
+			<label>[I]$INFO[ListItem.AddonDisclaimer][/I]</label>
+			<visible>!String.IsEmpty(ListItem.AddonDisclaimer)</visible>
+		</control>
+
+		<!-- Action buttons (Kodi enables/disables per addon state) -->
+		<control type="grouplist" id="9000">
+			<left>30</left>
+			<top>610</top>
+			<width>1140</width>
+			<height>80</height>
+			<orientation>horizontal</orientation>
+			<itemgap>10</itemgap>
+			<align>center</align>
+			<onleft>9000</onleft>
+			<onright>9000</onright>
+
+			<!-- 12 = Open / Launch -->
+			<control type="button" id="12">
+				<width>180</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[518]</label>
+				<visible>Control.IsEnabled(12)</visible>
+			</control>
+			<!-- 9 = Configure / Settings -->
+			<control type="button" id="9">
+				<width>180</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[24020]</label>
+				<visible>Control.IsEnabled(9)</visible>
+			</control>
+			<!-- 13 = Auto-update toggle -->
+			<control type="radiobutton" id="13">
+				<width>200</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">white.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">white.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="grey">white.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_dark">white.png</textureradiooffnofocus>
+				<label>$LOCALIZE[21340]</label>
+				<visible>Control.IsEnabled(13)</visible>
+			</control>
+			<!-- 10 = Choose version -->
+			<control type="button" id="10">
+				<width>180</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[39024]</label>
+				<visible>Control.IsEnabled(10)</visible>
+			</control>
+			<!-- 7 = Enable / Disable togglebutton -->
+			<control type="togglebutton" id="7">
+				<width>180</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[24022]</label>
+				<altlabel>$LOCALIZE[24021]</altlabel>
+				<visible>Control.IsEnabled(7)</visible>
+			</control>
+			<!-- 8 = Install -->
+			<control type="button" id="8">
+				<width>180</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[24138]</label>
+				<visible>Control.IsEnabled(8)</visible>
+			</control>
+			<!-- 14 = Update -->
+			<control type="button" id="14">
+				<width>180</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[24069]</label>
+				<visible>Control.IsEnabled(14)</visible>
+			</control>
+			<!-- 6 = Install / Uninstall togglebutton -->
+			<control type="togglebutton" id="6">
+				<width>180</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[24038]</label>
+				<altlabel>$LOCALIZE[24037]</altlabel>
+				<visible>Control.IsEnabled(6)</visible>
+			</control>
+
+		</control>
+
+	</controls>
+</window>

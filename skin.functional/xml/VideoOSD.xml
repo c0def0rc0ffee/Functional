@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window type="dialog">
+	<defaultcontrol always="true">222</defaultcontrol>
+	<!-- Plain fade for open/close. Conditional animations (both these open/close
+	     slides and the old position-shifting Conditional slide) proved unreliable
+	     on some builds, so nothing position-critical uses them any more. -->
+	<animation effect="fade" time="200">WindowOpen</animation>
+	<animation effect="fade" time="200">WindowClose</animation>
+	<controls>
+
+	<!-- Wrapper group. All content inside is bottom-anchored (draws at the
+	     bottom of the screen by default). When osd_position=top, the include
+	     below shifts the whole group up by 890 (1080 - the 190px panel) at
+	     SKIN LOAD time, a static position, not a runtime animation, because
+	     conditional animations don't reposition reliably on every build. The
+	     OSD Position setting button calls ReloadSkin() so a change applies
+	     immediately. -->
+	<control type="group">
+		<include condition="String.IsEqual(Skin.String(osd_position),top)">OsdTopModeShift</include>
+		<visible>!Window.IsActive(slidersettings) + !Window.IsActive(osdvideosettings) + !Window.IsActive(osdaudiosettings) + !Window.IsActive(subtitlesearch) + !Window.IsActive(pvrosdchannels) + !Window.IsActive(pvrosdguide)</visible>
+
+		<!-- Backdrop panel -->
+		<control type="image">
+			<left>0</left>
+			<bottom>0</bottom>
+			<width>1920</width>
+			<height>190</height>
+			<texture colordiffuse="E0181C22">white.png</texture>
+		</control>
+
+		<!-- Top accent stripe, drawn BEFORE poster so the poster covers it where they cross -->
+		<control type="image">
+			<left>0</left>
+			<bottom>188</bottom>
+			<width>1920</width>
+			<height>2</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Thumb / poster on the left, different anchor depending on OSD position so the poster always extends INTO the screen, not off it -->
+		<!-- OSD bottom: extend up from OSD bottom -->
+		<control type="image">
+			<visible>!Skin.HasSetting(hide_osd_thumb) + !String.IsEqual(Skin.String(osd_position),top)</visible>
+			<left>10</left>
+			<bottom>20</bottom>
+			<width>200</width>
+			<height>300</height>
+			<aspectratio>keep</aspectratio>
+			<texture fallback="DefaultVideo.png" background="true">$INFO[Player.Art(poster)]</texture>
+		</control>
+		<!-- OSD top: extend down from OSD top -->
+		<control type="image">
+			<visible>!Skin.HasSetting(hide_osd_thumb) + String.IsEqual(Skin.String(osd_position),top)</visible>
+			<left>10</left>
+			<top>910</top>
+			<width>200</width>
+			<height>300</height>
+			<aspectratio>keep</aspectratio>
+			<texture fallback="DefaultVideo.png" background="true">$INFO[Player.Art(poster)]</texture>
+		</control>
+
+		<!-- ========== TITLE ROW ========== -->
+
+		<control type="label">
+			<left>240</left>
+			<bottom>140</bottom>
+			<right>620</right>
+			<height>40</height>
+			<font>font_big</font>
+			<textcolor>text</textcolor>
+			<scroll>true</scroll>
+			<label>$INFO[VideoPlayer.Title]$INFO[VideoPlayer.Year, ( ,)]</label>
+			<visible>!String.IsEmpty(VideoPlayer.Title) + String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
+		</control>
+
+		<control type="label">
+			<left>240</left>
+			<bottom>140</bottom>
+			<right>620</right>
+			<height>40</height>
+			<font>font_big</font>
+			<textcolor>text</textcolor>
+			<scroll>true</scroll>
+			<label>$INFO[VideoPlayer.TVShowTitle]</label>
+			<visible>!String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
+		</control>
+		<control type="label">
+			<left>240</left>
+			<bottom>110</bottom>
+			<right>620</right>
+			<height>26</height>
+			<font>font_reg</font>
+			<textcolor>accent_hi</textcolor>
+			<label>$INFO[VideoPlayer.Season,S,]$INFO[VideoPlayer.Episode,E,] · $INFO[VideoPlayer.Title]</label>
+			<visible>!String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
+		</control>
+
+		<control type="label">
+			<left>240</left>
+			<bottom>140</bottom>
+			<right>620</right>
+			<height>40</height>
+			<font>font_big</font>
+			<textcolor>text</textcolor>
+			<scroll>true</scroll>
+			<label>$INFO[Player.FileName]</label>
+			<visible>String.IsEmpty(VideoPlayer.Title) + String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
+		</control>
+
+		<!-- Top-right corner: current time + ends-at -->
+		<control type="label">
+			<right>40</right>
+			<bottom>150</bottom>
+			<width>480</width>
+			<height>30</height>
+			<font>font_med</font>
+			<textcolor>text</textcolor>
+			<align>right</align>
+			<label>$INFO[System.Time]</label>
+		</control>
+		<control type="label">
+			<right>40</right>
+			<bottom>118</bottom>
+			<width>480</width>
+			<height>30</height>
+			<font>font_reg</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<align>right</align>
+			<label>Ends at $INFO[Player.FinishTime]</label>
+			<visible>Player.HasMedia + !Player.Paused</visible>
+		</control>
+		<control type="label">
+			<right>40</right>
+			<bottom>118</bottom>
+			<width>480</width>
+			<height>30</height>
+			<font>font_reg</font>
+			<textcolor>text_dim</textcolor>
+			<align>right</align>
+			<label>Paused</label>
+			<visible>Player.Paused</visible>
+		</control>
+
+		<!-- ========== PROGRESS BAR ========== -->
+
+		<!-- Combined elapsed/total on the left -->
+		<control type="label">
+			<left>240</left>
+			<bottom>76</bottom>
+			<width>420</width>
+			<height>24</height>
+			<font>font_reg</font>
+			<textcolor>text_dim</textcolor>
+			<label>$INFO[Player.Time(hh:mm:ss)] / $INFO[Player.Duration(hh:mm:ss)]</label>
+		</control>
+
+		<!-- Centred progress percentage (whole numbers, native Kodi infolabel) -->
+		<control type="label">
+			<left>680</left>
+			<bottom>70</bottom>
+			<width>560</width>
+			<height>34</height>
+			<font>font_med</font>
+			<align>center</align>
+			<aligny>center</aligny>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>$INFO[Player.Progress]%</label>
+		</control>
+
+		<!-- Resolution pill below Ends-at: tinted background + light text -->
+		<control type="image">
+			<right>40</right>
+			<bottom>78</bottom>
+			<width>120</width>
+			<height>30</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			<visible>!String.IsEmpty(VideoPlayer.VideoResolution)</visible>
+		</control>
+		<control type="label">
+			<right>40</right>
+			<bottom>78</bottom>
+			<width>120</width>
+			<height>30</height>
+			<font>font_small</font>
+			<align>center</align>
+			<aligny>center</aligny>
+			<textcolor>white</textcolor>
+			<label>$VAR[OsdResolutionLabel]</label>
+			<visible>!String.IsEmpty(VideoPlayer.VideoResolution)</visible>
+		</control>
+
+		<!-- ========== TRANSPORT BUTTONS ==========
+		     6 buttons centred at bottom. Total bar width:
+		     80+12+80+12+112+12+80+12+80+12+80 = 572 → start x = (1920-572)/2 = 674
+		-->
+
+		<!-- 200 Previous (x=674) -->
+		<control type="button" id="200">
+			<left>528</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>PlayerControl(Previous)</onclick>
+			<onleft>200</onleft>
+			<onright>202</onright>
+		</control>
+		<control type="image">
+			<left>544</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/prev.png</texture>
+		</control>
+
+		<!-- 202 Rewind (x=766) -->
+		<control type="button" id="202">
+			<left>622</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>PlayerControl(Rewind)</onclick>
+			<onleft>200</onleft>
+			<onright>222</onright>
+		</control>
+		<control type="image">
+			<left>638</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/rew.png</texture>
+		</control>
+
+		<!-- 222 Play / Pause (x=858, w=112) -->
+		<control type="button" id="222">
+			<left>716</left>
+			<bottom>10</bottom>
+			<width>112</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>PlayerControl(Play)</onclick>
+			<onleft>202</onleft>
+			<onright>223</onright>
+		</control>
+		<control type="image">
+			<left>748</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/pause.png</texture>
+			<visible>!Player.Paused</visible>
+		</control>
+		<control type="image">
+			<left>748</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/play.png</texture>
+			<visible>Player.Paused</visible>
+		</control>
+
+		<!-- 223 Stop (x=982) -->
+		<control type="button" id="223">
+			<left>842</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>PlayerControl(Stop)</onclick>
+			<onleft>222</onleft>
+			<onright>203</onright>
+		</control>
+		<control type="image">
+			<left>858</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/stop.png</texture>
+		</control>
+
+		<!-- 203 Fast forward (x=1074) -->
+		<control type="button" id="203">
+			<left>936</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>PlayerControl(Forward)</onclick>
+			<onleft>223</onleft>
+			<onright>201</onright>
+		</control>
+		<control type="image">
+			<left>952</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/ff.png</texture>
+		</control>
+
+		<!-- 201 Next (x=1030) -->
+		<control type="button" id="201">
+			<left>1030</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>PlayerControl(Next)</onclick>
+			<onleft>203</onleft>
+			<onright>211</onright>
+		</control>
+		<control type="image">
+			<left>1046</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/next.png</texture>
+		</control>
+
+		<!-- 211 Audio menu (x=1124) -->
+		<control type="button" id="211">
+			<left>1124</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>ActivateWindow(OSDAudioSettings)</onclick>
+			<onleft>201</onleft>
+			<onright>212</onright>
+		</control>
+		<control type="image">
+			<left>1140</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/audio.png</texture>
+		</control>
+
+		<!-- 212 Subtitle search (x=1218) -->
+		<control type="button" id="212">
+			<left>1218</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>ActivateWindow(SubtitleSearch)</onclick>
+			<onleft>211</onleft>
+			<onright>213</onright>
+		</control>
+		<control type="image">
+			<left>1234</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/subtitle.png</texture>
+		</control>
+
+		<!-- 213 Video adjust (x=1312) -->
+		<control type="button" id="213">
+			<left>1312</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label></label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>ActivateWindow(OSDVideoSettings)</onclick>
+			<onleft>212</onleft>
+			<onright>213</onright>
+		</control>
+		<control type="image">
+			<left>1328</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/adjust.png</texture>
+		</control>
+
+	</control>
+	</controls>
+</window>

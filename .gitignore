@@ -1,0 +1,39 @@
+# Local release tooling and notes
+/publish-github.sh
+/push-source.sh
+/publish.conf
+/GITHUB-RELEASE-GUIDE.md
+/.publish-allow
+/Github repository
+/PROJECT_NOTES.md
+/release-mirror.conf
+
+# Local build output / release artifacts (zips + working images)
+/Skin Dist/
+/Skin Git/
+
+# Local editor and tooling state (any dot folder except .github)
+.*/
+!.github/
+
+# Archives, temp files, logs never belong in the repo
+*.zip
+*.7z
+*.log
+*.tmp
+
+# Windows recycle bin (project lives on a network share)
+$RECYCLE.BIN/
+
+# Python
+__pycache__/
+*.pyc
+
+# Synology NAS sidecar metadata
+@eaDir/
+*@SynoEAStream
+
+# OS junk
+Thumbs.db
+.DS_Store
+desktop.ini
