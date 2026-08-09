@@ -185,10 +185,10 @@ def _count(method, extra_params=None):
 def _parse_duration_to_seconds(text):
     """
     Parse Kodi's ListItem.Duration string into total seconds.
-    Common formats: 'H:MM:SS', 'H:MM', 'MM:SS', plain minutes ('123').
+    Common formats: 'H:MM:SS', 'MM:SS', plain minutes ('123').
 
-    For video-library items we always treat 2-part values as 'H:MM' (movies)
-    rather than 'MM:SS' (which would only show up for very short clips).
+    Kodi formats durations >= 1 hour with three parts, so a 2-part value is
+    always 'MM:SS' (sub-hour items), never 'H:MM'.
     """
     if not text:
         return 0
@@ -200,11 +200,8 @@ def _parse_duration_to_seconds(text):
                 h, m, s = parts
                 return h * 3600 + m * 60 + s
             if len(parts) == 2:
-                # Heuristic: treat as H:MM unless first part is clearly minutes (>=60)
-                a, b = parts
-                if a >= 60:
-                    return a * 60 + b
-                return a * 3600 + b * 60
+                m, s = parts
+                return m * 60 + s
             return 0
         return int(text) * 60  # bare number = minutes
     except (ValueError, TypeError):
@@ -375,8 +372,14 @@ class FunctionalHelper(xbmc.Monitor):
             self._set_eta("")
             return
 
-        duration_str = xbmc.getInfoLabel("ListItem.Duration")
-        seconds = _parse_duration_to_seconds(duration_str)
+        # Duration(secs) is unambiguous; the bare label formats sub-hour items
+        # as MM:SS, which is indistinguishable from H:MM after the fact.
+        duration_str = xbmc.getInfoLabel("ListItem.Duration(secs)")
+        try:
+            seconds = int(duration_str)
+        except (ValueError, TypeError):
+            duration_str = xbmc.getInfoLabel("ListItem.Duration")
+            seconds = _parse_duration_to_seconds(duration_str)
         if seconds <= 0:
             # Log the raw duration once per distinct value so we can see why
             # an item yields no end time (empty? unexpected format?).
