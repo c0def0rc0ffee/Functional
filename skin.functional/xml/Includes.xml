@@ -1026,10 +1026,13 @@
 	     category has no items (except All, which is always shown). Shows an
 	     accent underline while it is the active filter. -->
 	<include name="FavCategoryButton">
+		<param name="id" />
 		<param name="cat" />
 		<param name="label" />
 		<definition>
-			<control type="group">
+			<!-- The wrapper group needs a unique id: grouplist auto-navigation links
+			     siblings by control id, so id-less children break left/right moves. -->
+			<control type="group" id="$PARAM[id]">
 				<width>230</width>
 				<height>72</height>
 				<visible>String.IsEqual($PARAM[cat],all) | !String.IsEqual(Window(home).Property(Fav.CatCount.$PARAM[cat]),0)</visible>

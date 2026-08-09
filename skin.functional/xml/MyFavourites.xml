@@ -42,12 +42,12 @@
 			<onup>50</onup>
 			<onleft>50</onleft>
 			<onright>50</onright>
-				<include content="FavCategoryButton"><param name="cat" value="all" /><param name="label" value="All" /></include>
-				<include content="FavCategoryButton"><param name="cat" value="movies" /><param name="label" value="Movies" /></include>
-				<include content="FavCategoryButton"><param name="cat" value="tvshows" /><param name="label" value="TV" /></include>
-				<include content="FavCategoryButton"><param name="cat" value="music" /><param name="label" value="Music" /></include>
-				<include content="FavCategoryButton"><param name="cat" value="apps" /><param name="label" value="Apps" /></include>
-				<include content="FavCategoryButton"><param name="cat" value="other" /><param name="label" value="Other" /></include>
+				<include content="FavCategoryButton"><param name="id" value="71" /><param name="cat" value="all" /><param name="label" value="All" /></include>
+				<include content="FavCategoryButton"><param name="id" value="72" /><param name="cat" value="movies" /><param name="label" value="Movies" /></include>
+				<include content="FavCategoryButton"><param name="id" value="73" /><param name="cat" value="tvshows" /><param name="label" value="TV" /></include>
+				<include content="FavCategoryButton"><param name="id" value="74" /><param name="cat" value="music" /><param name="label" value="Music" /></include>
+				<include content="FavCategoryButton"><param name="id" value="75" /><param name="cat" value="apps" /><param name="label" value="Apps" /></include>
+				<include content="FavCategoryButton"><param name="id" value="76" /><param name="cat" value="other" /><param name="label" value="Other" /></include>
 		</control>
 
 		<!-- Favourites list (static; items follow the selected category) -->

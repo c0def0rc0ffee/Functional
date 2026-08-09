@@ -2,9 +2,9 @@
 
 The display name is **Functional**. The addon ID and folder name are both `skin.functional`. Release zips are named `skin.functional-<version>.zip` (built into `Skin Dist/` by `build_zip.py`).
 
-## Method 1: Install from Zip (recommended)
+## Method 1: Repository add-on (recommended, updates itself)
 
-This is the cleanest way to install on each Kodi device.
+Install one small zip once and Kodi keeps the skin current on its own, exactly like an add-on from the official repository. New releases are picked up automatically on Kodi's normal update schedule.
 
 ### One-time prep (per device)
 
@@ -13,6 +13,31 @@ Kodi blocks installing from zip by default. Enable it once:
 1. **Settings → System → Add-ons**
 2. Toggle **Unknown sources** on
 3. Confirm the warning dialog
+
+### Install the repository add-on (once per device)
+
+1. Download `repository.functional-1.0.0.zip` onto the device. It is served straight from GitHub:
+
+   <https://raw.githubusercontent.com/c0def0rc0ffee/Functional/repo/zips/repository.functional/repository.functional-1.0.0.zip>
+
+   No browser on the device? Copy it over on a USB stick or network share instead. The same zip also sits in `Repositories/Functional/Builds/` after a build.
+2. In Kodi: **Settings → Add-ons → Install from zip file**, browse to the zip and select it
+3. Wait for the "Add-on installed" notification
+
+### Install the skin from the repository
+
+1. **Settings → Add-ons → Install from repository → Functional Repository → Look and feel → Skin → Functional → Install**
+2. Activate it: **Settings → Interface → Skin → Skin → Functional**, then answer **Yes** to "Keep this skin?"
+
+From here on Kodi checks the repository for new versions by itself. To force a check at any time: **Settings → System → Add-ons → Updates** should be set to **Install updates automatically**, and **Add-ons → My add-ons → Check for updates** triggers one immediately.
+
+## Method 2: Install from Zip (manual updates)
+
+The direct route when a device should stay pinned to one version.
+
+### One-time prep (per device)
+
+Same as above: enable **Unknown sources** under **Settings → System → Add-ons**.
 
 ### Install
 
@@ -25,7 +50,7 @@ Kodi blocks installing from zip by default. Enable it once:
 
 Done.
 
-## Method 2: Manual copy
+## Method 3: Manual copy
 
 If the device doesn't allow zip install, copy the folder by hand.
 
@@ -40,12 +65,13 @@ If the device doesn't allow zip install, copy the folder by hand.
 4. **Restart Kodi** (full quit + relaunch)
 5. **Settings → Interface → Skin → Skin → Functional**
 
-## Method 3: Unattended update on boot (Linux HTPC)
+## Method 4: Unattended update on boot (Linux HTPC)
 
 For a headless / remote-only Linux box, the scripts in [`mint-autoupdate/`](mint-autoupdate/) swap in a newer zip at boot, before Kodi starts. Drop a new `skin.functional-*.zip` in the drop folder and reboot. See that folder's README for setup.
 
 ## Updating to a newer version
 
+- **Repository method**: nothing to do, Kodi installs new versions on its own (or trigger one via **Add-ons → My add-ons → Check for updates**)
 - **Zip method**: just install the new zip the same way, and Kodi replaces the old version
 - **Manual method**: delete the existing `skin.functional/` folder on the device first, then copy the new one
 
