@@ -82,14 +82,32 @@
 			<scrolltime tween="cubic" easing="out">200</scrolltime>
 			<pagecontrol>61</pagecontrol>
 
+			<!-- selectedcolor is mandatory on every label here: this dialog runs in
+			     multiselect mode (Jellyfin "Update Library", subtitle pickers, etc.)
+			     and Kodi defaults an unset selectedcolor to 00000000 — ticked rows
+			     would render fully transparent while the focus bar stayed put. -->
 			<itemlayout height="60" width="880">
 				<control type="label">
 					<left>30</left>
 					<top>0</top>
-					<width>700</width>
+					<width>30</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>accent_hi</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<label>✓</label>
+					<visible>ListItem.IsSelected</visible>
+				</control>
+				<control type="label">
+					<left>70</left>
+					<top>0</top>
+					<width>660</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -102,6 +120,7 @@
 					<align>right</align>
 					<aligny>center</aligny>
 					<textcolor>text_dim</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
 					<label>$INFO[ListItem.Label2]</label>
 				</control>
 			</itemlayout>
@@ -118,10 +137,24 @@
 				<control type="label">
 					<left>30</left>
 					<top>0</top>
-					<width>700</width>
+					<width>30</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<label>✓</label>
+					<visible>ListItem.IsSelected</visible>
+				</control>
+				<control type="label">
+					<left>70</left>
+					<top>0</top>
+					<width>660</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -134,6 +167,7 @@
 					<align>right</align>
 					<aligny>center</aligny>
 					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
 					<label>$INFO[ListItem.Label2]</label>
 				</control>
 			</focusedlayout>
@@ -155,10 +189,24 @@
 				<control type="label">
 					<left>30</left>
 					<top>0</top>
-					<width>820</width>
+					<width>30</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>accent_hi</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<label>✓</label>
+					<visible>ListItem.IsSelected</visible>
+				</control>
+				<control type="label">
+					<left>70</left>
+					<top>0</top>
+					<width>780</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -175,10 +223,24 @@
 				<control type="label">
 					<left>30</left>
 					<top>0</top>
-					<width>820</width>
+					<width>30</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<label>✓</label>
+					<visible>ListItem.IsSelected</visible>
+				</control>
+				<control type="label">
+					<left>70</left>
+					<top>0</top>
+					<width>780</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -236,7 +298,6 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<visible>Control.IsEnabled(8)</visible>
 			</control>
 			<!-- 7 = Cancel -->
 			<control type="button" id="7">

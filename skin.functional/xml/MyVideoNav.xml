@@ -274,6 +274,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -284,6 +285,7 @@
 					<height>60</height>
 					<font>font_small</font>
 					<textcolor>text_dim</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label2]</label>
@@ -312,6 +314,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -322,6 +325,7 @@
 					<height>60</height>
 					<font>font_small</font>
 					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label2]</label>

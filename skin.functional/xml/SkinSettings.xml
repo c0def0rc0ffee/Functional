@@ -1135,8 +1135,8 @@
 				<onleft>7000</onleft>
 
 				<!-- Background mode: Off → Static Image → Recently Watched
-				     → Random Library → Folder → Off. One selector, so static
-				     and slideshow can never fight. -->
+				     → Random Library → Folder → By Genre → Off. One selector,
+				     so static and slideshow can never fight. -->
 				<control type="button" id="7116">
 					<width>900</width>
 					<height>70</height>
@@ -1154,7 +1154,8 @@
 					<onclick condition="String.IsEqual(Skin.String(bg_mode),image)">Skin.SetString(bg_mode,recent)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(bg_mode),recent)">Skin.SetString(bg_mode,random)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(bg_mode),random)">Skin.SetString(bg_mode,folder)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(bg_mode),folder)">Skin.Reset(bg_mode)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_mode),folder)">Skin.SetString(bg_mode,genre)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_mode),genre)">Skin.Reset(bg_mode)</onclick>
 				</control>
 
 				<!-- Static-image controls (mode = image) -->
@@ -1212,6 +1213,48 @@
 					<onclick>Skin.SetImage(bg_slideshow_folder)</onclick>
 				</control>
 
+				<!-- Genre slideshow controls (mode = genre). Media type first,
+				     since it decides which genre list the picker offers. The
+				     picker itself is a service-side dialog (skins can't
+				     enumerate library genres), triggered via bg_command. -->
+				<control type="button" id="7125">
+					<visible>String.IsEqual(Skin.String(bg_mode),genre)</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>40</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Content: $VAR[BgGenreTypeLabel]</label>
+					<onleft>7000</onleft>
+					<!-- Changing type invalidates the chosen genre: TV genres and
+					     movie genres aren't the same set. -->
+					<onclick condition="String.IsEmpty(Skin.String(bg_genre_type))">Skin.SetString(bg_genre_type,tvshows)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_genre_type),tvshows)">Skin.SetString(bg_genre_type,both)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_genre_type),both)">Skin.Reset(bg_genre_type)</onclick>
+					<onclick>Skin.Reset(bg_genre)</onclick>
+				</control>
+				<control type="button" id="7126">
+					<visible>String.IsEqual(Skin.String(bg_mode),genre)</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>40</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Genre: $VAR[BgGenreLabel]</label>
+					<onleft>7000</onleft>
+					<onclick>Skin.SetString(bg_command,pick_genre)</onclick>
+				</control>
+
 				<!-- Dim, applies to any non-off background -->
 				<control type="button" id="7114">
 					<visible>!String.IsEmpty(Skin.String(bg_mode))</visible>
@@ -1238,7 +1281,7 @@
 
 				<!-- Slideshow-only: interval + caption (modes recent/random/folder) -->
 				<control type="button" id="7117">
-					<visible>String.IsEqual(Skin.String(bg_mode),recent) | String.IsEqual(Skin.String(bg_mode),random) | String.IsEqual(Skin.String(bg_mode),folder)</visible>
+					<visible>String.IsEqual(Skin.String(bg_mode),recent) | String.IsEqual(Skin.String(bg_mode),random) | String.IsEqual(Skin.String(bg_mode),folder) | String.IsEqual(Skin.String(bg_mode),genre)</visible>
 					<width>900</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -1259,10 +1302,10 @@
 					<onclick condition="String.IsEqual(Skin.String(bg_slideshow_interval),300)">Skin.Reset(bg_slideshow_interval)</onclick>
 				</control>
 				<control type="button" id="7118">
-					<!-- Caption applies to image / recent / random. Folder mode
-					     (native multiimage cycler) can't expose a filename, so it
-					     has no caption and the option is hidden there. -->
-					<visible>String.IsEqual(Skin.String(bg_mode),image) | String.IsEqual(Skin.String(bg_mode),recent) | String.IsEqual(Skin.String(bg_mode),random)</visible>
+					<!-- Caption applies to image / recent / random / genre. Folder
+					     mode (native multiimage cycler) can't expose a filename, so
+					     it has no caption and the option is hidden there. -->
+					<visible>String.IsEqual(Skin.String(bg_mode),image) | String.IsEqual(Skin.String(bg_mode),recent) | String.IsEqual(Skin.String(bg_mode),random) | String.IsEqual(Skin.String(bg_mode),genre)</visible>
 					<width>900</width>
 					<height>60</height>
 					<font>font_reg</font>

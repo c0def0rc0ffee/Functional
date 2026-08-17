@@ -59,7 +59,24 @@
 		<value condition="String.IsEqual(Skin.String(bg_mode),recent)">Slideshow: Recently Watched</value>
 		<value condition="String.IsEqual(Skin.String(bg_mode),random)">Slideshow: Random Library</value>
 		<value condition="String.IsEqual(Skin.String(bg_mode),folder)">Slideshow: Folder</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),genre)">Slideshow: By Genre</value>
 		<value>Off</value>
+	</variable>
+
+	<!-- Genre slideshow (bg_mode = genre). The service picks random fanart
+	     from the library filtered to Skin.String(bg_genre), restricted to the
+	     media type in Skin.String(bg_genre_type). Genre is chosen from a
+	     dialog the service builds off the real library, so there's no
+	     hardcoded genre list here to drift out of date. -->
+	<variable name="BgGenreLabel">
+		<value condition="!String.IsEmpty(Skin.String(bg_genre))">$INFO[Skin.String(bg_genre)]</value>
+		<value>[COLOR grey]not set — tap to choose[/COLOR]</value>
+	</variable>
+
+	<variable name="BgGenreTypeLabel">
+		<value condition="String.IsEqual(Skin.String(bg_genre_type),tvshows)">TV Shows</value>
+		<value condition="String.IsEqual(Skin.String(bg_genre_type),both)">Movies + TV Shows</value>
+		<value>Movies</value>
 	</variable>
 
 	<!-- Slideshow interval in milliseconds, for the folder multiimage control
@@ -460,6 +477,7 @@
 				<height>180</height>
 				<font>font_small</font>
 				<textcolor>text</textcolor>
+				<selectedcolor>accent_hi</selectedcolor>
 				<align>center</align>
 				<aligny>top</aligny>
 				<label>$INFO[ListItem.Label]</label>
@@ -483,6 +501,7 @@
 				<height>26</height>
 				<font>font_reg</font>
 				<textcolor>white</textcolor>
+				<selectedcolor>accent_hi</selectedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
 				<label>✓</label>
@@ -544,6 +563,7 @@
 					<height>90</height>
 					<font>font_med</font>
 					<textcolor>text</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<label>$PARAM[title]</label>
@@ -555,6 +575,7 @@
 					<height>90</height>
 					<font>font_reg</font>
 					<textcolor>text_dim</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$INFO[System.Time]</label>
@@ -595,6 +616,7 @@
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<selectedcolor>accent_hi</selectedcolor>
 				<aligny>center</aligny>
 				<label>$INFO[ListItem.Label]</label>
 			</control>
@@ -615,6 +637,7 @@
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<selectedcolor>white</selectedcolor>
 				<aligny>center</aligny>
 				<label>$INFO[ListItem.Label]</label>
 			</control>
@@ -810,6 +833,7 @@
 						<height>60</height>
 						<font>font_reg</font>
 						<textcolor>text</textcolor>
+						<selectedcolor>accent_hi</selectedcolor>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label]</label>
 					</control>
@@ -820,6 +844,7 @@
 						<height>60</height>
 						<font>font_small</font>
 						<textcolor>text_dim</textcolor>
+						<selectedcolor>accent_hi</selectedcolor>
 						<align>right</align>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label2]</label>
@@ -848,6 +873,7 @@
 						<height>60</height>
 						<font>font_reg</font>
 						<textcolor>white</textcolor>
+						<selectedcolor>white</selectedcolor>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label]</label>
 					</control>
@@ -858,6 +884,7 @@
 						<height>60</height>
 						<font>font_small</font>
 						<textcolor>white</textcolor>
+						<selectedcolor>white</selectedcolor>
 						<align>right</align>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label2]</label>
@@ -961,6 +988,7 @@
 						<height>80</height>
 						<font>font_med</font>
 						<textcolor>text</textcolor>
+						<selectedcolor>accent_hi</selectedcolor>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label]</label>
 					</control>
@@ -981,6 +1009,7 @@
 						<height>80</height>
 						<font>font_med</font>
 						<textcolor>white</textcolor>
+						<selectedcolor>white</selectedcolor>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label]</label>
 					</control>

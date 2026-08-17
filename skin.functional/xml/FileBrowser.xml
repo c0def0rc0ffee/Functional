@@ -74,6 +74,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -103,6 +104,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -139,6 +141,7 @@
 					<height>50</height>
 					<font>font_small</font>
 					<textcolor>text</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
 					<align>center</align>
 					<aligny>top</aligny>
 					<wrapmultiline>true</wrapmultiline>
@@ -169,6 +172,7 @@
 					<height>50</height>
 					<font>font_small</font>
 					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
 					<align>center</align>
 					<aligny>top</aligny>
 					<wrapmultiline>true</wrapmultiline>
@@ -238,7 +242,6 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<visible>Control.IsEnabled(415)</visible>
 			</control>
 			<control type="button" id="416">
 				<width>320</width>
@@ -251,7 +254,6 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<visible>Control.IsEnabled(416)</visible>
 			</control>
 		</control>
 

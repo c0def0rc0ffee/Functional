@@ -12,8 +12,11 @@
     13 = Auto-update         (radio)
     14 = Update
 
-  Kodi enables/disables these per addon state; we visible-gate each one
-  on Control.IsEnabled so the row stays tight (no blank greys).
+  Kodi shows/hides and enables/disables these per addon state via its own
+  SET_CONTROL_VISIBLE/HIDDEN calls, which keeps the row tight on its own.
+  Do NOT add <visible>Control.IsEnabled(N)</visible> gates here — a skin-side
+  visible condition overrides Kodi's and the buttons never come back after
+  the first paint.
 -->
 <window type="dialog">
 	<defaultcontrol always="true">9000</defaultcontrol>
@@ -142,7 +145,6 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[518]</label>
-				<visible>Control.IsEnabled(12)</visible>
 			</control>
 			<!-- 9 = Configure / Settings -->
 			<control type="button" id="9">
@@ -156,7 +158,6 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[24020]</label>
-				<visible>Control.IsEnabled(9)</visible>
 			</control>
 			<!-- 13 = Auto-update toggle -->
 			<control type="radiobutton" id="13">
@@ -175,7 +176,6 @@
 				<textureradioofffocus colordiffuse="grey">white.png</textureradioofffocus>
 				<textureradiooffnofocus colordiffuse="grey_dark">white.png</textureradiooffnofocus>
 				<label>$LOCALIZE[21340]</label>
-				<visible>Control.IsEnabled(13)</visible>
 			</control>
 			<!-- 10 = Choose version -->
 			<control type="button" id="10">
@@ -189,7 +189,6 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[39024]</label>
-				<visible>Control.IsEnabled(10)</visible>
 			</control>
 			<!-- 7 = Enable / Disable togglebutton -->
 			<control type="togglebutton" id="7">
@@ -204,7 +203,6 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[24022]</label>
 				<altlabel>$LOCALIZE[24021]</altlabel>
-				<visible>Control.IsEnabled(7)</visible>
 			</control>
 			<!-- 8 = Install -->
 			<control type="button" id="8">
@@ -218,7 +216,6 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[24138]</label>
-				<visible>Control.IsEnabled(8)</visible>
 			</control>
 			<!-- 14 = Update -->
 			<control type="button" id="14">
@@ -232,7 +229,6 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[24069]</label>
-				<visible>Control.IsEnabled(14)</visible>
 			</control>
 			<!-- 6 = Install / Uninstall togglebutton -->
 			<control type="togglebutton" id="6">
@@ -247,7 +243,6 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[24038]</label>
 				<altlabel>$LOCALIZE[24037]</altlabel>
-				<visible>Control.IsEnabled(6)</visible>
 			</control>
 
 		</control>

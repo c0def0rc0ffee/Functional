@@ -18,7 +18,8 @@
 		       8  = Hide incompatible add-ons (radiobutton)
 		       9  = Check for updates (button)
 		       5  = Add-on settings (button)
-		     Each is gated by Control.IsEnabled so Kodi can show/hide as relevant. -->
+		     Kodi shows/hides these itself as relevant — no skin-side
+		     Control.IsEnabled gates (they stick invisible at first paint). -->
 		<control type="grouplist" id="9000">
 			<left>40</left>
 			<top>120</top>
@@ -45,7 +46,6 @@
 				<textureradioofffocus colordiffuse="grey">white.png</textureradioofffocus>
 				<textureradiooffnofocus colordiffuse="grey_dark">white.png</textureradiooffnofocus>
 				<label>Hide foreign</label>
-				<visible>Control.IsEnabled(7)</visible>
 			</control>
 
 			<control type="radiobutton" id="8">
@@ -64,7 +64,6 @@
 				<textureradioofffocus colordiffuse="grey">white.png</textureradioofffocus>
 				<textureradiooffnofocus colordiffuse="grey_dark">white.png</textureradiooffnofocus>
 				<label>Hide incompatible</label>
-				<visible>Control.IsEnabled(8)</visible>
 			</control>
 
 			<control type="button" id="9">

@@ -45,14 +45,23 @@ update_layout_command()
     universally readable.
 
 update_home_bg()
-    Slideshow of recently watched movie fanart on the Home background.
-    When Skin.HasSetting(bg_slideshow), pulls up to 30 recently watched movies
+    Slideshow of library fanart on the Home background. Skin.String(bg_mode)
+    picks the source - "recent" (recently watched movies), "random" (anything
+    in the library), "genre" (one genre only, see below). Pulls up to 30 items
     via JSON-RPC, then rotates URL + caption on Home as window properties:
         home_bg_fanart        e.g. "image://https%3a%2f%2f...fanart.jpg"
         home_bg_label         e.g. "The Mysterious Dr. Fu Manchu (1929)"
     Cadence is read from Skin.String(bg_slideshow_interval), defaults to
     BG_INTERVAL seconds when unset. The list itself is re-fetched every
     BG_LIST_REFRESH seconds (or on VideoLibrary.OnUpdate).
+
+update_bg_command()
+    Watches Skin.String(bg_command). "pick_genre" opens a select dialog of the
+    library's real genres (VideoLibrary.GetGenres, scoped by
+    Skin.String(bg_genre_type) = movies / tvshows / both) and stores the answer
+    in Skin.String(bg_genre) for the genre slideshow mode. Lives here because
+    skin XML has no way to enumerate genres. Runs on a daemon thread so the
+    blocking dialog doesn't stall the polling loop.
 
 Future handlers
 ---------------
@@ -122,8 +131,17 @@ SKIN_STRINGS = (
 
 
 def _set_skin_string(key, value):
-    """Write a string into the active skin's persistent string store."""
-    xbmc.executebuiltin("Skin.SetString({0},{1})".format(key, value))
+    """Write a string into the active skin's persistent string store.
+
+    The value is double-quoted because Kodi splits builtin arguments on
+    commas: an unquoted value containing one (a genre like "Sci-Fi, Fantasy",
+    a folder path with a comma in it) would be truncated at the first comma.
+    Kodi strips the surrounding quotes. Embedded double quotes are dropped:
+    Kodi's escape convention for them is murky and no genre/path/stat value
+    legitimately contains one.
+    """
+    xbmc.executebuiltin('Skin.SetString({0},"{1}")'.format(
+        key, str(value).replace('"', '')))
 
 
 def _set_home_property(key, value):
@@ -252,6 +270,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._bg_folder = ""
         self._stats_last_refresh = 0.0   # 0 => loop refreshes on first tick
         self._stats_thread = None
+        self._genre_thread = None   # genre picker dialog, off the main loop
         # Favourites (categorised, filterable) state
         self._fav_all = []          # [{name, thumb, action, cat}, ...]
         self._fav_current = []      # currently-filtered slice shown in the UI
@@ -404,14 +423,16 @@ class FunctionalHelper(xbmc.Monitor):
     def update_home_bg(self):
         """
         Rotate Home's background through the configured slideshow source on a
-        user-configurable timer. Source is Skin.String(bg_slideshow_source) -
-        one of "recent" (recently watched movies), "random" (random library
-        fanart), "folder" (images from Skin.String(bg_slideshow_folder)).
-        Empty/unset = off. Cadence: Skin.String(bg_slideshow_interval) in
-        seconds, falling back to BG_INTERVAL when empty/unset.
+        user-configurable timer. Source is Skin.String(bg_mode) - one of
+        "recent" (recently watched movies), "random" (random library fanart),
+        "genre" (random fanart from Skin.String(bg_genre), restricted to
+        Skin.String(bg_genre_type)), "folder" (images from
+        Skin.String(bg_slideshow_folder)). Empty/unset = off. Cadence:
+        Skin.String(bg_slideshow_interval) in seconds, falling back to
+        BG_INTERVAL when empty/unset.
         """
         # Unified selector: bg_mode is one of off(empty)/image/recent/
-        # random/folder. Only the three slideshow modes drive this handler;
+        # random/genre/folder. Only the slideshow modes drive this handler;
         # for image/off we clear the fanart property so the static image (or
         # nothing) shows with no conflict.
         mode = xbmc.getInfoLabel("Skin.String(bg_mode)")
@@ -433,7 +454,23 @@ class FunctionalHelper(xbmc.Monitor):
                 _set_home_property("home_bg_label", "")
             return
 
-        source = mode if mode in ("recent", "random") else None
+        # GENRE mode keys its source on the genre + media type as well as the
+        # mode, so changing either forces a re-fetch through the same
+        # source-changed path the other modes use.
+        if mode == "genre":
+            genre = xbmc.getInfoLabel("Skin.String(bg_genre)")
+            if not genre:
+                # Mode selected but no genre picked yet: show nothing rather
+                # than silently falling back to the whole library.
+                self._bg_idx = -1
+                self._bg_source = ""
+                _set_home_property("home_bg_fanart", "")
+                _set_home_property("home_bg_label", "")
+                return
+            source = "genre:{0}:{1}".format(
+                xbmc.getInfoLabel("Skin.String(bg_genre_type)") or "movies", genre)
+        else:
+            source = mode if mode in ("recent", "random") else None
 
         if source is None:
             # image or off, never any slideshow fanart here. Always clear it
@@ -473,6 +510,9 @@ class FunctionalHelper(xbmc.Monitor):
         if (now - self._bg_last_fetch) > refresh_after:
             if source == "recent":
                 self._bg_items = self._fetch_recent_movies()
+            elif source.startswith("genre:"):
+                _, gtype, gname = source.split(":", 2)
+                self._bg_items = self._fetch_genre_library(gname, gtype)
             else:  # random
                 self._bg_items = self._fetch_random_library()
             self._bg_last_fetch = now
@@ -785,6 +825,73 @@ class FunctionalHelper(xbmc.Monitor):
             # one conditional slide animation per discrete value activates
             # as soon as String.IsEqual matches. No window reload needed.
 
+    # ---- Background command handler -------------------------------------
+
+    # bg_genre_type → the media types VideoLibrary.GetGenres understands
+    _GENRE_QUERY_TYPES = {
+        "movies": ("movie",),
+        "tvshows": ("tvshow",),
+        "both": ("movie", "tvshow"),
+    }
+
+    def update_bg_command(self):
+        """Watch Skin.String(bg_command). Currently one command, "pick_genre",
+        set by the Background section of skin settings: skins can't enumerate
+        library genres, so the picker has to live here."""
+        cmd = xbmc.getInfoLabel("Skin.String(bg_command)")
+        if not cmd:
+            return
+        # Clear immediately so we don't re-trigger
+        xbmc.executebuiltin("Skin.Reset(bg_command)")
+
+        if cmd != "pick_genre":
+            return
+        # Dialog.select() blocks until dismissed, so it runs off the polling
+        # loop — otherwise the slideshow, stats and ETA handlers would all
+        # stall for as long as the picker is open.
+        if self._genre_thread is not None and self._genre_thread.is_alive():
+            return
+        self._genre_thread = threading.Thread(
+            target=self._genre_picker_worker, name="functional-genre", daemon=True)
+        self._genre_thread.start()
+
+    def _genre_picker_worker(self):
+        try:
+            self._pick_genre()
+        except Exception:  # noqa: BLE001
+            _dlog("genre picker failed:\n{0}".format(traceback.format_exc()),
+                  xbmc.LOGERROR)
+
+    def _pick_genre(self):
+        """Ask the library for its genres and let the user choose one."""
+        gtype = xbmc.getInfoLabel("Skin.String(bg_genre_type)") or "movies"
+        genres = []
+        for kodi_type in self._GENRE_QUERY_TYPES.get(gtype, ("movie",)):
+            resp = _jsonrpc("VideoLibrary.GetGenres", {"type": kodi_type})
+            for row in (resp.get("result", {}) or {}).get("genres", []) if resp else []:
+                label = (row.get("label", "") or "").strip()
+                # "both" queries two types, which overlap heavily (Drama,
+                # Comedy, …) — de-dupe so the list isn't full of pairs.
+                if label and label not in genres:
+                    genres.append(label)
+        genres.sort(key=lambda s: s.lower())
+
+        if not genres:
+            _dlog("genre picker: no genres for type {0!r}".format(gtype))
+            xbmcgui.Dialog().notification(
+                "Functional", "No genres found in the library",
+                xbmcgui.NOTIFICATION_INFO, 4000)
+            return
+
+        idx = xbmcgui.Dialog().select("Background genre", genres)
+        if idx < 0:
+            return  # cancelled, keep whatever was set before
+        _set_skin_string("bg_genre", genres[idx])
+        # Drop the cached list so the new genre shows on the next tick rather
+        # than after the normal BG_LIST_REFRESH window.
+        self._bg_last_fetch = 0.0
+        _dlog("genre picker: bg_genre -> {0!r}".format(genres[idx]))
+
     def _fetch_recent_movies(self):
         """Up to BG_COUNT recently watched movies; returns (fanart_url, 'Title (year)') tuples."""
         params = {
@@ -805,6 +912,47 @@ class FunctionalHelper(xbmc.Monitor):
             label = "{0} ({1})".format(title, year) if year else title
             items.append((fanart, label))
         return items
+
+    @staticmethod
+    def _fanart_items(rows, with_year=True):
+        """(fanart_url, label) pairs from JSON-RPC rows carrying art/title/year.
+        Rows with no fanart are skipped — they'd render as a blank background."""
+        items = []
+        for row in rows:
+            fanart = (row.get("art", {}) or {}).get("fanart", "")
+            if not fanart:
+                continue
+            title = row.get("title", "") or ""
+            year = row.get("year", 0) if with_year else 0
+            items.append((fanart, "{0} ({1})".format(title, year) if year else title))
+        return items
+
+    def _fetch_genre_library(self, genre, gtype):
+        """Up to BG_COUNT random fanart entries restricted to a single genre.
+
+        gtype is movies / tvshows / both; anything else falls back to movies.
+        """
+        if gtype not in ("movies", "tvshows", "both"):
+            gtype = "movies"
+        params = {
+            "limits": {"start": 0, "end": self.BG_COUNT},
+            "sort": {"order": "ascending", "method": "random"},
+            "properties": ["art", "title", "year"],
+            "filter": {"field": "genre", "operator": "is", "value": genre},
+        }
+        items = []
+        if gtype in ("movies", "both"):
+            resp = _jsonrpc("VideoLibrary.GetMovies", params)
+            items += self._fanart_items(
+                (resp.get("result", {}) or {}).get("movies", []) if resp else [])
+        if gtype in ("tvshows", "both"):
+            resp = _jsonrpc("VideoLibrary.GetTVShows", params)
+            items += self._fanart_items(
+                (resp.get("result", {}) or {}).get("tvshows", []) if resp else [],
+                with_year=False)
+        # Interleave movies and shows in "both" mode.
+        random.shuffle(items)
+        return items[:self.BG_COUNT]
 
     def _fetch_random_library(self):
         """Up to BG_COUNT random fanart entries from the movie + TV-show library."""
@@ -872,6 +1020,7 @@ def run():
             helper.update_sort_direction()
             helper.update_focused_eta()
             helper.update_layout_command()
+            helper.update_bg_command()
             helper.update_favourites()
             if tick == 0:
                 helper.update_home_bg()

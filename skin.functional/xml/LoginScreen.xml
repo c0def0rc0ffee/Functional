@@ -26,6 +26,7 @@
 					<height>80</height>
 					<font>font_med</font>
 					<textcolor>text</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -45,6 +46,7 @@
 					<height>80</height>
 					<font>font_med</font>
 					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
