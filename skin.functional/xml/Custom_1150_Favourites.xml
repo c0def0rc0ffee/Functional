@@ -36,19 +36,21 @@
 			<texture>logo.png</texture>
 		</control>
 
-		<!-- Category filter chips. Flat buttons at fixed positions with
-		     explicit wrap-around left/right chains — NOT a grouplist of
-		     button-in-group wrappers, which broke traversal past "All"
-		     (see the FavCategoryButton include). Left from All wraps to
-		     Other and right from Other wraps to All; hidden (empty)
-		     categories are skipped automatically. -->
+		<!-- Category filter chips. Flat buttons with explicit wrap-around
+		     left/right chains — NOT a grouplist of button-in-group wrappers,
+		     which broke traversal past "All" (see the FavCategoryButton
+		     include). Left from All wraps to Other and right from Other
+		     wraps to All; hidden (empty) categories are skipped
+		     automatically. Each chip's shiftN params name the predecessors
+		     that can hide, so the row packs left with no holes: one slot
+		     per hidden predecessor, evaluated live. -->
 		<control type="group" id="70">
 			<include content="FavCategoryButton"><param name="id" value="71" /><param name="x" value="60" /><param name="cat" value="all" /><param name="label" value="All" /><param name="onleft" value="76" /><param name="onright" value="72" /></include>
-			<include content="FavCategoryButton"><param name="id" value="72" /><param name="x" value="290" /><param name="cat" value="movies" /><param name="label" value="Movies" /><param name="onleft" value="71" /><param name="onright" value="73" /><param name="visible" value="!String.IsEqual(Window(home).Property(Fav.CatCount.movies),0)" /></include>
-			<include content="FavCategoryButton"><param name="id" value="73" /><param name="x" value="520" /><param name="cat" value="tvshows" /><param name="label" value="TV" /><param name="onleft" value="72" /><param name="onright" value="74" /><param name="visible" value="!String.IsEqual(Window(home).Property(Fav.CatCount.tvshows),0)" /></include>
-			<include content="FavCategoryButton"><param name="id" value="74" /><param name="x" value="750" /><param name="cat" value="music" /><param name="label" value="Music" /><param name="onleft" value="73" /><param name="onright" value="75" /><param name="visible" value="!String.IsEqual(Window(home).Property(Fav.CatCount.music),0)" /></include>
-			<include content="FavCategoryButton"><param name="id" value="75" /><param name="x" value="980" /><param name="cat" value="apps" /><param name="label" value="Apps" /><param name="onleft" value="74" /><param name="onright" value="76" /><param name="visible" value="!String.IsEqual(Window(home).Property(Fav.CatCount.apps),0)" /></include>
-			<include content="FavCategoryButton"><param name="id" value="76" /><param name="x" value="1210" /><param name="cat" value="other" /><param name="label" value="Other" /><param name="onleft" value="75" /><param name="onright" value="71" /><param name="visible" value="!String.IsEqual(Window(home).Property(Fav.CatCount.other),0)" /></include>
+			<include content="FavCategoryButton"><param name="id" value="72" /><param name="x" value="250" /><param name="cat" value="movies" /><param name="label" value="Movies" /><param name="onleft" value="71" /><param name="onright" value="73" /><param name="visible" value="!String.IsEqual(Window(home).Property(Fav.CatCount.movies),0)" /></include>
+			<include content="FavCategoryButton"><param name="id" value="73" /><param name="x" value="440" /><param name="cat" value="tvshows" /><param name="label" value="TV" /><param name="onleft" value="72" /><param name="onright" value="74" /><param name="visible" value="!String.IsEqual(Window(home).Property(Fav.CatCount.tvshows),0)" /><param name="shift1" value="String.IsEqual(Window(home).Property(Fav.CatCount.movies),0)" /></include>
+			<include content="FavCategoryButton"><param name="id" value="74" /><param name="x" value="630" /><param name="cat" value="music" /><param name="label" value="Music" /><param name="onleft" value="73" /><param name="onright" value="75" /><param name="visible" value="!String.IsEqual(Window(home).Property(Fav.CatCount.music),0)" /><param name="shift1" value="String.IsEqual(Window(home).Property(Fav.CatCount.movies),0)" /><param name="shift2" value="String.IsEqual(Window(home).Property(Fav.CatCount.tvshows),0)" /></include>
+			<include content="FavCategoryButton"><param name="id" value="75" /><param name="x" value="820" /><param name="cat" value="apps" /><param name="label" value="Apps" /><param name="onleft" value="74" /><param name="onright" value="76" /><param name="visible" value="!String.IsEqual(Window(home).Property(Fav.CatCount.apps),0)" /><param name="shift1" value="String.IsEqual(Window(home).Property(Fav.CatCount.movies),0)" /><param name="shift2" value="String.IsEqual(Window(home).Property(Fav.CatCount.tvshows),0)" /><param name="shift3" value="String.IsEqual(Window(home).Property(Fav.CatCount.music),0)" /></include>
+			<include content="FavCategoryButton"><param name="id" value="76" /><param name="x" value="1010" /><param name="cat" value="other" /><param name="label" value="Other" /><param name="onleft" value="75" /><param name="onright" value="71" /><param name="visible" value="!String.IsEqual(Window(home).Property(Fav.CatCount.other),0)" /><param name="shift1" value="String.IsEqual(Window(home).Property(Fav.CatCount.movies),0)" /><param name="shift2" value="String.IsEqual(Window(home).Property(Fav.CatCount.tvshows),0)" /><param name="shift3" value="String.IsEqual(Window(home).Property(Fav.CatCount.music),0)" /><param name="shift4" value="String.IsEqual(Window(home).Property(Fav.CatCount.apps),0)" /></include>
 		</control>
 
 		<!-- Favourites list (static; items follow the selected category) -->

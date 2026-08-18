@@ -1085,7 +1085,13 @@
 	     after "All" unreachable. Explicit onleft/onright chains wrap around
 	     the row; Kodi falls through hidden chips (empty categories are
 	     hidden via the visible param) in the same direction, so the chain
-	     survives any of them hiding. -->
+	     survives any of them hiding.
+
+	     Fixed positions would leave a hole where a hidden chip sits, so
+	     each chip also takes one shiftN condition per predecessor that can
+	     hide, and slides itself one slot (190px) left for every one that is
+	     currently hidden. Conditional slide animations stack, so the row
+	     packs itself like a grouplist while keeping flat controls. -->
 	<include name="FavCategoryButton">
 		<param name="id" />
 		<param name="x" />
@@ -1094,13 +1100,21 @@
 		<param name="onleft" />
 		<param name="onright" />
 		<param name="visible" default="true" />
+		<param name="shift1" default="false" />
+		<param name="shift2" default="false" />
+		<param name="shift3" default="false" />
+		<param name="shift4" default="false" />
 		<definition>
 			<control type="button" id="$PARAM[id]">
 				<left>$PARAM[x]</left>
 				<top>104</top>
-				<width>220</width>
+				<width>180</width>
 				<height>60</height>
 				<visible>$PARAM[visible]</visible>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift1]">Conditional</animation>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift2]">Conditional</animation>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift3]">Conditional</animation>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift4]">Conditional</animation>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
 				<font>font_reg</font>
@@ -1118,8 +1132,12 @@
 			<control type="image">
 				<left>$PARAM[x]</left>
 				<top>166</top>
-				<width>220</width>
+				<width>180</width>
 				<height>4</height>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift1]">Conditional</animation>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift2]">Conditional</animation>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift3]">Conditional</animation>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift4]">Conditional</animation>
 				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 				<visible>String.IsEqual(Window(home).Property(Fav.Category),$PARAM[cat]) + [$PARAM[visible]]</visible>
 			</control>
