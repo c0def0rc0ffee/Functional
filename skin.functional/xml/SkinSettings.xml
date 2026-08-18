@@ -1134,6 +1134,74 @@
 				<orientation>vertical</orientation>
 				<onleft>7000</onleft>
 
+				<!-- Time schedule: Off → 2 → 3 → 4 slots → Off. When on, the
+				     service swaps the whole background config at each slot's
+				     start time, and every control below edits the slot picked
+				     by the "Editing" button (service mirrors live ↔ slot).
+				     Cycle chains are ordered so no click can cascade. -->
+				<control type="button" id="7130">
+					<width>900</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Time Schedule: $VAR[BgScheduleLabel]</label>
+					<onleft>7000</onleft>
+					<onclick condition="String.IsEqual(Skin.String(bg_schedule_slots),4)">Skin.Reset(bg_schedule_slots)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_schedule_slots),3)">Skin.SetString(bg_schedule_slots,4)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_schedule_slots),2)">Skin.SetString(bg_schedule_slots,3)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(bg_schedule_slots))">Skin.SetString(bg_schedule_slots,2)</onclick>
+				</control>
+
+				<!-- Which slot the controls below are editing. The service
+				     loads the slot's settings into the live keys on change,
+				     which also previews it on Home. -->
+				<control type="button" id="7131">
+					<visible>!String.IsEmpty(Skin.String(bg_schedule_slots))</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>40</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Editing: $VAR[BgEditSlotLabel]</label>
+					<onleft>7000</onleft>
+					<onclick condition="String.IsEqual(Skin.String(bg_edit_slot),4)">Skin.SetString(bg_edit_slot,1)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_edit_slot),3) + String.IsEqual(Skin.String(bg_schedule_slots),4)">Skin.SetString(bg_edit_slot,4)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_edit_slot),3) + !String.IsEqual(Skin.String(bg_schedule_slots),4)">Skin.SetString(bg_edit_slot,1)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_edit_slot),2) + !String.IsEqual(Skin.String(bg_schedule_slots),2)">Skin.SetString(bg_edit_slot,3)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_edit_slot),2) + String.IsEqual(Skin.String(bg_schedule_slots),2)">Skin.SetString(bg_edit_slot,1)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(bg_edit_slot)) | String.IsEqual(Skin.String(bg_edit_slot),1)">Skin.SetString(bg_edit_slot,2)</onclick>
+				</control>
+
+				<!-- Start time of the slot being edited; it runs until the
+				     next slot's start. Opens the service's time dialog. -->
+				<control type="button" id="7132">
+					<visible>!String.IsEmpty(Skin.String(bg_schedule_slots))</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>40</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Slot Start Time: $VAR[BgEditSlotStart]</label>
+					<onleft>7000</onleft>
+					<onclick>Skin.SetString(bg_command,pick_time)</onclick>
+				</control>
+
 				<!-- Background mode: Off → Static Image → Recently Watched
 				     → Random Library → Folder → By Genre → Off. One selector,
 				     so static and slideshow can never fight. -->

@@ -103,6 +103,14 @@ def main():
                                            os.path.basename(skin_zip)))
     print(f"Copied skin zip: {os.path.basename(skin_zip)}")
 
+    # Older skin zips are cleared from the dist folder so it always holds
+    # exactly the version the feed ships, the same policy as Builds/.
+    for old in os.listdir(DIST):
+        if (old.startswith("skin.functional-") and old.endswith(".zip")
+                and old != os.path.basename(skin_zip)):
+            os.remove(os.path.join(DIST, old))
+            print(f"Cleared old skin zip: {old}")
+
     # --- manifest and checksum ---
     manifest = "\n".join((
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',

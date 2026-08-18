@@ -63,6 +63,32 @@
 		<value>Off</value>
 	</variable>
 
+	<!-- Time-scheduled backgrounds. bg_schedule_slots = 2..4 turns the
+	     schedule on; the service (update_bg_schedule) copies the clock-active
+	     slot's stored settings into the live bg_* strings. While skin
+	     settings is open, the Background controls edit the slot in
+	     Skin.String(bg_edit_slot) instead. -->
+	<variable name="BgScheduleLabel">
+		<value condition="String.IsEqual(Skin.String(bg_schedule_slots),2)">2 Time Slots</value>
+		<value condition="String.IsEqual(Skin.String(bg_schedule_slots),3)">3 Time Slots</value>
+		<value condition="String.IsEqual(Skin.String(bg_schedule_slots),4)">4 Time Slots</value>
+		<value>Off</value>
+	</variable>
+
+	<variable name="BgEditSlotLabel">
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),2)">Slot 2 (from $INFO[Skin.String(bg_slot2_start)])</value>
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),3)">Slot 3 (from $INFO[Skin.String(bg_slot3_start)])</value>
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),4)">Slot 4 (from $INFO[Skin.String(bg_slot4_start)])</value>
+		<value>Slot 1 (from $INFO[Skin.String(bg_slot1_start)])</value>
+	</variable>
+
+	<variable name="BgEditSlotStart">
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),2)">$INFO[Skin.String(bg_slot2_start)]</value>
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),3)">$INFO[Skin.String(bg_slot3_start)]</value>
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),4)">$INFO[Skin.String(bg_slot4_start)]</value>
+		<value>$INFO[Skin.String(bg_slot1_start)]</value>
+	</variable>
+
 	<!-- Genre slideshow (bg_mode = genre). The service picks random fanart
 	     from the library filtered to Skin.String(bg_genre), restricted to the
 	     media type in Skin.String(bg_genre_type). Genre is chosen from a
@@ -1051,41 +1077,51 @@
 		</definition>
 	</include>
 
-	<!-- A category filter chip on the Favourites screen. Hidden when its
-	     category has no items (except All, which is always shown). Shows an
-	     accent underline while it is the active filter. -->
+	<!-- A category filter chip on the Favourites screen: a flat, absolutely
+	     positioned button paired with a separate underline image marking the
+	     active filter. Deliberately NOT a button-in-a-group inside a
+	     grouplist — that nesting breaks focus traversal (same lesson as the
+	     MusicOSD transport row, see PROJECT_NOTES), which left every chip
+	     after "All" unreachable. Explicit onleft/onright chains wrap around
+	     the row; Kodi falls through hidden chips (empty categories are
+	     hidden via the visible param) in the same direction, so the chain
+	     survives any of them hiding. -->
 	<include name="FavCategoryButton">
 		<param name="id" />
+		<param name="x" />
 		<param name="cat" />
 		<param name="label" />
+		<param name="onleft" />
+		<param name="onright" />
+		<param name="visible" default="true" />
 		<definition>
-			<!-- The wrapper group needs a unique id: grouplist auto-navigation links
-			     siblings by control id, so id-less children break left/right moves. -->
-			<control type="group" id="$PARAM[id]">
-				<width>230</width>
-				<height>72</height>
-				<visible>String.IsEqual($PARAM[cat],all) | !String.IsEqual(Window(home).Property(Fav.CatCount.$PARAM[cat]),0)</visible>
-				<control type="button">
-					<width>220</width>
-					<height>60</height>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>center</align>
-					<aligny>center</aligny>
-					<label>$PARAM[label]  $INFO[Window(home).Property(Fav.CatCount.$PARAM[cat]),(,)]</label>
-					<onclick>Skin.SetString(fav_category,$PARAM[cat])</onclick>
-				</control>
-				<control type="image">
-					<left>10</left>
-					<top>62</top>
-					<width>200</width>
-					<height>4</height>
-					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
-					<visible>String.IsEqual(Window(home).Property(Fav.Category),$PARAM[cat])</visible>
-				</control>
+			<control type="button" id="$PARAM[id]">
+				<left>$PARAM[x]</left>
+				<top>104</top>
+				<width>220</width>
+				<height>60</height>
+				<visible>$PARAM[visible]</visible>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<label>$PARAM[label]  $INFO[Window(home).Property(Fav.CatCount.$PARAM[cat]),(,)]</label>
+				<onleft>$PARAM[onleft]</onleft>
+				<onright>$PARAM[onright]</onright>
+				<onup>50</onup>
+				<ondown>50</ondown>
+				<onclick>Skin.SetString(fav_category,$PARAM[cat])</onclick>
+			</control>
+			<control type="image">
+				<left>$PARAM[x]</left>
+				<top>166</top>
+				<width>220</width>
+				<height>4</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				<visible>String.IsEqual(Window(home).Property(Fav.Category),$PARAM[cat]) + [$PARAM[visible]]</visible>
 			</control>
 		</definition>
 	</include>

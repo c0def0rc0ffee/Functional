@@ -60,8 +60,19 @@ update_bg_command()
     library's real genres (VideoLibrary.GetGenres, scoped by
     Skin.String(bg_genre_type) = movies / tvshows / both) and stores the answer
     in Skin.String(bg_genre) for the genre slideshow mode. Lives here because
-    skin XML has no way to enumerate genres. Runs on a daemon thread so the
-    blocking dialog doesn't stall the polling loop.
+    skin XML has no way to enumerate genres. "pick_time" opens a numeric time
+    dialog for the currently-edited schedule slot's start time. Both run on a
+    daemon thread so the blocking dialog doesn't stall the polling loop.
+
+update_bg_schedule()
+    Time-of-day background schedule. When Skin.String(bg_schedule_slots) is
+    2-4, every background option also exists per slot (bg_slot{n}_mode etc.,
+    each slot starting at bg_slot{n}_start "HH:MM"). The scheduler copies the
+    clock-active slot's settings into the live bg_* strings, so the whole
+    render path (Home.xml, variables, this service's slideshow) is untouched.
+    While skin settings is open, the Background controls instead edit the
+    slot picked by Skin.String(bg_edit_slot): live keys act as the edit
+    buffer and are mirrored back into the slot's storage each tick.
 
 Future handlers
 ---------------
@@ -270,7 +281,11 @@ class FunctionalHelper(xbmc.Monitor):
         self._bg_folder = ""
         self._stats_last_refresh = 0.0   # 0 => loop refreshes on first tick
         self._stats_thread = None
-        self._genre_thread = None   # genre picker dialog, off the main loop
+        self._dialog_thread = None  # blocking pickers (genre/time), off the main loop
+        # Scheduled-background state (see update_bg_schedule)
+        self._sched_applied = 0      # slot currently copied into the live keys (0 = none)
+        self._sched_edit_last = None  # bg_edit_slot value we last synced with
+        self._sched_settings_open = False
         # Favourites (categorised, filterable) state
         self._fav_all = []          # [{name, thumb, action, cat}, ...]
         self._fav_current = []      # currently-filtered slice shown in the UI
@@ -835,31 +850,36 @@ class FunctionalHelper(xbmc.Monitor):
     }
 
     def update_bg_command(self):
-        """Watch Skin.String(bg_command). Currently one command, "pick_genre",
-        set by the Background section of skin settings: skins can't enumerate
-        library genres, so the picker has to live here."""
+        """Watch Skin.String(bg_command). Commands set by the Background
+        section of skin settings that need Python: "pick_genre" (skins can't
+        enumerate library genres) and "pick_time" (numeric time dialog for a
+        schedule slot's start time)."""
         cmd = xbmc.getInfoLabel("Skin.String(bg_command)")
         if not cmd:
             return
         # Clear immediately so we don't re-trigger
         xbmc.executebuiltin("Skin.Reset(bg_command)")
 
-        if cmd != "pick_genre":
+        worker = {"pick_genre": self._pick_genre,
+                  "pick_time": self._pick_time}.get(cmd)
+        if worker is None:
             return
-        # Dialog.select() blocks until dismissed, so it runs off the polling
+        # These dialogs block until dismissed, so they run off the polling
         # loop — otherwise the slideshow, stats and ETA handlers would all
         # stall for as long as the picker is open.
-        if self._genre_thread is not None and self._genre_thread.is_alive():
+        if self._dialog_thread is not None and self._dialog_thread.is_alive():
             return
-        self._genre_thread = threading.Thread(
-            target=self._genre_picker_worker, name="functional-genre", daemon=True)
-        self._genre_thread.start()
+        self._dialog_thread = threading.Thread(
+            target=self._dialog_worker, args=(worker,),
+            name="functional-dialog", daemon=True)
+        self._dialog_thread.start()
 
-    def _genre_picker_worker(self):
+    @staticmethod
+    def _dialog_worker(worker):
         try:
-            self._pick_genre()
+            worker()
         except Exception:  # noqa: BLE001
-            _dlog("genre picker failed:\n{0}".format(traceback.format_exc()),
+            _dlog("picker dialog failed:\n{0}".format(traceback.format_exc()),
                   xbmc.LOGERROR)
 
     def _pick_genre(self):
@@ -891,6 +911,188 @@ class FunctionalHelper(xbmc.Monitor):
         # than after the normal BG_LIST_REFRESH window.
         self._bg_last_fetch = 0.0
         _dlog("genre picker: bg_genre -> {0!r}".format(genres[idx]))
+
+    # ---- Time-scheduled backgrounds --------------------------------------
+    # Every background option exists once as a "live" skin string (what the
+    # skin XML renders right now) and once per schedule slot as
+    # bg_slot{n}_{key}. The scheduler copies slot -> live when the clock
+    # enters a slot; the settings editor works the other way round (live ->
+    # slot) so the existing Background controls edit whichever slot is
+    # selected without any per-slot duplication in the XML.
+
+    # per-slot key -> live skin-string name
+    BG_SCHED_LIVE = {
+        "mode": "bg_mode",
+        "image": "home_background",
+        "folder": "bg_slideshow_folder",
+        "genre": "bg_genre",
+        "genre_type": "bg_genre_type",
+        "dim": "bg_dim",
+        "interval": "bg_slideshow_interval",
+        "label_position": "bg_label_position",
+    }
+    BG_SCHED_MAX_SLOTS = 4
+    # Start times seeded when a slot first comes into existence.
+    BG_SCHED_DEFAULT_STARTS = ("06:00", "18:00", "22:00", "00:00")
+
+    @staticmethod
+    def _get_skin(key):
+        return xbmc.getInfoLabel("Skin.String({0})".format(key))
+
+    @staticmethod
+    def _set_or_reset(key, value):
+        """Write *value* into a skin string, using Skin.Reset for empties so
+        String.IsEmpty() conditions keep working. No-op when unchanged, so
+        the mirror loop doesn't dirty Kodi's settings store every tick."""
+        if value == xbmc.getInfoLabel("Skin.String({0})".format(key)):
+            return
+        if value:
+            _set_skin_string(key, value)
+        else:
+            xbmc.executebuiltin("Skin.Reset({0})".format(key))
+
+    @staticmethod
+    def _parse_hhmm(text):
+        """'HH:MM' -> minutes since midnight, or None if unparsable."""
+        m = re.match(r"^\s*(\d{1,2}):(\d{1,2})\s*$", text or "")
+        if not m:
+            return None
+        hours, minutes = int(m.group(1)), int(m.group(2))
+        if hours > 23 or minutes > 59:
+            return None
+        return hours * 60 + minutes
+
+    def _bg_slot_store(self, slot):
+        """Copy the live background settings into slot *slot*'s storage."""
+        for key, live in self.BG_SCHED_LIVE.items():
+            self._set_or_reset("bg_slot{0}_{1}".format(slot, key),
+                               self._get_skin(live))
+
+    def _bg_slot_load(self, slot):
+        """Copy slot *slot*'s stored settings into the live background keys."""
+        for key, live in self.BG_SCHED_LIVE.items():
+            self._set_or_reset(live,
+                               self._get_skin("bg_slot{0}_{1}".format(slot, key)))
+
+    def _bg_sched_slot_count(self):
+        """Configured slot count (2..BG_SCHED_MAX_SLOTS), 0 = schedule off."""
+        count = self._safe_int(self._get_skin("bg_schedule_slots"), 0)
+        if count < 2:
+            return 0
+        return min(count, self.BG_SCHED_MAX_SLOTS)
+
+    def _bg_sched_seed(self, count):
+        """First time a slot exists, give it a default start time and a copy
+        of the current live settings, so enabling the schedule (or raising
+        the slot count) changes nothing visibly until the user edits."""
+        for n in range(1, count + 1):
+            if self._get_skin("bg_slot{0}_seeded".format(n)):
+                continue
+            _set_skin_string("bg_slot{0}_seeded".format(n), "1")
+            if not self._get_skin("bg_slot{0}_start".format(n)):
+                _set_skin_string("bg_slot{0}_start".format(n),
+                                 self.BG_SCHED_DEFAULT_STARTS[n - 1])
+            self._bg_slot_store(n)
+            _dlog("bg schedule: seeded slot {0} from live settings".format(n))
+
+    def _bg_active_slot(self, count):
+        """The slot the clock says should be showing: latest start <= now,
+        wrapping to the overall latest start when now is before all of them
+        (i.e. that slot has been running since yesterday). Slots with no
+        valid start time are ignored."""
+        now = time.localtime()
+        now_min = now.tm_hour * 60 + now.tm_min
+        best = best_start = None       # latest start <= now
+        latest = latest_start = None   # latest start overall (for wrap)
+        for n in range(1, count + 1):
+            start = self._parse_hhmm(self._get_skin("bg_slot{0}_start".format(n)))
+            if start is None:
+                continue
+            if latest_start is None or start > latest_start:
+                latest, latest_start = n, start
+            if start <= now_min and (best_start is None or start > best_start):
+                best, best_start = n, start
+        return best if best is not None else latest
+
+    def update_bg_schedule(self):
+        """Time-of-day background schedule. Off (bg_schedule_slots empty/<2):
+        nothing here runs and the live keys behave exactly as before. On:
+        while skin settings is open the Background controls edit the slot in
+        Skin.String(bg_edit_slot) (live keys double as an edit/preview
+        buffer, mirrored into the slot's storage every tick); once settings
+        closes, the slot whose start time the clock is inside is copied into
+        the live keys, and again at every slot boundary."""
+        count = self._bg_sched_slot_count()
+        if not count:
+            # Schedule off: forget state so re-enabling starts clean. Live
+            # keys keep whatever they last held.
+            self._sched_applied = 0
+            self._sched_edit_last = None
+            self._sched_settings_open = False
+            return
+
+        self._bg_sched_seed(count)
+
+        if xbmc.getCondVisibility("Window.IsActive(skinsettings)"):
+            if not self._sched_settings_open:
+                # Settings just opened: edit the slot that's on screen so the
+                # controls reflect what the user is looking at.
+                self._sched_settings_open = True
+                slot = self._sched_applied or self._bg_active_slot(count) or 1
+                self._set_or_reset("bg_edit_slot", str(slot))
+                self._sched_edit_last = slot
+                self._bg_slot_store(slot)  # sync storage before mirroring
+                return
+            edit = self._safe_int(self._get_skin("bg_edit_slot"), 0)
+            if not 1 <= edit <= count:
+                edit = 1
+                self._set_or_reset("bg_edit_slot", "1")
+            if edit != self._sched_edit_last:
+                # User switched slots: save the outgoing slot first (live
+                # still holds its values, and the last mirror may be up to a
+                # tick stale), then pull the new slot's settings up for
+                # editing (which also previews it on Home behind the dialog).
+                if self._sched_edit_last:
+                    self._bg_slot_store(self._sched_edit_last)
+                self._sched_edit_last = edit
+                self._bg_slot_load(edit)
+                _dlog("bg schedule: editing slot {0}".format(edit))
+            else:
+                # Mirror ongoing edits into the slot's storage.
+                self._bg_slot_store(edit)
+            return
+
+        if self._sched_settings_open:
+            # Settings closed. Capture any last-second edits the mirror
+            # hasn't caught yet, then force a re-apply of whichever slot the
+            # clock says (the live keys may hold a previewed slot).
+            self._sched_settings_open = False
+            if self._sched_edit_last:
+                self._bg_slot_store(self._sched_edit_last)
+            self._sched_applied = 0
+
+        active = self._bg_active_slot(count)
+        if not active or active == self._sched_applied:
+            return
+        self._bg_slot_load(active)
+        self._sched_applied = active
+        _dlog("bg schedule: slot {0} now active".format(active))
+
+    def _pick_time(self):
+        """Numeric time dialog for the currently-edited slot's start time."""
+        slot = self._safe_int(self._get_skin("bg_edit_slot"), 1)
+        slot = min(max(slot, 1), self.BG_SCHED_MAX_SLOTS)
+        key = "bg_slot{0}_start".format(slot)
+        current = self._get_skin(key) or "00:00"
+        result = xbmcgui.Dialog().numeric(2, "Slot {0} start time".format(slot),
+                                          current)
+        minutes = self._parse_hhmm(result)
+        if minutes is None:
+            return  # cancelled or garbage: keep the previous start
+        _set_skin_string(key, "{0:02d}:{1:02d}".format(minutes // 60,
+                                                       minutes % 60))
+        _dlog("bg schedule: slot {0} start -> {1:02d}:{2:02d}".format(
+            slot, minutes // 60, minutes % 60))
 
     def _fetch_recent_movies(self):
         """Up to BG_COUNT recently watched movies; returns (fanart_url, 'Title (year)') tuples."""
@@ -1023,6 +1225,7 @@ def run():
             helper.update_bg_command()
             helper.update_favourites()
             if tick == 0:
+                helper.update_bg_schedule()
                 helper.update_home_bg()
                 helper.maybe_refresh_stats()
         except Exception:  # noqa: BLE001
