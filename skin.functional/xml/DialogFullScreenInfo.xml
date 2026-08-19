@@ -31,12 +31,14 @@
 			<texture colordiffuse="60000000">white.png</texture>
 		</control>
 
-		<!-- ===== INFO CARD: 1400 × 540, centred ===== -->
+		<!-- ===== INFO CARD, short form: 1400 × 540, centred =====
+		     Used when service.py found no cast for the playing item. -->
 		<control type="group">
 			<centertop>50%</centertop>
 			<centerleft>50%</centerleft>
 			<width>1400</width>
 			<height>540</height>
+			<visible>String.IsEmpty(Window(home).Property(Cast.1.Name))</visible>
 
 			<!-- Card background -->
 			<control type="image">
@@ -55,131 +57,47 @@
 				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 			</control>
 
-			<!-- Poster art (left column, 30 padding all round) -->
+			<include content="FsInfoCardBody" />
+		</control>
+
+		<!-- ===== INFO CARD, tall form: 1400 × 780, centred =====
+		     Same body plus a strip of cast portraits under the plot. -->
+		<control type="group">
+			<centertop>50%</centertop>
+			<centerleft>50%</centerleft>
+			<width>1400</width>
+			<height>780</height>
+			<visible>!String.IsEmpty(Window(home).Property(Cast.1.Name))</visible>
+
+			<!-- Card background -->
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>1400</width>
+				<height>780</height>
+				<texture colordiffuse="EE181C22">white.png</texture>
+			</control>
+			<!-- Top accent stripe -->
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>1400</width>
+				<height>4</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+
+			<include content="FsInfoCardBody" />
+
+			<!-- Hairline separating the blurb from the cast -->
 			<control type="image">
 				<left>30</left>
-				<top>30</top>
-				<width>320</width>
-				<height>480</height>
-				<aspectratio>keep</aspectratio>
-				<texture fallback="DefaultVideo.png" background="true">$INFO[Player.Art(poster)]</texture>
+				<top>528</top>
+				<width>1340</width>
+				<height>1</height>
+				<texture colordiffuse="40FFFFFF">white.png</texture>
 			</control>
 
-			<!-- Right column: title + metadata + plot -->
-
-			<!-- Episode marker (S01E03) above title, TV only -->
-			<control type="label">
-				<left>380</left>
-				<top>30</top>
-				<width>990</width>
-				<height>26</height>
-				<font>font_reg</font>
-				<textcolor>accent_hi</textcolor>
-				<label>$INFO[VideoPlayer.TVShowTitle] · $INFO[VideoPlayer.Season,S,]$INFO[VideoPlayer.Episode,E,]</label>
-				<visible>!String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
-			</control>
-
-			<!-- Title -->
-			<control type="label">
-				<left>380</left>
-				<top>56</top>
-				<width>990</width>
-				<height>50</height>
-				<font>font_big</font>
-				<textcolor>text</textcolor>
-				<scroll>true</scroll>
-				<label>$INFO[VideoPlayer.Title]$INFO[VideoPlayer.Year, ( ,)]</label>
-				<visible>String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
-			</control>
-			<control type="label">
-				<left>380</left>
-				<top>56</top>
-				<width>990</width>
-				<height>50</height>
-				<font>font_big</font>
-				<textcolor>text</textcolor>
-				<scroll>true</scroll>
-				<label>$INFO[VideoPlayer.Title]</label>
-				<visible>!String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
-			</control>
-
-			<!-- Metadata row: genre · runtime · rating · resolution -->
-			<control type="label">
-				<left>380</left>
-				<top>112</top>
-				<width>990</width>
-				<height>30</height>
-				<font>font_reg</font>
-				<textcolor>text_dim</textcolor>
-				<label>$INFO[VideoPlayer.Genre]$INFO[VideoPlayer.Duration, · , min]$INFO[VideoPlayer.Rating, · ★ ,]$INFO[VideoPlayer.MPAA, · ,]</label>
-			</control>
-
-			<!-- Resolution + audio pill row -->
-			<control type="image">
-				<left>380</left>
-				<top>156</top>
-				<width>120</width>
-				<height>30</height>
-				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
-				<visible>!String.IsEmpty(VideoPlayer.VideoResolution)</visible>
-			</control>
-			<control type="label">
-				<left>380</left>
-				<top>156</top>
-				<width>120</width>
-				<height>30</height>
-				<font>font_small</font>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textcolor>white</textcolor>
-				<label>$VAR[OsdResolutionLabel]</label>
-				<visible>!String.IsEmpty(VideoPlayer.VideoResolution)</visible>
-			</control>
-			<control type="label">
-				<left>520</left>
-				<top>156</top>
-				<width>500</width>
-				<height>30</height>
-				<font>font_small</font>
-				<aligny>center</aligny>
-				<textcolor>text_dim</textcolor>
-				<label>$INFO[VideoPlayer.AudioCodec]$INFO[VideoPlayer.AudioChannels, · , ch]$INFO[VideoPlayer.AudioLanguage, · ,]</label>
-			</control>
-
-			<!-- Plot, the meat of the card -->
-			<control type="textbox">
-				<left>380</left>
-				<top>200</top>
-				<width>990</width>
-				<height>230</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<label>$INFO[VideoPlayer.Plot]</label>
-				<autoscroll time="3000" delay="3000" repeat="5000">true</autoscroll>
-			</control>
-
-			<!-- Bottom row: progress percent + ends-at -->
-			<control type="label">
-				<left>380</left>
-				<top>460</top>
-				<width>500</width>
-				<height>30</height>
-				<font>font_reg</font>
-				<textcolor>$VAR[AccentColor]</textcolor>
-				<label>$INFO[Player.Time(hh:mm:ss)] / $INFO[Player.Duration(hh:mm:ss)]  ·  $INFO[Player.Progress]%</label>
-			</control>
-			<control type="label">
-				<right>30</right>
-				<top>460</top>
-				<width>500</width>
-				<height>30</height>
-				<font>font_reg</font>
-				<align>right</align>
-				<textcolor>$VAR[AccentColor]</textcolor>
-				<label>Ends at $INFO[Player.FinishTime]</label>
-				<visible>Player.HasMedia + !Player.Paused</visible>
-			</control>
-
+			<include content="FsInfoCastStrip" />
 		</control>
 
 	</controls>

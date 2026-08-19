@@ -74,6 +74,15 @@ update_bg_schedule()
     slot picked by Skin.String(bg_edit_slot): live keys act as the edit
     buffer and are mirrored back into the slot's storage each tick.
 
+update_playing_cast()
+    Resolves the cast of the currently playing video (JSON-RPC Player.GetItem)
+    and publishes it as Home window properties for the full-screen info card:
+        Cast.Count
+        Cast.<n>.Name / .Role / .Thumb   for n = 1..CAST_MAX
+    DialogVideoInfo doesn't need this (Kodi binds its own cast list, control
+    50); the playing item has no such list, only the flat, thumb-less
+    VideoPlayer.Cast string.
+
 Future handlers
 ---------------
 - update_queue_eta() , see PROJECT_NOTES "Queue ETA helper"
@@ -263,6 +272,8 @@ class FunctionalHelper(xbmc.Monitor):
 
     FAV_MAX = 150  # how many favourites the custom favourites screen can show
 
+    CAST_MAX = 8  # portraits the full-screen info card has room for
+
     def __init__(self):
         super().__init__()
         _dlog("helper initialising")
@@ -292,6 +303,9 @@ class FunctionalHelper(xbmc.Monitor):
         self._fav_mtime = -1.0      # favourites.xml mtime, to detect edits
         self._fav_loaded = False    # have we read favourites.xml at least once?
         self._fav_last_cat = None   # last category we populated properties for
+        # Cast strip on the full-screen info card (see update_playing_cast)
+        self._cast_key = None       # identity of the item we last published cast for
+        self._cast_thread = None
         self._bootstrap_layout_defaults()
         self._migrate_bg_mode()
         _dlog("helper ready")
@@ -434,6 +448,86 @@ class FunctionalHelper(xbmc.Monitor):
         _set_home_property("focused_finish_time", value)
         if value:
             _dlog("eta set: ends at {0}".format(value))
+
+    def update_playing_cast(self):
+        """Publish the playing item's cast as Home properties for the
+        full-screen info card (the "i" screen during playback):
+            Cast.Count
+            Cast.<n>.Name / .Role / .Thumb   for n = 1..CAST_MAX
+
+        DialogVideoInfo gets a cast list from Kodi for free (control 50), but
+        there is no equivalent for the *playing* item: VideoPlayer.Cast is a
+        flat comma-joined string with no portraits. So resolve it ourselves.
+
+        The lookup only runs when the playing item changes, and on a daemon
+        thread, so a slow video DB can't stall the main loop.
+        """
+        if not xbmc.getCondVisibility("Player.HasVideo"):
+            if self._cast_key is not None:
+                self._cast_key = None
+                self._publish_cast([])
+            return
+
+        if self._cast_thread is not None and self._cast_thread.is_alive():
+            return
+
+        # Path alone isn't enough: a stacked/playlist item can keep the same
+        # path across parts, and PVR channels reuse one path for every show.
+        key = "{0}|{1}".format(xbmc.getInfoLabel("Player.FilenameAndPath"),
+                               xbmc.getInfoLabel("VideoPlayer.Title"))
+        if key == self._cast_key:
+            return
+        self._cast_key = key
+        self._cast_thread = threading.Thread(
+            target=self._cast_worker, args=(key,),
+            name="functional-cast", daemon=True)
+        self._cast_thread.start()
+
+    def _cast_worker(self, key):
+        try:
+            cast = self._fetch_playing_cast()
+        except Exception:  # noqa: BLE001
+            _dlog("cast worker failed:\n{0}".format(traceback.format_exc()),
+                  xbmc.LOGERROR)
+            return
+        # The item may have moved on while we were querying; don't stamp
+        # stale actors over the new one's.
+        if key != self._cast_key:
+            return
+        self._publish_cast(cast)
+
+    @staticmethod
+    def _fetch_playing_cast():
+        """[{name, role, thumbnail}, ...] for the active video player."""
+        players = (_jsonrpc("Player.GetActivePlayers").get("result") or [])
+        pid = None
+        for p in players:
+            if p.get("type") == "video":
+                pid = p.get("playerid")
+                break
+        if pid is None:
+            return []
+        resp = _jsonrpc("Player.GetItem",
+                        {"playerid": pid, "properties": ["cast"]})
+        item = ((resp or {}).get("result") or {}).get("item") or {}
+        return item.get("cast") or []
+
+    def _publish_cast(self, cast):
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        shown = cast[:self.CAST_MAX]
+        win.setProperty("Cast.Count", str(len(shown)))
+        for i in range(self.CAST_MAX):
+            n = i + 1
+            if i < len(shown):
+                member = shown[i] or {}
+                win.setProperty("Cast.%d.Name" % n, member.get("name") or "")
+                win.setProperty("Cast.%d.Role" % n, member.get("role") or "")
+                win.setProperty("Cast.%d.Thumb" % n, member.get("thumbnail") or "")
+            else:
+                win.clearProperty("Cast.%d.Name" % n)
+                win.clearProperty("Cast.%d.Role" % n)
+                win.clearProperty("Cast.%d.Thumb" % n)
+        _dlog("cast: published {0} actor(s)".format(len(shown)))
 
     def update_home_bg(self):
         """
@@ -1224,6 +1318,7 @@ def run():
             helper.update_layout_command()
             helper.update_bg_command()
             helper.update_favourites()
+            helper.update_playing_cast()
             if tick == 0:
                 helper.update_bg_schedule()
                 helper.update_home_bg()
