@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="skin.functional" version="0.7.60" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.7.61" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->

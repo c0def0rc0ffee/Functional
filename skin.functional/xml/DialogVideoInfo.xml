@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <window>
-	<defaultcontrol always="true">6</defaultcontrol>
+	<defaultcontrol always="true">8</defaultcontrol>
 	<onload>SetProperty(infobackground,$ESCINFO[ListItem.Art(fanart)],home)</onload>
 	<onunload>ClearProperty(infobackground,home)</onunload>
 	<controls>
@@ -241,7 +241,18 @@
 			<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
 		</control>
 
-		<!-- Action buttons row -->
+		<!-- Action buttons row.
+
+		     IDs are fixed by CGUIDialogVideoInfo and are NOT free to choose:
+		     5 cast/seasons toggle, 6 refresh, 7 user rating, 8 play, 9 resume,
+		     10 choose art, 11 trailer, 13 director. Kodi labels only the cast
+		     toggle itself (it flips between "Cast" and "Seasons"); every other
+		     button is blank unless the skin supplies a <label>, which is why
+		     this row rendered as a line of empty boxes.
+
+		     Optional buttons are gated on Control.IsEnabled(): Kodi disables the
+		     ones that don't apply to the focused item, and the grouplist closes
+		     the gap left by a hidden one. -->
 		<control type="grouplist" id="9000">
 			<left>80</left>
 			<bottom>40</bottom>
@@ -255,8 +266,8 @@
 			<onup>50</onup>
 			<ondown>9000</ondown>
 
-			<!-- 6 = Play -->
-			<control type="button" id="6">
+			<!-- 8 = Play -->
+			<control type="button" id="8">
 				<width>200</width>
 				<height>70</height>
 				<font>font_reg</font>
@@ -265,11 +276,12 @@
 				<align>center</align>
 				<aligny>center</aligny>
 				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[208]</label>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			</control>
-			<!-- 7 = Resume -->
-			<control type="button" id="7">
+			<!-- 9 = Resume -->
+			<control type="button" id="9">
 				<width>200</width>
 				<height>70</height>
 				<font>font_reg</font>
@@ -278,10 +290,12 @@
 				<align>center</align>
 				<aligny>center</aligny>
 				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[13381]</label>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>Control.IsEnabled(9)</visible>
 			</control>
-			<!-- 11 = Toggle watched -->
+			<!-- 11 = Trailer -->
 			<control type="button" id="11">
 				<width>200</width>
 				<height>70</height>
@@ -291,10 +305,12 @@
 				<align>center</align>
 				<aligny>center</aligny>
 				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[20410]</label>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>!String.IsEmpty(ListItem.Trailer)</visible>
 			</control>
-			<!-- 5 = Cast / Similar -->
+			<!-- 5 = Cast / Seasons toggle (Kodi sets the label) -->
 			<control type="button" id="5">
 				<width>200</width>
 				<height>70</height>
@@ -307,8 +323,8 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			</control>
-			<!-- 8 = Refresh / Get info -->
-			<control type="button" id="8">
+			<!-- 13 = More from this director -->
+			<control type="button" id="13">
 				<width>200</width>
 				<height>70</height>
 				<font>font_reg</font>
@@ -317,10 +333,26 @@
 				<align>center</align>
 				<aligny>center</aligny>
 				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[20339]</label>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>!String.IsEmpty(ListItem.Director)</visible>
+			</control>
+			<!-- 7 = User rating -->
+			<control type="button" id="7">
+				<width>200</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[38023]</label>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			</control>
-			<!-- 10 = Trailer -->
+			<!-- 10 = Choose art -->
 			<control type="button" id="10">
 				<width>200</width>
 				<height>70</height>
@@ -330,11 +362,13 @@
 				<align>center</align>
 				<aligny>center</aligny>
 				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[13511]</label>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>Control.IsEnabled(10)</visible>
 			</control>
-			<!-- 12 = User rating -->
-			<control type="button" id="12">
+			<!-- 6 = Refresh / get info -->
+			<control type="button" id="6">
 				<width>200</width>
 				<height>70</height>
 				<font>font_reg</font>
@@ -343,21 +377,10 @@
 				<align>center</align>
 				<aligny>center</aligny>
 				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[184]</label>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-			</control>
-			<!-- 9 = Get thumb -->
-			<control type="button" id="9">
-				<width>200</width>
-				<height>70</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>Control.IsEnabled(6)</visible>
 			</control>
 
 		</control>
