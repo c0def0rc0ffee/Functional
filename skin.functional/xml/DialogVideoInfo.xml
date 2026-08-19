@@ -143,7 +143,7 @@
 			<orientation>horizontal</orientation>
 			<onup>9000</onup>
 			<ondown>9000</ondown>
-			<visible>!String.IsEmpty(ListItem.Cast)</visible>
+			<visible>Integer.IsGreater(Container(50).NumItems,0)</visible>
 			<itemlayout width="150" height="216">
 				<control type="image">
 					<left>20</left>
@@ -158,7 +158,7 @@
 					<width>110</width>
 					<height>150</height>
 					<aspectratio>scale</aspectratio>
-					<texture fallback="DefaultActor.png" background="true">$INFO[ListItem.Icon]</texture>
+					<texture fallback="DefaultActor.png" background="true">$INFO[ListItem.Thumb]</texture>
 				</control>
 				<control type="label">
 					<left>0</left>
@@ -203,7 +203,7 @@
 					<width>110</width>
 					<height>150</height>
 					<aspectratio>scale</aspectratio>
-					<texture fallback="DefaultActor.png" background="true">$INFO[ListItem.Icon]</texture>
+					<texture fallback="DefaultActor.png" background="true">$INFO[ListItem.Thumb]</texture>
 				</control>
 				<control type="label">
 					<left>0</left>
