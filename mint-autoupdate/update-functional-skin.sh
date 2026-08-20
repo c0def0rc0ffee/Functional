@@ -72,12 +72,24 @@ if ! ver_gt "$bestv" "$inst"; then
 fi
 
 # --- update ---
+# Stage on the DESTINATION filesystem (mktemp -d usually lands on tmpfs, and a
+# cross-filesystem mv is a copy that can fail halfway), swap the old install
+# aside instead of deleting it, and only log success when every step worked -
+# so a failed update leaves the previous skin in place, not a missing addon.
 log "updating $inst -> $bestv from $(basename "$best")"
-tmp="$(mktemp -d)"
+tmp="$(mktemp -d "$ADDONS/.${ADDON_ID}.staging.XXXXXX")"
+old="$ADDONS/.${ADDON_ID}.old.$$"
 if unzip -q -o "$best" "$ADDON_ID/*" -d "$tmp" && [ -d "$tmp/$ADDON_ID" ]; then
-    rm -rf "$ADDONS/$ADDON_ID"
-    mv "$tmp/$ADDON_ID" "$ADDONS/$ADDON_ID"
-    log "done, now at $bestv"
+    if [ -d "$ADDONS/$ADDON_ID" ] && ! mv "$ADDONS/$ADDON_ID" "$old"; then
+        log "ERROR: could not move the installed skin aside; leaving it untouched"
+    elif mv "$tmp/$ADDON_ID" "$ADDONS/$ADDON_ID"; then
+        rm -rf "$old"
+        log "done, now at $bestv"
+    else
+        # Put the previous install back so Kodi still has a skin.
+        [ -d "$old" ] && mv "$old" "$ADDONS/$ADDON_ID"
+        log "ERROR: could not install $bestv; previous version restored"
+    fi
 else
     log "ERROR: failed to extract $best"
 fi

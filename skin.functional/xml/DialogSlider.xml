@@ -67,38 +67,6 @@
 			<texturesliderbar colordiffuse="grey_mid">white.png</texturesliderbar>
 			<textureslidernib colordiffuse="white">slider_nib.png</textureslidernib>
 			<textureslidernibfocus colordiffuse="accent_hi">slider_nib.png</textureslidernibfocus>
-			<onleft>13</onleft>
-			<onright>14</onright>
-		</control>
-
-		<!-- Optional decrement / increment buttons -->
-		<control type="button" id="13">
-			<left>40</left>
-			<bottom>30</bottom>
-			<width>40</width>
-			<height>40</height>
-			<font>font_med</font>
-			<textcolor>text</textcolor>
-			<focusedcolor>white</focusedcolor>
-			<align>center</align>
-			<aligny>center</aligny>
-			<textoffsetx>0</textoffsetx>
-			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-		</control>
-		<control type="button" id="14">
-			<right>40</right>
-			<bottom>30</bottom>
-			<width>40</width>
-			<height>40</height>
-			<font>font_med</font>
-			<textcolor>text</textcolor>
-			<focusedcolor>white</focusedcolor>
-			<align>center</align>
-			<aligny>center</aligny>
-			<textoffsetx>0</textoffsetx>
-			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 		</control>
 
 	</controls>

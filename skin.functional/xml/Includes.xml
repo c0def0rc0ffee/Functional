@@ -2,9 +2,19 @@
 <includes>
 
 	<!-- Variables -->
-	<variable name="PlayPauseLabel">
-		<value condition="Player.Paused">▶</value>
-		<value>⏸</value>
+	<variable name="DebugYesNoFiltered">
+		<value condition="Container.Filtered">yes</value>
+		<value>no</value>
+	</variable>
+	<variable name="DebugYesNoUpdating">
+		<value condition="Container.IsUpdating">yes</value>
+		<value>no</value>
+	</variable>
+
+	<variable name="RepeatStateLabel">
+		<value condition="Playlist.IsRepeatOne">One</value>
+		<value condition="Playlist.IsRepeat">All</value>
+		<value>Off</value>
 	</variable>
 
 	<variable name="SortDirectionLabel">
@@ -18,30 +28,28 @@
 	</variable>
 
 	<!-- ===== Background slideshow caption position =====
-	     Coordinates the slideshow label's anchor / alignment based on the
-	     user's chosen position. Six options including "off" which hides it. -->
-	<variable name="BgLabelLeft">
-		<value condition="String.IsEqual(Skin.String(bg_label_position),topleft)">60</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">0</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomleft)">60</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomright)">0</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomcenter)">0</value>
-		<value>60</value>
-	</variable>
-	<variable name="BgLabelTop">
-		<value condition="String.IsEqual(Skin.String(bg_label_position),topleft)">100</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">100</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomleft)">980</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomright)">980</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomcenter)">980</value>
-		<value>980</value>
-	</variable>
-	<variable name="BgLabelAlign">
-		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">right</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomright)">right</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomcenter)">center</value>
-		<value>left</value>
-	</variable>
+	     Kodi never resolves $VAR/$INFO inside <left>/<top>/<align> (they are
+	     parsed as raw numbers at window load), so the position choices are
+	     baked as one label per position via $PARAM, which IS substituted at
+	     include-expansion time. Home.xml instantiates BgCaption five times,
+	     one per position; "off"/unset shows none. -->
+	<include name="BgCaption">
+		<control type="label">
+			<left>60</left>
+			<top>$PARAM[top]</top>
+			<right>60</right>
+			<height>40</height>
+			<font>font_med</font>
+			<align>$PARAM[align]</align>
+			<aligny>center</aligny>
+			<textcolor>white</textcolor>
+			<shadowcolor>FF000000</shadowcolor>
+			<scroll>true</scroll>
+			<label>$INFO[Window(home).Property(home_bg_label)]</label>
+			<visible>!String.IsEmpty(Window(home).Property(home_bg_label)) + String.IsEqual(Skin.String(bg_label_position),$PARAM[pos])</visible>
+			<animation effect="fade" time="400">VisibleChange</animation>
+		</control>
+	</include>
 	<variable name="BgLabelPositionLabel">
 		<value condition="String.IsEqual(Skin.String(bg_label_position),topleft)">Top Left</value>
 		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">Top Right</value>
@@ -107,15 +115,6 @@
 
 	<!-- Slideshow interval in milliseconds, for the folder multiimage control
 	     (which counts in ms). Mirrors the seconds presets below. -->
-	<variable name="BgSlideshowMs">
-		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),10)">10000</value>
-		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),30)">30000</value>
-		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),60)">60000</value>
-		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),120)">120000</value>
-		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),300)">300000</value>
-		<value>20000</value>
-	</variable>
-
 	<!-- Background slideshow rotate interval (seconds); cycle through presets -->
 	<variable name="BgSlideshowIntervalLabel">
 		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),10)">10s</value>
@@ -151,10 +150,6 @@
 	     show_filesize and show_lastplayed are off by default. -->
 	<variable name="ItemGenreLabel">
 		<value condition="!Skin.HasSetting(hide_genre) + !String.IsEmpty(ListItem.Genre)">$INFO[ListItem.Genre]</value>
-		<value></value>
-	</variable>
-	<variable name="ItemDurationLabel">
-		<value condition="!Skin.HasSetting(hide_duration) + !String.IsEmpty(ListItem.Duration)"> · $INFO[ListItem.Duration]</value>
 		<value></value>
 	</variable>
 	<variable name="ItemEndsAtLabel">
@@ -313,25 +308,6 @@
 	<!-- Notification placement (notification dialog 460x140; screen 1920x1080)
 	     Setting: notification_position = tl | tc | tr | bl | bc | br (default br)
 	     Centre x: (1920-460)/2 = 730 -->
-	<!-- Notification position for a 640x150 box on a 1920x1080 screen,
-	     40px margins: left=40, centre=(1920-640)/2=640, right=1920-640-40=1240;
-	     top=40, bottom=1080-150-40=890. -->
-	<variable name="NotificationPosX">
-		<value condition="String.IsEqual(Skin.String(notification_position),tl)">40</value>
-		<value condition="String.IsEqual(Skin.String(notification_position),bl)">40</value>
-		<value condition="String.IsEqual(Skin.String(notification_position),tc)">640</value>
-		<value condition="String.IsEqual(Skin.String(notification_position),bc)">640</value>
-		<value condition="String.IsEqual(Skin.String(notification_position),tr)">1240</value>
-		<value>1240</value>
-	</variable>
-	<variable name="NotificationPosY">
-		<value condition="String.IsEqual(Skin.String(notification_position),tl)">40</value>
-		<value condition="String.IsEqual(Skin.String(notification_position),tc)">40</value>
-		<value condition="String.IsEqual(Skin.String(notification_position),tr)">40</value>
-		<value condition="String.IsEqual(Skin.String(notification_position),bl)">890</value>
-		<value condition="String.IsEqual(Skin.String(notification_position),bc)">890</value>
-		<value>890</value>
-	</variable>
 	<!-- Home background dim overlay (alpha-on-black) -->
 	<variable name="BgOverlayColor">
 		<value condition="String.IsEqual(Skin.String(bg_dim),0)">00000000</value>
@@ -387,11 +363,6 @@
 	</variable>
 
 <!-- Main menu vertical position on home -->
-	<variable name="MainMenuTop">
-		<value condition="String.IsEqual(Skin.String(menu_position),top)">220</value>
-		<value condition="String.IsEqual(Skin.String(menu_position),bottom)">800</value>
-		<value>480</value>
-	</variable>
 	<variable name="MainMenuPositionLabel">
 		<value condition="String.IsEqual(Skin.String(menu_position),top)">Top</value>
 		<value condition="String.IsEqual(Skin.String(menu_position),bottom)">Bottom</value>
@@ -407,17 +378,9 @@
 		<value>Bottom Right</value>
 	</variable>
 	<!-- ItemSizeLabel removed; see PROJECT_NOTES "Focused-item file size". -->
-	<variable name="ItemSizeLabel">
-		<value></value>
-	</variable>
 	<variable name="ItemLastPlayedLabel">
 		<value condition="Skin.HasSetting(show_lastplayed) + !String.IsEmpty(ListItem.LastPlayed)"> · Played $INFO[ListItem.LastPlayed]</value>
 		<value></value>
-	</variable>
-
-	<variable name="UnwatchedFilterLabel">
-		<value condition="!String.IsEmpty(Container.Filter)">Unwatched</value>
-		<value>All</value>
 	</variable>
 
 	<!-- Configurable accent colour (Skin.String(accent_color)) -->
@@ -449,10 +412,6 @@
 	</variable>
 
 	<!-- Solid color textures via diffuse -->
-	<include name="SolidBG">
-		<texture colordiffuse="bg">white.png</texture>
-	</include>
-
 	<!-- ===== Gallery view tile content =====
 	     Used by MyVideoNav's panel; called once per size variant from inside
 	     conditional <itemlayout>/<focusedlayout> blocks. Pass poster_w/h
@@ -611,65 +570,7 @@
 	</include>
 
 	<!-- A standard menu button used on Home -->
-	<include name="HomeMenuButton">
-		<param name="label" />
-		<param name="onclick" />
-		<param name="icon" default="" />
-		<definition>
-			<control type="button">
-				<width>240</width>
-				<height>120</height>
-				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-				<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
-				<font>font_med</font>
-				<textcolor>text</textcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<label>$PARAM[label]</label>
-				<onclick>$PARAM[onclick]</onclick>
-			</control>
-		</definition>
-	</include>
-
 	<!-- Standard list item layout (used by lists) -->
-	<include name="ListItemLayout">
-		<itemlayout height="60" width="900">
-			<control type="label">
-				<left>20</left>
-				<top>0</top>
-				<width>860</width>
-				<height>60</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<selectedcolor>accent_hi</selectedcolor>
-				<aligny>center</aligny>
-				<label>$INFO[ListItem.Label]</label>
-			</control>
-		</itemlayout>
-		<focusedlayout height="60" width="900">
-			<control type="image">
-				<left>0</left>
-				<top>0</top>
-				<width>900</width>
-				<height>60</height>
-				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
-				<visible>Control.HasFocus(50)</visible>
-			</control>
-			<control type="label">
-				<left>20</left>
-				<top>0</top>
-				<width>860</width>
-				<height>60</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<selectedcolor>white</selectedcolor>
-				<aligny>center</aligny>
-				<label>$INFO[ListItem.Label]</label>
-			</control>
-		</focusedlayout>
-	</include>
-
 	<!-- One column in the hourly forecast strip on MyWeather. -->
 	<include name="ForecastHour">
 		<param name="n" />
@@ -684,6 +585,9 @@
 					<height>160</height>
 					<texture colordiffuse="bg_panel">white.png</texture>
 				</control>
+				<!-- ShortTime with fallback to Time. $INFO's suffix arg is literal
+				     text, not a fallback (it only ever renders when the label is
+				     NON-empty), so the fallback needs two gated labels. -->
 				<control type="label">
 					<left>0</left>
 					<top>8</top>
@@ -692,7 +596,19 @@
 					<font>font_reg</font>
 					<align>center</align>
 					<textcolor>$VAR[AccentColor]</textcolor>
-					<label>$INFO[Window(Weather).Property(Hourly.$PARAM[n].ShortTime),,$INFO[Window(Weather).Property(Hourly.$PARAM[n].Time)]]</label>
+					<label>$INFO[Window(Weather).Property(Hourly.$PARAM[n].ShortTime)]</label>
+					<visible>!String.IsEmpty(Window(Weather).Property(Hourly.$PARAM[n].ShortTime))</visible>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>8</top>
+					<width>210</width>
+					<height>30</height>
+					<font>font_reg</font>
+					<align>center</align>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>$INFO[Window(Weather).Property(Hourly.$PARAM[n].Time)]</label>
+					<visible>String.IsEmpty(Window(Weather).Property(Hourly.$PARAM[n].ShortTime))</visible>
 				</control>
 				<control type="image">
 					<centerleft>50%</centerleft>
@@ -990,75 +906,7 @@
 	</include>
 
 	<!-- Settings list window content -->
-	<include name="SettingsListContent">
-		<param name="title" />
-		<definition>
-			<include content="WindowBackground"/>
-			<include content="HeaderBar">
-				<param name="title" value="$PARAM[title]"/>
-			</include>
-
-			<control type="list" id="50">
-				<left>60</left>
-				<top>120</top>
-				<width>1800</width>
-				<height>880</height>
-				<onleft>50</onleft>
-				<onright>50</onright>
-				<pagecontrol>60</pagecontrol>
-				<itemlayout height="80" width="1800">
-					<control type="label">
-						<left>40</left>
-						<top>0</top>
-						<width>1700</width>
-						<height>80</height>
-						<font>font_med</font>
-						<textcolor>text</textcolor>
-						<selectedcolor>accent_hi</selectedcolor>
-						<aligny>center</aligny>
-						<label>$INFO[ListItem.Label]</label>
-					</control>
-				</itemlayout>
-				<focusedlayout height="80" width="1800">
-					<control type="image">
-						<left>0</left>
-						<top>0</top>
-						<width>1800</width>
-						<height>80</height>
-						<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
-						<visible>Control.HasFocus(50)</visible>
-					</control>
-					<control type="label">
-						<left>40</left>
-						<top>0</top>
-						<width>1700</width>
-						<height>80</height>
-						<font>font_med</font>
-						<textcolor>white</textcolor>
-						<selectedcolor>white</selectedcolor>
-						<aligny>center</aligny>
-						<label>$INFO[ListItem.Label]</label>
-					</control>
-				</focusedlayout>
-			</control>
-		</definition>
-	</include>
-
 	<!-- Standard dialog frame -->
-	<include name="DialogFrame">
-		<param name="width" default="800" />
-		<param name="height" default="400" />
-		<definition>
-			<control type="image">
-				<left>0</left>
-				<top>0</top>
-				<width>$PARAM[width]</width>
-				<height>$PARAM[height]</height>
-				<texture colordiffuse="bg_panel">white.png</texture>
-			</control>
-		</definition>
-	</include>
-
 	<!-- One entry in the categorised Favourites list. The helper service fills
 	     Fav.N.Label / Fav.N.Thumb / Fav.N.Cat on the Home window for the items
 	     matching the currently-selected category; clicking sets fav_run so the
@@ -1209,7 +1057,7 @@
 				<height>30</height>
 				<font>font_reg</font>
 				<textcolor>text_dim</textcolor>
-				<label>$INFO[VideoPlayer.Genre]$INFO[VideoPlayer.Duration, · , min]$INFO[VideoPlayer.Rating, · ★ ,]$INFO[VideoPlayer.MPAA, · ,]</label>
+				<label>$INFO[VideoPlayer.Genre]$INFO[VideoPlayer.Duration, · ,]$INFO[VideoPlayer.Rating, · ★ ,]$INFO[VideoPlayer.MPAA, · ,]</label>
 			</control>
 
 			<!-- Resolution + audio pill row -->

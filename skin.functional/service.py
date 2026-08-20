@@ -29,13 +29,6 @@ update_focused_eta()
     Skin reads it via $INFO[Window(home).Property(focused_finish_time)].
     Property is cleared when nothing useful is focused.
 
-update_filter_command()
-    Watches Skin.String(filter_command); when the side-menu filter buttons set
-    it (e.g. "episodes_watched"), strips any existing `xsp=` query param from
-    the current Container.FolderPath and appends a fresh one. Solves the
-    "stacked xsp=" bug where Kodi's URL parser keeps the FIRST xsp= and
-    silently ignores subsequent ones, so chained filter clicks did nothing.
-
 update_layout_command()
     Watches Skin.String(layout_command); when the side-menu +/- buttons set it
     (e.g. "top_inc", "bottom_dec"), bumps the corresponding clearance Skin.String
@@ -102,12 +95,6 @@ import xml.etree.ElementTree as ET
 import xbmc
 import xbmcgui
 import xbmcvfs
-
-try:
-    from urllib.parse import quote  # Python 3
-except ImportError:  # pragma: no cover
-    from urllib import quote
-
 
 HOME_WINDOW_ID = 10000
 
@@ -309,6 +296,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._info_cast_key = None  # same, for the video info dialog
         self._info_cast_thread = None
         self._info_cast_names = []  # slot order, for cast_run clicks
+        self._info_cast_dbtype = ""  # media type behind those slots, ditto
         self._bootstrap_layout_defaults()
         self._migrate_bg_mode()
         _dlog("helper ready")
@@ -391,7 +379,11 @@ class FunctionalHelper(xbmc.Monitor):
         movies_watched = max(0, movies_total - movies_unwatched)
 
         tvshows_total = _count("VideoLibrary.GetTVShows")
-        tvshows_unwatched = _count("VideoLibrary.GetTVShows", unwatched_filter)
+        # tvshows have no per-show playcount filter semantics worth using:
+        # numwatched=0 ("no episode watched") matches the side-menu filters.
+        tvshows_unwatched = _count("VideoLibrary.GetTVShows", {
+            "filter": {"field": "numwatched", "operator": "is", "value": "0"}
+        })
         episodes_total = _count("VideoLibrary.GetEpisodes")
 
         _set_skin_string("stat_movies_total", str(movies_total))
@@ -417,7 +409,7 @@ class FunctionalHelper(xbmc.Monitor):
         """
         # Only meaningful when in a video window with a list (library or files)
         in_video_window = xbmc.getCondVisibility(
-            "Window.IsActive(videos) | Window.IsActive(videolibrary)"
+            "Window.IsActive(videos)"
         )
         if not in_video_window:
             self._set_eta("")
@@ -482,6 +474,9 @@ class FunctionalHelper(xbmc.Monitor):
         if key == self._cast_key:
             return
         self._cast_key = key
+        # Blank the strip immediately so the previous item's actors don't
+        # linger on the info card while the new lookup runs.
+        self._publish_cast([])
         self._cast_thread = threading.Thread(
             target=self._cast_worker, args=(key,),
             name="functional-cast", daemon=True)
@@ -567,6 +562,8 @@ class FunctionalHelper(xbmc.Monitor):
         if not xbmc.getCondVisibility("Window.IsActive({0})".format(self.INFO_DIALOG)):
             if self._info_cast_key is not None:
                 self._info_cast_key = None
+                self._info_cast_names = []
+                self._info_cast_dbtype = ""
                 self._publish_cast([], prefix="InfoCast", reset=True)
             return
 
@@ -608,18 +605,21 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("info-cast: {0} {1} -> {2} actor(s)".format(dbtype, dbid, len(cast)))
         self._info_cast_names = [(m or {}).get("name") or ""
                                  for m in cast[:self.CAST_MAX]]
+        self._info_cast_dbtype = (dbtype or "").lower()
         self._publish_cast(cast, prefix="InfoCast")
 
     @staticmethod
     def _parse_cast_and_role(text):
         """ListItem.CastAndRole -> [{name, role}]. One actor per line,
-        "Name as Role" (localised Kodi builds use the same 'as')."""
+        "Name as Role", where 'as' is Kodi's localised string 20347 ("als",
+        "como", ... on non-English UIs), so split on that, not a literal."""
+        separator = " {0} ".format(xbmc.getLocalizedString(20347) or "as")
         cast = []
         for line in (text or "").splitlines():
             line = line.strip()
             if not line:
                 continue
-            name, _, role = line.partition(" as ")
+            name, _, role = line.partition(separator)
             cast.append({"name": name.strip(), "role": role.strip()})
         return cast
 
@@ -675,14 +675,20 @@ class FunctionalHelper(xbmc.Monitor):
         if not name:
             return
 
-        rule = {"type": "movies",
+        # Match the list to where the click came from: an actor opened from a
+        # TV show or episode gets their shows, anything else their movies.
+        if self._info_cast_dbtype in ("tvshow", "season", "episode"):
+            rule_type, base = "tvshows", "videodb://tvshows/titles/"
+        else:
+            rule_type, base = "movies", "videodb://movies/titles/"
+        rule = {"type": rule_type,
                 "rules": {"and": [{"field": "actor", "operator": "is",
                                    "value": [name]}]}}
-        url = "videodb://movies/titles/?xsp=" + json.dumps(rule, separators=(",", ":"))
+        url = base + "?xsp=" + json.dumps(rule, separators=(",", ":"))
         # Quote the whole path and backslash-escape the JSON's own quotes;
         # that is what Kodi's argument splitter understands.
         command = 'ActivateWindow(Videos,"{0}",return)'.format(url.replace('"', '\\"'))
-        _dlog("cast: opening movies with {0} -> {1}".format(name, command))
+        _dlog("cast: opening {0} with {1} -> {2}".format(rule_type, name, command))
         xbmc.executebuiltin("Dialog.Close({0},true)".format(self.INFO_DIALOG))
         xbmc.executebuiltin(command)
 
@@ -809,244 +815,6 @@ class FunctionalHelper(xbmc.Monitor):
             _set_home_property("home_bg_fanart", url)
             _set_home_property("home_bg_label", label)
             _dlog("bg rotate -> {0} | {1}".format(label, url[:120]))
-
-    # ---- Filter command handler ----------------------------------------
-
-    # Map filter command keys → (item type, JSON XSP rules) or None for "all"
-    _FILTER_RULES = {
-        "movies_unwatched":   ("movies",   {"field": "playcount", "operator": "is",          "value": ["0"]}),
-        "movies_watched":     ("movies",   {"field": "playcount", "operator": "greaterthan", "value": ["0"]}),
-        "episodes_unwatched": ("episodes", {"field": "playcount", "operator": "is",          "value": ["0"]}),
-        "episodes_watched":   ("episodes", {"field": "playcount", "operator": "greaterthan", "value": ["0"]}),
-        "tvshows_unwatched":  ("tvshows",  {"field": "numwatched", "operator": "is",          "value": ["0"]}),
-        "tvshows_watched":    ("tvshows",  {"field": "numwatched", "operator": "greaterthan", "value": ["0"]}),
-        # From a show's SEASONS list we can't filter the seasons themselves
-        # (no seasons xsp type exists), instead jump into the all-seasons
-        # episode node filtered by watched state. Same rules as episodes_*.
-        "seasons_unwatched":  ("episodes", {"field": "playcount", "operator": "is",          "value": ["0"]}),
-        "seasons_watched":    ("episodes", {"field": "playcount", "operator": "greaterthan", "value": ["0"]}),
-        # Local Only, exclude plugin/streaming paths (kept items only).
-        "movies_local":       ("movies",   {"field": "path", "operator": "doesnotcontain", "value": ["plugin"]}),
-        "episodes_local":     ("episodes", {"field": "path", "operator": "doesnotcontain", "value": ["plugin"]}),
-        "tvshows_local":      ("tvshows",  {"field": "path", "operator": "doesnotcontain", "value": ["plugin"]}),
-        # "<type>_all" / "local_off" => no rules, just strips the existing xsp
-    }
-
-    @staticmethod
-    def _strip_xsp(url):
-        """Remove any ?xsp=... or &xsp=... params, leaving the rest of the URL intact."""
-        cleaned = re.sub(r"[?&]xsp=[^&]*", "", url)
-        # If we just removed the only query param the URL might end with `?`; trim it.
-        return cleaned.rstrip("?&")
-
-    @classmethod
-    def _build_xsp_url(cls, base_url, command):
-        """Return (base, xsp_param_or_None). xsp_param is the encoded query suffix."""
-        if command.endswith("_all") or command not in cls._FILTER_RULES:
-            return base_url, None
-        item_type, rule = cls._FILTER_RULES[command]
-        xsp_dict = {"rules": {"and": [rule]}, "type": item_type}
-        encoded = quote(json.dumps(xsp_dict, separators=(",", ":")))
-        sep = "&" if "?" in base_url else "?"
-        return base_url, sep + "xsp=" + encoded
-
-    # ----- Favourites (categorised, filterable) ----------------------------
-    # Ordered list of filter categories shown on the custom Favourites screen.
-    FAV_CATS = ("all", "movies", "tvshows", "music", "apps", "other")
-
-    @staticmethod
-    def _fav_category(action):
-        """Classify a favourite by its action string into one of FAV_CATS
-        (never 'all', 'all' is the no-filter pseudo-category)."""
-        a = (action or "").lower()
-        if "videodb://movies" in a:
-            return "movies"
-        if "videodb://tvshows" in a or "/episode" in a or "episodeid" in a:
-            return "tvshows"
-        if "musicdb://" in a or "library://music" in a or "playercontrol(partymode(music" in a:
-            return "music"
-        # Program add-ons / scripts / launchers.
-        if ("runaddon" in a or "runscript" in a
-                or "plugin://plugin.program" in a
-                or "activatewindow(programs" in a
-                or "activatewindow(10001" in a):   # WINDOW_PROGRAMS
-            return "apps"
-        return "other"
-
-    @staticmethod
-    def _favourites_path():
-        return xbmcvfs.translatePath("special://profile/favourites.xml")
-
-    def _read_favourites(self):
-        """Parse favourites.xml into self._fav_all. Returns True on (re)load."""
-        path = self._favourites_path()
-        try:
-            mtime = os.path.getmtime(path) if os.path.exists(path) else 0.0
-        except OSError:
-            mtime = 0.0
-        if self._fav_loaded and mtime == self._fav_mtime:
-            return False  # unchanged since last read
-        self._fav_loaded = True
-        self._fav_mtime = mtime
-        items = []
-        if mtime:
-            try:
-                with xbmcvfs.File(path) as fh:
-                    data = fh.read()
-                root = ET.fromstring(data)
-                for node in root.findall("favourite"):
-                    action = (node.text or "").strip()
-                    if not action:
-                        continue
-                    name = node.get("name") or ""
-                    thumb = node.get("thumb") or ""
-                    items.append({
-                        "name": name,
-                        "thumb": thumb,
-                        "action": action,
-                        "cat": self._fav_category(action),
-                    })
-            except Exception:
-                _dlog("favourites parse failed:\n" + traceback.format_exc())
-                items = []
-        self._fav_all = items
-        _dlog("favourites loaded: %d items" % len(items))
-        return True
-
-    def _fav_counts(self):
-        counts = {c: 0 for c in self.FAV_CATS}
-        counts["all"] = len(self._fav_all)
-        for it in self._fav_all:
-            counts[it["cat"]] = counts.get(it["cat"], 0) + 1
-        return counts
-
-    def _populate_favourites(self, category):
-        """Write Fav.* window properties for the given category."""
-        win = xbmcgui.Window(HOME_WINDOW_ID)
-        if category == "all" or category not in self.FAV_CATS:
-            shown = list(self._fav_all)
-        else:
-            shown = [it for it in self._fav_all if it["cat"] == category]
-        self._fav_current = shown
-        win.setProperty("Fav.Count", str(len(shown)))
-        win.setProperty("Fav.Category", category)
-        counts = self._fav_counts()
-        for c in self.FAV_CATS:
-            win.setProperty("Fav.CatCount.%s" % c, str(counts.get(c, 0)))
-        for i in range(self.FAV_MAX):
-            n = i + 1
-            if i < len(shown):
-                it = shown[i]
-                win.setProperty("Fav.%d.Label" % n, it["name"])
-                win.setProperty("Fav.%d.Thumb" % n, it["thumb"])
-                win.setProperty("Fav.%d.Cat" % n, it["cat"])
-            else:
-                win.clearProperty("Fav.%d.Label" % n)
-                win.clearProperty("Fav.%d.Thumb" % n)
-                win.clearProperty("Fav.%d.Cat" % n)
-        self._fav_last_cat = category
-
-    def update_favourites(self):
-        """Keep the custom Favourites screen fed. Handles:
-          - loading/reloading favourites.xml when it changes on disk
-          - reacting to the selected category (Skin.String(fav_category))
-          - running a favourite when Skin.String(fav_run) is set to its index
-        Cheap enough to call every tick."""
-        # Run a chosen favourite (set by the UI as a 1-based index into the
-        # currently-shown, filtered list) then clear the request.
-        run = xbmc.getInfoLabel("Skin.String(fav_run)")
-        if run:
-            xbmc.executebuiltin("Skin.Reset(fav_run)")
-            try:
-                idx = int(run) - 1
-            except ValueError:
-                idx = -1
-            if 0 <= idx < len(self._fav_current):
-                action = self._fav_current[idx]["action"]
-                _dlog("favourite run #%d: %s" % (idx + 1, action))
-                xbmc.executebuiltin(action)
-            return
-
-        reloaded = self._read_favourites()
-
-        # Resolve the desired category: explicit selection, else configured
-        # default, else 'all'.
-        category = xbmc.getInfoLabel("Skin.String(fav_category)").strip().lower()
-        if not category:
-            category = xbmc.getInfoLabel("Skin.String(fav_default_category)").strip().lower()
-        if category not in self.FAV_CATS:
-            category = "all"
-
-        if reloaded or category != self._fav_last_cat:
-            self._populate_favourites(category)
-
-    def update_sort_direction(self):
-        """Apply a deferred sort-direction request from the library side menu.
-
-        The menu buttons can't reliably force a direction inline: reading
-        Container.SortDirection in the same click as SetSortMethod sees stale
-        state, so a conditional toggle sometimes lands the wrong way (e.g.
-        switching from Date Added back to Title left it Z->A). Instead the
-        button sets Skin.String(sort_want)=asc|desc and we honour it here, a
-        tick later, once the container's new sort has settled, so the
-        direction read is accurate."""
-        want = xbmc.getInfoLabel("Skin.String(sort_want)").strip().lower()
-        if not want:
-            return
-        # Only meddle while the video library window is up, so we never nudge
-        # some other window's container.
-        if not xbmc.getCondVisibility("Window.IsVisible(myvideonav)"):
-            xbmc.executebuiltin("Skin.Reset(sort_want)")
-            return
-        if want == "desc" and xbmc.getCondVisibility("Container.SortDirection(ascending)"):
-            xbmc.executebuiltin("Container.SetSortDirection")
-        elif want == "asc" and xbmc.getCondVisibility("Container.SortDirection(descending)"):
-            xbmc.executebuiltin("Container.SetSortDirection")
-        xbmc.executebuiltin("Skin.Reset(sort_want)")
-
-    def update_filter_command(self):
-        """Apply or clear an XSP filter on the current container, replacing any existing xsp."""
-        cmd = xbmc.getInfoLabel("Skin.String(filter_command)")
-        if not cmd:
-            return
-        # Clear immediately so we don't re-trigger
-        xbmc.executebuiltin("Skin.Reset(filter_command)")
-
-        current = xbmc.getInfoLabel("Container.FolderPath")
-        if not current:
-            return
-
-        base = self._strip_xsp(current)
-
-        # Show-root paths (videodb://tvshows/titles/<id>/) are SEASONS nodes
-        # and silently ignore episode xsp filters, this hits both flattened
-        # single-season shows (content=episodes) and real season lists
-        # (content=seasons). The all-seasons node (<id>/-1/) lists every
-        # episode of the show and applies the filter correctly.
-        if cmd.startswith(("episodes_", "seasons_")) and not cmd.endswith("_all"):
-            m = re.match(r"^(videodb://tvshows/titles/\d+)/?$", base)
-            if m:
-                base = m.group(1) + "/-1/"
-
-        base, suffix = self._build_xsp_url(base, cmd)
-        new_url = base + (suffix or "")
-
-        # seasons_* navigates from the seasons list INTO the episode node -
-        # push it onto history (no replace) so Back returns to the seasons.
-        replace = "" if cmd.startswith("seasons_") else ",replace"
-
-        _dlog("filter '{0}': {1} -> {2}".format(cmd, current, new_url))
-
-        # When filter_debug is on, surface the resolved URL via Notification so
-        # the user can verify the service is doing its job.
-        if xbmc.getCondVisibility("Skin.HasSetting(filter_debug)"):
-            # Notification builtin uses , as separator → escape any in our string
-            preview = new_url.replace(",", " ")
-            xbmc.executebuiltin(
-                "Notification(filter applied,{0},5000)".format(preview)
-            )
-
-        xbmc.executebuiltin("Container.Update({0}{1})".format(new_url, replace))
 
     # ---- Layout command handler ----------------------------------------
 
@@ -1459,7 +1227,7 @@ def run():
         return
     # Polling loop for things Kodi doesn't notify on (focused item changes etc.).
     # waitForAbort returns True if Kodi is shutting down.
-    # Fast-tickers (filter command, focused ETA) run every loop.
+    # Fast-tickers (focused ETA, command channels) run every loop.
     # Slow-tickers (home background slideshow) only every Nth loop.
     SLOW_EVERY = int(1.0 / FunctionalHelper.POLL_SECS) or 1  # ~once per second
     tick = 0
@@ -1469,7 +1237,6 @@ def run():
         # window churn at shutdown) silently stopped the slideshow and
         # every other handler until Kodi was restarted.
         try:
-            helper.update_filter_command()
             helper.update_sort_direction()
             helper.update_focused_eta()
             helper.update_layout_command()

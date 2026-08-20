@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="skin.functional" version="0.7.64" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.8.0" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
 		<import addon="xbmc.gui" version="5.17.0"/>
+		<!-- Required for the service.py helper; kodi-addon-checker flags
+		     services that don't declare the python API dependency. -->
+		<import addon="xbmc.python" version="3.0.1"/>
 	</requires>
 	<extension point="xbmc.gui.skin" debugging="false">
 		<res width="1920" height="1080" aspect="16:9" default="true" folder="xml" />

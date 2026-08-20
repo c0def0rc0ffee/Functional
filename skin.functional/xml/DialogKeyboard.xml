@@ -233,7 +233,7 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[222]</label>
 			</control>
-			<control type="button" id="309">
+			<control type="button" id="308">
 				<width>300</width>
 				<height>70</height>
 				<font>font_reg</font>

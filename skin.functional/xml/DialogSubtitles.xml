@@ -36,7 +36,7 @@
 		</control>
 
 		<!-- Heading -->
-		<control type="label" id="140">
+		<control type="label">
 			<left>0</left>
 			<top>20</top>
 			<width>1200</width>
@@ -60,20 +60,22 @@
 			<scroll>true</scroll>
 		</control>
 
-		<!-- Action grouplist (top buttons: search, manual, set default) -->
-		<control type="grouplist" id="130">
+		<!-- Action row. NOT id 130: that is core's "subs exist" group, which
+		     Kodi force-hides whenever the playing file has no subtitle streams.
+		     The only button core handles here is 160 = manual search. -->
+		<control type="grouplist" id="190">
 			<left>40</left>
 			<top>120</top>
 			<width>1120</width>
 			<height>60</height>
 			<orientation>horizontal</orientation>
 			<itemgap>10</itemgap>
-			<onleft>130</onleft>
-			<onright>130</onright>
+			<onleft>190</onleft>
+			<onright>190</onright>
 			<ondown>120</ondown>
 
-			<control type="button" id="100">
-				<width>260</width>
+			<control type="button" id="160">
+				<width>380</width>
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -83,42 +85,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-			</control>
-			<control type="button" id="101">
-				<width>260</width>
-				<height>60</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-			</control>
-			<control type="button" id="102">
-				<width>260</width>
-				<height>60</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-			</control>
-			<control type="button" id="103">
-				<width>260</width>
-				<height>60</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[24120]</label>
 			</control>
 		</control>
 
@@ -130,7 +97,7 @@
 			<height>540</height>
 			<onleft>120</onleft>
 			<onright>73</onright>
-			<onup>130</onup>
+			<onup>190</onup>
 			<onback>PreviousMenu</onback>
 			<scrolltime tween="cubic" easing="out">200</scrolltime>
 			<pagecontrol>73</pagecontrol>
@@ -234,7 +201,7 @@
 			<height>540</height>
 			<onleft>150</onleft>
 			<onright>150</onright>
-			<onup>130</onup>
+			<onup>190</onup>
 			<onback>PreviousMenu</onback>
 			<pagecontrol>73</pagecontrol>
 
@@ -273,15 +240,27 @@
 			</focusedlayout>
 		</control>
 
-		<!-- Status / footer -->
-		<control type="label" id="111">
+		<!-- Status / footer (Kodi writes search status into id 140) -->
+		<control type="label" id="140">
 			<left>40</left>
 			<bottom>30</bottom>
-			<width>1120</width>
+			<width>780</width>
 			<height>40</height>
 			<font>font_small</font>
 			<textcolor>text_dim</textcolor>
-			<align>center</align>
+			<align>left</align>
+			<aligny>center</aligny>
+			<label></label>
+		</control>
+		<!-- Active service name (Kodi writes it into id 100) -->
+		<control type="label" id="100">
+			<right>40</right>
+			<bottom>30</bottom>
+			<width>340</width>
+			<height>40</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<align>right</align>
 			<aligny>center</aligny>
 			<label></label>
 		</control>

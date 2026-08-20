@@ -76,6 +76,11 @@
 					<onclick>ActivateWindow(ServiceSettings)</onclick>
 				</item>
 				<item>
+					<label>$LOCALIZE[15016]</label>
+					<visible>System.GetBool(gamesgeneral.enable)</visible>
+					<onclick>ActivateWindow(GameSettings)</onclick>
+				</item>
+				<item>
 					<label>Interface</label>
 					<onclick>ActivateWindow(InterfaceSettings)</onclick>
 				</item>

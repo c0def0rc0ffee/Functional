@@ -3,10 +3,10 @@
   Event Log window.
 
   Kodi-hardcoded control IDs:
-     4  = "Show higher levels" togglebutton (filters informational events)
+     4  = Sort toggle (standard media-window button)
     20  = Action: Clear list
     21  = (unused here)
-    22  = Show full description radiobutton
+    22  = "Show higher levels" radiobutton (Kodi relabels it from string 14120)
     50  = Events list (fixedlist)
     60  = Scrollbar
    501  = Open the Logging settings page

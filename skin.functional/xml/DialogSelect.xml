@@ -55,7 +55,8 @@
 			<label></label>
 		</control>
 
-		<!-- Empty-state message: shows when the active list has no items -->
+		<!-- Empty-state message: only when BOTH lists are empty — in detailed
+		     mode Kodi populates list 6 and leaves list 3 empty -->
 		<control type="label">
 			<left>20</left>
 			<top>90</top>
@@ -66,7 +67,7 @@
 			<aligny>center</aligny>
 			<textcolor>text_dim</textcolor>
 			<label>No items available</label>
-			<visible>Integer.IsEqual(Container(3).NumItems,0)</visible>
+			<visible>Integer.IsEqual(Container(3).NumItems,0) + Integer.IsEqual(Container(6).NumItems,0)</visible>
 		</control>
 
 		<!-- Main list (id 3) -->

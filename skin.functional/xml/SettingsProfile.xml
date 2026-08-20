@@ -10,7 +10,9 @@
 			<left>60</left>
 			<top>120</top>
 			<width>1800</width>
-			<height>880</height>
+			<height>780</height>
+			<onup>4</onup>
+			<ondown>4</ondown>
 			<itemlayout height="80" width="1800">
 				<control type="label">
 					<left>40</left>
@@ -44,6 +46,54 @@
 					<label>$INFO[ListItem.Label]</label>
 				</control>
 			</focusedlayout>
+		</control>
+
+		<!-- Login-screen toggle (Kodi handles clicks on id 4: CONTROL_LOGINSCREEN) -->
+		<control type="radiobutton" id="4">
+			<left>60</left>
+			<top>930</top>
+			<width>880</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+			<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+			<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+			<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+			<label>$LOCALIZE[20096]</label>
+			<onleft>5</onleft>
+			<onright>5</onright>
+			<onup>2</onup>
+			<ondown>2</ondown>
+		</control>
+
+		<!-- Auto-login profile picker (Kodi handles clicks on id 5: CONTROL_AUTOLOGIN) -->
+		<control type="button" id="5">
+			<left>980</left>
+			<top>930</top>
+			<width>880</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>20</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<label>$LOCALIZE[33084]</label>
+			<label2>$INFO[System.ProfileAutoLogin]</label2>
+			<enable>!System.HasLoginScreen</enable>
+			<onleft>4</onleft>
+			<onright>4</onright>
+			<onup>2</onup>
+			<ondown>2</ondown>
 		</control>
 	</controls>
 </window>

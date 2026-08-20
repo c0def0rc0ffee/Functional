@@ -2,21 +2,23 @@
 <!--
   Addon info dialog.
 
-  Kodi-assigned action button IDs:
+  Kodi-assigned action button IDs (Omega):
      6 = Install / Uninstall (togglebutton, depends on installed state)
      7 = Enable / Disable    (togglebutton)
-     8 = Install
+     8 = Update
      9 = Configure (open addon settings)
-    10 = Choose version
+    10 = Dependencies
     12 = Open / Launch
     13 = Auto-update         (radio)
-    14 = Update
+    14 = Versions
 
-  Kodi shows/hides and enables/disables these per addon state via its own
-  SET_CONTROL_VISIBLE/HIDDEN calls, which keeps the row tight on its own.
-  Do NOT add <visible>Control.IsEnabled(N)</visible> gates here — a skin-side
-  visible condition overrides Kodi's and the buttons never come back after
-  the first paint.
+  Kodi only SET_CONTROL_VISIBLE/HIDDENs buttons 8 and 14 (they are mutually
+  exclusive: Update shows when an update is available, Versions otherwise) —
+  never add a skin-side <visible> to those two, it would override Kodi's
+  show/hide. Everything else is only ever enabled/disabled, so a
+  <visible>Control.IsEnabled(N)</visible> gate is safe there (Estuary gates
+  13 this way). Widths are chosen so the worst case — 12, 9, 13, 10, 7,
+  8-or-14, 6 all visible — is exactly 6x150 + 180 + 6x10 gaps = 1140.
 -->
 <window type="dialog">
 	<defaultcontrol always="true">9000</defaultcontrol>
@@ -135,7 +137,7 @@
 
 			<!-- 12 = Open / Launch -->
 			<control type="button" id="12">
-				<width>180</width>
+				<width>150</width>
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -148,7 +150,7 @@
 			</control>
 			<!-- 9 = Configure / Settings -->
 			<control type="button" id="9">
-				<width>180</width>
+				<width>150</width>
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -161,7 +163,8 @@
 			</control>
 			<!-- 13 = Auto-update toggle -->
 			<control type="radiobutton" id="13">
-				<width>200</width>
+				<visible>Control.IsEnabled(13)</visible>
+				<width>180</width>
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -177,9 +180,9 @@
 				<textureradiooffnofocus colordiffuse="grey_dark">white.png</textureradiooffnofocus>
 				<label>$LOCALIZE[21340]</label>
 			</control>
-			<!-- 10 = Choose version -->
+			<!-- 10 = Dependencies -->
 			<control type="button" id="10">
-				<width>180</width>
+				<width>150</width>
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -192,7 +195,7 @@
 			</control>
 			<!-- 7 = Enable / Disable togglebutton -->
 			<control type="togglebutton" id="7">
-				<width>180</width>
+				<width>150</width>
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -204,9 +207,9 @@
 				<label>$LOCALIZE[24022]</label>
 				<altlabel>$LOCALIZE[24021]</altlabel>
 			</control>
-			<!-- 8 = Install -->
+			<!-- 8 = Update (Kodi hides it when no update is available) -->
 			<control type="button" id="8">
-				<width>180</width>
+				<width>150</width>
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -217,9 +220,9 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[24138]</label>
 			</control>
-			<!-- 14 = Update -->
+			<!-- 14 = Versions (Kodi hides it when an update is available) -->
 			<control type="button" id="14">
-				<width>180</width>
+				<width>150</width>
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -232,7 +235,7 @@
 			</control>
 			<!-- 6 = Install / Uninstall togglebutton -->
 			<control type="togglebutton" id="6">
-				<width>180</width>
+				<width>150</width>
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>

@@ -1072,6 +1072,29 @@
 					<onclick>Skin.ToggleSetting(show_lastplayed)</onclick>
 					<onleft>7000</onleft>
 					<onup>7205</onup>
+					<ondown>7209</ondown>
+				</control>
+
+				<control type="radiobutton" id="7209">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>"Ends at" Time</label>
+					<selected>!Skin.HasSetting(hide_endsat)</selected>
+					<onclick>Skin.ToggleSetting(hide_endsat)</onclick>
+					<onleft>7000</onleft>
+					<onup>7207</onup>
 					<ondown>7208</ondown>
 				</control>
 
@@ -1090,11 +1113,11 @@
 					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
 					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
 					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>Filter Debug Notifications (troubleshooting)</label>
+					<label>Filter Debug Overlay (troubleshooting)</label>
 					<selected>Skin.HasSetting(filter_debug)</selected>
 					<onclick>Skin.ToggleSetting(filter_debug)</onclick>
 					<onleft>7000</onleft>
-					<onup>7207</onup>
+					<onup>7209</onup>
 					<ondown>7200</ondown>
 				</control>
 

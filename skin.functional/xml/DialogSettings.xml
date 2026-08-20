@@ -58,7 +58,7 @@
 			<orientation>vertical</orientation>
 			<usecontrolcoords>true</usecontrolcoords>
 			<pagecontrol>60</pagecontrol>
-			<onleft>5</onleft>
+			<onleft>9000</onleft>
 			<onright>60</onright>
 			<onup>5</onup>
 			<ondown>5</ondown>
@@ -102,8 +102,9 @@
 			<itemgap>20</itemgap>
 			<align>center</align>
 			<onleft>9000</onleft>
-			<onright>9000</onright>
+			<onright>5</onright>
 			<onup>5</onup>
+			<ondown>5</ondown>
 
 			<control type="button" id="28">
 				<width>240</width>

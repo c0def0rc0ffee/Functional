@@ -141,7 +141,11 @@
 				<label>Feels $INFO[Window(Weather).Property(Current.FeelsLike)]$INFO[System.TemperatureUnits]   ·   Humidity $INFO[Window(Weather).Property(Current.Humidity)]   ·   Wind $INFO[Window(Weather).Property(Current.Wind)]   ·   UV $INFO[Window(Weather).Property(Current.UVIndex)]</label>
 			</control>
 
-			<!-- ===== HOURLY (next 8 hours) ===== -->
+			<!-- ===== HOURLY (next 8 hours) =====
+			     Hidden entirely for providers without hourly support, so the
+			     header never sits over eight permanently blank tiles. -->
+			<control type="group">
+				<visible>!String.IsEmpty(Window(Weather).Property(Hourly.IsFetched))</visible>
 			<control type="image">
 				<left>40</left>
 				<top>360</top>
@@ -176,6 +180,7 @@
 				<include content="ForecastHour"><param name="n" value="6"/></include>
 				<include content="ForecastHour"><param name="n" value="7"/></include>
 				<include content="ForecastHour"><param name="n" value="8"/></include>
+			</control>
 			</control>
 
 			<!-- ===== 5-DAY FORECAST (bottom) ===== -->

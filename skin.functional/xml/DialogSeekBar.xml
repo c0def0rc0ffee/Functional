@@ -84,7 +84,7 @@
 			<align>center</align>
 			<textcolor>$VAR[AccentColor]</textcolor>
 			<label>Seeking to $INFO[Player.SeekTime]</label>
-			<visible>Player.Seeking | Player.DisplayAfterSeek</visible>
+			<visible>Player.Seeking | Player.HasPerformedSeek(3)</visible>
 		</control>
 		<control type="label">
 			<left>0</left>
@@ -95,7 +95,7 @@
 			<align>center</align>
 			<textcolor>$VAR[AccentColor]</textcolor>
 			<label>Paused</label>
-			<visible>Player.Paused + !Player.Seeking + !Player.DisplayAfterSeek</visible>
+			<visible>Player.Paused + !Player.Seeking + !Player.HasPerformedSeek(3)</visible>
 		</control>
 
 		<control type="label">
@@ -195,7 +195,7 @@
 			<align>center</align>
 			<textcolor>$VAR[AccentColor]</textcolor>
 			<label>Seeking to $INFO[Player.SeekTime]</label>
-			<visible>Player.Seeking | Player.DisplayAfterSeek</visible>
+			<visible>Player.Seeking | Player.HasPerformedSeek(3)</visible>
 		</control>
 		<control type="label">
 			<left>0</left>
@@ -206,7 +206,7 @@
 			<align>center</align>
 			<textcolor>$VAR[AccentColor]</textcolor>
 			<label>Paused</label>
-			<visible>Player.Paused + !Player.Seeking + !Player.DisplayAfterSeek</visible>
+			<visible>Player.Paused + !Player.Seeking + !Player.HasPerformedSeek(3)</visible>
 		</control>
 
 		<control type="label">

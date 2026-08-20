@@ -37,33 +37,101 @@
 			<label></label>
 		</control>
 
-		<control type="edit" id="4">
+		<!-- Prev (20) / Next (22) field buttons: Kodi uses these to move between
+		     fields in date/time/IP modes -->
+		<control type="button" id="20">
 			<left>40</left>
 			<top>70</top>
-			<width>520</width>
+			<width>60</width>
+			<height>60</height>
+			<align>center</align>
+			<textoffsetx>0</textoffsetx>
+			<label>&lt;</label>
+			<onleft>22</onleft>
+			<onright>22</onright>
+			<onup>23</onup>
+			<ondown>11</ondown>
+		</control>
+
+		<control type="edit" id="4">
+			<left>108</left>
+			<top>70</top>
+			<width>384</width>
 			<height>60</height>
 		</control>
 
+		<control type="button" id="22">
+			<left>500</left>
+			<top>70</top>
+			<width>60</width>
+			<height>60</height>
+			<align>center</align>
+			<textoffsetx>0</textoffsetx>
+			<label>&gt;</label>
+			<onleft>20</onleft>
+			<onright>20</onright>
+			<onup>21</onup>
+			<ondown>13</ondown>
+		</control>
+
+		<!-- Keypad: 3-column phone grid. Kodi hardcodes CONTROL_NUM0=10 …
+		     CONTROL_NUM9=19, PREVIOUS=20, OK=21, NEXT=22, BACKSPACE=23.
+		     Rows handle left/right themselves; up/down is wired per column. -->
 		<control type="grouplist">
 			<left>40</left>
 			<top>160</top>
 			<width>520</width>
 			<height>360</height>
-			<orientation>horizontal</orientation>
+			<orientation>vertical</orientation>
 			<itemgap>4</itemgap>
 
-			<control type="button" id="10"><width>166</width><label>1</label></control>
-			<control type="button" id="11"><width>166</width><label>2</label></control>
-			<control type="button" id="12"><width>166</width><label>3</label></control>
-			<control type="button" id="13"><width>166</width><label>4</label></control>
-			<control type="button" id="14"><width>166</width><label>5</label></control>
-			<control type="button" id="15"><width>166</width><label>6</label></control>
-			<control type="button" id="16"><width>166</width><label>7</label></control>
-			<control type="button" id="17"><width>166</width><label>8</label></control>
-			<control type="button" id="18"><width>166</width><label>9</label></control>
-			<control type="button" id="34"><width>166</width><label>⌫</label></control>
-			<control type="button" id="19"><width>166</width><label>0</label></control>
-			<control type="button" id="21"><width>166</width><label>OK</label></control>
+			<control type="grouplist" id="4001">
+				<width>520</width>
+				<height>85</height>
+				<orientation>horizontal</orientation>
+				<itemgap>4</itemgap>
+				<onleft>4001</onleft>
+				<onright>4001</onright>
+				<control type="button" id="11"><width>166</width><height>85</height><label>1</label><onup>20</onup><ondown>14</ondown></control>
+				<control type="button" id="12"><width>166</width><height>85</height><label>2</label><onup>10</onup><ondown>15</ondown></control>
+				<control type="button" id="13"><width>166</width><height>85</height><label>3</label><onup>22</onup><ondown>16</ondown></control>
+			</control>
+
+			<control type="grouplist" id="4002">
+				<width>520</width>
+				<height>85</height>
+				<orientation>horizontal</orientation>
+				<itemgap>4</itemgap>
+				<onleft>4002</onleft>
+				<onright>4002</onright>
+				<control type="button" id="14"><width>166</width><height>85</height><label>4</label><onup>11</onup><ondown>17</ondown></control>
+				<control type="button" id="15"><width>166</width><height>85</height><label>5</label><onup>12</onup><ondown>18</ondown></control>
+				<control type="button" id="16"><width>166</width><height>85</height><label>6</label><onup>13</onup><ondown>19</ondown></control>
+			</control>
+
+			<control type="grouplist" id="4003">
+				<width>520</width>
+				<height>85</height>
+				<orientation>horizontal</orientation>
+				<itemgap>4</itemgap>
+				<onleft>4003</onleft>
+				<onright>4003</onright>
+				<control type="button" id="17"><width>166</width><height>85</height><label>7</label><onup>14</onup><ondown>23</ondown></control>
+				<control type="button" id="18"><width>166</width><height>85</height><label>8</label><onup>15</onup><ondown>10</ondown></control>
+				<control type="button" id="19"><width>166</width><height>85</height><label>9</label><onup>16</onup><ondown>21</ondown></control>
+			</control>
+
+			<control type="grouplist" id="4004">
+				<width>520</width>
+				<height>85</height>
+				<orientation>horizontal</orientation>
+				<itemgap>4</itemgap>
+				<onleft>4004</onleft>
+				<onright>4004</onright>
+				<control type="button" id="23"><width>166</width><height>85</height><label>⌫</label><onup>17</onup><ondown>20</ondown></control>
+				<control type="button" id="10"><width>166</width><height>85</height><label>0</label><onup>18</onup><ondown>12</ondown></control>
+				<control type="button" id="21"><width>166</width><height>85</height><label>OK</label><onup>19</onup><ondown>22</ondown></control>
+			</control>
 
 		</control>
 

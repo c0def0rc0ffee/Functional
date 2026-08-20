@@ -10,21 +10,23 @@
 	</coordinates>
 	<controls>
 
-		<!-- Dim full-screen backdrop -->
+		<!-- Dim full-screen backdrop. Kodi repositions this whole window next to
+		     the focused item, so these layers are oversized (Estuary-style) to
+		     still cover the screen wherever the window ends up. -->
 		<control type="image">
-			<left>-660</left>
-			<top>-140</top>
-			<width>1920</width>
-			<height>1080</height>
+			<left>-1920</left>
+			<top>-1080</top>
+			<width>5760</width>
+			<height>3240</height>
 			<texture colordiffuse="C0000000">white.png</texture>
 		</control>
 
 		<!-- Click-outside-to-close hit-target -->
 		<control type="button">
-			<left>-660</left>
-			<top>-140</top>
-			<width>1920</width>
-			<height>1080</height>
+			<left>-1920</left>
+			<top>-1080</top>
+			<width>5760</width>
+			<height>3240</height>
 			<texturefocus>-</texturefocus>
 			<texturenofocus>-</texturenofocus>
 			<label></label>
@@ -72,12 +74,13 @@
 				<label>$INFO[ListItem.Label]</label>
 			</control>
 
-			<!-- Backdrop strip behind the menu list -->
-			<control type="image">
+			<!-- Backdrop strip behind the menu list. Kodi resizes id 999
+			     (BACKGROUND_IMAGE) to the populated button count itself. -->
+			<control type="image" id="999">
 				<left>0</left>
 				<top>110</top>
 				<width>600</width>
-				<height max="780">auto</height>
+				<height>780</height>
 				<texture colordiffuse="bg_panel">white.png</texture>
 			</control>
 

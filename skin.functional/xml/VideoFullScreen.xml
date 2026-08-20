@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <window>
-	<defaultcontrol always="true">2</defaultcontrol>
+	<defaultcontrol></defaultcontrol>
 	<allowoverlay>no</allowoverlay>
 	<controls>
 		<control type="videowindow">
@@ -8,6 +8,90 @@
 			<top>0</top>
 			<width>1920</width>
 			<height>1080</height>
+		</control>
+
+		<!-- Kodi writes view-mode / zoom / codec feedback into labels 10-12
+		     (group 0) and toggles their visibility itself. Without them,
+		     cycling the view mode gives no on-screen response. -->
+		<control type="group" id="0">
+			<control type="label" id="10">
+				<left>45</left>
+				<top>15</top>
+				<width>1830</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>white</textcolor>
+				<shadowcolor>FF000000</shadowcolor>
+				<label></label>
+			</control>
+			<control type="label" id="11">
+				<left>45</left>
+				<top>45</top>
+				<width>1830</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>white</textcolor>
+				<shadowcolor>FF000000</shadowcolor>
+				<label></label>
+			</control>
+			<control type="label" id="12">
+				<left>45</left>
+				<top>75</top>
+				<width>1830</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>white</textcolor>
+				<shadowcolor>FF000000</shadowcolor>
+				<label></label>
+			</control>
+		</control>
+
+		<!-- Buffering indicator: the only mid-playback rebuffer feedback in
+		     Kodi. Without it a stalling stream is just frozen video. -->
+		<control type="group" id="1">
+			<visible>Player.Caching + Integer.IsGreater(Player.CacheLevel,0)</visible>
+			<animation effect="fade" delay="300" time="200">Visible</animation>
+			<animation effect="fade" delay="200" time="150">Hidden</animation>
+			<centerleft>50%</centerleft>
+			<centertop>50%</centertop>
+			<width>360</width>
+			<height>110</height>
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>360</width>
+				<height>110</height>
+				<texture colordiffuse="bg_panel">white.png</texture>
+			</control>
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>360</width>
+				<height>4</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+			<control type="label">
+				<left>0</left>
+				<top>10</top>
+				<width>360</width>
+				<height>40</height>
+				<font>font_reg</font>
+				<align>center</align>
+				<textcolor>text</textcolor>
+				<label>Buffering… $INFO[Player.CacheLevel]%</label>
+			</control>
+			<control type="progress">
+				<left>40</left>
+				<top>70</top>
+				<width>280</width>
+				<height>6</height>
+				<info>Player.CacheLevel</info>
+				<texturebg colordiffuse="grey_mid">white.png</texturebg>
+				<lefttexture colordiffuse="$VAR[AccentColor]">white.png</lefttexture>
+				<midtexture colordiffuse="$VAR[AccentColor]">white.png</midtexture>
+				<righttexture colordiffuse="$VAR[AccentColor]">white.png</righttexture>
+				<overlaytexture>-</overlaytexture>
+			</control>
 		</control>
 	</controls>
 </window>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <window type="dialog">
-	<defaultcontrol always="true">5</defaultcontrol>
+	<defaultcontrol always="true">1000</defaultcontrol>
 	<animation effect="fade" time="150">WindowOpen</animation>
 	<animation effect="fade" time="150">WindowClose</animation>
 	<coordinates>
@@ -40,10 +40,44 @@
 		<control type="textbox" id="5">
 			<left>40</left>
 			<top>80</top>
-			<width>1520</width>
+			<width>1500</width>
 			<height>800</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
+			<pagecontrol>60</pagecontrol>
+		</control>
+
+		<!-- Scrollbar for textbox 5 (hidden when the text fits on one page) -->
+		<control type="scrollbar" id="60">
+			<left>1564</left>
+			<top>80</top>
+			<width>16</width>
+			<height>800</height>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>1000</onleft>
+			<onright>1000</onright>
+			<onup>60</onup>
+			<ondown>60</ondown>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- Hidden focus holder: a textbox cannot take focus, so this button
+		     receives up/down and pages the textbox via its scrollbar (Estuary's
+		     id-1000 mechanism). -->
+		<control type="button" id="1000">
+			<left>-1000</left>
+			<top>-1000</top>
+			<width>1</width>
+			<height>1</height>
+			<label></label>
+			<texturefocus>-</texturefocus>
+			<texturenofocus>-</texturenofocus>
+			<onclick>Action(Close)</onclick>
+			<onup>PageUp(60)</onup>
+			<ondown>PageDown(60)</ondown>
 		</control>
 
 	</controls>

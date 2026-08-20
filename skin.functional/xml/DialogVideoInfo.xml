@@ -71,7 +71,7 @@
 			<height>34</height>
 			<font>font_reg</font>
 			<textcolor>text_dim</textcolor>
-			<label>$VAR[InfoDateLabel]$INFO[ListItem.Genre,  ·  ,]$INFO[ListItem.Duration,  ·  ,m]$INFO[ListItem.MPAA,  ·  ,]</label>
+			<label>$VAR[InfoDateLabel]$INFO[ListItem.Genre,  ·  ,]$INFO[ListItem.Duration,  ·  ,]$INFO[ListItem.MPAA,  ·  ,]</label>
 		</control>
 
 		<control type="label">
@@ -219,19 +219,10 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<visible>!String.IsEmpty(ListItem.Trailer)</visible>
 			</control>
-			<!-- 5 = Cast / Seasons toggle (Kodi sets the label) -->
-			<control type="button" id="5">
-				<width>200</width>
-				<height>70</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-			</control>
+			<!-- No button 5 (Kodi's Cast/Plot toggle): this skin renders cast as
+			     its own service-fed strip and always shows the plot, so the
+			     toggle has nothing to switch. If the button exists Kodi flips
+			     its caption against hidden ids 4/50 and it looks broken. -->
 			<!-- 13 = More from this director -->
 			<control type="button" id="13">
 				<width>200</width>

@@ -49,22 +49,13 @@
 		<include content="FolderSlideshow"><param name="ms" value="120000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),120)"/></include>
 		<include content="FolderSlideshow"><param name="ms" value="300000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),300)"/></include>
 
-		<!-- Slideshow caption (Title (Year)), position controlled by skin string -->
-		<control type="label">
-			<left>$VAR[BgLabelLeft]</left>
-			<top>$VAR[BgLabelTop]</top>
-			<right>60</right>
-			<height>40</height>
-			<font>font_med</font>
-			<align>$VAR[BgLabelAlign]</align>
-			<aligny>center</aligny>
-			<textcolor>white</textcolor>
-			<shadowcolor>FF000000</shadowcolor>
-			<scroll>true</scroll>
-			<label>$INFO[Window(home).Property(home_bg_label)]</label>
-			<visible>!String.IsEmpty(Window(home).Property(home_bg_label)) + !String.IsEqual(Skin.String(bg_label_position),off) + !String.IsEmpty(Skin.String(bg_label_position))</visible>
-			<animation effect="fade" time="400">VisibleChange</animation>
-		</control>
+		<!-- Slideshow caption (Title (Year)); one label per position choice,
+		     since coordinates can't take $VAR (see BgCaption in Includes) -->
+		<include content="BgCaption"><param name="pos" value="topleft"/><param name="top" value="100"/><param name="align" value="left"/></include>
+		<include content="BgCaption"><param name="pos" value="topright"/><param name="top" value="100"/><param name="align" value="right"/></include>
+		<include content="BgCaption"><param name="pos" value="bottomleft"/><param name="top" value="980"/><param name="align" value="left"/></include>
+		<include content="BgCaption"><param name="pos" value="bottomright"/><param name="top" value="980"/><param name="align" value="right"/></include>
+		<include content="BgCaption"><param name="pos" value="bottomcenter"/><param name="top" value="980"/><param name="align" value="center"/></include>
 
 		<!-- Dim overlay over whichever background is showing -->
 		<control type="image">
@@ -76,68 +67,6 @@
 			     it's excluded here to avoid double-dimming. -->
 			<texture colordiffuse="$VAR[BgOverlayColor]">white.png</texture>
 			<visible>!String.IsEmpty(Window(home).Property(home_bg_fanart)) | [String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))]</visible>
-		</control>
-
-		<!-- Hidden containers used purely to count library items -->
-		<!-- 1000: all movies (total) -->
-		<control type="list" id="1000">
-			<left>-2000</left>
-			<top>0</top>
-			<width>1</width>
-			<height>1</height>
-			<content>videodb://movies/titles/</content>
-			<itemlayout height="1" width="1"/>
-			<focusedlayout height="1" width="1"/>
-		</control>
-		<!-- 1001: unwatched movies (playcount is 0) -->
-		<control type="list" id="1001">
-			<left>-2000</left>
-			<top>0</top>
-			<width>1</width>
-			<height>1</height>
-			<content>videodb://movies/titles/?xsp=%7B%22rules%22%3A%7B%22and%22%3A%5B%7B%22field%22%3A%22playcount%22%2C%22operator%22%3A%22is%22%2C%22value%22%3A%5B%220%22%5D%7D%5D%7D%2C%22type%22%3A%22movies%22%7D</content>
-			<itemlayout height="1" width="1"/>
-			<focusedlayout height="1" width="1"/>
-		</control>
-		<!-- 1002: watched movies (playcount isnot 0) -->
-		<control type="list" id="1002">
-			<left>-2000</left>
-			<top>0</top>
-			<width>1</width>
-			<height>1</height>
-			<content>videodb://movies/titles/?xsp=%7B%22rules%22%3A%7B%22and%22%3A%5B%7B%22field%22%3A%22playcount%22%2C%22operator%22%3A%22isnot%22%2C%22value%22%3A%5B%220%22%5D%7D%5D%7D%2C%22type%22%3A%22movies%22%7D</content>
-			<itemlayout height="1" width="1"/>
-			<focusedlayout height="1" width="1"/>
-		</control>
-		<!-- 1010: all TV shows (total) -->
-		<control type="list" id="1010">
-			<left>-2000</left>
-			<top>0</top>
-			<width>1</width>
-			<height>1</height>
-			<content>videodb://tvshows/titles/</content>
-			<itemlayout height="1" width="1"/>
-			<focusedlayout height="1" width="1"/>
-		</control>
-		<!-- 1011: all episodes -->
-		<control type="list" id="1011">
-			<left>-2000</left>
-			<top>0</top>
-			<width>1</width>
-			<height>1</height>
-			<content>videodb://tvshows/titles/?xsp=%7B%22type%22%3A%22episodes%22%7D</content>
-			<itemlayout height="1" width="1"/>
-			<focusedlayout height="1" width="1"/>
-		</control>
-		<!-- 1012: TV shows with at least one unwatched episode (playcount is 0 at show level) -->
-		<control type="list" id="1012">
-			<left>-2000</left>
-			<top>0</top>
-			<width>1</width>
-			<height>1</height>
-			<content>videodb://tvshows/titles/?xsp=%7B%22rules%22%3A%7B%22and%22%3A%5B%7B%22field%22%3A%22playcount%22%2C%22operator%22%3A%22is%22%2C%22value%22%3A%5B%220%22%5D%7D%5D%7D%2C%22type%22%3A%22tvshows%22%7D</content>
-			<itemlayout height="1" width="1"/>
-			<focusedlayout height="1" width="1"/>
 		</control>
 
 		<!-- Right-side fixed stats panel (always visible) -->
@@ -339,6 +268,8 @@
 				<texturefocus colordiffuse="40FFFFFF">white.png</texturefocus>
 				<texturenofocus>-</texturenofocus>
 				<onclick>ActivateWindow(Weather)</onclick>
+				<onup>9000</onup>
+				<ondown>9000</ondown>
 			</control>
 		</control>
 
@@ -382,6 +313,7 @@
 			<itemgap>20</itemgap>
 			<orientation>horizontal</orientation>
 			<align>center</align>
+			<onup condition="Control.IsVisible(9006)">9006</onup>
 			<ondown>9100</ondown>
 
 			<control type="button" id="9001">
@@ -429,7 +361,7 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
 				<texturenofocus>-</texturenofocus>
 				<label>Music</label>
-				<onclick>ActivateWindow(MusicLibrary,Root,return)</onclick>
+				<onclick>ActivateWindow(Music,root,return)</onclick>
 			</control>
 
 			<control type="button" id="9004">

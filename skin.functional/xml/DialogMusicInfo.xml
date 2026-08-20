@@ -47,7 +47,7 @@
 			<height>60</height>
 			<font>font_huge</font>
 			<textcolor>text</textcolor>
-			<label>$INFO[ListItem.Title]$INFO[ListItem.Album]</label>
+			<label>$INFO[ListItem.Title]</label>
 			<scroll>true</scroll>
 		</control>
 
@@ -58,7 +58,7 @@
 			<height>34</height>
 			<font>font_med</font>
 			<textcolor>$VAR[AccentColor]</textcolor>
-			<label>$INFO[ListItem.Artist]$INFO[ListItem.AlbumArtist]</label>
+			<label>$INFO[ListItem.Artist]</label>
 		</control>
 
 		<control type="label">
@@ -90,7 +90,7 @@
 			<height>380</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
-			<label>$INFO[ListItem.AlbumDescription]$INFO[ListItem.ArtistDescription]$INFO[ListItem.Comment]</label>
+			<label>$INFO[ListItem.Property(Album_Description)]$INFO[ListItem.Property(Artist_Description)]$INFO[ListItem.Comment]</label>
 			<autoscroll delay="5000" repeat="7500" time="5000">true</autoscroll>
 		</control>
 
@@ -117,18 +117,6 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			</control>
 			<control type="button" id="8">
-				<width>200</width>
-				<height>70</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-			</control>
-			<control type="button" id="9">
 				<width>200</width>
 				<height>70</height>
 				<font>font_reg</font>

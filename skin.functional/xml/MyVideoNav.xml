@@ -40,7 +40,7 @@
 				<height>30</height>
 				<font>font_small</font>
 				<textcolor>white</textcolor>
-				<label>Content: $INFO[Container.Content]    Items: $INFO[Container(51).NumItems]    Filtered: $INFO[Container.Filtered]    Updating: $INFO[Container.IsUpdating]</label>
+				<label>Content: $INFO[Container.Content]    Items: $INFO[Container(51).NumItems]    Filtered: $VAR[DebugYesNoFiltered]    Updating: $VAR[DebugYesNoUpdating]</label>
 			</control>
 			<control type="label">
 				<left>40</left>
@@ -336,14 +336,15 @@
 		<!-- ========== /list wrapping group ========== -->
 
 		<!-- Scrollbar, sits OUTSIDE the wrapping groups so it doesn't get
-		     translated by the clearance animations. Bounds match the panels'
-		     effective area at the default 140px clearance, slight visual
-		     offset at extreme clearance values is acceptable. -->
+		     translated by the clearance animations. Static bounds: coordinate
+		     tags can't read $INFO (they parse as 0), so this matches the
+		     panels' effective area at the default 140px clearance; slight
+		     visual offset at extreme clearance values is acceptable. -->
 		<control type="scrollbar" id="60">
 			<right>10</right>
-			<top>$INFO[Skin.String(infobar_clearance_top)]</top>
+			<top>140</top>
 			<width>16</width>
-			<bottom>$INFO[Skin.String(infobar_clearance_bottom)]</bottom>
+			<bottom>140</bottom>
 			<orientation>vertical</orientation>
 			<showonepage>false</showonepage>
 			<onleft>50</onleft>
@@ -848,8 +849,7 @@
 				     Single button that displays the current filter and toggles
 				     a sub-list with the native watched-status toggle (id 10)
 				     beneath it when filter_menu_open is set. The sub-button applies
-				     its filter, sets filter_active for the label, and collapses
-				     the sub-list. -->
+				     its filter and collapses the sub-list. -->
 
 				<control type="button" id="8004">
 					<width>380</width>
@@ -920,11 +920,12 @@
 
 				<!-- ===== LAYOUT ADJUST =====
 				     Live-tunable info-bar clearance. Toggle is always visible;
-				     the sliders + keypad-fallback buttons appear when on.
-				     service.py polls the slider values every 250 ms and
-				     writes Skin.String(infobar_clearance_top/bottom). The
-				     panel's <top>/<bottom> read those via $INFO[...] and
-				     re-render. Symmetric for both info-bar positions. -->
+				     the +/- buttons appear when on. They write
+				     Skin.String(layout_command) increments, which service.py
+				     applies to Skin.String(infobar_clearance_top/bottom); the
+				     panels move via the pre-baked ClearanceAnimations slides
+				     (coordinates can't read $INFO directly). Symmetric for
+				     both info-bar positions. -->
 
 				<control type="button" id="8499">
 					<width>380</width>

@@ -14,7 +14,7 @@ A clean, opinionated Kodi skin built for clarity. No bloat, no clutter, just you
 - Menu position configurable: top, centre, or bottom of the screen
 - Round icon buttons for **Favourites, Add-ons, Settings, and Power**, with an optional "invisible until focused" mode for a minimal look
 - Real-time date and time, with an optional **weather widget** (temperature + conditions) beside the clock
-- Library stats panel showing movie and TV show counts (total, unwatched, watched), updated instantly via a background service rather than slow container queries
+- Library stats panel showing movie counts (total, unwatched, watched), TV show counts (total, unwatched) and total episodes, updated instantly via a background service rather than slow container queries
 - Resume button when media is playing; queue button with item count when items are queued
 - Optional logo, version footer, loading splash, and date/time, all toggleable
 
@@ -26,9 +26,10 @@ One unified **Background** selector so the modes can never conflict:
 - **Static Image**: pick any image; its filename can show as a caption
 - **Slideshow: Recently Watched**: cycles fanart from your recently watched movies
 - **Slideshow: Random Library**: random fanart from across your movies and TV shows
+- **Slideshow: Genre**: random fanart from one library genre of your choice (movies, TV shows, or both)
 - **Slideshow: Folder**: cycles every picture in a folder you choose (browse with thumbnails and tap any image in the target folder)
 
-Plus a configurable rotate interval (10s / 20s / 30s / 1m / 2m / 5m), a dim level (0-90%) so text stays readable, and a caption position for the slideshow/static label.
+Plus a configurable rotate interval (10s / 30s / 1m / 2m / 5m; unset = 20s), a dim level (0-90%) so text stays readable, and a caption position for the slideshow/static label. Every background option also exists per time-of-day slot: a 2-4-slot schedule (each slot with its own start time) swaps the whole background configuration on the clock.
 
 ### Video Library
 

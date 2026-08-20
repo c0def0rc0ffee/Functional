@@ -217,13 +217,15 @@
 			<texture>icons/next.png</texture>
 		</control>
 
-		<!-- 606 Repeat (Kodi-managed cycle: off → all → one) -->
+		<!-- 606 Repeat (cycle: off → all → one). Kodi's music OSD only handles
+		     ids 500/501 itself, so these buttons carry their own actions. -->
 		<control type="button" id="606">
 			<left>1028</left>
 			<bottom>10</bottom>
 			<width>80</width>
 			<height>56</height>
-			<label>$LOCALIZE[19216]</label>
+			<label>$LOCALIZE[486]</label>
+			<onclick>PlayerControl(Repeat)</onclick>
 			<font>font_small</font>
 			<textcolor>text</textcolor>
 			<focusedcolor>white</focusedcolor>
@@ -236,13 +238,14 @@
 			<onright>607</onright>
 		</control>
 
-		<!-- 607 Shuffle (Kodi-managed toggle) -->
+		<!-- 607 Shuffle -->
 		<control type="button" id="607">
 			<left>1122</left>
 			<bottom>10</bottom>
 			<width>80</width>
 			<height>56</height>
 			<label>$LOCALIZE[590]</label>
+			<onclick>PlayerControl(Random)</onclick>
 			<font>font_small</font>
 			<textcolor>text</textcolor>
 			<focusedcolor>white</focusedcolor>
@@ -262,6 +265,7 @@
 			<width>80</width>
 			<height>56</height>
 			<label>★+</label>
+			<onclick>Action(increaserating,visualisation)</onclick>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
 			<focusedcolor>white</focusedcolor>
@@ -281,6 +285,7 @@
 			<width>80</width>
 			<height>56</height>
 			<label>★-</label>
+			<onclick>Action(decreaserating,visualisation)</onclick>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
 			<focusedcolor>white</focusedcolor>

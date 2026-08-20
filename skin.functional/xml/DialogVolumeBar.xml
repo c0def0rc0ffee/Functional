@@ -50,13 +50,16 @@
 			<visible>Player.Muted</visible>
 		</control>
 
-		<!-- Slider (id 12), Kodi-populated -->
+		<!-- Slider (id 12): the dialog code populates nothing, the skin must
+		     bind the position to Player.Volume itself (Estuary does the same
+		     with a Player.Volume-bound progress control) -->
 		<control type="slider" id="12">
 			<left>160</left>
 			<top>40</top>
 			<width>340</width>
 			<height>20</height>
 			<orientation>horizontal</orientation>
+			<info>Player.Volume</info>
 			<texturesliderbar colordiffuse="grey_mid">white.png</texturesliderbar>
 			<textureslidernib colordiffuse="white">slider_nib.png</textureslidernib>
 			<textureslidernibfocus colordiffuse="accent_hi">slider_nib.png</textureslidernibfocus>

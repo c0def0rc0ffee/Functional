@@ -218,6 +218,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[186]</label>
 			</control>
 			<control type="button" id="414">
 				<width>320</width>
@@ -230,6 +231,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[222]</label>
 			</control>
 			<control type="button" id="415">
 				<width>320</width>
@@ -242,6 +244,8 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[119]</label>
+			<visible>Control.IsEnabled(415)</visible>
 			</control>
 			<control type="button" id="416">
 				<width>320</width>
@@ -254,6 +258,8 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[749]</label>
+			<visible>Control.IsEnabled(416)</visible>
 			</control>
 		</control>
 
