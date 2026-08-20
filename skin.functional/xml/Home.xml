@@ -51,7 +51,7 @@
 
 		<!-- Slideshow caption (Title (Year)); one label per position choice,
 		     since coordinates can't take $VAR (see BgCaption in Includes) -->
-		<include content="BgCaption"><param name="pos" value="topleft"/><param name="top" value="100"/><param name="align" value="left"/></include>
+		<include content="BgCaption"><param name="pos" value="topleft"/><param name="top" value="40"/><param name="align" value="left"/></include>
 		<include content="BgCaption"><param name="pos" value="topright"/><param name="top" value="40"/><param name="align" value="right"/></include>
 		<include content="BgCaption"><param name="pos" value="bottomleft"/><param name="top" value="980"/><param name="align" value="left"/></include>
 		<include content="BgCaption"><param name="pos" value="bottomright"/><param name="top" value="980"/><param name="align" value="right"/></include>
