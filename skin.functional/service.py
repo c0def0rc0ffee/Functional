@@ -816,6 +816,160 @@ class FunctionalHelper(xbmc.Monitor):
             _set_home_property("home_bg_label", label)
             _dlog("bg rotate -> {0} | {1}".format(label, url[:120]))
 
+    # ----- Favourites (categorised, filterable) ----------------------------
+    # Ordered list of filter categories shown on the custom Favourites screen.
+    FAV_CATS = ("all", "movies", "tvshows", "music", "apps", "other")
+
+    @staticmethod
+    def _fav_category(action):
+        """Classify a favourite by its action string into one of FAV_CATS
+        (never 'all', 'all' is the no-filter pseudo-category)."""
+        a = (action or "").lower()
+        if "videodb://movies" in a:
+            return "movies"
+        if "videodb://tvshows" in a or "/episode" in a or "episodeid" in a:
+            return "tvshows"
+        if "musicdb://" in a or "library://music" in a or "playercontrol(partymode(music" in a:
+            return "music"
+        # Program add-ons / scripts / launchers.
+        if ("runaddon" in a or "runscript" in a
+                or "plugin://plugin.program" in a
+                or "activatewindow(programs" in a
+                or "activatewindow(10001" in a):   # WINDOW_PROGRAMS
+            return "apps"
+        return "other"
+
+    @staticmethod
+    def _favourites_path():
+        return xbmcvfs.translatePath("special://profile/favourites.xml")
+
+    def _read_favourites(self):
+        """Parse favourites.xml into self._fav_all. Returns True on (re)load."""
+        path = self._favourites_path()
+        try:
+            mtime = os.path.getmtime(path) if os.path.exists(path) else 0.0
+        except OSError:
+            mtime = 0.0
+        if self._fav_loaded and mtime == self._fav_mtime:
+            return False  # unchanged since last read
+        self._fav_loaded = True
+        self._fav_mtime = mtime
+        items = []
+        if mtime:
+            try:
+                with xbmcvfs.File(path) as fh:
+                    data = fh.read()
+                root = ET.fromstring(data)
+                for node in root.findall("favourite"):
+                    action = (node.text or "").strip()
+                    if not action:
+                        continue
+                    name = node.get("name") or ""
+                    thumb = node.get("thumb") or ""
+                    items.append({
+                        "name": name,
+                        "thumb": thumb,
+                        "action": action,
+                        "cat": self._fav_category(action),
+                    })
+            except Exception:
+                _dlog("favourites parse failed:\n" + traceback.format_exc())
+                items = []
+        self._fav_all = items
+        _dlog("favourites loaded: %d items" % len(items))
+        return True
+
+    def _fav_counts(self):
+        counts = {c: 0 for c in self.FAV_CATS}
+        counts["all"] = len(self._fav_all)
+        for it in self._fav_all:
+            counts[it["cat"]] = counts.get(it["cat"], 0) + 1
+        return counts
+
+    def _populate_favourites(self, category):
+        """Write Fav.* window properties for the given category."""
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        if category == "all" or category not in self.FAV_CATS:
+            shown = list(self._fav_all)
+        else:
+            shown = [it for it in self._fav_all if it["cat"] == category]
+        self._fav_current = shown
+        win.setProperty("Fav.Count", str(len(shown)))
+        win.setProperty("Fav.Category", category)
+        counts = self._fav_counts()
+        for c in self.FAV_CATS:
+            win.setProperty("Fav.CatCount.%s" % c, str(counts.get(c, 0)))
+        for i in range(self.FAV_MAX):
+            n = i + 1
+            if i < len(shown):
+                it = shown[i]
+                win.setProperty("Fav.%d.Label" % n, it["name"])
+                win.setProperty("Fav.%d.Thumb" % n, it["thumb"])
+                win.setProperty("Fav.%d.Cat" % n, it["cat"])
+            else:
+                win.clearProperty("Fav.%d.Label" % n)
+                win.clearProperty("Fav.%d.Thumb" % n)
+                win.clearProperty("Fav.%d.Cat" % n)
+        self._fav_last_cat = category
+
+    def update_favourites(self):
+        """Keep the custom Favourites screen fed. Handles:
+          - loading/reloading favourites.xml when it changes on disk
+          - reacting to the selected category (Skin.String(fav_category))
+          - running a favourite when Skin.String(fav_run) is set to its index
+        Cheap enough to call every tick."""
+        # Run a chosen favourite (set by the UI as a 1-based index into the
+        # currently-shown, filtered list) then clear the request.
+        run = xbmc.getInfoLabel("Skin.String(fav_run)")
+        if run:
+            xbmc.executebuiltin("Skin.Reset(fav_run)")
+            try:
+                idx = int(run) - 1
+            except ValueError:
+                idx = -1
+            if 0 <= idx < len(self._fav_current):
+                action = self._fav_current[idx]["action"]
+                _dlog("favourite run #%d: %s" % (idx + 1, action))
+                xbmc.executebuiltin(action)
+            return
+
+        reloaded = self._read_favourites()
+
+        # Resolve the desired category: explicit selection, else configured
+        # default, else 'all'.
+        category = xbmc.getInfoLabel("Skin.String(fav_category)").strip().lower()
+        if not category:
+            category = xbmc.getInfoLabel("Skin.String(fav_default_category)").strip().lower()
+        if category not in self.FAV_CATS:
+            category = "all"
+
+        if reloaded or category != self._fav_last_cat:
+            self._populate_favourites(category)
+
+    def update_sort_direction(self):
+        """Apply a deferred sort-direction request from the library side menu.
+
+        The menu buttons can't reliably force a direction inline: reading
+        Container.SortDirection in the same click as SetSortMethod sees stale
+        state, so a conditional toggle sometimes lands the wrong way (e.g.
+        switching from Date Added back to Title left it Z->A). Instead the
+        button sets Skin.String(sort_want)=asc|desc and we honour it here, a
+        tick later, once the container's new sort has settled, so the
+        direction read is accurate."""
+        want = xbmc.getInfoLabel("Skin.String(sort_want)").strip().lower()
+        if not want:
+            return
+        # Only meddle while the video library window is up, so we never nudge
+        # some other window's container.
+        if not xbmc.getCondVisibility("Window.IsVisible(videos)"):
+            xbmc.executebuiltin("Skin.Reset(sort_want)")
+            return
+        if want == "desc" and xbmc.getCondVisibility("Container.SortDirection(ascending)"):
+            xbmc.executebuiltin("Container.SetSortDirection")
+        elif want == "asc" and xbmc.getCondVisibility("Container.SortDirection(descending)"):
+            xbmc.executebuiltin("Container.SetSortDirection")
+        xbmc.executebuiltin("Skin.Reset(sort_want)")
+
     # ---- Layout command handler ----------------------------------------
 
     @staticmethod
