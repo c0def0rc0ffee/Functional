@@ -308,6 +308,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._cast_thread = None
         self._info_cast_key = None  # same, for the video info dialog
         self._info_cast_thread = None
+        self._info_cast_names = []  # slot order, for cast_run clicks
         self._bootstrap_layout_defaults()
         self._migrate_bg_mode()
         _dlog("helper ready")
@@ -578,6 +579,8 @@ class FunctionalHelper(xbmc.Monitor):
         if key != self._info_cast_key:
             return
         _dlog("info-cast: {0} {1} -> {2} actor(s)".format(dbtype, dbid, len(cast)))
+        self._info_cast_names = [(m or {}).get("name") or ""
+                                 for m in cast[:self.CAST_MAX]]
         self._publish_cast(cast, prefix="InfoCast")
 
     # dbtype -> (JSON-RPC method, id parameter name)
@@ -606,6 +609,40 @@ class FunctionalHelper(xbmc.Monitor):
             if isinstance(value, dict) and "cast" in value:
                 return value.get("cast") or []
         return []
+
+    def update_cast_command(self):
+        """Handle a click on a cast portrait in the video info dialog.
+
+        The skin can't launch this itself: the target is a smart-playlist URL
+        whose JSON is full of commas and double quotes, and Kodi splits
+        builtin arguments on commas. So the skin just writes the slot number
+        to Skin.String(cast_run) (same pattern as fav_run) and the escaping
+        happens here.
+        """
+        run = xbmc.getInfoLabel("Skin.String(cast_run)")
+        if not run:
+            return
+        xbmc.executebuiltin("Skin.Reset(cast_run)")
+        try:
+            idx = int(run) - 1
+        except ValueError:
+            return
+        if not (0 <= idx < len(self._info_cast_names)):
+            return
+        name = self._info_cast_names[idx]
+        if not name:
+            return
+
+        rule = {"type": "movies",
+                "rules": {"and": [{"field": "actor", "operator": "is",
+                                   "value": [name]}]}}
+        url = "videodb://movies/titles/?xsp=" + json.dumps(rule, separators=(",", ":"))
+        # Quote the whole path and backslash-escape the JSON's own quotes;
+        # that is what Kodi's argument splitter understands.
+        command = 'ActivateWindow(Videos,"{0}",return)'.format(url.replace('"', '\\"'))
+        _dlog("cast: opening movies with {0} -> {1}".format(name, command))
+        xbmc.executebuiltin("Dialog.Close({0},true)".format(self.INFO_DIALOG))
+        xbmc.executebuiltin(command)
 
     def update_home_bg(self):
         """
@@ -1398,6 +1435,7 @@ def run():
             helper.update_favourites()
             helper.update_playing_cast()
             helper.update_info_cast()
+            helper.update_cast_command()
             if tick == 0:
                 helper.update_bg_schedule()
                 helper.update_home_bg()

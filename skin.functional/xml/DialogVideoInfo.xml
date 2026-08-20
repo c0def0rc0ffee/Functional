@@ -171,6 +171,7 @@
 			<align>center</align>
 			<onleft>9000</onleft>
 			<onright>9000</onright>
+			<onup condition="!String.IsEmpty(Window(home).Property(InfoCast.1.Name))">8001</onup>
 			<onup>9000</onup>
 			<ondown>9000</ondown>
 

@@ -1356,17 +1356,75 @@
 		</definition>
 	</include>
 
+	<!-- One selectable actor in the video info dialog. The portrait itself is
+	     the shared CastPortrait visual; this adds the focus frame behind it
+	     and a transparent button in front to take focus.
+
+	     onleft/onright chain slot to slot and Kodi falls through hidden ones
+	     in the same direction, so a title with three actors still navigates
+	     cleanly (same trick as FavCategoryButton). The click hands the slot
+	     number to service.py via Skin.String(cast_run) rather than building
+	     an xsp filter in XML, because Kodi splits builtin arguments on commas
+	     and the filter JSON is full of them. -->
+	<include name="InfoCastSlot">
+		<param name="n" />
+		<param name="id" />
+		<param name="x" />
+		<param name="onleft" />
+		<param name="onright" />
+		<definition>
+			<control type="group">
+				<left>$PARAM[x]</left>
+				<top>706</top>
+				<width>152</width>
+				<height>198</height>
+				<visible>!String.IsEmpty(Window(home).Property(InfoCast.$PARAM[n].Name))</visible>
+
+				<!-- Focus frame, drawn first so the portrait sits on top of it -->
+				<control type="image">
+					<left>17</left>
+					<top>-4</top>
+					<width>118</width>
+					<height>158</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+					<visible>Control.HasFocus($PARAM[id])</visible>
+				</control>
+
+				<include content="CastPortrait">
+					<param name="prefix" value="InfoCast"/>
+					<param name="n" value="$PARAM[n]"/>
+					<param name="x" value="0"/>
+					<param name="y" value="0"/>
+				</include>
+
+				<control type="button" id="$PARAM[id]">
+					<left>0</left>
+					<top>0</top>
+					<width>152</width>
+					<height>198</height>
+					<texturefocus />
+					<texturenofocus />
+					<onleft>$PARAM[onleft]</onleft>
+					<onright>$PARAM[onright]</onright>
+					<onup>$PARAM[id]</onup>
+					<ondown>9000</ondown>
+					<onclick>Skin.SetString(cast_run,$PARAM[n])</onclick>
+				</control>
+			</control>
+		</definition>
+	</include>
+
 	<!-- Eight cast slots in the video info dialog, window-absolute. -->
 	<include name="InfoCastStrip">
 		<definition>
-			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="1"/><param name="x" value="620"/><param name="y" value="706"/></include>
-			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="2"/><param name="x" value="772"/><param name="y" value="706"/></include>
-			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="3"/><param name="x" value="924"/><param name="y" value="706"/></include>
-			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="4"/><param name="x" value="1076"/><param name="y" value="706"/></include>
-			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="5"/><param name="x" value="1228"/><param name="y" value="706"/></include>
-			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="6"/><param name="x" value="1380"/><param name="y" value="706"/></include>
-			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="7"/><param name="x" value="1532"/><param name="y" value="706"/></include>
-			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="8"/><param name="x" value="1684"/><param name="y" value="706"/></include>
+			<include content="InfoCastSlot"><param name="n" value="1"/><param name="id" value="8001"/><param name="x" value="620"/><param name="onleft" value="8001"/><param name="onright" value="8002"/></include>
+			<include content="InfoCastSlot"><param name="n" value="2"/><param name="id" value="8002"/><param name="x" value="772"/><param name="onleft" value="8001"/><param name="onright" value="8003"/></include>
+			<include content="InfoCastSlot"><param name="n" value="3"/><param name="id" value="8003"/><param name="x" value="924"/><param name="onleft" value="8002"/><param name="onright" value="8004"/></include>
+			<include content="InfoCastSlot"><param name="n" value="4"/><param name="id" value="8004"/><param name="x" value="1076"/><param name="onleft" value="8003"/><param name="onright" value="8005"/></include>
+			<include content="InfoCastSlot"><param name="n" value="5"/><param name="id" value="8005"/><param name="x" value="1228"/><param name="onleft" value="8004"/><param name="onright" value="8006"/></include>
+			<include content="InfoCastSlot"><param name="n" value="6"/><param name="id" value="8006"/><param name="x" value="1380"/><param name="onleft" value="8005"/><param name="onright" value="8007"/></include>
+			<include content="InfoCastSlot"><param name="n" value="7"/><param name="id" value="8007"/><param name="x" value="1532"/><param name="onleft" value="8006"/><param name="onright" value="8008"/></include>
+			<include content="InfoCastSlot"><param name="n" value="8"/><param name="id" value="8008"/><param name="x" value="1684"/><param name="onleft" value="8007"/><param name="onright" value="8008"/></include>
 			<control type="label">
 				<left>620</left>
 				<top>760</top>
