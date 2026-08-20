@@ -79,9 +79,9 @@ update_playing_cast()
     and publishes it as Home window properties for the full-screen info card:
         Cast.Count
         Cast.<n>.Name / .Role / .Thumb   for n = 1..CAST_MAX
-    DialogVideoInfo doesn't need this (Kodi binds its own cast list, control
-    50); the playing item has no such list, only the flat, thumb-less
-    VideoPlayer.Cast string.
+    The playing item has no cast list at all, only the flat, thumb-less
+    VideoPlayer.Cast string. See also update_info_cast(), the same idea for
+    the video info dialog's item (InfoCast.* properties).
 
 Future handlers
 ---------------
@@ -458,9 +458,10 @@ class FunctionalHelper(xbmc.Monitor):
             Cast.Count
             Cast.<n>.Name / .Role / .Thumb   for n = 1..CAST_MAX
 
-        DialogVideoInfo gets a cast list from Kodi for free (control 50), but
-        there is no equivalent for the *playing* item: VideoPlayer.Cast is a
+        There is no cast list for the *playing* item: VideoPlayer.Cast is a
         flat comma-joined string with no portraits. So resolve it ourselves.
+        (The info dialog nominally has one, control 50, but we don't use it
+        there either — see update_info_cast.)
 
         The lookup only runs when the playing item changes, and on a daemon
         thread, so a slow video DB can't stall the main loop.
@@ -492,6 +493,11 @@ class FunctionalHelper(xbmc.Monitor):
         except Exception:  # noqa: BLE001
             _dlog("cast worker failed:\n{0}".format(traceback.format_exc()),
                   xbmc.LOGERROR)
+            # Un-latch so the next tick retries; leaving the key set would
+            # turn one transient JSON-RPC hiccup into "no cast until the
+            # item changes".
+            if key == self._cast_key:
+                self._cast_key = None
             return
         # The item may have moved on while we were querying; don't stamp
         # stale actors over the new one's.
@@ -515,13 +521,22 @@ class FunctionalHelper(xbmc.Monitor):
         item = ((resp or {}).get("result") or {}).get("item") or {}
         return item.get("cast") or []
 
-    def _publish_cast(self, cast, prefix="Cast"):
+    def _publish_cast(self, cast, prefix="Cast", reset=False):
         """Write <prefix>.Count and <prefix>.<n>.Name/.Role/.Thumb on Home.
         Two namespaces share this: "Cast" for the playing item (full-screen
-        info card) and "InfoCast" for the video info dialog's item."""
+        info card) and "InfoCast" for the video info dialog's item.
+
+        reset=True clears Count instead of writing "0". The distinction
+        matters to the skin: Count=="0" means "lookup finished, genuinely no
+        cast" (show the no-cast label), empty means "no lookup yet / in
+        flight" (show nothing). Gating the label on a Name property instead
+        made it flash on every dialog open until the worker had published."""
         win = xbmcgui.Window(HOME_WINDOW_ID)
         shown = cast[:self.CAST_MAX]
-        win.setProperty("%s.Count" % prefix, str(len(shown)))
+        if reset:
+            win.clearProperty("%s.Count" % prefix)
+        else:
+            win.setProperty("%s.Count" % prefix, str(len(shown)))
         for i in range(self.CAST_MAX):
             n = i + 1
             if i < len(shown):
@@ -552,7 +567,7 @@ class FunctionalHelper(xbmc.Monitor):
         if not xbmc.getCondVisibility("Window.IsActive({0})".format(self.INFO_DIALOG)):
             if self._info_cast_key is not None:
                 self._info_cast_key = None
-                self._publish_cast([], prefix="InfoCast")
+                self._publish_cast([], prefix="InfoCast", reset=True)
             return
 
         if self._info_cast_thread is not None and self._info_cast_thread.is_alive():
@@ -564,17 +579,29 @@ class FunctionalHelper(xbmc.Monitor):
         if key == self._info_cast_key:
             return
         self._info_cast_key = key
+        self._publish_cast([], prefix="InfoCast", reset=True)
+        cast_and_role = xbmc.getInfoLabel("ListItem.CastAndRole")
         self._info_cast_thread = threading.Thread(
-            target=self._info_cast_worker, args=(key, dbtype, dbid),
+            target=self._info_cast_worker, args=(key, dbtype, dbid, cast_and_role),
             name="functional-info-cast", daemon=True)
         self._info_cast_thread.start()
 
-    def _info_cast_worker(self, key, dbtype, dbid):
+    def _info_cast_worker(self, key, dbtype, dbid, cast_and_role):
         try:
             cast = self._fetch_library_cast(dbtype, dbid)
+            # Non-library items (plugin:// listings, PVR recordings) have no
+            # DBID to look up, but the dialog's info tag still carries names:
+            # ListItem.CastAndRole is "Name as Role" lines. No portraits that
+            # way (DefaultActor.png fills in), but names beat a false
+            # "no cast information".
+            if not cast:
+                cast = self._parse_cast_and_role(cast_and_role)
         except Exception:  # noqa: BLE001
             _dlog("info-cast worker failed:\n{0}".format(traceback.format_exc()),
                   xbmc.LOGERROR)
+            # Un-latch so the next tick retries (see _cast_worker).
+            if key == self._info_cast_key:
+                self._info_cast_key = None
             return
         if key != self._info_cast_key:
             return
@@ -583,12 +610,27 @@ class FunctionalHelper(xbmc.Monitor):
                                  for m in cast[:self.CAST_MAX]]
         self._publish_cast(cast, prefix="InfoCast")
 
+    @staticmethod
+    def _parse_cast_and_role(text):
+        """ListItem.CastAndRole -> [{name, role}]. One actor per line,
+        "Name as Role" (localised Kodi builds use the same 'as')."""
+        cast = []
+        for line in (text or "").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            name, _, role = line.partition(" as ")
+            cast.append({"name": name.strip(), "role": role.strip()})
+        return cast
+
     # dbtype -> (JSON-RPC method, id parameter name)
     CAST_LOOKUPS = {
         "movie": ("VideoLibrary.GetMovieDetails", "movieid"),
         "tvshow": ("VideoLibrary.GetTVShowDetails", "tvshowid"),
         "episode": ("VideoLibrary.GetEpisodeDetails", "episodeid"),
-        "musicvideo": ("VideoLibrary.GetMusicVideoDetails", "musicvideoid"),
+        # No musicvideo entry: cast isn't a Video.Fields.MusicVideo member
+        # (music videos carry "artist"), so asking for it is Invalid params.
+        # The CastAndRole fallback covers whatever their info tag holds.
     }
 
     @classmethod

@@ -1433,7 +1433,11 @@
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
 				<label>No cast information for this title</label>
-				<visible>String.IsEmpty(Window(home).Property(InfoCast.1.Name))</visible>
+				<!-- Count=="0" means the service finished looking and found
+				     nothing; while the lookup is still running the property
+				     is cleared, so this shows nothing instead of flashing on
+				     every dialog open. -->
+				<visible>String.IsEqual(Window(home).Property(InfoCast.Count),0)</visible>
 			</control>
 		</definition>
 	</include>
