@@ -306,6 +306,8 @@ class FunctionalHelper(xbmc.Monitor):
         # Cast strip on the full-screen info card (see update_playing_cast)
         self._cast_key = None       # identity of the item we last published cast for
         self._cast_thread = None
+        self._info_cast_key = None  # same, for the video info dialog
+        self._info_cast_thread = None
         self._bootstrap_layout_defaults()
         self._migrate_bg_mode()
         _dlog("helper ready")
@@ -512,22 +514,98 @@ class FunctionalHelper(xbmc.Monitor):
         item = ((resp or {}).get("result") or {}).get("item") or {}
         return item.get("cast") or []
 
-    def _publish_cast(self, cast):
+    def _publish_cast(self, cast, prefix="Cast"):
+        """Write <prefix>.Count and <prefix>.<n>.Name/.Role/.Thumb on Home.
+        Two namespaces share this: "Cast" for the playing item (full-screen
+        info card) and "InfoCast" for the video info dialog's item."""
         win = xbmcgui.Window(HOME_WINDOW_ID)
         shown = cast[:self.CAST_MAX]
-        win.setProperty("Cast.Count", str(len(shown)))
+        win.setProperty("%s.Count" % prefix, str(len(shown)))
         for i in range(self.CAST_MAX):
             n = i + 1
             if i < len(shown):
                 member = shown[i] or {}
-                win.setProperty("Cast.%d.Name" % n, member.get("name") or "")
-                win.setProperty("Cast.%d.Role" % n, member.get("role") or "")
-                win.setProperty("Cast.%d.Thumb" % n, member.get("thumbnail") or "")
+                win.setProperty("%s.%d.Name" % (prefix, n), member.get("name") or "")
+                win.setProperty("%s.%d.Role" % (prefix, n), member.get("role") or "")
+                win.setProperty("%s.%d.Thumb" % (prefix, n), member.get("thumbnail") or "")
             else:
-                win.clearProperty("Cast.%d.Name" % n)
-                win.clearProperty("Cast.%d.Role" % n)
-                win.clearProperty("Cast.%d.Thumb" % n)
-        _dlog("cast: published {0} actor(s)".format(len(shown)))
+                win.clearProperty("%s.%d.Name" % (prefix, n))
+                win.clearProperty("%s.%d.Role" % (prefix, n))
+                win.clearProperty("%s.%d.Thumb" % (prefix, n))
+        _dlog("{0}: published {1} actor(s)".format(prefix, len(shown)))
+
+    # Kodi window name for DialogVideoInfo (window id 12003).
+    INFO_DIALOG = "movieinformation"
+
+    def update_info_cast(self):
+        """Publish the info dialog's item cast as InfoCast.* Home properties.
+
+        DialogVideoInfo does have a built-in cast list (control 50) and binding
+        a skin list to it is the documented route, but it stayed stubbornly
+        empty here across two attempts. Rather than keep guessing at why, this
+        reuses the mechanism that demonstrably works for the playback card:
+        resolve the cast ourselves and hand the skin plain properties, which
+        the dialog renders as fixed slots. No container in that window also
+        means no ambiguity about what a bare ListItem.* resolves against.
+        """
+        if not xbmc.getCondVisibility("Window.IsActive({0})".format(self.INFO_DIALOG)):
+            if self._info_cast_key is not None:
+                self._info_cast_key = None
+                self._publish_cast([], prefix="InfoCast")
+            return
+
+        if self._info_cast_thread is not None and self._info_cast_thread.is_alive():
+            return
+
+        dbtype = xbmc.getInfoLabel("ListItem.DBType")
+        dbid = xbmc.getInfoLabel("ListItem.DBID")
+        key = "{0}|{1}|{2}".format(dbtype, dbid, xbmc.getInfoLabel("ListItem.Title"))
+        if key == self._info_cast_key:
+            return
+        self._info_cast_key = key
+        self._info_cast_thread = threading.Thread(
+            target=self._info_cast_worker, args=(key, dbtype, dbid),
+            name="functional-info-cast", daemon=True)
+        self._info_cast_thread.start()
+
+    def _info_cast_worker(self, key, dbtype, dbid):
+        try:
+            cast = self._fetch_library_cast(dbtype, dbid)
+        except Exception:  # noqa: BLE001
+            _dlog("info-cast worker failed:\n{0}".format(traceback.format_exc()),
+                  xbmc.LOGERROR)
+            return
+        if key != self._info_cast_key:
+            return
+        _dlog("info-cast: {0} {1} -> {2} actor(s)".format(dbtype, dbid, len(cast)))
+        self._publish_cast(cast, prefix="InfoCast")
+
+    # dbtype -> (JSON-RPC method, id parameter name)
+    CAST_LOOKUPS = {
+        "movie": ("VideoLibrary.GetMovieDetails", "movieid"),
+        "tvshow": ("VideoLibrary.GetTVShowDetails", "tvshowid"),
+        "episode": ("VideoLibrary.GetEpisodeDetails", "episodeid"),
+        "musicvideo": ("VideoLibrary.GetMusicVideoDetails", "musicvideoid"),
+    }
+
+    @classmethod
+    def _fetch_library_cast(cls, dbtype, dbid):
+        """[{name, role, thumbnail}, ...] for a library item, or []."""
+        lookup = cls.CAST_LOOKUPS.get((dbtype or "").lower())
+        if not lookup:
+            return []
+        try:
+            numeric_id = int(dbid)
+        except (TypeError, ValueError):
+            return []
+        method, id_param = lookup
+        resp = _jsonrpc(method, {id_param: numeric_id, "properties": ["cast"]})
+        result = (resp or {}).get("result") or {}
+        # The details key is the dbtype ("moviedetails", "episodedetails", ...).
+        for value in result.values():
+            if isinstance(value, dict) and "cast" in value:
+                return value.get("cast") or []
+        return []
 
     def update_home_bg(self):
         """
@@ -1319,6 +1397,7 @@ def run():
             helper.update_bg_command()
             helper.update_favourites()
             helper.update_playing_cast()
+            helper.update_info_cast()
             if tick == 0:
                 helper.update_bg_schedule()
                 helper.update_home_bg()

@@ -1280,73 +1280,103 @@
 		</definition>
 	</include>
 
-	<!-- One actor in the full-screen info card's cast strip. There is no
-	     Kodi-side cast list for the *playing* item (VideoPlayer.Cast is a
-	     flat string with no thumbs), so service.py resolves the cast via
-	     JSON-RPC and publishes Cast.N.Name / .Role / .Thumb on Home; this
-	     just renders slot n at a fixed x. -->
-	<include name="FsInfoCastMember">
+	<!-- One actor portrait. Both info screens use this: the full-screen card
+	     reads the Cast.* properties (the playing item), the video info dialog
+	     reads InfoCast.* (the item the dialog is about). Both namespaces are
+	     published by service.py.
+
+	     DialogVideoInfo does expose a built-in cast list (control 50) and
+	     binding a skin list to it is the documented route, but it stayed
+	     empty here through two attempts, so both screens now go through the
+	     properties instead — one mechanism, and one that is known to work. -->
+	<include name="CastPortrait">
+		<param name="prefix" />
 		<param name="n" />
 		<param name="x" />
+		<param name="y" />
 		<definition>
 			<control type="group">
 				<left>$PARAM[x]</left>
-				<top>552</top>
-				<width>165</width>
+				<top>$PARAM[y]</top>
+				<width>152</width>
 				<height>198</height>
-				<visible>!String.IsEmpty(Window(home).Property(Cast.$PARAM[n].Name))</visible>
+				<visible>!String.IsEmpty(Window(home).Property($PARAM[prefix].$PARAM[n].Name))</visible>
 
 				<control type="image">
-					<left>27</left>
+					<left>21</left>
 					<top>0</top>
-					<width>111</width>
+					<width>110</width>
 					<height>150</height>
 					<texture colordiffuse="grey_mid">white.png</texture>
 				</control>
 				<control type="image">
-					<left>27</left>
+					<left>21</left>
 					<top>0</top>
-					<width>111</width>
+					<width>110</width>
 					<height>150</height>
 					<aspectratio>scale</aspectratio>
-					<texture fallback="DefaultActor.png" background="true">$INFO[Window(home).Property(Cast.$PARAM[n].Thumb)]</texture>
+					<texture fallback="DefaultActor.png" background="true">$INFO[Window(home).Property($PARAM[prefix].$PARAM[n].Thumb)]</texture>
 				</control>
 
 				<control type="label">
 					<left>0</left>
-					<top>156</top>
-					<width>165</width>
+					<top>154</top>
+					<width>152</width>
 					<height>22</height>
 					<font>font_small</font>
 					<align>center</align>
 					<textcolor>text</textcolor>
-					<label>$INFO[Window(home).Property(Cast.$PARAM[n].Name)]</label>
+					<label>$INFO[Window(home).Property($PARAM[prefix].$PARAM[n].Name)]</label>
 				</control>
 				<control type="label">
 					<left>0</left>
 					<top>176</top>
-					<width>165</width>
+					<width>152</width>
 					<height>22</height>
 					<font>font_small</font>
 					<align>center</align>
 					<textcolor>text_dim</textcolor>
-					<label>$INFO[Window(home).Property(Cast.$PARAM[n].Role)]</label>
+					<label>$INFO[Window(home).Property($PARAM[prefix].$PARAM[n].Role)]</label>
 				</control>
 			</control>
 		</definition>
 	</include>
 
-	<!-- The eight cast slots, laid out across the wide card. -->
+	<!-- Eight cast slots on the full-screen info card, group-relative. -->
 	<include name="FsInfoCastStrip">
 		<definition>
-			<include content="FsInfoCastMember"><param name="n" value="1"/><param name="x" value="40"/></include>
-			<include content="FsInfoCastMember"><param name="n" value="2"/><param name="x" value="205"/></include>
-			<include content="FsInfoCastMember"><param name="n" value="3"/><param name="x" value="370"/></include>
-			<include content="FsInfoCastMember"><param name="n" value="4"/><param name="x" value="535"/></include>
-			<include content="FsInfoCastMember"><param name="n" value="5"/><param name="x" value="700"/></include>
-			<include content="FsInfoCastMember"><param name="n" value="6"/><param name="x" value="865"/></include>
-			<include content="FsInfoCastMember"><param name="n" value="7"/><param name="x" value="1030"/></include>
-			<include content="FsInfoCastMember"><param name="n" value="8"/><param name="x" value="1195"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="1"/><param name="x" value="92"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="2"/><param name="x" value="244"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="3"/><param name="x" value="396"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="4"/><param name="x" value="548"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="5"/><param name="x" value="700"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="6"/><param name="x" value="852"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="7"/><param name="x" value="1004"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="8"/><param name="x" value="1156"/><param name="y" value="552"/></include>
+		</definition>
+	</include>
+
+	<!-- Eight cast slots in the video info dialog, window-absolute. -->
+	<include name="InfoCastStrip">
+		<definition>
+			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="1"/><param name="x" value="620"/><param name="y" value="706"/></include>
+			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="2"/><param name="x" value="772"/><param name="y" value="706"/></include>
+			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="3"/><param name="x" value="924"/><param name="y" value="706"/></include>
+			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="4"/><param name="x" value="1076"/><param name="y" value="706"/></include>
+			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="5"/><param name="x" value="1228"/><param name="y" value="706"/></include>
+			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="6"/><param name="x" value="1380"/><param name="y" value="706"/></include>
+			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="7"/><param name="x" value="1532"/><param name="y" value="706"/></include>
+			<include content="CastPortrait"><param name="prefix" value="InfoCast"/><param name="n" value="8"/><param name="x" value="1684"/><param name="y" value="706"/></include>
+			<control type="label">
+				<left>620</left>
+				<top>760</top>
+				<width>1220</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>No cast information for this title</label>
+				<visible>String.IsEmpty(Window(home).Property(InfoCast.1.Name))</visible>
+			</control>
 		</definition>
 	</include>
 

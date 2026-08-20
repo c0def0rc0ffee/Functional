@@ -132,101 +132,9 @@
 			<visible>!String.IsEmpty(ListItem.Writer)</visible>
 		</control>
 
-		<!-- Cast strip. Control 50 is the dialog's built-in cast list: Kodi
-		     binds it for us with one item per actor (label = name,
-		     label2 = role, icon = portrait), so this is presentation only. -->
-		<control type="list" id="50">
-			<left>620</left>
-			<top>706</top>
-			<right>80</right>
-			<height>216</height>
-			<orientation>horizontal</orientation>
-			<onup>9000</onup>
-			<ondown>9000</ondown>
-			<visible>Integer.IsGreater(Container(50).NumItems,0)</visible>
-			<itemlayout width="150" height="216">
-				<control type="image">
-					<left>20</left>
-					<top>0</top>
-					<width>110</width>
-					<height>150</height>
-					<texture colordiffuse="grey_mid">white.png</texture>
-				</control>
-				<control type="image">
-					<left>20</left>
-					<top>0</top>
-					<width>110</width>
-					<height>150</height>
-					<aspectratio>scale</aspectratio>
-					<texture fallback="DefaultActor.png" background="true">$INFO[ListItem.Thumb]</texture>
-				</control>
-				<control type="label">
-					<left>0</left>
-					<top>156</top>
-					<width>150</width>
-					<height>24</height>
-					<font>font_small</font>
-					<align>center</align>
-					<textcolor>text</textcolor>
-					<label>$INFO[ListItem.Label]</label>
-				</control>
-				<control type="label">
-					<left>0</left>
-					<top>180</top>
-					<width>150</width>
-					<height>22</height>
-					<font>font_small</font>
-					<align>center</align>
-					<textcolor>text_dim</textcolor>
-					<label>$INFO[ListItem.Label2]</label>
-				</control>
-			</itemlayout>
-			<focusedlayout width="150" height="216">
-				<control type="image">
-					<left>14</left>
-					<top>-6</top>
-					<width>122</width>
-					<height>162</height>
-					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
-					<visible>Control.HasFocus(50)</visible>
-				</control>
-				<control type="image">
-					<left>20</left>
-					<top>0</top>
-					<width>110</width>
-					<height>150</height>
-					<texture colordiffuse="grey_mid">white.png</texture>
-				</control>
-				<control type="image">
-					<left>20</left>
-					<top>0</top>
-					<width>110</width>
-					<height>150</height>
-					<aspectratio>scale</aspectratio>
-					<texture fallback="DefaultActor.png" background="true">$INFO[ListItem.Thumb]</texture>
-				</control>
-				<control type="label">
-					<left>0</left>
-					<top>156</top>
-					<width>150</width>
-					<height>24</height>
-					<font>font_small</font>
-					<align>center</align>
-					<textcolor>white</textcolor>
-					<label>$INFO[ListItem.Label]</label>
-				</control>
-				<control type="label">
-					<left>0</left>
-					<top>180</top>
-					<width>150</width>
-					<height>22</height>
-					<font>font_small</font>
-					<align>center</align>
-					<textcolor>text_dim</textcolor>
-					<label>$INFO[ListItem.Label2]</label>
-				</control>
-			</focusedlayout>
-		</control>
+		<!-- Cast strip, fed by service.py's InfoCast.* properties.
+		     See the CastPortrait include for why this isn't Kodi's control 50. -->
+		<include content="InfoCastStrip" />
 
 		<!-- Watched indicator -->
 		<control type="label">
@@ -263,7 +171,7 @@
 			<align>center</align>
 			<onleft>9000</onleft>
 			<onright>9000</onright>
-			<onup>50</onup>
+			<onup>9000</onup>
 			<ondown>9000</ondown>
 
 			<!-- 8 = Play -->
