@@ -2,8 +2,6 @@
 
 A clean, opinionated Kodi skin built for clarity. No bloat, no clutter, just your library, front and centre.
 
-**1920x1080 | Kodi 21 (Omega) | GPL-2.0**
-
 <!-- Add screenshots here: ![Home](screenshots/home.png) -->
 
 ## Features
