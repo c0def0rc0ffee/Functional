@@ -2,7 +2,22 @@
 
 A clean, opinionated Kodi skin built for clarity. No bloat, no clutter, just your library, front and centre.
 
-<!-- Add screenshots here: ![Home](screenshots/home.png) -->
+## Screenshots
+
+![Home screen](screenshots/home.png)
+
+Home: library stats, clock, and a rotating fanart background.
+
+|  |  |
+| --- | --- |
+| ![Video playing behind the home menu](screenshots/video-behind-menus.png) | ![Video playing behind the library](screenshots/video-behind-library.png) |
+| Playback keeps running behind the menus, so you can browse without stopping the film. | The same thing on a library screen, not just on home. |
+| ![Gallery view](screenshots/gallery.png) | ![List view](screenshots/list-view.png) |
+| Gallery view: poster grid with watched badges and a metadata info bar. | List view, with the background showing through on every screen. |
+| ![Slide-out library options](screenshots/library-options.png) | ![Movie info](screenshots/movie-info.png) |
+| Slide-out library options: view, sort, filter and layout, without leaving the list. | Movie info: plot, cast with roles, and the actions you actually use. |
+| ![Video OSD](screenshots/video-osd.png) | ![Skin settings](screenshots/skin-settings.png) |
+| A tight video OSD with elapsed time, finish time and a resolution badge. | Skin settings: everything configurable, changes apply immediately. |
 
 ## Features
 
@@ -28,6 +43,11 @@ One unified **Background** selector so the modes can never conflict:
 - **Slideshow: Folder**: cycles every picture in a folder you choose (browse with thumbnails and tap any image in the target folder)
 
 Plus a configurable rotate interval (10s / 30s / 1m / 2m / 5m; unset = 20s), a dim level (0-90%) so text stays readable, and a caption position for the slideshow/static label. Every background option also exists per time-of-day slot: a 2-4-slot schedule (each slot with its own start time) swaps the whole background configuration on the clock.
+
+The background is not limited to the home screen:
+
+- **Show On All Screens**: paints the same background behind the library, settings and every other window, with its own separate dim level so list rows and labels stay readable over it
+- **Keep Playing Video Behind Menus**: leave a film playing, press back, and the picture keeps running behind the menus while you browse. Works whether or not the background is shown on all screens
 
 ### Video Library
 
@@ -99,7 +119,7 @@ A lightweight Python service handles what the skin engine can't do alone, with a
 All settings live in **Settings > Skin Settings**, organised into five categories:
 
 - **Overall**: accent colour (Blue, Red, Green, Orange, Amber, Purple, Teal, Pink), notification position (6 placements), and Diagnostics (debug logging + log folder)
-- **Background**: the unified background mode, image/folder picker, dim, slideshow interval and caption position
+- **Background**: the unified background mode, image/folder picker, dim, slideshow interval, caption position, the time-of-day schedule, and whether the background (or live video) shows on every screen
 - **Home Screen**: show/hide each menu item (incl. Weather), stats panels, Favourites/Add-ons/Power buttons, logo, footer, date/time, loading splash; main menu position; invisible round buttons; weather widget; default Favourites filter
 - **Media Selection**: gallery thumbnail size, small-grid column count, poster shape, info bar position, context menu position (centre or left edge), and toggles for every metadata field
 - **Video OSD**: OSD position, OSD thumbnail, and the video dim level
