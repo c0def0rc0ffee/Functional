@@ -1546,35 +1546,46 @@
 				</control>
 			</control>
 
-			<!-- ===== Right column: preview (static image only) ===== -->
-			<control type="label">
-				<left>1380</left>
-				<top>190</top>
-				<width>460</width>
-				<height>40</height>
-				<font>font_small</font>
-				<textcolor>text_dim</textcolor>
-				<label>PREVIEW</label>
-			</control>
-			<control type="image">
-				<left>1380</left>
-				<top>240</top>
-				<width>460</width>
-				<height>260</height>
-				<aspectratio>scale</aspectratio>
-				<texture background="true">$INFO[Skin.String(home_background)]</texture>
-				<visible>String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))</visible>
-			</control>
-			<control type="label">
-				<left>1380</left>
-				<top>340</top>
-				<width>460</width>
-				<height>60</height>
-				<font>font_small</font>
-				<textcolor>text_dim</textcolor>
-				<align>center</align>
-				<label>$VAR[BgModeLabel]</label>
-				<visible>!String.IsEqual(Skin.String(bg_mode),image) | String.IsEmpty(Skin.String(home_background))</visible>
+			<!-- ===== Right column: preview (static image only) =====
+			     Redundant whenever the real background is already drawn behind
+			     this window (Show On All Screens, or video playing through):
+			     the page itself is the preview, and the heading would sit over
+			     a picture with nothing under it. -->
+			<control type="group">
+				<visible>!$EXP[bg_windows_active]</visible>
+				<left>0</left>
+				<top>0</top>
+				<width>1920</width>
+				<height>1080</height>
+				<control type="label">
+					<left>1380</left>
+					<top>190</top>
+					<width>460</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>PREVIEW</label>
+				</control>
+				<control type="image">
+					<left>1380</left>
+					<top>240</top>
+					<width>460</width>
+					<height>260</height>
+					<aspectratio>scale</aspectratio>
+					<texture background="true">$INFO[Skin.String(home_background)]</texture>
+					<visible>String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))</visible>
+				</control>
+				<control type="label">
+					<left>1380</left>
+					<top>340</top>
+					<width>460</width>
+					<height>60</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<align>center</align>
+					<label>$VAR[BgModeLabel]</label>
+					<visible>!String.IsEqual(Skin.String(bg_mode),image) | String.IsEmpty(Skin.String(home_background))</visible>
+				</control>
 			</control>
 
 		</control>
