@@ -1417,6 +1417,86 @@
 					<onclick condition="String.IsEqual(Skin.String(bg_dim),75)">Skin.SetString(bg_dim,90)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(bg_dim),90)">Skin.Reset(bg_dim)</onclick>
 				</control>
+				<!-- Where the background is drawn. Off (default) keeps the
+				     original behaviour: Home only, every other window on the
+				     flat bg colour. On, WindowBackground renders the same
+				     background on every window (Home's own copy stands down,
+				     see SkinBackground in Includes). Deliberately NOT a
+				     schedule-slot key: it is structural, not part of a look. -->
+				<control type="radiobutton" id="7133">
+					<visible>!String.IsEmpty(Skin.String(bg_mode))</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>Show On All Screens</label>
+					<selected>Skin.HasSetting(bg_all_windows)</selected>
+					<onclick>Skin.ToggleSetting(bg_all_windows)</onclick>
+					<onleft>7000</onleft>
+				</control>
+
+				<!-- Off-home dim. Separate from Dim above because the other
+				     windows put list rows and labels over the background,
+				     which needs more knocking back than Home's mostly-empty
+				     screen does. Indented under the toggle it belongs to. -->
+				<control type="button" id="7134">
+					<visible>Skin.HasSetting(bg_all_windows)</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>40</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Dim On Other Screens: $VAR[BgWindowsDimLabel]</label>
+					<onleft>7000</onleft>
+					<!-- Cycle: 75(default) -> 0 -> 25 -> 50 -> 60 -> 90 -> 75 -->
+					<onclick condition="String.IsEmpty(Skin.String(bg_windows_dim))">Skin.SetString(bg_windows_dim,0)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_windows_dim),0)">Skin.SetString(bg_windows_dim,25)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_windows_dim),25)">Skin.SetString(bg_windows_dim,50)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_windows_dim),50)">Skin.SetString(bg_windows_dim,60)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_windows_dim),60)">Skin.SetString(bg_windows_dim,90)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(bg_windows_dim),90)">Skin.Reset(bg_windows_dim)</onclick>
+				</control>
+				<!-- Live video behind the GUI. Independent of "Show On All
+				     Screens": while something is playing the background block
+				     is drawn on every window regardless, so leaving a video
+				     running and browsing the library keeps the picture up. -->
+				<control type="radiobutton" id="7135">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>Keep Playing Video Behind Menus</label>
+					<selected>Skin.HasSetting(bg_video_behind)</selected>
+					<onclick>Skin.ToggleSetting(bg_video_behind)</onclick>
+					<onleft>7000</onleft>
+				</control>
+
+
 
 				<!-- Slideshow-only: interval + caption (modes recent/random/folder) -->
 				<control type="button" id="7117">

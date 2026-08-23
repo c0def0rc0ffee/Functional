@@ -5,69 +5,13 @@
 
 		<include content="WindowBackground"/>
 
-		<!-- Slideshow background: rotates through recently watched movies' fanart.
-		     Service writes the current URL into Window(home).Property(home_bg_fanart)
-		     every ~20s. Hidden when bg_slideshow is off or the property is empty. -->
-		<control type="image">
-			<left>0</left>
-			<top>0</top>
-			<width>1920</width>
-			<height>1080</height>
-			<aspectratio>scale</aspectratio>
-			<fadetime>800</fadetime>
-			<texture background="true">$INFO[Window(home).Property(home_bg_fanart)]</texture>
-			<!-- The service only populates this property while a
-			     bg_slideshow_source is active, so the property check
-			     alone tells us whether the slideshow is running. -->
-			<visible>!String.IsEmpty(Window(home).Property(home_bg_fanart))</visible>
-		</control>
-
-		<!-- User-selected static background image (Skin.String(home_background)).
-		     Hidden when slideshow is active so the rotating fanart shows through. -->
-		<control type="image">
-			<left>0</left>
-			<top>0</top>
-			<width>1920</width>
-			<height>1080</height>
-			<aspectratio>scale</aspectratio>
-			<texture background="true">$INFO[Skin.String(home_background)]</texture>
-			<!-- Static image shows only in 'image' mode. The service clears
-			     home_bg_fanart in non-slideshow modes, so there's never a
-			     clash with the slideshow. -->
-			<visible>String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))</visible>
-			<animation effect="fade" time="400">VisibleChange</animation>
-		</control>
-
-		<!-- Folder slideshow (mode = folder). One instance per interval preset;
-		     only the matching one is visible. timeperimage needs a literal, so
-		     it can't be a single dynamic control. The service publishes the
-		     resolved folder as Skin.String(bg_slideshow_dir). -->
-		<include content="FolderSlideshow"><param name="ms" value="20000"/><param name="when" value="String.IsEmpty(Skin.String(bg_slideshow_interval))"/></include>
-		<include content="FolderSlideshow"><param name="ms" value="10000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),10)"/></include>
-		<include content="FolderSlideshow"><param name="ms" value="30000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),30)"/></include>
-		<include content="FolderSlideshow"><param name="ms" value="60000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),60)"/></include>
-		<include content="FolderSlideshow"><param name="ms" value="120000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),120)"/></include>
-		<include content="FolderSlideshow"><param name="ms" value="300000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),300)"/></include>
-
-		<!-- Slideshow caption (Title (Year)); one label per position choice,
-		     since coordinates can't take $VAR (see BgCaption in Includes) -->
-		<include content="BgCaption"><param name="pos" value="topleft"/><param name="top" value="40"/><param name="align" value="left"/></include>
-		<include content="BgCaption"><param name="pos" value="topright"/><param name="top" value="40"/><param name="align" value="right"/></include>
-		<include content="BgCaption"><param name="pos" value="bottomleft"/><param name="top" value="980"/><param name="align" value="left"/></include>
-		<include content="BgCaption"><param name="pos" value="bottomright"/><param name="top" value="980"/><param name="align" value="right"/></include>
-		<include content="BgCaption"><param name="pos" value="bottomcenter"/><param name="top" value="980"/><param name="align" value="center"/></include>
-
-		<!-- Dim overlay over whichever background is showing -->
-		<control type="image">
-			<left>0</left>
-			<top>0</top>
-			<width>1920</width>
-			<height>1080</height>
-			<!-- Folder mode dims via colordiffuse on the multiimage itself, so
-			     it's excluded here to avoid double-dimming. -->
-			<texture colordiffuse="$VAR[BgOverlayColor]">white.png</texture>
-			<visible>!String.IsEmpty(Window(home).Property(home_bg_fanart)) | [String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))]</visible>
-		</control>
+		<!-- Home always shows the configurable background. When
+		     bg_all_windows is on, WindowBackground has already drawn it for
+		     every window including this one, so this copy stands down. -->
+		<include content="SkinBackground">
+			<param name="visible" value="!$EXP[bg_windows_active]"/>
+			<param name="captions" value="true"/>
+		</include>
 
 		<!-- Right-side fixed stats panel (always visible) -->
 		<control type="group">
