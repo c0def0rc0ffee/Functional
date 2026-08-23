@@ -21,6 +21,21 @@ LOG="$HERE/skin-autoupdate.log"
 
 log() { printf '%s  %s\n' "$(date '+%F %T')" "$*" >> "$LOG"; }
 
+# --- required tools, checked up front ---
+# Without unzip every zip silently reads as an empty version and the script
+# would log "nothing to do" instead of the real problem. Same idea for the
+# rest: a missing tool must fail loudly, not masquerade as an empty drop
+# folder or a botched update.
+missing=""
+for cmd in unzip mktemp; do
+    command -v "$cmd" >/dev/null 2>&1 || missing="$missing $cmd"
+done
+sort --version-sort /dev/null >/dev/null 2>&1 || missing="$missing sort(-V)"
+if [ -n "$missing" ]; then
+    log "ERROR: missing required command(s):$missing - install them, no update attempted"
+    exit 1
+fi
+
 # Print the <addon> tag's version from an addon.xml ($1 may be /dev/stdin).
 ver() {
     grep -m1 "id=\"$ADDON_ID\"" "$1" 2>/dev/null \

@@ -78,9 +78,7 @@
 			<height>6</height>
 			<info>Player.Progress</info>
 			<texturebg>-</texturebg>
-			<lefttexture colordiffuse="accent_hi">white.png</lefttexture>
 			<midtexture colordiffuse="accent_hi">white.png</midtexture>
-			<righttexture colordiffuse="accent_hi">white.png</righttexture>
 			<overlaytexture>-</overlaytexture>
 		</control>
 		<control type="label">

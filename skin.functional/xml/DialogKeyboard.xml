@@ -13,7 +13,7 @@
   skin must NOT set labels on these (leave empty). Special keys keep their
   own labels; Kodi handles them by ID:
       8  = backspace      32  = space
-     300 = done/OK       301 = cancel       309 = clear
+     300 = done/OK       301 = cancel       308 = clear
      302 = shift         303 = caps lock    304 = symbols
      305 = cursor left   306 = cursor right
      311 = heading        312 = edit field

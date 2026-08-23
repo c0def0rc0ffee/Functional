@@ -757,7 +757,8 @@
 				<onleft>7301</onleft>
 				<onup>7311</onup>
 				<ondown>7312</ondown>
-				<enable>!String.IsEmpty(Skin.String(debug_log_path))</enable>
+				<!-- no enable gate: resetting an already-default path is a
+				     no-op, and the disabled render made the button look blank -->
 			</control>
 
 			<!-- Current log location hint -->
@@ -806,6 +807,50 @@
 				<label>GALLERY VIEW</label>
 			</control>
 
+			<!-- ===== Right column: CONTEXT MENU ===== -->
+			<control type="label">
+				<left>1380</left>
+				<top>190</top>
+				<width>460</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>CONTEXT MENU</label>
+			</control>
+
+			<control type="button" id="7223">
+				<left>1380</left>
+				<top>230</top>
+				<width>460</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Position: $VAR[ContextMenuPositionLabel]</label>
+				<onleft>7220</onleft>
+				<onright>7223</onright>
+				<onup>7223</onup>
+				<ondown>7223</ondown>
+				<onclick condition="String.IsEqual(Skin.String(context_menu_pos),left)">Skin.Reset(context_menu_pos)</onclick>
+				<onclick condition="!String.IsEqual(Skin.String(context_menu_pos),left)">Skin.SetString(context_menu_pos,left)</onclick>
+			</control>
+
+			<control type="label">
+				<left>1380</left>
+				<top>300</top>
+				<width>460</width>
+				<height>60</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<wrapmultiline>true</wrapmultiline>
+				<label>Where the press-and-hold actions menu opens.</label>
+			</control>
+
 			<control type="button" id="7220">
 				<left>440</left>
 				<top>230</top>
@@ -821,6 +866,7 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>Thumbnail Size: $VAR[GallerySizeLabel]</label>
 				<onleft>7000</onleft>
+				<onright>7223</onright>
 				<onup>7207</onup>
 				<ondown>7221</ondown>
 				<!-- Cycle: medium → small → large → xlarge → medium -->
@@ -847,6 +893,7 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>Small-grid Columns: $VAR[SmallColsLabel]   (lower if your TV crops the right edge)</label>
 				<onleft>7000</onleft>
+				<onright>7223</onright>
 				<onup>7220</onup>
 				<ondown>7222</ondown>
 				<onclick condition="String.IsEqual(Skin.String(small_cols),11)">Skin.Reset(small_cols)</onclick>
@@ -875,6 +922,7 @@
 				<selected>Skin.HasSetting(compact_posters)</selected>
 				<onclick>Skin.ToggleSetting(compact_posters)</onclick>
 				<onleft>7000</onleft>
+				<onright>7223</onright>
 				<onup>7221</onup>
 				<ondown>7200</ondown>
 			</control>

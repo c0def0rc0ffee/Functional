@@ -135,61 +135,13 @@
 					<height>80</height>
 					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 				</control>
-				<control type="label">
-					<left>10</left>
-					<top>0</top>
-					<width>60</width>
-					<height>80</height>
-					<font>font_reg</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
-					<align>right</align>
-					<aligny>center</aligny>
-					<label>$INFO[ListItem.CurrentItem]</label>
-				</control>
 				<control type="image">
-					<left>90</left>
-					<top>10</top>
-					<width>108</width>
-					<height>60</height>
-					<aspectratio>scale</aspectratio>
-					<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Art(thumb)]</texture>
-				</control>
-				<control type="label">
-					<left>220</left>
-					<top>0</top>
-					<width>1300</width>
-					<height>80</height>
-					<font>font_reg</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
-					<aligny>center</aligny>
-					<label>$INFO[ListItem.Label]</label>
-				</control>
-				<control type="label">
-					<right>20</right>
-					<top>0</top>
-					<width>200</width>
-					<height>80</height>
-					<font>font_small</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
-					<align>right</align>
-					<aligny>center</aligny>
-					<label>$INFO[ListItem.Duration]</label>
-				</control>
-				<!-- Now-playing indicator -->
-				<control type="label">
-					<left>10</left>
-					<top>0</top>
-					<width>60</width>
-					<height>80</height>
-					<font>font_reg</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
-					<align>center</align>
-					<aligny>center</aligny>
-					<label>▶</label>
+					<left>26</left>
+					<top>26</top>
+					<width>28</width>
+					<height>28</height>
+					<aspectratio>keep</aspectratio>
+					<texture colordiffuse="accent_hi">icons/play.png</texture>
 					<visible>String.IsEqual(ListItem.Property(playlistposition),Playlist.Position)</visible>
 				</control>
 			</focusedlayout>
@@ -275,6 +227,20 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>Repeat: $VAR[RepeatStateLabel]</label>
+			</control>
+
+			<control type="button" id="21">
+				<width>220</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Save Playlist</label>
 			</control>
 
 			<control type="button" id="22">

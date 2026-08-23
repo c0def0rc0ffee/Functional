@@ -127,16 +127,6 @@ def _dlog(msg, level=xbmc.LOGINFO):
         xbmc.log("[functional/helper] debug-log write failed: {0}".format(exc),
                  xbmc.LOGWARNING)
 
-SKIN_STRINGS = (
-    "stat_movies_total",
-    "stat_movies_watched",
-    "stat_movies_unwatched",
-    "stat_tvshows_total",
-    "stat_tvshows_unwatched",
-    "stat_episodes_total",
-)
-
-
 def _set_skin_string(key, value):
     """Write a string into the active skin's persistent string store.
 
@@ -277,6 +267,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._bg_last_fetch = 0.0
         self._bg_source = ""
         self._bg_folder = ""
+        self._bg_thread = None     # library fetches, off the main loop
         self._stats_last_refresh = 0.0   # 0 => loop refreshes on first tick
         self._stats_thread = None
         self._dialog_thread = None  # blocking pickers (genre/time), off the main loop
@@ -291,6 +282,10 @@ class FunctionalHelper(xbmc.Monitor):
         self._fav_loaded = False    # have we read favourites.xml at least once?
         self._fav_last_cat = None   # last category we populated properties for
         # Cast strip on the full-screen info card (see update_playing_cast)
+        # The lock makes "is this key still current?" + publish atomic, so a
+        # worker that passed its staleness check can't interleave its slot
+        # writes with the main loop blanking the strip.
+        self._cast_lock = threading.Lock()
         self._cast_key = None       # identity of the item we last published cast for
         self._cast_thread = None
         self._info_cast_key = None  # same, for the video info dialog
@@ -460,8 +455,9 @@ class FunctionalHelper(xbmc.Monitor):
         """
         if not xbmc.getCondVisibility("Player.HasVideo"):
             if self._cast_key is not None:
-                self._cast_key = None
-                self._publish_cast([])
+                with self._cast_lock:
+                    self._cast_key = None
+                    self._publish_cast([])
             return
 
         if self._cast_thread is not None and self._cast_thread.is_alive():
@@ -473,10 +469,11 @@ class FunctionalHelper(xbmc.Monitor):
                                xbmc.getInfoLabel("VideoPlayer.Title"))
         if key == self._cast_key:
             return
-        self._cast_key = key
-        # Blank the strip immediately so the previous item's actors don't
-        # linger on the info card while the new lookup runs.
-        self._publish_cast([])
+        with self._cast_lock:
+            self._cast_key = key
+            # Blank the strip immediately so the previous item's actors don't
+            # linger on the info card while the new lookup runs.
+            self._publish_cast([])
         self._cast_thread = threading.Thread(
             target=self._cast_worker, args=(key,),
             name="functional-cast", daemon=True)
@@ -496,9 +493,10 @@ class FunctionalHelper(xbmc.Monitor):
             return
         # The item may have moved on while we were querying; don't stamp
         # stale actors over the new one's.
-        if key != self._cast_key:
-            return
-        self._publish_cast(cast)
+        with self._cast_lock:
+            if key != self._cast_key:
+                return
+            self._publish_cast(cast)
 
     @staticmethod
     def _fetch_playing_cast():
@@ -525,7 +523,10 @@ class FunctionalHelper(xbmc.Monitor):
         matters to the skin: Count=="0" means "lookup finished, genuinely no
         cast" (show the no-cast label), empty means "no lookup yet / in
         flight" (show nothing). Gating the label on a Name property instead
-        made it flash on every dialog open until the worker had published."""
+        made it flash on every dialog open until the worker had published.
+
+        Callers must hold self._cast_lock — the ~25 property writes here are
+        not atomic, so unsynchronised worker/main-loop publishes interleave."""
         win = xbmcgui.Window(HOME_WINDOW_ID)
         shown = cast[:self.CAST_MAX]
         if reset:
@@ -561,10 +562,11 @@ class FunctionalHelper(xbmc.Monitor):
         """
         if not xbmc.getCondVisibility("Window.IsActive({0})".format(self.INFO_DIALOG)):
             if self._info_cast_key is not None:
-                self._info_cast_key = None
-                self._info_cast_names = []
-                self._info_cast_dbtype = ""
-                self._publish_cast([], prefix="InfoCast", reset=True)
+                with self._cast_lock:
+                    self._info_cast_key = None
+                    self._info_cast_names = []
+                    self._info_cast_dbtype = ""
+                    self._publish_cast([], prefix="InfoCast", reset=True)
             return
 
         if self._info_cast_thread is not None and self._info_cast_thread.is_alive():
@@ -575,8 +577,9 @@ class FunctionalHelper(xbmc.Monitor):
         key = "{0}|{1}|{2}".format(dbtype, dbid, xbmc.getInfoLabel("ListItem.Title"))
         if key == self._info_cast_key:
             return
-        self._info_cast_key = key
-        self._publish_cast([], prefix="InfoCast", reset=True)
+        with self._cast_lock:
+            self._info_cast_key = key
+            self._publish_cast([], prefix="InfoCast", reset=True)
         cast_and_role = xbmc.getInfoLabel("ListItem.CastAndRole")
         self._info_cast_thread = threading.Thread(
             target=self._info_cast_worker, args=(key, dbtype, dbid, cast_and_role),
@@ -600,13 +603,14 @@ class FunctionalHelper(xbmc.Monitor):
             if key == self._info_cast_key:
                 self._info_cast_key = None
             return
-        if key != self._info_cast_key:
-            return
-        _dlog("info-cast: {0} {1} -> {2} actor(s)".format(dbtype, dbid, len(cast)))
-        self._info_cast_names = [(m or {}).get("name") or ""
-                                 for m in cast[:self.CAST_MAX]]
-        self._info_cast_dbtype = (dbtype or "").lower()
-        self._publish_cast(cast, prefix="InfoCast")
+        with self._cast_lock:
+            if key != self._info_cast_key:
+                return
+            _dlog("info-cast: {0} {1} -> {2} actor(s)".format(dbtype, dbid, len(cast)))
+            self._info_cast_names = [(m or {}).get("name") or ""
+                                     for m in cast[:self.CAST_MAX]]
+            self._info_cast_dbtype = (dbtype or "").lower()
+            self._publish_cast(cast, prefix="InfoCast")
 
     @staticmethod
     def _parse_cast_and_role(text):
@@ -719,11 +723,10 @@ class FunctionalHelper(xbmc.Monitor):
                 _set_skin_string("bg_slideshow_dir", folder)
                 _dlog("folder slideshow dir -> {0!r}".format(folder))
             # Make sure the service-driven slideshow image isn't also showing.
-            if self._bg_source or xbmcgui.Window(HOME_WINDOW_ID).getProperty("home_bg_fanart"):
+            if self._bg_source:
                 self._bg_source = ""
                 self._bg_idx = -1
-                _set_home_property("home_bg_fanart", "")
-                _set_home_property("home_bg_label", "")
+            self._set_bg_props("", "")
             return
 
         # GENRE mode keys its source on the genre + media type as well as the
@@ -736,8 +739,7 @@ class FunctionalHelper(xbmc.Monitor):
                 # than silently falling back to the whole library.
                 self._bg_idx = -1
                 self._bg_source = ""
-                _set_home_property("home_bg_fanart", "")
-                _set_home_property("home_bg_label", "")
+                self._set_bg_props("", "")
                 return
             source = "genre:{0}:{1}".format(
                 xbmc.getInfoLabel("Skin.String(bg_genre_type)") or "movies", genre)
@@ -749,15 +751,11 @@ class FunctionalHelper(xbmc.Monitor):
             # so a previous slideshow's backdrop can't linger.
             self._bg_idx = -1
             self._bg_source = ""
-            _set_home_property("home_bg_fanart", "")
             # In image mode, surface the chosen file's name as the caption
             # (same as folder/library captions). Off = no caption.
-            if mode == "image":
-                _set_home_property("home_bg_label",
-                                   _basename_no_ext(xbmc.getInfoLabel(
-                                       "Skin.String(home_background)")))
-            else:
-                _set_home_property("home_bg_label", "")
+            label = (_basename_no_ext(xbmc.getInfoLabel(
+                "Skin.String(home_background)")) if mode == "image" else "")
+            self._set_bg_props("", label)
             return
 
         now = time.time()
@@ -772,32 +770,29 @@ class FunctionalHelper(xbmc.Monitor):
             self._bg_last_fetch = 0.0
             self._bg_idx = -1
             self._bg_last_change = 0.0
-            _set_home_property("home_bg_fanart", "")
-            _set_home_property("home_bg_label", "")
+            self._set_bg_props("", "")
 
         # Refresh the items list periodically or when invalidated. An empty
         # result (server unreachable at boot, library mid-scan) retries on a
-        # short backoff, NOT every tick, which hammered the source.
+        # short backoff, NOT every tick, which hammered the source. The
+        # fetch itself runs on a daemon thread: executeJSONRPC against a
+        # slow/unreachable video DB blocks, and blocking here stalls ETA,
+        # every command channel and the rest of the loop (the same failure
+        # the stats and cast lookups were moved off-loop for).
         refresh_after = self.BG_LIST_REFRESH if self._bg_items else self.BG_EMPTY_RETRY
-        if (now - self._bg_last_fetch) > refresh_after:
-            if source == "recent":
-                self._bg_items = self._fetch_recent_movies()
-            elif source.startswith("genre:"):
-                _, gtype, gname = source.split(":", 2)
-                self._bg_items = self._fetch_genre_library(gname, gtype)
-            else:  # random
-                self._bg_items = self._fetch_random_library()
+        if ((now - self._bg_last_fetch) > refresh_after
+                and (self._bg_thread is None or not self._bg_thread.is_alive())):
             self._bg_last_fetch = now
-            _dlog("bg slideshow ({0}): {1} items".format(source, len(self._bg_items)))
-            # Force a change on the next tick
-            self._bg_last_change = 0.0
-            self._bg_idx = -1
+            self._bg_thread = threading.Thread(
+                target=self._bg_fetch_worker, args=(source,),
+                name="functional-bg", daemon=True)
+            self._bg_thread.start()
 
         if not self._bg_items:
-            # Nothing to show (e.g. folder empty or unreadable), clear so a
-            # previous mode's backdrop doesn't stay on screen.
-            _set_home_property("home_bg_fanart", "")
-            _set_home_property("home_bg_label", "")
+            # Nothing to show (fetch still in flight, folder empty or
+            # unreadable), clear so a previous mode's backdrop doesn't stay
+            # on screen.
+            self._set_bg_props("", "")
             return
 
         # Read the user's chosen interval each tick (so changes apply immediately)
@@ -812,9 +807,45 @@ class FunctionalHelper(xbmc.Monitor):
             self._bg_idx = (self._bg_idx + 1) % len(self._bg_items)
             self._bg_last_change = now
             url, label = self._bg_items[self._bg_idx]
-            _set_home_property("home_bg_fanart", url)
-            _set_home_property("home_bg_label", label)
+            self._set_bg_props(url, label)
             _dlog("bg rotate -> {0} | {1}".format(label, url[:120]))
+
+    @staticmethod
+    def _set_bg_props(fanart, label):
+        """Write the two Home background properties, skipping writes that
+        wouldn't change anything: several callers run once per slow tick
+        forever, and bursts of redundant Window(home) writes are implicated
+        in the startup SIGABRT (see run())."""
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        if win.getProperty("home_bg_fanart") != fanart:
+            win.setProperty("home_bg_fanart", fanart)
+        if win.getProperty("home_bg_label") != label:
+            win.setProperty("home_bg_label", label)
+
+    def _bg_fetch_worker(self, source):
+        """Resolve the slideshow item list for *source* (daemon thread)."""
+        try:
+            if source == "recent":
+                items = self._fetch_recent_movies()
+            elif source.startswith("genre:"):
+                _, gtype, gname = source.split(":", 2)
+                items = self._fetch_genre_library(gname, gtype)
+            else:  # random
+                items = self._fetch_random_library()
+        except Exception:  # noqa: BLE001
+            _dlog("bg fetch worker failed:\n{0}".format(traceback.format_exc()),
+                  xbmc.LOGERROR)
+            return  # empty-retry backoff will schedule another attempt
+        # The user may have switched source while we were querying; don't
+        # install a stale list over the new source's (same idea as the cast
+        # workers' staleness guard).
+        if source != self._bg_source:
+            return
+        self._bg_items = items
+        _dlog("bg slideshow ({0}): {1} items".format(source, len(items)))
+        # Force a rotation on the next slow tick.
+        self._bg_last_change = 0.0
+        self._bg_idx = -1
 
     # ----- Favourites (categorised, filterable) ----------------------------
     # Ordered list of filter categories shown on the custom Favourites screen.
@@ -893,13 +924,21 @@ class FunctionalHelper(xbmc.Monitor):
             shown = list(self._fav_all)
         else:
             shown = [it for it in self._fav_all if it["cat"] == category]
+        # The screen has exactly FAV_MAX slots; anything past that would be
+        # invisible property writes (and Fav.Count would overstate what the
+        # grid can show, breaking the 1-based fav_run indexing contract).
+        shown = shown[:self.FAV_MAX]
         self._fav_current = shown
         win.setProperty("Fav.Count", str(len(shown)))
         win.setProperty("Fav.Category", category)
         counts = self._fav_counts()
         for c in self.FAV_CATS:
             win.setProperty("Fav.CatCount.%s" % c, str(counts.get(c, 0)))
-        for i in range(self.FAV_MAX):
+        # Only touch slots in use (plus previously-used ones that need
+        # clearing): with an empty favourites list the old loop fired 450
+        # clear calls at the GUI in one burst on every publish.
+        used_before = getattr(self, "_fav_slots_used", 0)
+        for i in range(max(len(shown), used_before)):
             n = i + 1
             if i < len(shown):
                 it = shown[i]
@@ -910,6 +949,7 @@ class FunctionalHelper(xbmc.Monitor):
                 win.clearProperty("Fav.%d.Label" % n)
                 win.clearProperty("Fav.%d.Thumb" % n)
                 win.clearProperty("Fav.%d.Cat" % n)
+        self._fav_slots_used = len(shown)
         self._fav_last_cat = category
 
     def update_favourites(self):
@@ -1214,7 +1254,15 @@ class FunctionalHelper(xbmc.Monitor):
                 slot = self._sched_applied or self._bg_active_slot(count) or 1
                 self._set_or_reset("bg_edit_slot", str(slot))
                 self._sched_edit_last = slot
-                self._bg_slot_store(slot)  # sync storage before mirroring
+                if self._sched_applied:
+                    self._bg_slot_store(slot)  # sync storage before mirroring
+                else:
+                    # Never applied yet (settings already open on the first
+                    # tick after a service restart): the live keys still hold
+                    # whichever slot was live before, so storing them here
+                    # would overwrite this slot with another slot's settings.
+                    # Pull the slot's stored values up for editing instead.
+                    self._bg_slot_load(slot)
                 return
             edit = self._safe_int(self._get_skin("bg_edit_slot"), 0)
             if not 1 <= edit <= count:
@@ -1379,6 +1427,14 @@ def run():
         _dlog("FATAL: helper construction failed:\n{0}".format(
             traceback.format_exc()), xbmc.LOGERROR)
         return
+    # Startup grace: both crash dumps on record (0.7.64 and 0.8.2, SIGABRT
+    # in a Python thread ~1s after service start) coincided with this
+    # service's first burst of Window(home) property writes while Kodi was
+    # still tearing through the Startup->Home transition. Let the GUI settle
+    # before touching it.
+    if helper.waitForAbort(3):
+        return
+
     # Polling loop for things Kodi doesn't notify on (focused item changes etc.).
     # waitForAbort returns True if Kodi is shutting down.
     # Fast-tickers (focused ETA, command channels) run every loop.

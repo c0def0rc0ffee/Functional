@@ -17,6 +17,9 @@ This script writes portable zips:
 
 Usage:
     python build_zip.py        (or: powershell -File build-zip.ps1)
+    python build_zip.py --force    rebuild an already-released version even
+                                   if the content has changed (normally that
+                                   aborts: bump the addon.xml version instead)
 
 Output:
     Skin Dist/skin.functional-<version>.zip      Kodi-installable skin only
@@ -45,6 +48,9 @@ GIT = os.path.join(REPO, "Skin Git")
 # extraction on install (seen on Kodi 21 / Linux).
 JUNK_DIRS = ("__pycache__", ".git", "@eaDir", "#recycle", ".svn")
 JUNK_FILES = ("Thumbs.db", "desktop.ini", ".DS_Store")
+# Compiled Python left outside a __pycache__ dir (Python 2 leftovers, or a
+# tool writing next to the source) is build junk, never shippable content.
+JUNK_FILE_GLOBS = ("*.pyc", "*.pyo")
 
 # Extra exclusions for the source zip: the output folders themselves,
 # session data, and archive/temp/log files anywhere in the tree.
@@ -56,6 +62,7 @@ SRC_ZIP_EXCLUDE_DIRS = ("Skin Dist", "Skin Git", "$RECYCLE.BIN")
 # a machine on a private network, and the rest is of no use to anyone reading
 # the source, so none of it belongs in a snapshot that may be handed out.
 SRC_ZIP_EXCLUDE_GLOBS = ("*.zip", "*.7z", "*.tmp", "*.log",
+                         "*.pyc", "*.pyo",
                          "release-mirror.conf", "publish.conf",
                          "publish-github.sh", "push-source.sh",
                          ".publish-allow", "GITHUB-RELEASE-GUIDE.md",
@@ -77,7 +84,8 @@ def read_version():
 
 
 def is_junk_file(name):
-    return name in JUNK_FILES or "@SynoEAStream" in name
+    return (name in JUNK_FILES or "@SynoEAStream" in name
+            or any(fnmatch.fnmatch(name, g) for g in JUNK_FILE_GLOBS))
 
 
 def dir_entry(arcname):
@@ -172,6 +180,13 @@ def verify_zip(out, must_contain=(), must_not_contain_globs=()):
                  f"unreadable_dirs={unreadable}")
 
 
+def zip_members(path):
+    """Map of member name -> CRC, the content identity of a zip. Timestamps
+    are left out on purpose so an identical rebuild compares as identical."""
+    with zipfile.ZipFile(path) as z:
+        return {i.filename: i.CRC for i in z.infolist()}
+
+
 def mirror_targets():
     """Folders every built zip is copied into.
 
@@ -236,6 +251,13 @@ def report(label, out, files, dirs):
 
 
 def main():
+    args = sys.argv[1:]
+    force = "--force" in args
+    unknown = [a for a in args if a != "--force"]
+    if unknown:
+        sys.exit(f"Unknown argument(s): {' '.join(unknown)} "
+                 "(only --force is accepted)")
+
     if not os.path.isdir(SRC):
         sys.exit(f"Source folder missing: {SRC}")
     os.makedirs(DIST, exist_ok=True)
@@ -248,11 +270,30 @@ def main():
     mirrors = mirror_targets()
 
     # --- Dist zip: the installable skin folder only ---
+    # A version that is already built must not be silently rebuilt with
+    # different content: the zip may be released, and two different archives
+    # under one version number poison every cache and update check. The new
+    # zip is packed beside the old one first, compared by member set and CRC,
+    # and only an identical rebuild proceeds (keeping the existing file, so
+    # its bytes and checksums stay exactly as shipped).
     dist_out = os.path.join(DIST, f"skin.functional-{version}.zip")
-    files, dirs = write_zip(dist_out, SRC, "skin.functional")
+    if os.path.exists(dist_out) and not force:
+        rebuild = dist_out + ".rebuild"
+        files, dirs = write_zip(rebuild, SRC, "skin.functional")
+        changed = zip_members(rebuild) != zip_members(dist_out)
+        os.remove(rebuild)
+        if changed:
+            sys.exit(f"ABORTED — version {version} already released with "
+                     "different content — bump the addon.xml version first "
+                     "(or pass --force to overwrite the existing zip).")
+        print(f"Existing {os.path.basename(dist_out)} has identical "
+              "content, kept as is")
+    else:
+        files, dirs = write_zip(dist_out, SRC, "skin.functional")
     verify_zip(dist_out,
                must_contain=("skin.functional/", "skin.functional/addon.xml"),
-               must_not_contain_globs=("*.zip", "*.7z", "*.tmp", "*.log"))
+               must_not_contain_globs=("*.zip", "*.7z", "*.tmp", "*.log",
+                                       "*.pyc", "*.pyo"))
     report("dist", dist_out, files, dirs)
 
     # --- Source zip: the whole repo tree as pushed to GitHub ---

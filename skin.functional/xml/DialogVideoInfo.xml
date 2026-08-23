@@ -145,7 +145,7 @@
 			<font>font_reg</font>
 			<textcolor>$VAR[AccentColor]</textcolor>
 			<align>right</align>
-			<label>✓ Watched</label>
+			<label>Watched</label>
 			<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
 		</control>
 

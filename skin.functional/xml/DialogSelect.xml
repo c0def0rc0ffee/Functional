@@ -88,17 +88,13 @@
 			     and Kodi defaults an unset selectedcolor to 00000000 — ticked rows
 			     would render fully transparent while the focus bar stayed put. -->
 			<itemlayout height="60" width="880">
-				<control type="label">
-					<left>30</left>
-					<top>0</top>
-					<width>30</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>accent_hi</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
-					<align>center</align>
-					<aligny>center</aligny>
-					<label>✓</label>
+				<control type="image">
+					<left>34</left>
+					<top>19</top>
+					<width>22</width>
+					<height>22</height>
+					<aspectratio>keep</aspectratio>
+					<texture colordiffuse="accent_hi">tick.png</texture>
 					<visible>ListItem.IsSelected</visible>
 				</control>
 				<control type="label">
@@ -135,17 +131,13 @@
 					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 					<visible>Control.HasFocus(3)</visible>
 				</control>
-				<control type="label">
-					<left>30</left>
-					<top>0</top>
-					<width>30</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
-					<align>center</align>
-					<aligny>center</aligny>
-					<label>✓</label>
+				<control type="image">
+					<left>34</left>
+					<top>19</top>
+					<width>22</width>
+					<height>22</height>
+					<aspectratio>keep</aspectratio>
+					<texture colordiffuse="accent_hi">tick.png</texture>
 					<visible>ListItem.IsSelected</visible>
 				</control>
 				<control type="label">
@@ -187,17 +179,13 @@
 			<pagecontrol>61</pagecontrol>
 
 			<itemlayout height="60" width="880">
-				<control type="label">
-					<left>30</left>
-					<top>0</top>
-					<width>30</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>accent_hi</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
-					<align>center</align>
-					<aligny>center</aligny>
-					<label>✓</label>
+				<control type="image">
+					<left>34</left>
+					<top>19</top>
+					<width>22</width>
+					<height>22</height>
+					<aspectratio>keep</aspectratio>
+					<texture colordiffuse="accent_hi">tick.png</texture>
 					<visible>ListItem.IsSelected</visible>
 				</control>
 				<control type="label">
@@ -221,17 +209,13 @@
 					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 					<visible>Control.HasFocus(6)</visible>
 				</control>
-				<control type="label">
-					<left>30</left>
-					<top>0</top>
-					<width>30</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
-					<align>center</align>
-					<aligny>center</aligny>
-					<label>✓</label>
+				<control type="image">
+					<left>34</left>
+					<top>19</top>
+					<width>22</width>
+					<height>22</height>
+					<aspectratio>keep</aspectratio>
+					<texture colordiffuse="accent_hi">tick.png</texture>
 					<visible>ListItem.IsSelected</visible>
 				</control>
 				<control type="label">

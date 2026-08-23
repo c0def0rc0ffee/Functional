@@ -128,7 +128,7 @@
 				<itemgap>4</itemgap>
 				<onleft>4004</onleft>
 				<onright>4004</onright>
-				<control type="button" id="23"><width>166</width><height>85</height><label>⌫</label><onup>17</onup><ondown>20</ondown></control>
+				<control type="button" id="23"><width>166</width><height>85</height><label>←</label><onup>17</onup><ondown>20</ondown></control>
 				<control type="button" id="10"><width>166</width><height>85</height><label>0</label><onup>18</onup><ondown>12</ondown></control>
 				<control type="button" id="21"><width>166</width><height>85</height><label>OK</label><onup>19</onup><ondown>22</ondown></control>
 			</control>

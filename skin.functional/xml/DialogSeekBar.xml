@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <window type="dialog">
+	<!-- Auto-show (Estuary-style): without a window-level <visible>, Kodi only
+	     opens this dialog for the brief moment of an actual seek — pausing
+	     gave no on-screen feedback at all. -->
+	<visible>Window.IsActive(fullscreenvideo) | Window.IsActive(visualisation)</visible>
+	<visible>Player.Seeking | Player.HasPerformedSeek(3) | [Player.Paused + !Player.Caching] | Player.Forwarding | Player.Rewinding | Player.ShowTime | Window.IsActive(fullscreeninfo) | !String.IsEmpty(Player.SeekNumeric)</visible>
+	<visible>![Window.IsActive(videoosd) | Window.IsActive(musicosd)]</visible>
 	<animation effect="fade" time="150">WindowOpen</animation>
 	<animation effect="fade" time="150">WindowClose</animation>
 	<controls>
@@ -49,18 +55,9 @@
 			<width>1400</width>
 			<height>6</height>
 			<info>Player.ProgressCache</info>
-			<texturebg>-</texturebg>
-			<lefttexture colordiffuse="40FFFFFF">white.png</lefttexture>
+			<texturebg colordiffuse="20FFFFFF">white.png</texturebg>
 			<midtexture colordiffuse="40FFFFFF">white.png</midtexture>
-			<righttexture colordiffuse="40FFFFFF">white.png</righttexture>
 			<overlaytexture>-</overlaytexture>
-		</control>
-		<control type="image">
-			<left>260</left>
-			<bottom>74</bottom>
-			<width>1400</width>
-			<height>6</height>
-			<texture colordiffuse="40FFFFFF">white.png</texture>
 		</control>
 		<control type="progress" id="23">
 			<left>260</left>
@@ -68,10 +65,8 @@
 			<width>1400</width>
 			<height>6</height>
 			<info>Player.Progress</info>
-			<texturebg>-</texturebg>
-			<lefttexture colordiffuse="accent_hi">white.png</lefttexture>
+			<texturebg colordiffuse="00FFFFFF">white.png</texturebg>
 			<midtexture colordiffuse="accent_hi">white.png</midtexture>
-			<righttexture colordiffuse="accent_hi">white.png</righttexture>
 			<overlaytexture>-</overlaytexture>
 		</control>
 
@@ -160,18 +155,9 @@
 			<width>1400</width>
 			<height>6</height>
 			<info>Player.ProgressCache</info>
-			<texturebg>-</texturebg>
-			<lefttexture colordiffuse="40FFFFFF">white.png</lefttexture>
+			<texturebg colordiffuse="20FFFFFF">white.png</texturebg>
 			<midtexture colordiffuse="40FFFFFF">white.png</midtexture>
-			<righttexture colordiffuse="40FFFFFF">white.png</righttexture>
 			<overlaytexture>-</overlaytexture>
-		</control>
-		<control type="image">
-			<left>260</left>
-			<top>60</top>
-			<width>1400</width>
-			<height>6</height>
-			<texture colordiffuse="40FFFFFF">white.png</texture>
 		</control>
 		<control type="progress" id="23">
 			<left>260</left>
@@ -179,10 +165,8 @@
 			<width>1400</width>
 			<height>6</height>
 			<info>Player.Progress</info>
-			<texturebg>-</texturebg>
-			<lefttexture colordiffuse="accent_hi">white.png</lefttexture>
+			<texturebg colordiffuse="00FFFFFF">white.png</texturebg>
 			<midtexture colordiffuse="accent_hi">white.png</midtexture>
-			<righttexture colordiffuse="accent_hi">white.png</righttexture>
 			<overlaytexture>-</overlaytexture>
 		</control>
 

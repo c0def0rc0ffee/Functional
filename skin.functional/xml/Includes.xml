@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <includes>
 
+	<!-- Deliberately NOT pulling in Defaults.xml, see the note at the top of
+	     that file: every control in this skin styles itself explicitly. -->
+
 	<!-- Variables -->
 	<variable name="DebugYesNoFiltered">
 		<value condition="Container.Filtered">yes</value>
@@ -152,11 +155,16 @@
 		<value condition="!Skin.HasSetting(hide_genre) + !String.IsEmpty(ListItem.Genre)">$INFO[ListItem.Genre]</value>
 		<value></value>
 	</variable>
+	<!-- The " · " prefixes assume an earlier segment rendered; each variable
+	     drops its prefix when it would open the line (TV shows have no
+	     duration, so the old versions rendered a stray leading dot). -->
 	<variable name="ItemEndsAtLabel">
+		<value condition="!Skin.HasSetting(hide_endsat) + !String.IsEmpty(Window(home).Property(focused_finish_time)) + String.IsEmpty(ListItem.Duration)">Ends at $INFO[Window(home).Property(focused_finish_time)]</value>
 		<value condition="!Skin.HasSetting(hide_endsat) + !String.IsEmpty(Window(home).Property(focused_finish_time))"> · Ends at $INFO[Window(home).Property(focused_finish_time)]</value>
 		<value></value>
 	</variable>
 	<variable name="ItemStarRatingLabel">
+		<value condition="!Skin.HasSetting(hide_rating) + !String.IsEmpty(ListItem.Rating) + String.IsEmpty(ListItem.Duration) + String.IsEmpty(Window(home).Property(focused_finish_time))">★ $INFO[ListItem.Rating]</value>
 		<value condition="!Skin.HasSetting(hide_rating) + !String.IsEmpty(ListItem.Rating)"> · ★ $INFO[ListItem.Rating]</value>
 		<value></value>
 	</variable>
@@ -175,6 +183,12 @@
 	<variable name="SmallColsLabel">
 		<value condition="String.IsEqual(Skin.String(small_cols),11)">11</value>
 		<value>12</value>
+	</variable>
+
+	<!-- Context-menu placement (SkinSettings 7223, applied in DialogContextMenu). -->
+	<variable name="ContextMenuPositionLabel">
+		<value condition="String.IsEqual(Skin.String(context_menu_pos),left)">Left Edge</value>
+		<value>Centre</value>
 	</variable>
 
 	<!-- Info bar position label (left-menu mirror of SkinSettings 7200). -->
@@ -233,7 +247,11 @@
 	     Whichever value the Skin.String currently equals, that animation
 	     activates and translates the panel by that many pixels. Bypasses
 	     a build-specific bug where $INFO substitution doesn't evaluate live
-	     in panel coordinate attributes. Used via <include content="ClearanceAnimations"/>. -->
+	     in panel coordinate attributes. Used via <include content="ClearanceAnimations"/>.
+	     Bottom-infobar case: NO slide. The old slide-up-by-clearance variant
+	     permanently hid the top 140px of every library view (worst in short
+	     lists like seasons); instead the wrapping groups carry a static
+	     140px bottom inset matching the default clearance. -->
 	<include name="ClearanceAnimations">
 		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),0)" end="0,0" reversible="true">Conditional</animation>
 		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),10)" end="0,10" reversible="true">Conditional</animation>
@@ -261,32 +279,6 @@
 		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),230)" end="0,230" reversible="true">Conditional</animation>
 		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),240)" end="0,240" reversible="true">Conditional</animation>
 		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),250)" end="0,250" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),0)" end="0,0" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),10)" end="0,-10" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),20)" end="0,-20" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),30)" end="0,-30" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),40)" end="0,-40" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),50)" end="0,-50" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),60)" end="0,-60" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),70)" end="0,-70" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),80)" end="0,-80" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),90)" end="0,-90" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),100)" end="0,-100" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),110)" end="0,-110" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),120)" end="0,-120" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),130)" end="0,-130" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),140)" end="0,-140" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),150)" end="0,-150" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),160)" end="0,-160" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),170)" end="0,-170" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),180)" end="0,-180" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),190)" end="0,-190" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),200)" end="0,-200" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),210)" end="0,-210" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),220)" end="0,-220" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),230)" end="0,-230" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),240)" end="0,-240" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="!Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_bottom),250)" end="0,-250" reversible="true">Conditional</animation>
 	</include>
 
 
@@ -479,17 +471,15 @@
 				<texture colordiffuse="$VAR[AccentColor]">corner_triangle.png</texture>
 				<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
 			</control>
-			<control type="label">
-				<right>10</right>
+			<!-- Texture, not a "✓" label: NotoSans has no U+2713 glyph, so the
+			     text version rendered as a missing-glyph box. -->
+			<control type="image">
+				<right>8</right>
 				<top>6</top>
-				<width>26</width>
-				<height>26</height>
-				<font>font_reg</font>
-				<textcolor>white</textcolor>
-				<selectedcolor>accent_hi</selectedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<label>✓</label>
+				<width>24</width>
+				<height>24</height>
+				<aspectratio>keep</aspectratio>
+				<texture colordiffuse="white">tick.png</texture>
 				<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
 			</control>
 		</definition>

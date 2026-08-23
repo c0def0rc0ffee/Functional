@@ -77,11 +77,13 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 
 Custom-styled to match the skin: File Manager, Event Log, System Info, Add-on Info, the on-screen keyboard, and compact, correctly-positioned toast notifications.
 
+> **Not skinned**: PVR/Live TV and Games. Enabling those features under this skin will leave their windows unable to open. Switch to Estuary if you need them.
+
 ### Music
 
 - Dedicated music OSD with album art, track title, artist, album, and progress bar
 - Video and music playlist views with header showing item count, total time, and current-item finish time
-- Playlist controls: Play All, Shuffle, Repeat, Clear
+- Playlist controls: Play All, Shuffle, Repeat, Save, Clear
 
 ### Helper Service
 
@@ -99,7 +101,7 @@ All settings live in **Settings > Skin Settings**, organised into five categorie
 - **Overall**: accent colour (Blue, Red, Green, Orange, Amber, Purple, Teal, Pink), notification position (6 placements), and Diagnostics (debug logging + log folder)
 - **Background**: the unified background mode, image/folder picker, dim, slideshow interval and caption position
 - **Home Screen**: show/hide each menu item (incl. Weather), stats panels, Favourites/Add-ons/Power buttons, logo, footer, date/time, loading splash; main menu position; invisible round buttons; weather widget; default Favourites filter
-- **Media Selection**: gallery thumbnail size, small-grid column count, poster shape, info bar position, and toggles for every metadata field
+- **Media Selection**: gallery thumbnail size, small-grid column count, poster shape, info bar position, context menu position (centre or left edge), and toggles for every metadata field
 - **Video OSD**: OSD position, OSD thumbnail, and the video dim level
 
 Toggle settings show an accent **dot** when on. Most changes apply immediately; a few service-backed ones take effect on the next launch.

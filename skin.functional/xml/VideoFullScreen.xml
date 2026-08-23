@@ -87,9 +87,7 @@
 				<height>6</height>
 				<info>Player.CacheLevel</info>
 				<texturebg colordiffuse="grey_mid">white.png</texturebg>
-				<lefttexture colordiffuse="$VAR[AccentColor]">white.png</lefttexture>
 				<midtexture colordiffuse="$VAR[AccentColor]">white.png</midtexture>
-				<righttexture colordiffuse="$VAR[AccentColor]">white.png</righttexture>
 				<overlaytexture>-</overlaytexture>
 			</control>
 		</control>

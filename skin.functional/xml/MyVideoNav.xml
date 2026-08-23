@@ -64,7 +64,9 @@
 			<left>30</left>
 			<top>0</top>
 			<right>30</right>
-			<bottom>0</bottom>
+			<!-- static inset for the default bottom info bar; the top-infobar
+			     case slides this group down by the exact clearance instead -->
+			<bottom>140</bottom>
 			<include content="ClearanceAnimations"/>
 		<control type="panel" id="51">
 			<left>0</left>
@@ -245,7 +247,9 @@
 			<left>30</left>
 			<top>0</top>
 			<right>30</right>
-			<bottom>0</bottom>
+			<!-- static inset for the default bottom info bar; the top-infobar
+			     case slides this group down by the exact clearance instead -->
+			<bottom>140</bottom>
 			<include content="ClearanceAnimations"/>
 		<control type="list" id="50">
 			<left>0</left>

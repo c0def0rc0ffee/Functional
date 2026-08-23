@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  INACTIVE. Kodi does not load Defaults.xml on its own - only Includes.xml is
+  auto-loaded, and it deliberately does not pull this file in (Estuary does
+  pull its own in, which is why control defaults work there and not here).
+
+  So nothing below has any effect: every control in this skin must state its
+  own size, font, colours and textures, which is what all the windows do. A
+  control that leans on these blocks renders as nothing at all.
+
+  Don't "fix" that by adding <include file="Defaults.xml"/> to Includes.xml.
+  It was tried live: the defaults land on controls that never expected them
+  and break existing windows (Settings loses its header bar and separators,
+  gains a stray panel behind the content). Making this file live means
+  auditing every window against it first.
+-->
 <includes>
 
 	<default type="label">
@@ -118,9 +133,11 @@
 		<height>20</height>
 		<width>400</width>
 		<texturebg colordiffuse="grey_mid">white.png</texturebg>
-		<lefttexture colordiffuse="$VAR[AccentColor]">white.png</lefttexture>
+		<!-- mid only, no caps: with left/right set, Kodi computes the fill
+		     from TEXTURE widths (bg - left - right = negative for same-size
+		     plain textures) and the bar renders garbage. Capless mid fills
+		     percent x control width, exactly what plain bars want. -->
 		<midtexture colordiffuse="$VAR[AccentColor]">white.png</midtexture>
-		<righttexture colordiffuse="$VAR[AccentColor]">white.png</righttexture>
 		<overlaytexture>-</overlaytexture>
 	</default>
 

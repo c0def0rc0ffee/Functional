@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+	<controls>
+
+		<!-- Kodi's slideshow engine renders the pictures itself, underneath
+		     these controls; the XML only supplies overlays. -->
+
+		<!-- Video slide: play hint while the clip is not yet playing / paused -->
+		<control type="image">
+			<centerleft>50%</centerleft>
+			<centertop>50%</centertop>
+			<width>160</width>
+			<height>160</height>
+			<aspectratio>keep</aspectratio>
+			<texture colordiffuse="white">icons/play.png</texture>
+			<visible>SlideShow.IsVideo</visible>
+			<visible>![Player.Playing + Player.HasVideo] | SlideShow.IsPaused</visible>
+		</control>
+
+		<!-- Picture slideshow paused badge -->
+		<control type="group">
+			<right>40</right>
+			<top>40</top>
+			<width>96</width>
+			<height>96</height>
+			<visible>SlideShow.IsPaused + !SlideShow.IsVideo</visible>
+			<animation effect="fade" time="200">VisibleChange</animation>
+
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>96</width>
+				<height>96</height>
+				<texture colordiffuse="bg_panel">white.png</texture>
+			</control>
+			<control type="image">
+				<left>24</left>
+				<top>24</top>
+				<width>48</width>
+				<height>48</height>
+				<aspectratio>keep</aspectratio>
+				<texture colordiffuse="white">icons/pause.png</texture>
+			</control>
+		</control>
+
+	</controls>
+</window>

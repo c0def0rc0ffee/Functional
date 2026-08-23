@@ -422,7 +422,7 @@
 				<textoffsetx>20</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="accent_hi">white.png</texturenofocus>
-				<label>▶  Back to: $INFO[VideoPlayer.Title]$INFO[MusicPlayer.Title]</label>
+				<label>Back to: $INFO[VideoPlayer.Title]$INFO[MusicPlayer.Title]</label>
 				<onclick condition="Player.HasVideo">ActivateWindow(fullscreenvideo)</onclick>
 				<onclick condition="Player.HasAudio + !Player.HasVideo">ActivateWindow(visualisation)</onclick>
 				<animation effect="fade" time="200">VisibleChange</animation>

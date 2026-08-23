@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window type="dialog">
+	<defaultcontrol always="true">22</defaultcontrol>
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>160</posx>
+		<posy>120</posy>
+	</coordinates>
+	<controls>
+
+		<!-- Dim backdrop -->
+		<control type="image">
+			<left>-160</left>
+			<top>-120</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="C0000000">white.png</texture>
+		</control>
+
+		<!-- Panel -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1600</width>
+			<height>840</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1600</width>
+			<height>4</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Heading (Kodi populates id=2) -->
+		<control type="label" id="2">
+			<left>0</left>
+			<top>20</top>
+			<width>1600</width>
+			<height>50</height>
+			<font>font_med</font>
+			<align>center</align>
+			<textcolor>text</textcolor>
+			<label></label>
+		</control>
+
+		<!-- Playlist settings column: 22 = type, 12 = name, 16 = match,
+		     17 = limit, 18 = order by, 19 = order direction, 23 = group by,
+		     24 = group mixed. Kodi fills the current values in as label2. -->
+		<control type="grouplist" id="500">
+			<left>40</left>
+			<top>120</top>
+			<width>620</width>
+			<height>620</height>
+			<orientation>vertical</orientation>
+			<itemgap>10</itemgap>
+			<onleft>10</onleft>
+			<onright>10</onright>
+			<onup>9001</onup>
+			<ondown>9001</ondown>
+
+			<control type="button" id="22">
+				<width>620</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[467]</label>
+			</control>
+			<control type="button" id="12">
+				<width>620</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[21433]</label>
+			</control>
+			<control type="button" id="16">
+				<width>620</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[21424]</label>
+			</control>
+			<control type="button" id="17">
+				<width>620</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[21427]</label>
+			</control>
+			<control type="button" id="18">
+				<width>620</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[21429]</label>
+			</control>
+			<control type="button" id="19">
+				<width>620</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Order direction</label>
+			</control>
+			<control type="button" id="23">
+				<width>620</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[21458]</label>
+			</control>
+			<control type="radiobutton" id="24">
+				<width>620</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">white.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">white.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="grey">white.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_dark">white.png</textureradiooffnofocus>
+				<label>$LOCALIZE[21459]</label>
+			</control>
+		</control>
+
+		<!-- Rules list (id 10). Kodi appends its own "new rule" entry;
+		     clicking a rule edits it, so no add/remove buttons needed. -->
+		<control type="list" id="10">
+			<left>700</left>
+			<top>120</top>
+			<width>820</width>
+			<height>600</height>
+			<onleft>500</onleft>
+			<onright>61</onright>
+			<onup>9001</onup>
+			<ondown>9001</ondown>
+			<pagecontrol>61</pagecontrol>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+
+			<itemlayout height="60" width="820">
+				<control type="label">
+					<left>20</left>
+					<top>0</top>
+					<width>780</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="60" width="820">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>820</width>
+					<height>60</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+					<visible>Control.HasFocus(10)</visible>
+				</control>
+				<control type="label">
+					<left>20</left>
+					<top>0</top>
+					<width>780</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</focusedlayout>
+		</control>
+
+		<!-- Scrollbar -->
+		<control type="scrollbar" id="61">
+			<left>1534</left>
+			<top>120</top>
+			<width>16</width>
+			<height>600</height>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>10</onleft>
+			<onright>500</onright>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- Action buttons: 20 = OK, 21 = cancel -->
+		<control type="grouplist" id="9001">
+			<left>40</left>
+			<top>750</top>
+			<width>1520</width>
+			<height>60</height>
+			<orientation>horizontal</orientation>
+			<itemgap>20</itemgap>
+			<align>center</align>
+			<onup>10</onup>
+			<ondown>10</ondown>
+
+			<control type="button" id="20">
+				<width>240</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[186]</label>
+			</control>
+			<control type="button" id="21">
+				<width>240</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[222]</label>
+			</control>
+		</control>
+
+	</controls>
+</window>

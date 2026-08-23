@@ -3,10 +3,14 @@
 	<defaultcontrol always="true">996</defaultcontrol>
 	<animation effect="fade" time="150">WindowOpen</animation>
 	<animation effect="fade" time="150">WindowClose</animation>
+	<!-- Origin MUST stay at 0,0. Kodi repositions this window itself, centred
+	     on the focused container, and it adds that offset to whatever origin
+	     is declared here: a posx/posy of 660,140 pushed the menu off the
+	     bottom-right corner where half of it was unreachable. Estuary anchors
+	     at 0,0 for the same reason. -->
 	<coordinates>
-		<system>1</system>
-		<posx>660</posx>
-		<posy>140</posy>
+		<left>0</left>
+		<top>0</top>
 	</coordinates>
 	<controls>
 
@@ -37,6 +41,14 @@
 		<control type="group">
 			<left>0</left>
 			<top>0</top>
+
+			<!-- "Left Edge" placement (Media Selection > Context Menu). Kodi
+			     centres this 600-wide window on the focused container, so on a
+			     full-width library list it lands at x=660; sliding back 620
+			     parks the panel 40px off the left edge. Estuary nudges its own
+			     context menu the same way. Vertical placement is left to Kodi. -->
+			<animation effect="slide" end="-620,0" time="0"
+			           condition="String.IsEqual(Skin.String(context_menu_pos),left)">Conditional</animation>
 
 			<!-- Panel background (auto-grows with grouplist via separate height) -->
 			<control type="image">
