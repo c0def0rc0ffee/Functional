@@ -183,6 +183,7 @@
 		<!-- Category button (left list). Empty texturenofocus = no background
 		     when unfocused (Kodi renders colordiffuse=00000000 as opaque white). -->
 		<control type="button" id="10">
+			<onleft>3</onleft>
 			<width>400</width>
 			<height>70</height>
 			<font>font_reg</font>
@@ -195,8 +196,15 @@
 			<texturenofocus />
 		</control>
 
+		<!-- Every setting control below carries <onleft>3</onleft> so left
+	     returns to the category list on the left. Without it focus sits on
+	     the individual control, not on group 5, and group 5's own onleft
+	     never applies - so the only way back was down to the button bar
+	     and up again. Spin controls and sliders are deliberately excluded:
+	     left and right adjust their value. -->
 		<!-- Default button setting -->
 		<control type="button" id="7">
+			<onleft>3</onleft>
 			<width>1080</width>
 			<height>70</height>
 			<font>font_reg</font>
@@ -211,6 +219,7 @@
 
 		<!-- Default radiobutton setting -->
 		<control type="radiobutton" id="8">
+			<onleft>3</onleft>
 			<width>1080</width>
 			<height>70</height>
 			<font>font_reg</font>
@@ -250,6 +259,7 @@
 
 		<!-- Edit (text input) -->
 		<control type="edit" id="12">
+			<onleft>3</onleft>
 			<width>1080</width>
 			<height>70</height>
 			<font>font_reg</font>
@@ -278,6 +288,7 @@
 
 		<!-- Group label -->
 		<control type="label" id="14">
+			<onleft>3</onleft>
 			<width>1080</width>
 			<height>50</height>
 			<font>font_med</font>
@@ -289,6 +300,7 @@
 
 		<!-- Color picker -->
 		<control type="colorbutton" id="15">
+			<onleft>3</onleft>
 			<width>1080</width>
 			<height>70</height>
 			<font>font_reg</font>
