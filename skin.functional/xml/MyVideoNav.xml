@@ -74,7 +74,13 @@
 			<right>0</right>
 			<bottom>0</bottom>
 			<onleft>8001</onleft>
-			<onright>51</onright>
+			<!-- Right from the last column goes to the OTHER view's control.
+			     Kodi hides the inactive view, so this is a no-op while this
+			     view is active, but it is what makes the side menu's
+			     <onright>51</onright> fall through to list 50 when the List
+			     view is the active one (otherwise the menu was a focus trap
+			     in List view). -->
+			<onright>50</onright>
 			<onup>51</onup>
 			<onfocus>Skin.Reset(left_menu_open)</onfocus>
 			<orientation>vertical</orientation>
@@ -257,7 +263,7 @@
 			<right>0</right>
 			<bottom>0</bottom>
 			<onleft>8001</onleft>
-			<onright>50</onright>
+			<onright>51</onright>
 			<onfocus>Skin.Reset(left_menu_open)</onfocus>
 			<scrolltime tween="cubic" easing="out">200</scrolltime>
 			<pagecontrol>60</pagecontrol>
@@ -608,6 +614,7 @@
 					<height>70</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -629,6 +636,7 @@
 					<height>50</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -652,6 +660,7 @@
 					<height>50</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -678,6 +687,7 @@
 					<height>70</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -699,6 +709,7 @@
 					<height>50</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -730,6 +741,7 @@
 					<height>50</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -755,6 +767,7 @@
 					<height>50</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -780,6 +793,7 @@
 					<height>50</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -809,6 +823,7 @@
 					<height>50</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -833,6 +848,7 @@
 					<height>70</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -860,6 +876,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -886,6 +903,7 @@
 					<height>50</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -908,6 +926,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -926,16 +945,20 @@
 				     Live-tunable info-bar clearance. Toggle is always visible;
 				     the +/- buttons appear when on. They write
 				     Skin.String(layout_command) increments, which service.py
-				     applies to Skin.String(infobar_clearance_top/bottom); the
-				     panels move via the pre-baked ClearanceAnimations slides
-				     (coordinates can't read $INFO directly). Symmetric for
-				     both info-bar positions. -->
+				     applies to Skin.String(infobar_clearance_top); the panels
+				     move via the pre-baked ClearanceAnimations slides
+				     (coordinates can't read $INFO directly). TOP bar only:
+				     the bottom bar is a fixed 140px inset (see the
+				     ClearanceAnimations comment in Includes.xml), so the old
+				     Bottom +/- buttons changed a number nothing read and were
+				     removed. service.py keeps values on the 10px grid. -->
 
 				<control type="button" id="8499">
 					<width>380</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -958,6 +981,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -983,6 +1007,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1006,6 +1031,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1028,6 +1054,7 @@
 					<height>40</height>
 					<font>font_small</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>
@@ -1048,6 +1075,7 @@
 					<height>40</height>
 					<font>font_small</font>
 					<textcolor>$VAR[AccentColor]</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>
@@ -1068,6 +1096,7 @@
 					<height>40</height>
 					<font>font_small</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>
@@ -1078,78 +1107,16 @@
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
 					<onup>8502</onup>
-					<ondown>8501</ondown>
-				</control>
-
-				<!-- Bottom: − 10 px -->
-				<control type="button" id="8501">
-					<visible>Skin.HasSetting(layout_adjust)</visible>
-					<width>380</width>
-					<height>40</height>
-					<font>font_small</font>
-					<textcolor>text</textcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>center</align>
-					<aligny>center</aligny>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Bottom  −  10 px</label>
-					<onclick>Skin.SetString(layout_command,bottom_dec)</onclick>
-					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
-					<onright>51</onright>
-					<onup>8504</onup>
-					<ondown>8503</ondown>
-				</control>
-
-				<!-- Bottom value display + keypad fallback -->
-				<control type="button" id="8503">
-					<visible>Skin.HasSetting(layout_adjust)</visible>
-					<width>380</width>
-					<height>40</height>
-					<font>font_small</font>
-					<textcolor>$VAR[AccentColor]</textcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>center</align>
-					<aligny>center</aligny>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Bottom: $INFO[Skin.String(infobar_clearance_bottom)] px · tap to type</label>
-					<onclick>Skin.SetNumeric(infobar_clearance_bottom)</onclick>
-					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
-					<onright>51</onright>
-					<onup>8501</onup>
-					<ondown>8505</ondown>
-				</control>
-
-				<!-- Bottom: + 10 px -->
-				<control type="button" id="8505">
-					<visible>Skin.HasSetting(layout_adjust)</visible>
-					<width>380</width>
-					<height>40</height>
-					<font>font_small</font>
-					<textcolor>text</textcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>center</align>
-					<aligny>center</aligny>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Bottom  +  10 px</label>
-					<onclick>Skin.SetString(layout_command,bottom_inc)</onclick>
-					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
-					<onright>51</onright>
-					<onup>8503</onup>
 					<ondown>8506</ondown>
 				</control>
 
-				<!-- Small-gallery column count toggle (11 vs 12).
-				     Default unset = 12 (panel 1860 / 155). Set to 11 for
-				     TVs with overscan where the rightmost tile is clipped. -->
 				<control type="button" id="8506">
 					<visible>Skin.HasSetting(layout_adjust)</visible>
 					<width>380</width>
 					<height>40</height>
 					<font>font_small</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>
@@ -1161,7 +1128,7 @@
 					<onclick>Container.Refresh</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
-					<onup>8505</onup>
+					<onup>8504</onup>
 					<ondown>8008</ondown>
 				</control>
 
@@ -1171,6 +1138,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1178,7 +1146,8 @@
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 					<label>Close</label>
-					<onclick>SetFocus(51)</onclick>
+					<onclick condition="Control.IsVisible(50)">SetFocus(50)</onclick>
+					<onclick condition="!Control.IsVisible(50)">SetFocus(51)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
 					<onup>8506</onup>

@@ -140,9 +140,21 @@
 		<value>20s</value>
 	</variable>
 
+	<!-- Buffer readout for the OSD and pause/seek bar. In per-movie
+	     full-file mode (memorysize 0) Player.CacheLevel is meaningless -
+	     there is no fixed buffer to be a percentage of - so lead with the
+	     mode instead. buffer_detail/buffer_fullfile come from
+	     service.py:update_buffer_stats(). -->
+	<variable name="BufferReadout">
+		<value condition="!String.IsEmpty(Window(home).Property(buffer_fullfile))">Full buffer$INFO[Window(home).Property(buffer_detail), · ,]</value>
+		<value>Buffer $INFO[Player.CacheLevel]%$INFO[Window(home).Property(buffer_detail), · ,]</value>
+	</variable>
+
 	<!-- Pretty resolution label for the currently-playing item (used by VideoOSD) -->
 	<variable name="OsdResolutionLabel">
-		<value condition="String.IsEqual(VideoPlayer.VideoResolution,2160)">4K</value>
+		<!-- Kodi reports UHD as the strings "4K" / "8K", never 2160/4320. -->
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,8K)">8K</value>
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,4K)">4K</value>
 		<value condition="String.IsEqual(VideoPlayer.VideoResolution,1080)">1080p</value>
 		<value condition="String.IsEqual(VideoPlayer.VideoResolution,720)">720p</value>
 		<value condition="String.IsEqual(VideoPlayer.VideoResolution,576)">576p</value>
@@ -151,9 +163,10 @@
 		<value></value>
 	</variable>
 
-	<!-- Pretty resolution label (ListItem.VideoResolution returns 480/720/1080/2160) -->
+	<!-- Pretty resolution label (ListItem.VideoResolution returns 480/540/576/720/1080/4K/8K) -->
 	<variable name="ItemResolutionLabel">
-		<value condition="String.IsEqual(ListItem.VideoResolution,2160)">4K</value>
+		<value condition="String.IsEqual(ListItem.VideoResolution,8K)">8K</value>
+		<value condition="String.IsEqual(ListItem.VideoResolution,4K)">4K</value>
 		<value condition="String.IsEqual(ListItem.VideoResolution,1080)">1080p</value>
 		<value condition="String.IsEqual(ListItem.VideoResolution,720)">720p</value>
 		<value condition="String.IsEqual(ListItem.VideoResolution,480)">480p</value>
@@ -369,6 +382,12 @@
 		<value condition="String.IsEqual(Skin.String(bg_windows_dim),60)">60%</value>
 		<value condition="String.IsEqual(Skin.String(bg_windows_dim),90)">90%</value>
 		<value>75% (default)</value>
+	</variable>
+
+	<!-- Weather window location button: blank until a provider is set up -->
+	<variable name="WeatherLocationLabel">
+		<value condition="!String.IsEmpty(Weather.Location)">$INFO[Weather.Location]</value>
+		<value>Location</value>
 	</variable>
 
 	<!-- Video OSD vertical position -->
@@ -875,6 +894,7 @@
 				<height>80</height>
 				<font>font_med</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -885,11 +905,36 @@
 		</definition>
 	</include>
 
+	<!-- DialogNumeric keypad key: same styling as KeyboardKey, sized for the
+	     3-column grid. id/label/nav are set on the control itself. -->
+	<include name="NumericKey">
+		<width>166</width>
+		<height>85</height>
+		<font>font_med</font>
+		<textcolor>text</textcolor>
+		<focusedcolor>white</focusedcolor>
+		<disabledcolor>disabled</disabledcolor>
+		<align>center</align>
+		<aligny>center</aligny>
+		<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+		<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+	</include>
+
 	<!-- Generic browse window content area (header + list + footer) -->
 	<include name="MediaBrowseContent">
 		<param name="title" />
-		<param name="list_left" value="60" />
-		<param name="list_width" value="1100" />
+		<!-- Defaults live in the default= attribute; Kodi ignores value= on a
+		     definition, which left Music/Pictures/Programs with an empty list
+		     geometry (no rows drawn) until 0.8.7. -->
+		<param name="list_left" default="60" />
+		<param name="list_width" default="1100" />
+		<!-- main label width inside a row; callers with a narrower list
+		     pass a smaller value so it stops short of the Label2 column -->
+		<param name="label_width" default="800" />
+		<!-- where Left/Right from the list go; only AddonBrowser has a sidebar
+		     (9000), the plain browse windows keep focus on the list -->
+		<param name="nav_left" default="50" />
+		<param name="nav_right" default="50" />
 		<definition>
 			<include content="WindowBackground"/>
 			<include content="HeaderBar">
@@ -902,8 +947,8 @@
 				<top>120</top>
 				<width>$PARAM[list_width]</width>
 				<height>880</height>
-				<onleft>9000</onleft>
-				<onright>9000</onright>
+				<onleft>$PARAM[nav_left]</onleft>
+				<onright>$PARAM[nav_right]</onright>
 				<pagecontrol>60</pagecontrol>
 				<scrolltime tween="cubic" easing="out">200</scrolltime>
 				<itemlayout height="60" width="$PARAM[list_width]">
@@ -917,7 +962,7 @@
 					<control type="label">
 						<left>80</left>
 						<top>0</top>
-						<width>800</width>
+						<width>$PARAM[label_width]</width>
 						<height>60</height>
 						<font>font_reg</font>
 						<textcolor>text</textcolor>
@@ -957,7 +1002,7 @@
 					<control type="label">
 						<left>80</left>
 						<top>0</top>
-						<width>800</width>
+						<width>$PARAM[label_width]</width>
 						<height>60</height>
 						<font>font_reg</font>
 						<textcolor>white</textcolor>
@@ -1113,6 +1158,7 @@
 				<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -1396,6 +1442,7 @@
 					<top>0</top>
 					<width>152</width>
 					<height>198</height>
+					<disabledcolor>disabled</disabledcolor>
 					<texturefocus />
 					<texturenofocus />
 					<onleft>$PARAM[onleft]</onleft>

@@ -124,6 +124,7 @@
 			<width>80</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>PlayerControl(Previous)</onclick>
@@ -146,6 +147,7 @@
 			<width>112</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>PlayerControl(Play)</onclick>
@@ -178,6 +180,7 @@
 			<width>80</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>PlayerControl(Stop)</onclick>
@@ -200,6 +203,7 @@
 			<width>80</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>PlayerControl(Next)</onclick>
@@ -226,6 +230,7 @@
 			<onclick>PlayerControl(Repeat)</onclick>
 			<font>font_small</font>
 			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<focusedcolor>white</focusedcolor>
 			<align>center</align>
 			<aligny>center</aligny>
@@ -246,6 +251,7 @@
 			<onclick>PlayerControl(Random)</onclick>
 			<font>font_small</font>
 			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<focusedcolor>white</focusedcolor>
 			<align>center</align>
 			<aligny>center</aligny>
@@ -263,9 +269,13 @@
 			<width>80</width>
 			<height>56</height>
 			<label>★+</label>
-			<onclick>Action(increaserating,visualisation)</onclick>
+			<!-- No window argument: the rating is applied in CApplication::OnAction,
+			     which Action(x,window) bypasses (the visualisation window only
+			     restarts its info timer on these). -->
+			<onclick>Action(increaserating)</onclick>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<focusedcolor>white</focusedcolor>
 			<align>center</align>
 			<aligny>center</aligny>
@@ -283,9 +293,10 @@
 			<width>80</width>
 			<height>56</height>
 			<label>★-</label>
-			<onclick>Action(decreaserating,visualisation)</onclick>
+			<onclick>Action(decreaserating)</onclick>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<focusedcolor>white</focusedcolor>
 			<align>center</align>
 			<aligny>center</aligny>

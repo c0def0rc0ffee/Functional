@@ -44,8 +44,15 @@
 			<top>70</top>
 			<width>60</width>
 			<height>60</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<align>center</align>
+			<aligny>center</aligny>
 			<textoffsetx>0</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<label>&lt;</label>
 			<onleft>22</onleft>
 			<onright>22</onright>
@@ -53,11 +60,25 @@
 			<ondown>11</ondown>
 		</control>
 
-		<control type="edit" id="4">
+		<!-- Input readout. MUST be a label: CGUIDialogNumeric writes the typed
+		     value with a CGUILabelControl cast (plus SetHighlight for the
+		     active date/time/IP field); an edit control fails the cast and
+		     the dialog shows nothing (that was the 0.8.6 blank keypad). -->
+		<control type="label" id="4">
 			<left>108</left>
 			<top>70</top>
 			<width>384</width>
 			<height>60</height>
+			<font>font_med</font>
+			<align>center</align>
+			<aligny>center</aligny>
+			<textcolor>text</textcolor>
+			<selectedcolor>accent_hi</selectedcolor>
+			<!-- Kodi renders the fields that are NOT being edited in
+			     disabledcolor; unset it defaults to transparent and only the
+			     active field shows. -->
+			<disabledcolor>text_dim</disabledcolor>
+			<label></label>
 		</control>
 
 		<control type="button" id="22">
@@ -65,8 +86,15 @@
 			<top>70</top>
 			<width>60</width>
 			<height>60</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<align>center</align>
+			<aligny>center</aligny>
 			<textoffsetx>0</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<label>&gt;</label>
 			<onleft>20</onleft>
 			<onright>20</onright>
@@ -76,7 +104,12 @@
 
 		<!-- Keypad: 3-column phone grid. Kodi hardcodes CONTROL_NUM0=10 …
 		     CONTROL_NUM9=19, PREVIOUS=20, OK=21, NEXT=22, BACKSPACE=23.
-		     Rows handle left/right themselves; up/down is wired per column. -->
+		     Rows handle left/right themselves; up/down is wired per column.
+		     Digit labels go through $LOCALIZE[1231n]: a bare number in a
+		     <label> is read as a string id (1 = "Pictures", 2 = "Music" ...).
+		     Every key carries the NumericKey include: the buttons used to
+		     declare no font or textures, and with Defaults.xml inert that
+		     rendered no digits and no focus highlight. -->
 		<control type="grouplist">
 			<left>40</left>
 			<top>160</top>
@@ -92,9 +125,9 @@
 				<itemgap>4</itemgap>
 				<onleft>4001</onleft>
 				<onright>4001</onright>
-				<control type="button" id="11"><width>166</width><height>85</height><label>1</label><onup>20</onup><ondown>14</ondown></control>
-				<control type="button" id="12"><width>166</width><height>85</height><label>2</label><onup>10</onup><ondown>15</ondown></control>
-				<control type="button" id="13"><width>166</width><height>85</height><label>3</label><onup>22</onup><ondown>16</ondown></control>
+				<control type="button" id="11"><include>NumericKey</include><label>$LOCALIZE[12311]</label><onup>20</onup><ondown>14</ondown></control>
+				<control type="button" id="12"><include>NumericKey</include><label>$LOCALIZE[12312]</label><onup>10</onup><ondown>15</ondown></control>
+				<control type="button" id="13"><include>NumericKey</include><label>$LOCALIZE[12313]</label><onup>22</onup><ondown>16</ondown></control>
 			</control>
 
 			<control type="grouplist" id="4002">
@@ -104,9 +137,9 @@
 				<itemgap>4</itemgap>
 				<onleft>4002</onleft>
 				<onright>4002</onright>
-				<control type="button" id="14"><width>166</width><height>85</height><label>4</label><onup>11</onup><ondown>17</ondown></control>
-				<control type="button" id="15"><width>166</width><height>85</height><label>5</label><onup>12</onup><ondown>18</ondown></control>
-				<control type="button" id="16"><width>166</width><height>85</height><label>6</label><onup>13</onup><ondown>19</ondown></control>
+				<control type="button" id="14"><include>NumericKey</include><label>$LOCALIZE[12314]</label><onup>11</onup><ondown>17</ondown></control>
+				<control type="button" id="15"><include>NumericKey</include><label>$LOCALIZE[12315]</label><onup>12</onup><ondown>18</ondown></control>
+				<control type="button" id="16"><include>NumericKey</include><label>$LOCALIZE[12316]</label><onup>13</onup><ondown>19</ondown></control>
 			</control>
 
 			<control type="grouplist" id="4003">
@@ -116,9 +149,9 @@
 				<itemgap>4</itemgap>
 				<onleft>4003</onleft>
 				<onright>4003</onright>
-				<control type="button" id="17"><width>166</width><height>85</height><label>7</label><onup>14</onup><ondown>23</ondown></control>
-				<control type="button" id="18"><width>166</width><height>85</height><label>8</label><onup>15</onup><ondown>10</ondown></control>
-				<control type="button" id="19"><width>166</width><height>85</height><label>9</label><onup>16</onup><ondown>21</ondown></control>
+				<control type="button" id="17"><include>NumericKey</include><label>$LOCALIZE[12317]</label><onup>14</onup><ondown>23</ondown></control>
+				<control type="button" id="18"><include>NumericKey</include><label>$LOCALIZE[12318]</label><onup>15</onup><ondown>10</ondown></control>
+				<control type="button" id="19"><include>NumericKey</include><label>$LOCALIZE[12319]</label><onup>16</onup><ondown>21</ondown></control>
 			</control>
 
 			<control type="grouplist" id="4004">
@@ -128,9 +161,9 @@
 				<itemgap>4</itemgap>
 				<onleft>4004</onleft>
 				<onright>4004</onright>
-				<control type="button" id="23"><width>166</width><height>85</height><label>←</label><onup>17</onup><ondown>20</ondown></control>
-				<control type="button" id="10"><width>166</width><height>85</height><label>0</label><onup>18</onup><ondown>12</ondown></control>
-				<control type="button" id="21"><width>166</width><height>85</height><label>OK</label><onup>19</onup><ondown>22</ondown></control>
+				<control type="button" id="23"><include>NumericKey</include><label>←</label><onup>17</onup><ondown>20</ondown></control>
+				<control type="button" id="10"><include>NumericKey</include><label>$LOCALIZE[12310]</label><onup>18</onup><ondown>12</ondown></control>
+				<control type="button" id="21"><include>NumericKey</include><label>OK</label><onup>19</onup><ondown>22</ondown></control>
 			</control>
 
 		</control>

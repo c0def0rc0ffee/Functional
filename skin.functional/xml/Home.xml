@@ -209,6 +209,7 @@
 				<top>118</top>
 				<width>720</width>
 				<height>32</height>
+				<disabledcolor>disabled</disabledcolor>
 				<texturefocus colordiffuse="40FFFFFF">white.png</texturefocus>
 				<texturenofocus>-</texturenofocus>
 				<onclick>ActivateWindow(Weather)</onclick>
@@ -266,6 +267,7 @@
 				<height>120</height>
 				<font>font_med</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -282,6 +284,7 @@
 				<height>120</height>
 				<font>font_med</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -298,6 +301,7 @@
 				<height>120</height>
 				<font>font_med</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -314,6 +318,7 @@
 				<height>120</height>
 				<font>font_med</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -330,6 +335,7 @@
 				<height>120</height>
 				<font>font_med</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -346,7 +352,10 @@
 		<control type="grouplist" id="9100">
 			<right>40</right>
 			<bottom>40</bottom>
-			<width>900</width>
+			<!-- Must hold Back-to (520) + Queue (140) + four 70px icons + gaps
+			     = 990px: when a grouplist overflows, Kodi drops the right
+			     alignment and scrolls, clipping the Power icon off-screen. -->
+			<width>1000</width>
 			<height>70</height>
 			<itemgap>10</itemgap>
 			<orientation>horizontal</orientation>
@@ -360,6 +369,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -379,6 +389,7 @@
 				<height>70</height>
 				<font>font_small</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -403,6 +414,7 @@
 				<visible>!Skin.HasSetting(hide_favourites)</visible>
 				<width>70</width>
 				<height>70</height>
+				<disabledcolor>disabled</disabledcolor>
 				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_favourites.png</texturefocus>
 				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_favourites.png</texturenofocus>
 				<onclick>ActivateWindow(1150)</onclick>
@@ -412,6 +424,7 @@
 				<visible>!Skin.HasSetting(hide_addons)</visible>
 				<width>70</width>
 				<height>70</height>
+				<disabledcolor>disabled</disabledcolor>
 				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_addons.png</texturefocus>
 				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_addons.png</texturenofocus>
 				<onclick>ActivateWindow(AddonBrowser)</onclick>
@@ -420,6 +433,7 @@
 			<control type="button" id="9102">
 				<width>70</width>
 				<height>70</height>
+				<disabledcolor>disabled</disabledcolor>
 				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_settings.png</texturefocus>
 				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_settings.png</texturenofocus>
 				<onclick>ActivateWindow(Settings)</onclick>
@@ -429,6 +443,7 @@
 				<visible>!Skin.HasSetting(hide_power)</visible>
 				<width>70</width>
 				<height>70</height>
+				<disabledcolor>disabled</disabledcolor>
 				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_power.png</texturefocus>
 				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_power.png</texturenofocus>
 				<onclick>ActivateWindow(ShutdownMenu)</onclick>

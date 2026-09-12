@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  Weather window. Kodi-hardcoded control IDs:
-    10000 = location chooser (button, Kodi cycles current location)
-    20000 = refresh
-    20001 = open weather provider's settings
+  Weather window. Kodi's own handling here is limited to control ids 2
+  (refresh) and 3 (location); 10000/20000/20001 are skin-private ids (Estuary
+  uses the same numbers as anchors) and do nothing on their own, so every
+  button carries an explicit builtin: Weather.LocationNext, Weather.Refresh,
+  ActivateWindow(servicesettings,weather).
   Reads from $INFO[Window(Weather).Property(...)] and $INFO[Weather.*].
 -->
 <window>
@@ -25,29 +26,33 @@
 			<texture>logo.png</texture>
 		</control>
 
-		<!-- ===== TOP ACTION BAR ===== -->
+		<!-- ===== TOP ACTION BAR =====
+		     Centred in the header: right-aligned it sat on top of the
+		     HeaderBar clock (both draw in the x 1220-1880 band). -->
 		<control type="grouplist">
-			<right>40</right>
-			<top>30</top>
+			<left>510</left>
+			<top>15</top>
 			<width>900</width>
 			<height>60</height>
 			<itemgap>10</itemgap>
 			<orientation>horizontal</orientation>
-			<align>right</align>
+			<align>center</align>
 			<ondown>10000</ondown>
 
-			<!-- Location cycler (10000): Kodi steps through configured locations. -->
+			<!-- Location cycler: steps through the configured locations. -->
 			<control type="button" id="10000">
 				<width>360</width>
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>$INFO[Weather.Location]</label>
+				<label>$VAR[WeatherLocationLabel]</label>
+				<onclick>Weather.LocationNext</onclick>
 			</control>
 
 			<!-- Refresh -->
@@ -56,12 +61,14 @@
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>Refresh</label>
+				<onclick>Weather.Refresh</onclick>
 			</control>
 
 			<!-- Provider settings -->
@@ -70,12 +77,14 @@
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>Settings</label>
+				<onclick>ActivateWindow(servicesettings,weather)</onclick>
 			</control>
 		</control>
 

@@ -10,6 +10,9 @@
 			<!-- Shift the list right of the 340-px sidebar (40..380 + 20 gap). -->
 			<param name="list_left" value="400"/>
 			<param name="list_width" value="760"/>
+			<param name="label_width" value="460"/>
+			<param name="nav_left" value="9000"/>
+			<param name="nav_right" value="9000"/>
 		</include>
 
 		<!-- ===== ADDON BROWSER SIDEBAR (id 9000) =====
@@ -35,6 +38,7 @@
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -53,6 +57,7 @@
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -71,6 +76,7 @@
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -85,6 +91,7 @@
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>

@@ -36,6 +36,7 @@
 			<height>60</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<focusedcolor>white</focusedcolor>
 			<aligny>center</aligny>
 			<textoffsetx>20</textoffsetx>
@@ -102,6 +103,7 @@
 			<height>70</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<focusedcolor>white</focusedcolor>
 			<align>left</align>
 			<aligny>center</aligny>
@@ -116,6 +118,7 @@
 			<height>70</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<focusedcolor>white</focusedcolor>
 			<align>left</align>
 			<aligny>center</aligny>
@@ -130,6 +133,7 @@
 			<height>70</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<focusedcolor>white</focusedcolor>
 			<align>left</align>
 			<aligny>center</aligny>
@@ -148,6 +152,7 @@
 			<height>70</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<focusedcolor>white</focusedcolor>
 			<align>left</align>
 			<aligny>center</aligny>
@@ -174,6 +179,7 @@
 			<height>70</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<focusedcolor>white</focusedcolor>
 			<align>left</align>
 			<aligny>center</aligny>
@@ -204,6 +210,7 @@
 			<height>70</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<focusedcolor>white</focusedcolor>
 			<align>left</align>
 			<aligny>center</aligny>

@@ -79,6 +79,7 @@
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -89,20 +90,24 @@
 			</control>
 		</control>
 
+		<!-- Two side-by-side lists, both always populated by Kodi: the service
+		     list (150, left column) and the search results (120). They used to
+		     share one 1120px box and draw over each other, with no way to
+		     navigate into 150. -->
 		<!-- Search results list -->
 		<control type="list" id="120">
-			<left>40</left>
+			<left>360</left>
 			<top>200</top>
-			<width>1120</width>
+			<width>800</width>
 			<height>540</height>
-			<onleft>120</onleft>
+			<onleft>150</onleft>
 			<onright>73</onright>
 			<onup>190</onup>
 			<onback>PreviousMenu</onback>
 			<scrolltime tween="cubic" easing="out">200</scrolltime>
 			<pagecontrol>73</pagecontrol>
 
-			<itemlayout height="60" width="1120">
+			<itemlayout height="60" width="800">
 				<control type="image">
 					<left>10</left>
 					<top>10</top>
@@ -114,7 +119,7 @@
 				<control type="label">
 					<left>70</left>
 					<top>0</top>
-					<width>800</width>
+					<width>460</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
@@ -135,11 +140,11 @@
 					<label>$INFO[ListItem.Label2]</label>
 				</control>
 			</itemlayout>
-			<focusedlayout height="60" width="1120">
+			<focusedlayout height="60" width="800">
 				<control type="image">
 					<left>0</left>
 					<top>0</top>
-					<width>1120</width>
+					<width>800</width>
 					<height>60</height>
 					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 					<visible>Control.HasFocus(120)</visible>
@@ -155,7 +160,7 @@
 				<control type="label">
 					<left>70</left>
 					<top>0</top>
-					<width>800</width>
+					<width>460</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>white</textcolor>
@@ -193,23 +198,23 @@
 			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
 		</control>
 
-		<!-- Service list (id 150), for choosing a subtitle service -->
+		<!-- Service list (id 150), left column: pick a subtitle provider -->
 		<control type="list" id="150">
 			<left>40</left>
 			<top>200</top>
-			<width>1120</width>
+			<width>300</width>
 			<height>540</height>
 			<onleft>150</onleft>
-			<onright>150</onright>
+			<onright>120</onright>
 			<onup>190</onup>
 			<onback>PreviousMenu</onback>
 			<pagecontrol>73</pagecontrol>
 
-			<itemlayout height="60" width="1120">
+			<itemlayout height="60" width="300">
 				<control type="label">
-					<left>40</left>
+					<left>20</left>
 					<top>0</top>
-					<width>1080</width>
+					<width>260</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
@@ -218,18 +223,18 @@
 					<label>$INFO[ListItem.Label]</label>
 				</control>
 			</itemlayout>
-			<focusedlayout height="60" width="1120">
+			<focusedlayout height="60" width="300">
 				<control type="image">
 					<left>0</left>
 					<top>0</top>
-					<width>1120</width>
+					<width>300</width>
 					<height>60</height>
 					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 				</control>
 				<control type="label">
-					<left>40</left>
+					<left>20</left>
 					<top>0</top>
-					<width>1080</width>
+					<width>260</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>white</textcolor>

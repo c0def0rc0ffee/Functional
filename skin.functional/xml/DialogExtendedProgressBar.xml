@@ -41,9 +41,14 @@
 			</control>
 			<control type="progress" id="32">
 				<left>0</left>
-				<top>70</top>
+				<top>74</top>
 				<width>540</width>
-				<height>20</height>
+				<height>8</height>
+				<!-- Defaults.xml is inert, so a progress control with no textures
+				     draws nothing: this bar was invisible during library scans. -->
+				<texturebg colordiffuse="20FFFFFF">white.png</texturebg>
+				<midtexture colordiffuse="$VAR[AccentColor]">white.png</midtexture>
+				<overlaytexture>-</overlaytexture>
 			</control>
 
 		</control>

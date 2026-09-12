@@ -17,7 +17,7 @@
 	     immediately. -->
 	<control type="group">
 		<include condition="String.IsEqual(Skin.String(osd_position),top)">OsdTopModeShift</include>
-		<visible>!Window.IsActive(slidersettings) + !Window.IsActive(osdvideosettings) + !Window.IsActive(osdaudiosettings) + !Window.IsActive(subtitlesearch) + !Window.IsActive(pvrosdchannels) + !Window.IsActive(pvrosdguide)</visible>
+		<visible>!Window.IsActive(sliderdialog) + !Window.IsActive(osdvideosettings) + !Window.IsActive(osdaudiosettings) + !Window.IsActive(subtitlesearch) + !Window.IsActive(pvrosdchannels) + !Window.IsActive(pvrosdguide)</visible>
 
 		<!-- Backdrop panel -->
 		<control type="image">
@@ -189,6 +189,27 @@
 			<visible>!String.IsEmpty(VideoPlayer.VideoResolution)</visible>
 		</control>
 
+		<!-- Buffer level, left of the resolution pill. Kodi only runs the
+		     cache for some sources (see the buffer-mode setting), so hide the
+		     readout when there is no cache rather than pinning "Buffer 0%" on
+		     local playback. During a stall CacheLevel can hit 0 while
+		     Player.Caching is true - keep it visible then, that is when the
+		     number matters most. -->
+		<!-- buffer_detail ("39 MB, ~52s ahead") comes from
+		     service.py:update_buffer_stats - skin XML can't multiply. -->
+		<control type="label">
+			<right>180</right>
+			<bottom>78</bottom>
+			<width>560</width>
+			<height>30</height>
+			<font>font_reg</font>
+			<align>right</align>
+			<aligny>center</aligny>
+			<textcolor>text_dim</textcolor>
+			<label>$VAR[BufferReadout]</label>
+			<visible>!Skin.HasSetting(hide_osd_buffer) + !String.IsEmpty(Player.CacheLevel) + [!String.IsEqual(Player.CacheLevel,0) | Player.Caching | Player.Paused | !String.IsEmpty(Window(home).Property(buffer_detail))]</visible>
+		</control>
+
 		<!-- ========== TRANSPORT BUTTONS ==========
 		     6 buttons centred at bottom. Total bar width:
 		     80+12+80+12+112+12+80+12+80+12+80 = 572 → start x = (1920-572)/2 = 674
@@ -201,6 +222,7 @@
 			<width>80</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>PlayerControl(Previous)</onclick>
@@ -223,6 +245,7 @@
 			<width>80</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>PlayerControl(Rewind)</onclick>
@@ -245,6 +268,7 @@
 			<width>112</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>PlayerControl(Play)</onclick>
@@ -277,6 +301,7 @@
 			<width>80</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>PlayerControl(Stop)</onclick>
@@ -299,6 +324,7 @@
 			<width>80</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>PlayerControl(Forward)</onclick>
@@ -321,6 +347,7 @@
 			<width>80</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>PlayerControl(Next)</onclick>
@@ -343,6 +370,7 @@
 			<width>80</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>ActivateWindow(OSDAudioSettings)</onclick>
@@ -365,6 +393,7 @@
 			<width>80</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>ActivateWindow(SubtitleSearch)</onclick>
@@ -387,11 +416,12 @@
 			<width>80</width>
 			<height>56</height>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>ActivateWindow(OSDVideoSettings)</onclick>
 			<onleft>212</onleft>
-			<onright>213</onright>
+			<onright>214</onright>
 		</control>
 		<control type="image">
 			<left>1328</left>
@@ -400,6 +430,43 @@
 			<height>48</height>
 			<aspectratio align="center" aligny="center">keep</aspectratio>
 			<texture>icons/adjust.png</texture>
+		</control>
+
+		<!-- 214 Buffer entire file, for THIS playback (x=1406). Hands off to
+		     service.py via cache_command=fullfile: flips Kodi to unlimited
+		     disk caching and restarts the stream where it left off; the
+		     service puts the previous buffer size back when playback ends.
+		     While active the button is replaced by the dim tag below. -->
+		<control type="button" id="214">
+			<left>1406</left>
+			<bottom>10</bottom>
+			<width>200</width>
+			<height>56</height>
+			<font>font_small</font>
+			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<label>BUFFER ALL</label>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>Skin.SetString(cache_command,fullfile)</onclick>
+			<onleft>213</onleft>
+			<onright>214</onright>
+			<visible>String.IsEmpty(Window(home).Property(buffer_fullfile))</visible>
+		</control>
+		<control type="label">
+			<left>1406</left>
+			<bottom>10</bottom>
+			<width>200</width>
+			<height>56</height>
+			<font>font_small</font>
+			<align>center</align>
+			<aligny>center</aligny>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>FULL BUFFER ON</label>
+			<visible>!String.IsEmpty(Window(home).Property(buffer_fullfile))</visible>
 		</control>
 
 	</control>

@@ -89,6 +89,7 @@
 					<height>80</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>
@@ -102,6 +103,7 @@
 					<height>80</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>
@@ -115,6 +117,7 @@
 					<height>80</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>

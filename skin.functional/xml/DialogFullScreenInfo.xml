@@ -13,6 +13,7 @@
 			<top>0</top>
 			<width>1920</width>
 			<height>1080</height>
+			<disabledcolor>disabled</disabledcolor>
 			<texturefocus />
 			<texturenofocus />
 			<onright>StepForward</onright>

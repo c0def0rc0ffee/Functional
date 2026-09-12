@@ -34,6 +34,7 @@
 			<texturefocus>-</texturefocus>
 			<texturenofocus>-</texturenofocus>
 			<label></label>
+			<disabledcolor>disabled</disabledcolor>
 			<onclick>Action(close)</onclick>
 		</control>
 
@@ -119,6 +120,7 @@
 			<height>60</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
 			<focusedcolor>white</focusedcolor>
 			<align>left</align>
 			<aligny>center</aligny>

@@ -76,6 +76,34 @@ update_playing_cast()
     VideoPlayer.Cast string. See also update_info_cast(), the same idea for
     the video info dialog's item (InfoCast.* properties).
 
+update_buffer_stats()
+    While a video is playing, publishes what is actually sitting in the
+    playback buffer as a Home window property the OSD renders next to the
+    cache-level percentage:
+        buffer_detail   e.g. "39 MB, ~52s ahead"
+    MB is Player.CacheLevel x filecache.memorysize (the level is the fill %
+    of that memory buffer); the runway is (cachepercentage - percentage) of
+    the file duration via Player.GetProperties. Skin XML can't do arithmetic,
+    hence Python. Runs on the slow (~1s) tick.
+
+update_cache_command() -> "fullfile" / _fullfile_worker()
+    The OSD's BUFFER ALL button: per-movie unlimited buffering. Remembers
+    the current memorysize in Skin.String(cache_mem_restore), switches Kodi
+    to the uncapped disk cache (memorysize 0), restarts the stream at the
+    same position, and restores the previous size when playback ends.
+    Window(home).Property(buffer_fullfile) tells the OSD the mode is active.
+
+update_cache_command()
+    Playback-buffer presets. Kodi 21 exposes the old advancedsettings <cache>
+    block as real settings (filecache.buffermode / .memorysize / .readfactor)
+    but hides them at the Advanced settings level; the skin's buffer buttons
+    set Skin.String(cache_command) and this handler cycles the corresponding
+    setting through sensible presets via JSON-RPC. Current values are
+    mirrored into cache_mem_label / cache_rf_label / cache_mode_label skin
+    strings for the button captions. Changes apply from the next playback
+    start (the cache is built per stream) - no restart. NOTE: these are
+    Kodi-wide settings, not skin settings; they persist across skins.
+
 Future handlers
 ---------------
 - update_queue_eta() , see PROJECT_NOTES "Queue ETA helper"
@@ -292,6 +320,17 @@ class FunctionalHelper(xbmc.Monitor):
         self._info_cast_thread = None
         self._info_cast_names = []  # slot order, for cast_run clicks
         self._info_cast_dbtype = ""  # media type behind those slots, ditto
+        # Playback-buffer labels: re-read once per skin-settings open
+        self._cache_labels_fresh = False
+        # OSD buffer readout (see update_buffer_stats)
+        self._buffer_last = None      # last published buffer_detail string
+        self._buffer_memsize = None   # filecache.memorysize, lazily re-read
+        self._buffer_fullfile_last = None  # last published buffer_fullfile flag
+        self._buffer_filesize = None  # (path, bytes) fetched off-loop, 0=unknown
+        self._buffer_size_thread = None
+        # Per-movie "buffer entire file" switch (see _fullfile_worker)
+        self._fullfile_thread = None
+        self._fullfile_busy = False   # suppresses restore during the restart gap
         self._bootstrap_layout_defaults()
         self._migrate_bg_mode()
         _dlog("helper ready")
@@ -487,9 +526,10 @@ class FunctionalHelper(xbmc.Monitor):
                   xbmc.LOGERROR)
             # Un-latch so the next tick retries; leaving the key set would
             # turn one transient JSON-RPC hiccup into "no cast until the
-            # item changes".
-            if key == self._cast_key:
-                self._cast_key = None
+            # item changes". Under the lock like every other key write.
+            with self._cast_lock:
+                if key == self._cast_key:
+                    self._cast_key = None
             return
         # The item may have moved on while we were querying; don't stamp
         # stale actors over the new one's.
@@ -600,8 +640,9 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("info-cast worker failed:\n{0}".format(traceback.format_exc()),
                   xbmc.LOGERROR)
             # Un-latch so the next tick retries (see _cast_worker).
-            if key == self._info_cast_key:
-                self._info_cast_key = None
+            with self._cast_lock:
+                if key == self._info_cast_key:
+                    self._info_cast_key = None
             return
         with self._cast_lock:
             if key != self._info_cast_key:
@@ -695,6 +736,376 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("cast: opening {0} with {1} -> {2}".format(rule_type, name, command))
         xbmc.executebuiltin("Dialog.Close({0},true)".format(self.INFO_DIALOG))
         xbmc.executebuiltin(command)
+
+    # ---- Playback buffer (Kodi filecache.* settings) ----------------------
+    # Preset values below were read back from a live Kodi 21.3 via
+    # Settings.GetSettings: they must be members of Kodi's own options lists
+    # (memorysize in MB, readfactor x100 with 0 = adaptive) or SetSettingValue
+    # rejects them.
+
+    # 0 = Kodi's "cache entire file on disk storage": no size cap, so pausing
+    # can buffer a whole 80 GB remux over a slow link. Needs the file's size
+    # free on disk and hammers SSDs, hence last in the cycle, opt-in.
+    CACHE_MEM_PRESETS = (20, 64, 128, 256, 512, 1024, 0)   # MB
+    CACHE_RF_PRESETS = (0, 200, 400, 1000, 2000, 5000)  # x100, 0 = adaptive
+    CACHE_MODE_PRESETS = (4, 2, 0, 1, 3)
+    CACHE_DEFAULTS = {"filecache.buffermode": 4,
+                      "filecache.memorysize": 20,
+                      "filecache.readfactor": 400}
+    CACHE_MODE_LABELS = {
+        4: "Network shares + internet (Kodi default)",
+        2: "True internet streams only",
+        0: "All internet filesystems",
+        1: "Everything (incl. local files)",
+        3: "Nothing (buffer off)",
+    }
+
+    @staticmethod
+    def _get_setting(setting_id):
+        resp = _jsonrpc("Settings.GetSettingValue", {"setting": setting_id})
+        return ((resp or {}).get("result") or {}).get("value")
+
+    @staticmethod
+    def _set_setting(setting_id, value):
+        _jsonrpc("Settings.SetSettingValue",
+                 {"setting": setting_id, "value": value})
+
+    @staticmethod
+    def _cache_mem_label(value):
+        if value == 0:
+            return "Entire file on disk"
+        if value >= 1024 and value % 1024 == 0:
+            text = "{0} GB".format(value // 1024)
+        else:
+            text = "{0} MB".format(value)
+        return text + " (Kodi default)" if value == 20 else text
+
+    @staticmethod
+    def _cache_rf_label(value):
+        if value == 0:
+            return "Adaptive"
+        text = "{0:g}x".format(value / 100.0)
+        return text + " (Kodi default)" if value == 400 else text
+
+    def _refresh_cache_labels(self):
+        """Mirror the live filecache values into the skin strings the settings
+        buttons render. Values changed behind our back (Kodi's own GUI) show
+        as their real value, formatted the same way."""
+        mem = self._get_setting("filecache.memorysize")
+        rf = self._get_setting("filecache.readfactor")
+        mode = self._get_setting("filecache.buffermode")
+        if mem is None or rf is None or mode is None:
+            return  # JSON-RPC hiccup: keep the stored labels, retry next open
+        _set_skin_string("cache_mem_label", self._cache_mem_label(mem))
+        _set_skin_string("cache_rf_label", self._cache_rf_label(rf))
+        _set_skin_string("cache_mode_label",
+                         self.CACHE_MODE_LABELS.get(mode, "Mode {0}".format(mode)))
+
+    @staticmethod
+    def _fmt_secs(secs):
+        """45 -> '45s', 130 -> '2m 10s', 3900 -> '1h 5m'."""
+        if secs >= 3600:
+            return "{0}h {1}m".format(secs // 3600, (secs % 3600) // 60)
+        if secs >= 60:
+            return "{0}m {1}s".format(secs // 60, secs % 60)
+        return "{0}s".format(secs)
+
+    @staticmethod
+    def _fetch_buffer_ahead():
+        """(seconds, fraction) of video buffered past the playhead; (None, 0)
+        if unknown. cachepercentage is where the cache ends as a fraction of
+        the file (same scale as percentage/Player.Progress but float, so this
+        stays smooth where whole-percent infolabels would jump in ~40s steps
+        on a feature film). The fraction x the file size is also the truest
+        byte count available - Player.CacheLevel is only the fill % of the
+        memory buffer, which wildly overstates bytes when the file is smaller
+        than the buffer."""
+        players = (_jsonrpc("Player.GetActivePlayers").get("result") or [])
+        pid = next((p.get("playerid") for p in players
+                    if p.get("type") == "video"), None)
+        if pid is None:
+            return None, 0.0
+        resp = _jsonrpc("Player.GetProperties", {
+            "playerid": pid,
+            "properties": ["percentage", "cachepercentage", "totaltime"]})
+        r = (resp or {}).get("result") or {}
+        total = r.get("totaltime") or {}
+        total_secs = (total.get("hours", 0) * 3600
+                      + total.get("minutes", 0) * 60
+                      + total.get("seconds", 0))
+        frac = max(0.0, (float(r.get("cachepercentage") or 0)
+                         - float(r.get("percentage") or 0)) / 100.0)
+        if not total_secs:
+            return None, frac
+        return int(round(frac * total_secs)), frac
+
+    # Never stat these: Files.GetFileDetails on a plugin-resolved http URL
+    # was observed to hang for minutes inside Kodi (Jellyfin direct-play).
+    # The worker thread survives that (daemon, off-loop) but gains nothing:
+    # http streams are exactly where the file dwarfs the buffer and the
+    # level x memorysize estimate is already accurate.
+    _NO_STAT_PREFIXES = ("http://", "https://", "plugin://", "pvr://",
+                         "rtsp://", "rtmp://", "udp://", "ftp://")
+
+    def _buffer_size_worker(self, path):
+        """Stat the playing file's size (daemon thread: an unreachable share
+        must never stall the main loop)."""
+        try:
+            resp = _jsonrpc("Files.GetFileDetails",
+                            {"file": path, "media": "files",
+                             "properties": ["size"]})
+            size = ((((resp or {}).get("result") or {})
+                     .get("filedetails") or {}).get("size")) or 0
+        except Exception:  # noqa: BLE001
+            size = 0
+        self._buffer_filesize = (path, int(size))
+        _dlog("buffer: file size = {0} for {1!r}".format(size, path[:100]))
+
+    def update_buffer_stats(self):
+        """Publish Home property buffer_detail ("39 MB, ~52s ahead") for the
+        OSD's buffer readout. Cheap: two in-process player queries per slow
+        tick, and only while a video is up. memorysize is re-read once per
+        playback (and after our own cache commands change it)."""
+        if not xbmc.getCondVisibility("Player.HasVideo"):
+            if self._buffer_last is not None:
+                self._buffer_last = None
+                self._buffer_memsize = None
+                self._buffer_filesize = None
+                _set_home_property("buffer_detail", "")
+            if self._buffer_fullfile_last is not None:
+                self._buffer_fullfile_last = None
+                _set_home_property("buffer_fullfile", "")
+            self._maybe_restore_memsize()
+            return
+
+        if self._buffer_memsize is None:
+            mem = self._get_setting("filecache.memorysize")
+            if mem is None:
+                # JSON-RPC hiccup. Retry next tick: reading the failure as 0
+                # would flag "full-file buffering" on the OSD for the rest of
+                # this playback and skip the MB estimate.
+                return
+            self._buffer_memsize = int(mem)
+
+        # Tells the OSD its "BUFFER ALL" button is already satisfied
+        # (memorysize 0 = Kodi's uncapped disk cache).
+        fullfile = "1" if self._buffer_memsize == 0 else ""
+        if fullfile != self._buffer_fullfile_last:
+            self._buffer_fullfile_last = fullfile
+            _set_home_property("buffer_fullfile", fullfile)
+
+        # File size, fetched once per playing path (worker thread). The path
+        # check both triggers the first fetch and discards a stale size after
+        # a track change.
+        path = xbmc.getInfoLabel("Player.FilenameAndPath")
+        size = 0
+        if path and path.lower().startswith(self._NO_STAT_PREFIXES):
+            path = ""  # streamed: no cheap stat, use the estimate below
+        if path:
+            if self._buffer_filesize and self._buffer_filesize[0] == path:
+                size = self._buffer_filesize[1]
+            elif (self._buffer_size_thread is None
+                    or not self._buffer_size_thread.is_alive()):
+                self._buffer_size_thread = threading.Thread(
+                    target=self._buffer_size_worker, args=(path,),
+                    name="functional-bufsize", daemon=True)
+                self._buffer_size_thread.start()
+
+        ahead, frac = self._fetch_buffer_ahead()
+
+        parts = []
+        mb = 0.0
+        if size and frac > 0:
+            # Real bytes: fraction of the file that's cached ahead.
+            mb = frac * size / 1048576.0
+        else:
+            # Estimate from the memory buffer's fill level. Only sane when
+            # the file is bigger than the buffer, but when the size is
+            # unknown that is almost always the case (big remote streams).
+            try:
+                level = int(xbmc.getInfoLabel("Player.CacheLevel") or "0")
+            except ValueError:
+                level = 0
+            if self._buffer_memsize and level > 0:
+                mb = level * self._buffer_memsize / 100.0
+        if mb >= 1000:
+            parts.append("{0:.1f} GB".format(mb / 1024.0))
+        elif mb >= 10:
+            parts.append("{0:.0f} MB".format(mb))
+        elif mb > 0:
+            parts.append("{0:.1f} MB".format(mb))
+        if ahead:
+            parts.append("~{0} ahead".format(self._fmt_secs(ahead)))
+
+        detail = ", ".join(parts)
+        if detail != self._buffer_last:
+            self._buffer_last = detail
+            _set_home_property("buffer_detail", detail)
+
+    _CACHE_CYCLES = {
+        "mem": ("filecache.memorysize", CACHE_MEM_PRESETS),
+        "readfactor": ("filecache.readfactor", CACHE_RF_PRESETS),
+        "mode": ("filecache.buffermode", CACHE_MODE_PRESETS),
+    }
+
+    def update_cache_command(self):
+        """Watch Skin.String(cache_command): mem / readfactor / mode cycle
+        that setting to its next preset, reset restores Kodi's defaults.
+        Labels are re-read every time skin settings opens, since the values
+        can also change in Kodi's own Services > Caching page."""
+        settings_open = xbmc.getCondVisibility("Window.IsActive(skinsettings)")
+        if settings_open and not self._cache_labels_fresh:
+            self._cache_labels_fresh = True
+            self._refresh_cache_labels()
+        elif not settings_open:
+            self._cache_labels_fresh = False
+
+        cmd = xbmc.getInfoLabel("Skin.String(cache_command)")
+        if not cmd:
+            return
+        # Clear immediately so we don't re-trigger
+        xbmc.executebuiltin("Skin.Reset(cache_command)")
+
+        if cmd == "fullfile":
+            # Per-movie unlimited buffering (OSD "BUFFER ALL" button). Runs
+            # off-loop: it stops and reopens the stream, with waits.
+            if self._fullfile_thread is None or not self._fullfile_thread.is_alive():
+                self._fullfile_thread = threading.Thread(
+                    target=self._fullfile_worker,
+                    name="functional-fullfile", daemon=True)
+                self._fullfile_thread.start()
+            return
+
+        if cmd == "reset":
+            for sid, value in self.CACHE_DEFAULTS.items():
+                self._set_setting(sid, value)
+            _dlog("cache: reset to Kodi defaults")
+        elif cmd in self._CACHE_CYCLES:
+            sid, presets = self._CACHE_CYCLES[cmd]
+            current = self._get_setting(sid)
+            try:
+                nxt = presets[(presets.index(current) + 1) % len(presets)]
+            except ValueError:
+                # Off-list value (set in Kodi's GUI): restart the cycle.
+                nxt = presets[0]
+            self._set_setting(sid, nxt)
+            _dlog("cache: {0} {1} -> {2}".format(sid, current, nxt))
+        else:
+            return
+        self._refresh_cache_labels()
+        # The OSD readout derives MB from memorysize; make it re-read.
+        self._buffer_memsize = None
+
+    # ---- Per-movie "buffer entire file" (OSD BUFFER ALL button) -----------
+    # Kodi builds the cache when a stream opens, so changing memorysize does
+    # nothing for the file already playing. The switch therefore: remembers
+    # the current buffer size in Skin.String(cache_mem_restore) (a skin
+    # string so it survives a Kodi restart mid-movie), sets memorysize 0
+    # (= uncapped disk cache), stops the stream and reopens it at the same
+    # position. When playback ends, _maybe_restore_memsize puts the normal
+    # size back. Side effect worth knowing: if another video starts before
+    # the restore fires (~1s after stop), it also runs uncapped until ITS
+    # playback ends - harmless, just surprising in a log.
+
+    FULLFILE_REOPEN_WAIT = 30  # seconds to wait for the stream to come back
+    FULLFILE_SEEK_BACK = 5     # rejoin slightly early: lands near a keyframe
+
+    def _maybe_restore_memsize(self):
+        """Called when no video is playing: if a full-file run left a restore
+        value behind, put the user's normal buffer size back."""
+        if self._fullfile_busy:
+            return  # mid-switch: the player is only momentarily stopped
+        prior = xbmc.getInfoLabel("Skin.String(cache_mem_restore)")
+        if not prior:
+            return
+        xbmc.executebuiltin("Skin.Reset(cache_mem_restore)")
+        value = self._safe_int(prior, None)
+        if value is None:
+            return
+        self._set_setting("filecache.memorysize", value)
+        self._refresh_cache_labels()
+        _dlog("fullfile: playback over, memorysize restored to {0}".format(value))
+
+    def _fullfile_worker(self):
+        try:
+            self._fullfile_busy = True
+            self._do_fullfile_switch()
+        except Exception:  # noqa: BLE001
+            _dlog("fullfile switch failed:\n{0}".format(traceback.format_exc()),
+                  xbmc.LOGERROR)
+        finally:
+            self._fullfile_busy = False
+
+    def _do_fullfile_switch(self):
+        current = self._get_setting("filecache.memorysize")
+        if current is None:
+            # Without the current size there is nothing to restore to after
+            # playback, and the uncapped disk cache would stay on for good.
+            _dlog("fullfile: could not read filecache.memorysize, not switching",
+                  xbmc.LOGWARNING)
+            xbmcgui.Dialog().notification(
+                "Functional", "Could not read the buffer size, not switching",
+                xbmcgui.NOTIFICATION_WARNING, 4000)
+            return
+        if current == 0:
+            xbmcgui.Dialog().notification(
+                "Functional", "Already buffering the entire file",
+                xbmcgui.NOTIFICATION_INFO, 4000)
+            return
+        players = (_jsonrpc("Player.GetActivePlayers").get("result") or [])
+        pid = next((p.get("playerid") for p in players
+                    if p.get("type") == "video"), None)
+        if pid is None:
+            return
+        item = ((_jsonrpc("Player.GetItem",
+                          {"playerid": pid, "properties": ["file"]})
+                 .get("result") or {}).get("item")) or {}
+        t = ((_jsonrpc("Player.GetProperties",
+                       {"playerid": pid, "properties": ["time"]})
+              .get("result") or {}).get("time")) or {}
+        secs = (t.get("hours", 0) * 3600 + t.get("minutes", 0) * 60
+                + t.get("seconds", 0))
+        secs = max(0, secs - self.FULLFILE_SEEK_BACK)
+
+        # Prefer the library id (survives path quirks); fall back to the file.
+        if item.get("id") and item.get("type") in ("movie", "episode",
+                                                   "musicvideo"):
+            target = {"{0}id".format(item["type"]): item["id"]}
+        else:
+            if not item.get("file"):
+                _dlog("fullfile: nothing identifiable to reopen", xbmc.LOGWARNING)
+                return
+            target = {"file": item["file"]}
+
+        _set_skin_string("cache_mem_restore", current)
+        self._set_setting("filecache.memorysize", 0)
+        self._refresh_cache_labels()
+        xbmcgui.Dialog().notification(
+            "Functional", "Restarting stream with unlimited buffering",
+            xbmcgui.NOTIFICATION_INFO, 5000)
+        _dlog("fullfile: reopening {0} at {1}s (memorysize {2} -> 0)".format(
+            target, secs, current))
+        _jsonrpc("Player.Stop", {"playerid": pid})
+        xbmc.sleep(1500)
+        _jsonrpc("Player.Open", {"item": target})
+        for _ in range(self.FULLFILE_REOPEN_WAIT * 2):
+            if xbmc.getCondVisibility("Player.HasVideo"):
+                break
+            xbmc.sleep(500)
+        else:
+            _dlog("fullfile: stream did not come back within {0}s".format(
+                self.FULLFILE_REOPEN_WAIT), xbmc.LOGWARNING)
+            return
+        xbmc.sleep(2000)  # let the demuxer settle before seeking
+        if secs > 10:
+            players = (_jsonrpc("Player.GetActivePlayers").get("result") or [])
+            pid = next((p.get("playerid") for p in players
+                        if p.get("type") == "video"), None)
+            if pid is not None:
+                _jsonrpc("Player.Seek", {"playerid": pid, "value": {"time": {
+                    "hours": secs // 3600, "minutes": (secs % 3600) // 60,
+                    "seconds": secs % 60, "milliseconds": 0}}})
+        _dlog("fullfile: switch complete")
 
     def update_home_bg(self):
         """
@@ -1025,6 +1436,28 @@ class FunctionalHelper(xbmc.Monitor):
         "bottom_inc": ("infobar_clearance_bottom", +1),
         "bottom_dec": ("infobar_clearance_bottom", -1),
     }
+
+    def normalize_clearance(self):
+        """Keep the clearance strings on the 10px grid, 0..LAYOUT_MAX_PX.
+        The "tap to type" button (Skin.SetNumeric) accepts any integer, but
+        ClearanceAnimations only has a slide per multiple of LAYOUT_STEP_PX:
+        an off-grid value matches no animation and the panel snaps to 0, and
+        the +/- buttons would then step 145 -> 155 -> ... forever. Runs on the
+        slow tick; only writes when something actually needs changing."""
+        for key in ("infobar_clearance_top", "infobar_clearance_bottom"):
+            raw = xbmc.getInfoLabel("Skin.String({0})".format(key))
+            if not raw:
+                continue  # _bootstrap_layout_defaults seeds empties
+            value = self._safe_int(raw, None)
+            if value is None:
+                fixed = self.LAYOUT_DEFAULT_PX
+            else:
+                step = self.LAYOUT_STEP_PX
+                fixed = int(round(value / float(step))) * step
+                fixed = max(0, min(self.LAYOUT_MAX_PX, fixed))
+            if str(fixed) != raw.strip():
+                xbmc.executebuiltin("Skin.SetString({0},{1})".format(key, fixed))
+                _dlog("layout: {0} {1!r} -> {2}".format(key, raw, fixed))
 
     def update_layout_command(self):
         """Apply ± LAYOUT_STEP_PX to whichever clearance string the +/- buttons
@@ -1455,10 +1888,13 @@ def run():
             helper.update_playing_cast()
             helper.update_info_cast()
             helper.update_cast_command()
+            helper.update_cache_command()
             if tick == 0:
+                helper.update_buffer_stats()
                 helper.update_bg_schedule()
                 helper.update_home_bg()
                 helper.maybe_refresh_stats()
+                helper.normalize_clearance()
         except Exception:  # noqa: BLE001
             _dlog("tick failed (continuing):\n{0}".format(
                 traceback.format_exc()), xbmc.LOGERROR)

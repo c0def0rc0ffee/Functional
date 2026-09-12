@@ -116,6 +116,22 @@
 			<textcolor>text</textcolor>
 			<label>$INFO[Player.Duration]</label>
 		</control>
+
+		<!-- Buffer readout, same as the OSD's: the whole point of pausing a
+		     laggy stream is to watch this number climb, and pause shows THIS
+		     bar (the OSD auto-hides). -->
+		<control type="label">
+			<right>40</right>
+			<bottom>96</bottom>
+			<width>700</width>
+			<height>30</height>
+			<font>font_small</font>
+			<align>right</align>
+			<aligny>center</aligny>
+			<textcolor>text_dim</textcolor>
+			<label>$VAR[BufferReadout]</label>
+			<visible>!Skin.HasSetting(hide_osd_buffer) + !String.IsEmpty(Player.CacheLevel) + [!String.IsEqual(Player.CacheLevel,0) | Player.Caching | Player.Paused | !String.IsEmpty(Window(home).Property(buffer_detail))]</visible>
+		</control>
 	</control>
 
 	<!-- ==================== TOP BAR (osd_position=top) ==================== -->
@@ -215,6 +231,20 @@
 			<aligny>center</aligny>
 			<textcolor>text</textcolor>
 			<label>$INFO[Player.Duration]</label>
+		</control>
+
+		<!-- Buffer readout (see bottom bar's twin) -->
+		<control type="label">
+			<right>40</right>
+			<top>18</top>
+			<width>700</width>
+			<height>30</height>
+			<font>font_small</font>
+			<align>right</align>
+			<aligny>center</aligny>
+			<textcolor>text_dim</textcolor>
+			<label>$VAR[BufferReadout]</label>
+			<visible>!Skin.HasSetting(hide_osd_buffer) + !String.IsEmpty(Player.CacheLevel) + [!String.IsEqual(Player.CacheLevel,0) | Player.Caching | Player.Paused | !String.IsEmpty(Window(home).Property(buffer_detail))]</visible>
 		</control>
 	</control>
 

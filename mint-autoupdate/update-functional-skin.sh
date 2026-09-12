@@ -50,8 +50,11 @@ ver_gt() {
 
 # --- locate Kodi's addons directory (Flatpak / Snap / native) ---
 ADDONS=""
+# Flatpak builds differ: some keep the profile under data/.kodi, the current
+# tv.kodi.Kodi keeps it directly under data/ (data/addons, data/userdata).
 for d in \
     "$HOME/.var/app/tv.kodi.Kodi/data/.kodi/addons" \
+    "$HOME/.var/app/tv.kodi.Kodi/data/addons" \
     "$HOME/.var/app/tv.kodi.Kodi/.kodi/addons" \
     "$HOME/snap/kodi/common/.kodi/addons" \
     "$HOME/.kodi/addons" ; do
@@ -61,6 +64,16 @@ if [ -z "$ADDONS" ]; then
     log "Kodi addons dir not found, nothing to do"
     exit 0
 fi
+
+# --- leftovers from an interrupted earlier run ---
+# The swap below parks the old skin as .skin.functional.old.<pid> and stages
+# into .skin.functional.staging.*; a run killed mid-way (power cut at boot)
+# leaves those behind, and their names are unique so no later run would
+# ever remove them. Nothing else creates dot-folders with these names.
+for stale in "$ADDONS/.${ADDON_ID}.old."* "$ADDONS/.${ADDON_ID}.staging."*; do
+    [ -d "$stale" ] || continue
+    rm -rf "$stale" && log "removed leftover $(basename "$stale")"
+done
 
 # --- installed version ---
 inst="0"
@@ -91,12 +104,17 @@ fi
 # cross-filesystem mv is a copy that can fail halfway), swap the old install
 # aside instead of deleting it, and only log success when every step worked -
 # so a failed update leaves the previous skin in place, not a missing addon.
+# Every ERROR path sets status=1 so the exit code reports the failure (the
+# systemd oneshot variant in the README shows it; start-kodi.sh ignores it
+# on purpose and launches Kodi regardless).
 log "updating $inst -> $bestv from $(basename "$best")"
+status=0
 tmp="$(mktemp -d "$ADDONS/.${ADDON_ID}.staging.XXXXXX")"
 old="$ADDONS/.${ADDON_ID}.old.$$"
 if unzip -q -o "$best" "$ADDON_ID/*" -d "$tmp" && [ -d "$tmp/$ADDON_ID" ]; then
     if [ -d "$ADDONS/$ADDON_ID" ] && ! mv "$ADDONS/$ADDON_ID" "$old"; then
         log "ERROR: could not move the installed skin aside; leaving it untouched"
+        status=1
     elif mv "$tmp/$ADDON_ID" "$ADDONS/$ADDON_ID"; then
         rm -rf "$old"
         log "done, now at $bestv"
@@ -104,8 +122,11 @@ if unzip -q -o "$best" "$ADDON_ID/*" -d "$tmp" && [ -d "$tmp/$ADDON_ID" ]; then
         # Put the previous install back so Kodi still has a skin.
         [ -d "$old" ] && mv "$old" "$ADDONS/$ADDON_ID"
         log "ERROR: could not install $bestv; previous version restored"
+        status=1
     fi
 else
     log "ERROR: failed to extract $best"
+    status=1
 fi
 rm -rf "$tmp"
+exit "$status"

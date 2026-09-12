@@ -41,11 +41,12 @@
 			<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Art(poster)]</texture>
 		</control>
 
-		<!-- Title and meta right -->
+		<!-- Title and meta right. Stops 300px short of the edge so a long,
+		     scrolling title never runs under the "Watched" tag (x 1640-1840). -->
 		<control type="label">
 			<left>620</left>
 			<top>80</top>
-			<right>80</right>
+			<right>300</right>
 			<height>60</height>
 			<font>font_huge</font>
 			<textcolor>text</textcolor>
@@ -181,6 +182,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -195,6 +197,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -210,6 +213,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -229,6 +233,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -244,6 +249,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -258,6 +264,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -273,6 +280,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>

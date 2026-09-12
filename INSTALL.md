@@ -16,9 +16,11 @@ Kodi blocks installing from zip by default. Enable it once:
 
 ### Install the repository add-on (once per device)
 
-1. Download `repository.functional-1.0.1.zip` onto the device. It is served straight from GitHub:
+1. Download the `repository.functional-<version>.zip` onto the device. It is served straight from GitHub, and the folder listing always shows the current one:
 
-   <https://raw.githubusercontent.com/c0def0rc0ffee/Functional/repo/zips/repository.functional/repository.functional-1.0.1.zip>
+   <https://github.com/c0def0rc0ffee/Functional/tree/repo/zips/repository.functional>
+
+   At the time of writing that is <https://raw.githubusercontent.com/c0def0rc0ffee/Functional/repo/zips/repository.functional/repository.functional-1.0.1.zip>.
 
    No browser on the device? Copy it over on a USB stick or network share instead. The same zip is also served from the `repo` branch on GitHub under `zips/repository.functional/`.
 2. In Kodi: **Settings → Add-ons → Install from zip file**, browse to the zip and select it

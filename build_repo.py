@@ -44,7 +44,9 @@ OUT = os.path.join(DIST, "repo")
 
 
 def addon_xml_version(path):
-    with open(path, encoding="utf-8") as fh:
+    # utf-8-sig: an editor-added BOM would otherwise survive into the
+    # manifest ahead of the declaration, and Kodi's parser rejects that.
+    with open(path, encoding="utf-8-sig") as fh:
         text = fh.read()
     m = re.search(r'<addon\b[^>]*\bversion="([^"]+)"', text)
     if not m:
@@ -55,7 +57,7 @@ def addon_xml_version(path):
 def addon_xml_body(path):
     """The <addon>…</addon> element only, declaration stripped, for
     inclusion in the combined addons.xml manifest."""
-    with open(path, encoding="utf-8") as fh:
+    with open(path, encoding="utf-8-sig") as fh:
         text = fh.read()
     text = re.sub(r"^\s*<\?xml[^>]*\?>\s*", "", text)
     return text.strip()

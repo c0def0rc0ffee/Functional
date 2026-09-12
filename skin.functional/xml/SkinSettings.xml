@@ -1,6 +1,11 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <window>
-	<defaultcontrol always="true">7000</defaultcontrol>
+	<!-- No always="true": Kodi then restores the last focused control when
+	     the window re-opens, which is what brings focus back to the OSD
+	     Position button after its ReloadSkin(). The default control still
+	     gets focus first during re-init, so the category buttons' onfocus
+	     is suspended while Skin.HasSetting(settings_reload) (see 7302). -->
+	<defaultcontrol>7000</defaultcontrol>
 	<onload condition="String.IsEmpty(Skin.String(settings_category))">Skin.SetString(settings_category,overall)</onload>
 	<controls>
 
@@ -33,6 +38,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -40,7 +46,9 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>Overall</label>
-				<onfocus>Skin.SetString(settings_category,overall)</onfocus>
+				<onfocus condition="!Skin.HasSetting(settings_reload)">Skin.SetString(settings_category,overall)</onfocus>
+				<onclick>Skin.Reset(settings_reload)</onclick>
+				<onclick>Skin.SetString(settings_category,overall)</onclick>
 				<onright>7300</onright>
 			</control>
 
@@ -49,6 +57,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -56,7 +65,9 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>Background</label>
-				<onfocus>Skin.SetString(settings_category,background)</onfocus>
+				<onfocus condition="!Skin.HasSetting(settings_reload)">Skin.SetString(settings_category,background)</onfocus>
+				<onclick>Skin.Reset(settings_reload)</onclick>
+				<onclick>Skin.SetString(settings_category,background)</onclick>
 				<!-- 7116 = the always-visible mode selector. (7110 is hidden
 				     unless mode=image, which broke right-arrow entry.) -->
 				<onright>7116</onright>
@@ -67,6 +78,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -74,7 +86,9 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>Home Screen</label>
-				<onfocus>Skin.SetString(settings_category,home)</onfocus>
+				<onfocus condition="!Skin.HasSetting(settings_reload)">Skin.SetString(settings_category,home)</onfocus>
+				<onclick>Skin.Reset(settings_reload)</onclick>
+				<onclick>Skin.SetString(settings_category,home)</onclick>
 				<onright>7100</onright>
 			</control>
 
@@ -83,6 +97,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -90,7 +105,9 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>Media Selection</label>
-				<onfocus>Skin.SetString(settings_category,media)</onfocus>
+				<onfocus condition="!Skin.HasSetting(settings_reload)">Skin.SetString(settings_category,media)</onfocus>
+				<onclick>Skin.Reset(settings_reload)</onclick>
+				<onclick>Skin.SetString(settings_category,media)</onclick>
 				<onright>7200</onright>
 			</control>
 
@@ -99,6 +116,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -106,7 +124,9 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>Video OSD</label>
-				<onfocus>Skin.SetString(settings_category,video)</onfocus>
+				<onfocus condition="!Skin.HasSetting(settings_reload)">Skin.SetString(settings_category,video)</onfocus>
+				<onclick>Skin.Reset(settings_reload)</onclick>
+				<onclick>Skin.SetString(settings_category,video)</onclick>
 				<onright>7302</onright>
 			</control>
 
@@ -159,6 +179,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -173,7 +194,7 @@
 					<selected>!Skin.HasSetting(hide_movies)</selected>
 					<onclick>Skin.ToggleSetting(hide_movies)</onclick>
 					<onleft>7000</onleft>
-					<onup>7113</onup>
+					<onup>7124</onup>
 					<ondown>7101</ondown>
 								</control>
 
@@ -182,6 +203,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -205,6 +227,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -228,6 +251,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -253,6 +277,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -277,6 +302,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -300,6 +326,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -323,6 +350,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -346,6 +374,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -369,6 +398,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -392,6 +422,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -415,6 +446,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -438,6 +470,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -461,6 +494,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -484,6 +518,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -507,6 +542,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -532,6 +568,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -558,6 +595,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -618,6 +656,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -626,6 +665,7 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>Accent Colour: $VAR[AccentColorLabel]</label>
 				<onleft>7000</onleft>
+				<onright>7310</onright>
 				<onup>7301</onup>
 				<ondown>7301</ondown>
 				<onclick condition="String.IsEmpty(Skin.String(accent_color)) | String.IsEqual(Skin.String(accent_color),blue)">Skin.SetString(accent_color,red)</onclick>
@@ -663,6 +703,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -701,6 +742,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -726,6 +768,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -746,6 +789,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -825,6 +869,7 @@
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -858,6 +903,7 @@
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -867,7 +913,7 @@
 				<label>Thumbnail Size: $VAR[GallerySizeLabel]</label>
 				<onleft>7000</onleft>
 				<onright>7223</onright>
-				<onup>7207</onup>
+				<onup>7208</onup>
 				<ondown>7221</ondown>
 				<!-- Cycle: medium → small → large → xlarge → medium -->
 				<onclick condition="String.IsEmpty(Skin.String(gallery_size))">Skin.SetString(gallery_size,small)</onclick>
@@ -885,6 +931,7 @@
 				<height>40</height>
 				<font>font_small</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -908,6 +955,7 @@
 				<height>40</height>
 				<font>font_small</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -945,6 +993,7 @@
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -988,6 +1037,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1011,6 +1061,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1034,6 +1085,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1057,6 +1109,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1080,6 +1133,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1105,6 +1159,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1128,6 +1183,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1151,6 +1207,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1215,6 +1272,7 @@
 					<height>70</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1238,6 +1296,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1262,6 +1321,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1281,6 +1341,7 @@
 					<height>70</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1304,6 +1365,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1320,6 +1382,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1341,6 +1404,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1362,6 +1426,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1383,6 +1448,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1401,6 +1467,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1429,6 +1496,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1455,6 +1523,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1480,6 +1549,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1505,6 +1575,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1529,6 +1600,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
@@ -1618,6 +1690,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -1626,13 +1699,20 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>OSD Position: $VAR[OsdPositionLabel]</label>
 				<onleft>7000</onleft>
-				<onup>7304</onup>
+				<onup>7309</onup>
 				<ondown>7303</ondown>
 				<!-- Cycle: bottom → top → bottom. ReloadSkin makes the load-time
 				     include in VideoOSD pick up the new position immediately. -->
 				<onclick condition="String.IsEmpty(Skin.String(osd_position)) | !String.IsEqual(Skin.String(osd_position),top)">Skin.SetString(osd_position,top)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(osd_position),top)">Skin.Reset(osd_position)</onclick>
+				<!-- The reload re-inits this window: default focus lands on the
+				     first category button, whose onfocus would flip the page to
+				     Overall before Kodi restores focus here. settings_reload
+				     suspends those onfocus handlers for exactly that re-init;
+				     our own onfocus drops it again. -->
+				<onclick>Skin.SetBool(settings_reload)</onclick>
 				<onclick>ReloadSkin()</onclick>
+				<onfocus>Skin.Reset(settings_reload)</onfocus>
 			</control>
 
 			<control type="radiobutton" id="7303">
@@ -1642,6 +1722,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -1669,6 +1750,7 @@
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
@@ -1678,12 +1760,147 @@
 				<label>Video Dim Behind Settings: $VAR[VideoDimLabel]</label>
 				<onleft>7000</onleft>
 				<onup>7303</onup>
-				<ondown>7302</ondown>
+				<ondown>7305</ondown>
 				<onclick condition="String.IsEmpty(Skin.String(video_dim))">Skin.SetString(video_dim,0)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(video_dim),0)">Skin.SetString(video_dim,25)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(video_dim),25)">Skin.SetString(video_dim,50)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(video_dim),50)">Skin.SetString(video_dim,90)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(video_dim),90)">Skin.Reset(video_dim)</onclick>
+			</control>
+
+			<control type="radiobutton" id="7305">
+				<left>440</left>
+				<top>440</top>
+				<width>900</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>Show Buffer Level on OSD</label>
+				<selected>!Skin.HasSetting(hide_osd_buffer)</selected>
+				<onclick>Skin.ToggleSetting(hide_osd_buffer)</onclick>
+				<onleft>7000</onleft>
+				<onup>7304</onup>
+				<ondown>7306</ondown>
+			</control>
+
+			<!-- Sub-header: playback buffer. These buttons drive Kodi's own
+			     filecache.* settings (Settings > Services > Caching, hidden at
+			     the Advanced level) through service.py's cache_command channel,
+			     so they are Kodi-wide and survive a skin switch. -->
+			<control type="label">
+				<left>440</left>
+				<top>530</top>
+				<width>900</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>PLAYBACK BUFFER</label>
+			</control>
+
+			<control type="button" id="7306">
+				<left>440</left>
+				<top>570</top>
+				<width>900</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Buffer Size: $INFO[Skin.String(cache_mem_label)]</label>
+				<onclick>Skin.SetString(cache_command,mem)</onclick>
+				<onleft>7000</onleft>
+				<onup>7305</onup>
+				<ondown>7307</ondown>
+			</control>
+
+			<control type="button" id="7307">
+				<left>440</left>
+				<top>650</top>
+				<width>900</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Fill Rate (Read Factor): $INFO[Skin.String(cache_rf_label)]</label>
+				<onclick>Skin.SetString(cache_command,readfactor)</onclick>
+				<onleft>7000</onleft>
+				<onup>7306</onup>
+				<ondown>7308</ondown>
+			</control>
+
+			<control type="button" id="7308">
+				<left>440</left>
+				<top>730</top>
+				<width>900</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>What Gets Buffered: $INFO[Skin.String(cache_mode_label)]</label>
+				<onclick>Skin.SetString(cache_command,mode)</onclick>
+				<onleft>7000</onleft>
+				<onup>7307</onup>
+				<ondown>7309</ondown>
+			</control>
+
+			<control type="button" id="7309">
+				<left>440</left>
+				<top>810</top>
+				<width>900</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Reset Buffering to Kodi Defaults</label>
+				<onclick>Skin.SetString(cache_command,reset)</onclick>
+				<onleft>7000</onleft>
+				<onup>7308</onup>
+				<ondown>7302</ondown>
+			</control>
+
+			<control type="label">
+				<left>1380</left>
+				<top>570</top>
+				<width>460</width>
+				<height>400</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<wrapmultiline>true</wrapmultiline>
+				<label>Buffer settings are Kodi-wide (not skin settings) and apply from the next video you start. Kodi uses roughly 3× the buffer size in RAM.[CR][CR]Pausing keeps filling the buffer up to its size. "Entire file on disk" has no cap — pause and it keeps downloading — but needs the file's size in free disk space and writes heavily to SSDs.</label>
 			</control>
 
 		</control>

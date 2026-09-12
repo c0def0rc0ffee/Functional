@@ -23,8 +23,10 @@ Usage:
 
 Output:
     Skin Dist/skin.functional-<version>.zip      Kodi-installable skin only
-    Skin Git/skin.functional-<version>-src.zip   full source snapshot — the
-                                                 exact tree pushed to GitHub
+    Skin Git/skin.functional-<version>-src.zip   full source snapshot: the
+                                                 tree as pushed to GitHub, minus
+                                                 the local-only release tooling
+                                                 and PROJECT_NOTES.md
 
 Both zips are also copied to every folder listed in release-mirror.conf, if
 that file exists. See mirror_targets() for the format. Without the file the
@@ -73,7 +75,7 @@ MIRROR_CONF = os.path.join(REPO, "release-mirror.conf")
 
 def read_version():
     addon_xml = os.path.join(SRC, "addon.xml")
-    with open(addon_xml, encoding="utf-8") as fh:
+    with open(addon_xml, encoding="utf-8-sig") as fh:
         text = fh.read()
     # Match the addon-tag's version attribute specifically — not the XML
     # declaration's version="1.0" on the first line.
