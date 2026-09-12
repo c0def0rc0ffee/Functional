@@ -1900,7 +1900,7 @@
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
 				<wrapmultiline>true</wrapmultiline>
-				<label>Buffer settings are Kodi-wide (not skin settings) and apply from the next video you start. Kodi uses roughly 3× the buffer size in RAM.[CR][CR]Pausing keeps filling the buffer up to its size. "Entire file on disk" has no cap — pause and it keeps downloading — but needs the file's size in free disk space and writes heavily to SSDs.</label>
+				<label>Buffer settings are Kodi-wide (not skin settings) and apply from the next video you start. Kodi uses roughly 3× the buffer size in RAM.[CR][CR]Pausing keeps filling the buffer up to its size. "Entire file on disk" has no cap (pause and it keeps downloading) but needs the file's size in free disk space and writes heavily to SSDs.</label>
 			</control>
 
 		</control>

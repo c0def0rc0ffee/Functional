@@ -10,6 +10,12 @@
 	<!-- Start with the filter sub-menu collapsed (also tidies up after the
 	     Local Only disable, which reloads this window via ReplaceWindow). -->
 	<onload>Skin.Reset(filter_menu_open)</onload>
+	<!-- The genre picker is an overlay, never a saved state; genre_active
+	     only labels the Genre button, and a Back out of a genre node is
+	     plain directory navigation the skin is never told about, so the
+	     label would go stale. Both start clean on every window load. -->
+	<onload>Skin.Reset(genre_menu_open)</onload>
+	<onload>Skin.Reset(genre_active)</onload>
 	<controls>
 
 		<include content="WindowBackground"/>
@@ -83,6 +89,7 @@
 			<onright>50</onright>
 			<onup>51</onup>
 			<onfocus>Skin.Reset(left_menu_open)</onfocus>
+			<onfocus>Skin.Reset(genre_menu_open)</onfocus>
 			<orientation>vertical</orientation>
 			<scrolltime tween="cubic" easing="out">200</scrolltime>
 			<pagecontrol>60</pagecontrol>
@@ -265,6 +272,7 @@
 			<onleft>8001</onleft>
 			<onright>51</onright>
 			<onfocus>Skin.Reset(left_menu_open)</onfocus>
+			<onfocus>Skin.Reset(genre_menu_open)</onfocus>
 			<scrolltime tween="cubic" easing="out">200</scrolltime>
 			<pagecontrol>60</pagecontrol>
 			<viewtype label="List">list</viewtype>
@@ -364,64 +372,66 @@
 			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
 		</control>
 
-		<!-- ========== FAST-SCROLL LETTER BADGE ==========
-		     A big letter of the focused item's sort position, shown while the
+		<!-- ========== FAST-SCROLL SORT BADGE ==========
+		     The focused item's position in the CURRENT SORT, shown while the
 		     list is being flicked, so you can see roughly where you are. It
 		     rides the right-hand end of the info bar and pops out of it: up
 		     out of the top edge when the bar is at the bottom (default), and
-		     down out of the bottom edge when the bar is at the top. Gated on
-		     ListItem.SortLetter being non-empty so it only appears when the
-		     current sort actually yields a letter/number. -->
+		     down out of the bottom edge when the bar is at the top.
+
+		     The value comes from $VAR[ScrollSortBadgeLabel], which follows
+		     sort_active: the sort letter under a title sort, otherwise the
+		     field actually being sorted on (year, rating, date). Kodi's
+		     ListItem.SortLetter is the first CHARACTER of the sort field, so
+		     under a rating or date sort it used to read "1" or "2", which
+		     located you nowhere.
+
+		     Three shapes, because the square only fits ONE character at
+		     font60: the square for the sort letter, a medium pill for year
+		     and rating, a wide one for the date sorts. Each shape's condition
+		     is repeated as a negation on the square so exactly one is ever
+		     up.
+		     top values: 808 = 1080 - 122 - 150, the old bottom=122 anchor. -->
 
 		<!-- Bottom bar: badge pops UP from the bar's top edge, lower-right -->
-		<control type="group">
-			<visible>[Container(51).Scrolling | Container(50).Scrolling] + !String.IsEmpty(ListItem.SortLetter) + !Skin.HasSetting(infobar_top)</visible>
-			<animation effect="fade" start="0" end="100" time="100">Visible</animation>
-			<animation effect="fade" start="100" end="0" time="250">Hidden</animation>
-			<control type="image">
-				<right>50</right>
-				<bottom>122</bottom>
-				<width>150</width>
-				<height>150</height>
-				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
-			</control>
-			<control type="label">
-				<right>50</right>
-				<bottom>122</bottom>
-				<width>150</width>
-				<height>150</height>
-				<font>font60</font>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textcolor>white</textcolor>
-				<label>$INFO[ListItem.SortLetter]</label>
-			</control>
-		</control>
+		<include content="ScrollSortBadge">
+			<param name="top" value="808"/>
+			<param name="width" value="150"/>
+			<param name="font" value="font60"/>
+			<param name="visible" value="[Container(51).Scrolling | Container(50).Scrolling] + !String.IsEmpty(ListItem.SortLetter) + ![[String.IsEqual(Skin.String(sort_active),dateadded) + !String.IsEmpty(ListItem.DateAdded)] | [String.IsEqual(Skin.String(sort_active),lastplayed) + !String.IsEmpty(ListItem.LastPlayed)]] + ![[String.IsEqual(Skin.String(sort_active),year) + !String.IsEmpty(ListItem.Year)] | [String.IsEqual(Skin.String(sort_active),rating) + !String.IsEmpty(ListItem.Rating)]] + !Skin.HasSetting(infobar_top)"/>
+		</include>
+		<include content="ScrollSortBadge">
+			<param name="top" value="808"/>
+			<param name="width" value="260"/>
+			<param name="font" value="font40"/>
+			<param name="visible" value="[Container(51).Scrolling | Container(50).Scrolling] + [[String.IsEqual(Skin.String(sort_active),year) + !String.IsEmpty(ListItem.Year)] | [String.IsEqual(Skin.String(sort_active),rating) + !String.IsEmpty(ListItem.Rating)]] + !Skin.HasSetting(infobar_top)"/>
+		</include>
+		<include content="ScrollSortBadge">
+			<param name="top" value="808"/>
+			<param name="width" value="340"/>
+			<param name="font" value="font24"/>
+			<param name="visible" value="[Container(51).Scrolling | Container(50).Scrolling] + [[String.IsEqual(Skin.String(sort_active),dateadded) + !String.IsEmpty(ListItem.DateAdded)] | [String.IsEqual(Skin.String(sort_active),lastplayed) + !String.IsEmpty(ListItem.LastPlayed)]] + !Skin.HasSetting(infobar_top)"/>
+		</include>
 
 		<!-- Top bar: badge hangs DOWN from the bar's bottom edge, upper-right -->
-		<control type="group">
-			<visible>[Container(51).Scrolling | Container(50).Scrolling] + !String.IsEmpty(ListItem.SortLetter) + Skin.HasSetting(infobar_top)</visible>
-			<animation effect="fade" start="0" end="100" time="100">Visible</animation>
-			<animation effect="fade" start="100" end="0" time="250">Hidden</animation>
-			<control type="image">
-				<right>50</right>
-				<top>122</top>
-				<width>150</width>
-				<height>150</height>
-				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
-			</control>
-			<control type="label">
-				<right>50</right>
-				<top>122</top>
-				<width>150</width>
-				<height>150</height>
-				<font>font60</font>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textcolor>white</textcolor>
-				<label>$INFO[ListItem.SortLetter]</label>
-			</control>
-		</control>
+		<include content="ScrollSortBadge">
+			<param name="top" value="122"/>
+			<param name="width" value="150"/>
+			<param name="font" value="font60"/>
+			<param name="visible" value="[Container(51).Scrolling | Container(50).Scrolling] + !String.IsEmpty(ListItem.SortLetter) + ![[String.IsEqual(Skin.String(sort_active),dateadded) + !String.IsEmpty(ListItem.DateAdded)] | [String.IsEqual(Skin.String(sort_active),lastplayed) + !String.IsEmpty(ListItem.LastPlayed)]] + ![[String.IsEqual(Skin.String(sort_active),year) + !String.IsEmpty(ListItem.Year)] | [String.IsEqual(Skin.String(sort_active),rating) + !String.IsEmpty(ListItem.Rating)]] + Skin.HasSetting(infobar_top)"/>
+		</include>
+		<include content="ScrollSortBadge">
+			<param name="top" value="122"/>
+			<param name="width" value="260"/>
+			<param name="font" value="font40"/>
+			<param name="visible" value="[Container(51).Scrolling | Container(50).Scrolling] + [[String.IsEqual(Skin.String(sort_active),year) + !String.IsEmpty(ListItem.Year)] | [String.IsEqual(Skin.String(sort_active),rating) + !String.IsEmpty(ListItem.Rating)]] + Skin.HasSetting(infobar_top)"/>
+		</include>
+		<include content="ScrollSortBadge">
+			<param name="top" value="122"/>
+			<param name="width" value="340"/>
+			<param name="font" value="font24"/>
+			<param name="visible" value="[Container(51).Scrolling | Container(50).Scrolling] + [[String.IsEqual(Skin.String(sort_active),dateadded) + !String.IsEmpty(ListItem.DateAdded)] | [String.IsEqual(Skin.String(sort_active),lastplayed) + !String.IsEmpty(ListItem.LastPlayed)]] + Skin.HasSetting(infobar_top)"/>
+		</include>
 
 		<!-- ========== INFO STRIP (BOTTOM, default) ========== -->
 		<control type="group">
@@ -886,6 +896,9 @@
 					<label>Filter: $VAR[FilterStateLabel]</label>
 					<onclick>Skin.ToggleSetting(filter_menu_open)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<!-- Back out of the genre picker lands here (its onback),
+					     so this is also where the overlay gets closed. -->
+					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
 					<onright>51</onright>
 					<onup>8003</onup>
 					<ondown>10</ondown>
@@ -916,6 +929,37 @@
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
 					<onup>8004</onup>
+					<ondown>8005</ondown>
+				</control>
+
+				<!-- Genre. Opens the centred picker overlay near the bottom of
+				     this file rather than unrolling another sub-list: the genre
+				     node runs to thirty-odd entries and the side menu is 380px
+				     of a 1080px screen. Movies and TV shows each have their own
+				     genres node; at any other level (seasons, episodes, plugin
+				     folders) there is nothing to pick from, so the button hides
+				     and the menu chain skips straight past it. -->
+				<control type="button" id="8005">
+					<visible>Skin.HasSetting(filter_menu_open) + [Container.Content(movies) | Container.Content(tvshows)]</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>Genre: $VAR[GenreFilterLabel]</label>
+					<onclick>Skin.SetBool(genre_menu_open)</onclick>
+					<!-- Focus the list that is actually up for this content. -->
+					<onclick condition="Container.Content(tvshows)">SetFocus(9501)</onclick>
+					<onclick condition="!Container.Content(tvshows)">SetFocus(9500)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>10</onup>
 					<ondown>8009</ondown>
 				</control>
 
@@ -937,7 +981,7 @@
 					<onclick>ActivateWindow(VideoPlaylist)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
-					<onup>10</onup>
+					<onup>8005</onup>
 					<ondown>8499</ondown>
 				</control>
 
@@ -1154,6 +1198,118 @@
 					<ondown>8001</ondown>
 				</control>
 
+			</control>
+
+		</control>
+
+		<!-- ========== GENRE PICKER OVERLAY ==========
+		     Centred panel listing the library's genres, opened by the Genre
+		     button in the side menu's Filter section and closed by picking a
+		     genre, by "All Genres", or by Back (which focuses the Filter
+		     button, whose onfocus clears genre_menu_open).
+
+		     It lives at the end of the window so it draws over the info bar
+		     and the side menu, and outside the clearance-animated groups so
+		     it never slides with them. Both lists are loaded at window load,
+		     which is two cheap library queries; only the one matching the
+		     current content is shown. -->
+		<control type="group">
+			<visible>Skin.HasSetting(genre_menu_open)</visible>
+			<animation effect="fade" start="0" end="100" time="150">Visible</animation>
+			<animation effect="fade" start="100" end="0" time="150">Hidden</animation>
+
+			<!-- Dim the library behind so the panel reads as modal -->
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>1920</width>
+				<height>1080</height>
+				<texture colordiffuse="CC000000">white.png</texture>
+			</control>
+
+			<!-- Panel body -->
+			<control type="image">
+				<left>580</left>
+				<top>130</top>
+				<width>760</width>
+				<height>820</height>
+				<texture colordiffuse="FF141820">white.png</texture>
+			</control>
+			<control type="label">
+				<left>610</left>
+				<top>145</top>
+				<width>700</width>
+				<height>60</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<aligny>center</aligny>
+				<label>Select Genre</label>
+			</control>
+			<control type="image">
+				<left>580</left>
+				<top>212</top>
+				<width>760</width>
+				<height>4</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+
+			<include content="GenrePickerList">
+				<param name="id" value="9500"/>
+				<param name="otherid" value="9501"/>
+				<param name="path" value="videodb://movies/genres/"/>
+				<param name="visible" value="!Container.Content(tvshows)"/>
+			</include>
+			<include content="GenrePickerList">
+				<param name="id" value="9501"/>
+				<param name="otherid" value="9500"/>
+				<param name="path" value="videodb://tvshows/genres/"/>
+				<param name="visible" value="Container.Content(tvshows)"/>
+			</include>
+
+			<control type="scrollbar" id="9503">
+				<left>1290</left>
+				<top>232</top>
+				<width>16</width>
+				<height>630</height>
+				<orientation>vertical</orientation>
+				<showonepage>false</showonepage>
+				<onleft>9500</onleft>
+				<onright>9500</onright>
+				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			</control>
+
+			<!-- Clear the genre filter: back to the plain titles node. Both
+			     branches carry their own condition and the two are exact
+			     negations of each other, and an unconditional fallback would
+			     fire IN ADDITION to the branch that already matched. -->
+			<control type="button" id="9502">
+				<left>610</left>
+				<top>876</top>
+				<width>660</width>
+				<height>56</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>All Genres</label>
+				<onclick condition="Container.Content(tvshows)">Container.Update(videodb://tvshows/titles/,replace)</onclick>
+				<onclick condition="!Container.Content(tvshows)">Container.Update(videodb://movies/titles/,replace)</onclick>
+				<onclick>Skin.Reset(genre_active)</onclick>
+				<onclick condition="Control.IsVisible(50)">SetFocus(50)</onclick>
+				<onclick condition="!Control.IsVisible(50)">SetFocus(51)</onclick>
+				<onclick>Skin.Reset(genre_menu_open)</onclick>
+				<onclick>Skin.Reset(filter_menu_open)</onclick>
+				<onup>9500</onup>
+				<ondown>9500</ondown>
+				<onleft>9502</onleft>
+				<onright>9502</onright>
+				<onback>8004</onback>
 			</control>
 
 		</control>

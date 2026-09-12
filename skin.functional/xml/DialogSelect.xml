@@ -55,7 +55,7 @@
 			<label></label>
 		</control>
 
-		<!-- Empty-state message: only when BOTH lists are empty — in detailed
+		<!-- Empty-state message: only when BOTH lists are empty, since in detailed
 		     mode Kodi populates list 6 and leaves list 3 empty -->
 		<control type="label">
 			<left>20</left>
@@ -85,7 +85,7 @@
 
 			<!-- selectedcolor is mandatory on every label here: this dialog runs in
 			     multiselect mode (Jellyfin "Update Library", subtitle pickers, etc.)
-			     and Kodi defaults an unset selectedcolor to 00000000 — ticked rows
+			     and Kodi defaults an unset selectedcolor to 00000000, so ticked rows
 			     would render fully transparent while the focus bar stayed put. -->
 			<itemlayout height="60" width="880">
 				<control type="image">

@@ -7,7 +7,7 @@ Each PNG has:
 When Kodi colordiffuses the texture, the disc appears as a darker shade
 of the target colour while the glyph appears full-strength, giving
 contrast on both focused (accent) and unfocused (bg_panel) buttons.
-The icon is then a single texture on a normal <button> — keeping it
+The icon is then a single texture on a normal <button>, which keeps it
 focus-navigable inside its grouplist parent.
 """
 from PIL import Image, ImageDraw

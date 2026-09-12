@@ -204,7 +204,7 @@
 		<!-- Every setting control below carries <onleft>3</onleft> so left
 	     returns to the category list on the left. Without it focus sits on
 	     the individual control, not on group 5, and group 5's own onleft
-	     never applies - so the only way back was down to the button bar
+	     never applies, so the only way back was down to the button bar
 	     and up again. Spin controls and sliders are deliberately excluded:
 	     left and right adjust their value. -->
 		<!-- Default button setting -->

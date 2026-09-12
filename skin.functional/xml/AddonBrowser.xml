@@ -21,7 +21,7 @@
 		       8  = Hide incompatible add-ons (radiobutton)
 		       9  = Check for updates (button)
 		       5  = Add-on settings (button)
-		     Kodi shows/hides these itself as relevant — no skin-side
+		     Kodi shows/hides these itself as relevant, so no skin-side
 		     Control.IsEnabled gates (they stick invisible at first paint). -->
 		<control type="grouplist" id="9000">
 			<left>40</left>

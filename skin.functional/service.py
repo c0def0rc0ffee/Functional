@@ -39,7 +39,7 @@ update_layout_command()
 
 update_home_bg()
     Slideshow of library fanart on the Home background. Skin.String(bg_mode)
-    picks the source - "recent" (recently watched movies), "random" (anything
+    picks the source: "recent" (recently watched movies), "random" (anything
     in the library), "genre" (one genre only, see below). Pulls up to 30 items
     via JSON-RPC, then rotates URL + caption on Home as window properties:
         home_bg_fanart        e.g. "image://https%3a%2f%2f...fanart.jpg"
@@ -86,12 +86,15 @@ update_buffer_stats()
     the file duration via Player.GetProperties. Skin XML can't do arithmetic,
     hence Python. Runs on the slow (~1s) tick.
 
-update_cache_command() -> "fullfile" / _fullfile_worker()
+update_cache_command() -> "fullfile" / "normalbuffer" / _fullfile_worker()
     The OSD's BUFFER ALL button: per-movie unlimited buffering. Remembers
     the current memorysize in Skin.String(cache_mem_restore), switches Kodi
     to the uncapped disk cache (memorysize 0), restarts the stream at the
     same position, and restores the previous size when playback ends.
     Window(home).Property(buffer_fullfile) tells the OSD the mode is active.
+    Clicking the button again sends "normalbuffer", which is the same switch
+    in reverse: back to the remembered size (or Kodi's default if nothing was
+    remembered) and another restart at the same position.
 
 update_cache_command()
     Playback-buffer presets. Kodi 21 exposes the old advancedsettings <cache>
@@ -101,7 +104,7 @@ update_cache_command()
     setting through sensible presets via JSON-RPC. Current values are
     mirrored into cache_mem_label / cache_rf_label / cache_mode_label skin
     strings for the button captions. Changes apply from the next playback
-    start (the cache is built per stream) - no restart. NOTE: these are
+    start (the cache is built per stream), so no restart. NOTE: these are
     Kodi-wide settings, not skin settings; they persist across skins.
 
 Future handlers
@@ -487,7 +490,7 @@ class FunctionalHelper(xbmc.Monitor):
         There is no cast list for the *playing* item: VideoPlayer.Cast is a
         flat comma-joined string with no portraits. So resolve it ourselves.
         (The info dialog nominally has one, control 50, but we don't use it
-        there either — see update_info_cast.)
+        there either, see update_info_cast.)
 
         The lookup only runs when the playing item changes, and on a daemon
         thread, so a slow video DB can't stall the main loop.
@@ -565,7 +568,7 @@ class FunctionalHelper(xbmc.Monitor):
         flight" (show nothing). Gating the label on a Name property instead
         made it flash on every dialog open until the worker had published.
 
-        Callers must hold self._cast_lock — the ~25 property writes here are
+        Callers must hold self._cast_lock: the ~25 property writes here are
         not atomic, so unsynchronised worker/main-loop publishes interleave."""
         win = xbmcgui.Window(HOME_WINDOW_ID)
         shown = cast[:self.CAST_MAX]
@@ -817,7 +820,7 @@ class FunctionalHelper(xbmc.Monitor):
         the file (same scale as percentage/Player.Progress but float, so this
         stays smooth where whole-percent infolabels would jump in ~40s steps
         on a feature film). The fraction x the file size is also the truest
-        byte count available - Player.CacheLevel is only the fill % of the
+        byte count available: Player.CacheLevel is only the fill % of the
         memory buffer, which wildly overstates bytes when the file is smaller
         than the buffer."""
         players = (_jsonrpc("Player.GetActivePlayers").get("result") or [])
@@ -966,12 +969,13 @@ class FunctionalHelper(xbmc.Monitor):
         # Clear immediately so we don't re-trigger
         xbmc.executebuiltin("Skin.Reset(cache_command)")
 
-        if cmd == "fullfile":
-            # Per-movie unlimited buffering (OSD "BUFFER ALL" button). Runs
-            # off-loop: it stops and reopens the stream, with waits.
+        if cmd in ("fullfile", "normalbuffer"):
+            # Per-movie unlimited buffering, on and off again (OSD "BUFFER
+            # ALL" button). Runs off-loop: it stops and reopens the stream,
+            # with waits.
             if self._fullfile_thread is None or not self._fullfile_thread.is_alive():
                 self._fullfile_thread = threading.Thread(
-                    target=self._fullfile_worker,
+                    target=self._fullfile_worker, args=(cmd,),
                     name="functional-fullfile", daemon=True)
                 self._fullfile_thread.start()
             return
@@ -1005,7 +1009,11 @@ class FunctionalHelper(xbmc.Monitor):
     # position. When playback ends, _maybe_restore_memsize puts the normal
     # size back. Side effect worth knowing: if another video starts before
     # the restore fires (~1s after stop), it also runs uncapped until ITS
-    # playback ends - harmless, just surprising in a log.
+    # playback ends, which is harmless, just surprising in a log.
+    #
+    # Clicking the button a second time ("normalbuffer") runs the same switch
+    # in reverse without waiting for playback to end: restore value back into
+    # memorysize, skin string cleared, stream reopened at the same position.
 
     FULLFILE_REOPEN_WAIT = 30  # seconds to wait for the stream to come back
     FULLFILE_SEEK_BACK = 5     # rejoin slightly early: lands near a keyframe
@@ -1026,17 +1034,33 @@ class FunctionalHelper(xbmc.Monitor):
         self._refresh_cache_labels()
         _dlog("fullfile: playback over, memorysize restored to {0}".format(value))
 
-    def _fullfile_worker(self):
+    def _fullfile_worker(self, mode="fullfile"):
+        """Thread body for both directions of the switch.
+
+        :param mode: "fullfile" to turn unlimited buffering on, "normalbuffer"
+                     to go back to the remembered buffer size.
+        """
         try:
             self._fullfile_busy = True
-            self._do_fullfile_switch()
+            self._do_fullfile_switch(mode)
         except Exception:  # noqa: BLE001
             _dlog("fullfile switch failed:\n{0}".format(traceback.format_exc()),
                   xbmc.LOGERROR)
         finally:
             self._fullfile_busy = False
 
-    def _do_fullfile_switch(self):
+    def _do_fullfile_switch(self, mode="fullfile"):
+        """Set filecache.memorysize for this playback and reopen the stream at
+        the same position, in whichever direction `mode` asks for.
+
+        Both directions are the same dance because Kodi sizes the cache when
+        the stream opens: changing the setting alone does nothing until the
+        file is reopened.
+
+        :param mode: "fullfile" (memorysize 0 = uncapped disk cache) or
+                     "normalbuffer" (back to Skin.String(cache_mem_restore),
+                     falling back to Kodi's default size if that is gone).
+        """
         current = self._get_setting("filecache.memorysize")
         if current is None:
             # Without the current size there is nothing to restore to after
@@ -1047,11 +1071,31 @@ class FunctionalHelper(xbmc.Monitor):
                 "Functional", "Could not read the buffer size, not switching",
                 xbmcgui.NOTIFICATION_WARNING, 4000)
             return
-        if current == 0:
-            xbmcgui.Dialog().notification(
-                "Functional", "Already buffering the entire file",
-                xbmcgui.NOTIFICATION_INFO, 4000)
-            return
+        if mode == "fullfile":
+            if current == 0:
+                xbmcgui.Dialog().notification(
+                    "Functional", "Already buffering the entire file",
+                    xbmcgui.NOTIFICATION_INFO, 4000)
+                return
+            target_size = 0
+            message = "Restarting stream with unlimited buffering"
+        else:
+            if current != 0:
+                xbmcgui.Dialog().notification(
+                    "Functional", "Full buffering is not on",
+                    xbmcgui.NOTIFICATION_INFO, 4000)
+                return
+            # Nothing remembered means the uncapped size was set somewhere
+            # other than this button (Kodi's own Caching page, or a restart
+            # that lost the skin string): Kodi's default is the safe landing.
+            target_size = self._safe_int(
+                xbmc.getInfoLabel("Skin.String(cache_mem_restore)"),
+                self.CACHE_DEFAULTS["filecache.memorysize"])
+            if target_size == 0:
+                # A remembered 0 would restart straight back into unlimited
+                # buffering, i.e. the button would do nothing.
+                target_size = self.CACHE_DEFAULTS["filecache.memorysize"]
+            message = "Restarting stream with normal buffering"
         players = (_jsonrpc("Player.GetActivePlayers").get("result") or [])
         pid = next((p.get("playerid") for p in players
                     if p.get("type") == "video"), None)
@@ -1077,14 +1121,22 @@ class FunctionalHelper(xbmc.Monitor):
                 return
             target = {"file": item["file"]}
 
-        _set_skin_string("cache_mem_restore", current)
-        self._set_setting("filecache.memorysize", 0)
+        if mode == "fullfile":
+            _set_skin_string("cache_mem_restore", current)
+        else:
+            # Consumed: without this, _maybe_restore_memsize would set the
+            # same size again when playback ends, and any later read of the
+            # string would be stale.
+            xbmc.executebuiltin("Skin.Reset(cache_mem_restore)")
+        self._set_setting("filecache.memorysize", target_size)
         self._refresh_cache_labels()
+        # The OSD's MB estimate and its buffer_fullfile flag both derive from
+        # memorysize; make update_buffer_stats() re-read it.
+        self._buffer_memsize = None
         xbmcgui.Dialog().notification(
-            "Functional", "Restarting stream with unlimited buffering",
-            xbmcgui.NOTIFICATION_INFO, 5000)
-        _dlog("fullfile: reopening {0} at {1}s (memorysize {2} -> 0)".format(
-            target, secs, current))
+            "Functional", message, xbmcgui.NOTIFICATION_INFO, 5000)
+        _dlog("fullfile: reopening {0} at {1}s (memorysize {2} -> {3})".format(
+            target, secs, current, target_size))
         _jsonrpc("Player.Stop", {"playerid": pid})
         xbmc.sleep(1500)
         _jsonrpc("Player.Open", {"item": target})
@@ -1110,7 +1162,7 @@ class FunctionalHelper(xbmc.Monitor):
     def update_home_bg(self):
         """
         Rotate Home's background through the configured slideshow source on a
-        user-configurable timer. Source is Skin.String(bg_mode) - one of
+        user-configurable timer. Source is Skin.String(bg_mode): one of
         "recent" (recently watched movies), "random" (random library fanart),
         "genre" (random fanart from Skin.String(bg_genre), restricted to
         Skin.String(bg_genre_type)), "folder" (images from
@@ -1511,7 +1563,7 @@ class FunctionalHelper(xbmc.Monitor):
         if worker is None:
             return
         # These dialogs block until dismissed, so they run off the polling
-        # loop — otherwise the slideshow, stats and ETA handlers would all
+        # loop, otherwise the slideshow, stats and ETA handlers would all
         # stall for as long as the picker is open.
         if self._dialog_thread is not None and self._dialog_thread.is_alive():
             return
@@ -1537,7 +1589,7 @@ class FunctionalHelper(xbmc.Monitor):
             for row in (resp.get("result", {}) or {}).get("genres", []) if resp else []:
                 label = (row.get("label", "") or "").strip()
                 # "both" queries two types, which overlap heavily (Drama,
-                # Comedy, …) — de-dupe so the list isn't full of pairs.
+                # Comedy, …), so de-dupe so the list isn't full of pairs.
                 if label and label not in genres:
                     genres.append(label)
         genres.sort(key=lambda s: s.lower())
@@ -1772,7 +1824,7 @@ class FunctionalHelper(xbmc.Monitor):
     @staticmethod
     def _fanart_items(rows, with_year=True):
         """(fanart_url, label) pairs from JSON-RPC rows carrying art/title/year.
-        Rows with no fanart are skipped — they'd render as a blank background."""
+        Rows with no fanart are skipped, they would render as a blank background."""
         items = []
         for row in rows:
             fanart = (row.get("art", {}) or {}).get("fanart", "")

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <window type="dialog">
 	<!-- Auto-show (Estuary-style): without a window-level <visible>, Kodi only
-	     opens this dialog for the brief moment of an actual seek — pausing
+	     opens this dialog for the brief moment of an actual seek, so pausing
 	     gave no on-screen feedback at all. -->
 	<visible>Window.IsActive(fullscreenvideo) | Window.IsActive(visualisation)</visible>
 	<visible>Player.Seeking | Player.HasPerformedSeek(3) | [Player.Paused + !Player.Caching] | Player.Forwarding | Player.Rewinding | Player.ShowTime | Window.IsActive(fullscreeninfo) | !String.IsEmpty(Player.SeekNumeric)</visible>

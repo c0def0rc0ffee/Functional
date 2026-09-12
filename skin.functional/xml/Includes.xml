@@ -8,7 +8,7 @@
 
 	<!-- WindowBackground draws the configurable background on non-home windows.
 	     True either because the user asked for it everywhere, or transiently
-	     because video is playing through - so video-behind works even with
+	     because video is playing through, so video-behind works even with
 	     "Show On All Screens" off. Home.xml's own copy stands down on the same
 	     expression, so the block renders exactly once either way. -->
 	<expression name="bg_windows_active">Skin.HasSetting(bg_all_windows) | [Skin.HasSetting(bg_video_behind) + Player.HasVideo + !Slideshow.IsActive]</expression>
@@ -119,7 +119,7 @@
 	     hardcoded genre list here to drift out of date. -->
 	<variable name="BgGenreLabel">
 		<value condition="!String.IsEmpty(Skin.String(bg_genre))">$INFO[Skin.String(bg_genre)]</value>
-		<value>[COLOR grey]not set — tap to choose[/COLOR]</value>
+		<value>[COLOR grey]not set, tap to choose[/COLOR]</value>
 	</variable>
 
 	<variable name="BgGenreTypeLabel">
@@ -142,12 +142,22 @@
 
 	<!-- Buffer readout for the OSD and pause/seek bar. In per-movie
 	     full-file mode (memorysize 0) Player.CacheLevel is meaningless -
-	     there is no fixed buffer to be a percentage of - so lead with the
+	     there is no fixed buffer to be a percentage of, so lead with the
 	     mode instead. buffer_detail/buffer_fullfile come from
 	     service.py:update_buffer_stats(). -->
 	<variable name="BufferReadout">
 		<value condition="!String.IsEmpty(Window(home).Property(buffer_fullfile))">Full buffer$INFO[Window(home).Property(buffer_detail), · ,]</value>
 		<value>Buffer $INFO[Player.CacheLevel]%$INFO[Window(home).Property(buffer_detail), · ,]</value>
+	</variable>
+
+	<!-- Label for the OSD's single full-buffer toggle (control 214). It used
+	     to be a button plus a separate dead label, so once full buffering was
+	     on there was no way back to the normal buffer without ending
+	     playback. One button, two states: the second click restarts the
+	     stream again on the previous buffer size. -->
+	<variable name="OsdFullBufferLabel">
+		<value condition="!String.IsEmpty(Window(home).Property(buffer_fullfile))">FULL BUFFER ON</value>
+		<value>BUFFER ALL</value>
 	</variable>
 
 	<!-- Pretty resolution label for the currently-playing item (used by VideoOSD) -->
@@ -267,6 +277,30 @@
 		<value>$INFO[Control.GetLabel(10)]</value>
 	</variable>
 
+	<!-- Genre sub-filter label for the same side menu. genre_active is set by
+	     the genre picker overlay in MyVideoNav and cleared by its "All Genres"
+	     row; it is also cleared on window load, because a Back out of a genre
+	     node is ordinary directory navigation that the skin never sees. -->
+	<variable name="GenreFilterLabel">
+		<value condition="!String.IsEmpty(Skin.String(genre_active))">$INFO[Skin.String(genre_active)]</value>
+		<value>All</value>
+	</variable>
+
+	<!-- Value shown in the fast-scroll badge while a library list is flicked.
+	     It follows the ACTIVE SORT rather than always showing
+	     ListItem.SortLetter: under a rating or date sort the sort letter is
+	     the first character of that field ("1", "2"), which tells you
+	     nothing. Each branch re-checks its own field so an item missing it
+	     falls through to the sort letter rather than flashing an empty pill.
+	     sort_active is written by the Sort buttons in MyVideoNav's side menu. -->
+	<variable name="ScrollSortBadgeLabel">
+		<value condition="String.IsEqual(Skin.String(sort_active),year) + !String.IsEmpty(ListItem.Year)">$INFO[ListItem.Year]</value>
+		<value condition="String.IsEqual(Skin.String(sort_active),rating) + !String.IsEmpty(ListItem.Rating)">★ $INFO[ListItem.Rating]</value>
+		<value condition="String.IsEqual(Skin.String(sort_active),dateadded) + !String.IsEmpty(ListItem.DateAdded)">$INFO[ListItem.DateAdded]</value>
+		<value condition="String.IsEqual(Skin.String(sort_active),lastplayed) + !String.IsEmpty(ListItem.LastPlayed)">$INFO[ListItem.LastPlayed]</value>
+		<value>$INFO[ListItem.SortLetter]</value>
+	</variable>
+
 	<!-- Pre-baked conditional slide animations for the gallery / list panels.
 	     One animation per discrete clearance value (0, 10, ..., 250 px).
 	     Whichever value the Skin.String currently equals, that animation
@@ -330,7 +364,7 @@
 	     Two ladders in one variable. Off the home screen (only reachable
 	     when bg_all_windows is on) the background sits under list rows and
 	     settings labels rather than a mostly-empty screen, so it reads from
-	     bg_windows_dim and defaults heavier - 75% against Home's 60%. Those
+	     bg_windows_dim and defaults heavier, 75% against Home's 60%. Those
 	     conditions come first because they are the more specific case. -->
 	<variable name="BgOverlayColor">
 		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),0)">00000000</value>
@@ -593,8 +627,8 @@
 	     when bg_all_windows is on. Exactly one caller shows it at a time:
 	     WindowBackground when the setting is on, Home.xml when it is off.
 
-	     'visible'  - condition gating the whole block.
-	     'captions' - the slideshow title label. Home only by default; off
+	     'visible'  : condition gating the whole block.
+	     'captions' : the slideshow title label. Home only by default; off
 	                  the home screen it would collide with HeaderBar. -->
 	<include name="SkinBackground">
 		<param name="visible" default="true"/>
@@ -609,7 +643,7 @@
 				<!-- Live video behind the GUI. Kodi keeps playing when you leave
 				     fullscreen; this is the surface it renders into, so the
 				     menus sit straight over the picture. Must come before the
-				     stills below - they are opaque and would cover it. -->
+				     stills below, they are opaque and would cover it. -->
 				<control type="videowindow">
 					<left>0</left>
 					<top>0</top>
@@ -1119,7 +1153,7 @@
 	<!-- A category filter chip on the Favourites screen: a flat, absolutely
 	     positioned button paired with a separate underline image marking the
 	     active filter. Deliberately NOT a button-in-a-group inside a
-	     grouplist — that nesting breaks focus traversal (same lesson as the
+	     grouplist, because that nesting breaks focus traversal (same lesson as the
 	     MusicOSD transport row, see PROJECT_NOTES), which left every chip
 	     after "All" unreachable. Explicit onleft/onright chains wrap around
 	     the row; Kodi falls through hidden chips (empty categories are
@@ -1328,7 +1362,7 @@
 	     DialogVideoInfo does expose a built-in cast list (control 50) and
 	     binding a skin list to it is the documented route, but it stayed
 	     empty here through two attempts, so both screens now go through the
-	     properties instead — one mechanism, and one that is known to work. -->
+	     properties instead: one mechanism, and one that is known to work. -->
 	<include name="CastPortrait">
 		<param name="prefix" />
 		<param name="n" />
@@ -1479,6 +1513,145 @@
 				     is cleared, so this shows nothing instead of flashing on
 				     every dialog open. -->
 				<visible>String.IsEqual(Window(home).Property(InfoCast.Count),0)</visible>
+			</control>
+		</definition>
+	</include>
+
+	<!-- ===== GENRE PICKER LIST =====
+	     One column of the centred genre overlay in MyVideoNav. Instantiated
+	     twice, once per genres node, because a container's <content> path is
+	     read when the window loads and cannot follow an infolabel; only the
+	     one matching the current content is ever visible.
+
+	     Clicking a genre navigates the library container to that genre node,
+	     which is how Kodi itself filters by genre, so the view, sort and info
+	     bar all carry on as they were. The "All Genres" button below the list
+	     goes back to the plain titles node.
+
+	     id:      this list's control id.
+	     otherid: the sibling list, so Up out of the top of a hidden list
+	              still finds the visible one (Kodi follows navigation
+	              through controls that cannot take focus).
+	     path:    the genres node to populate from.
+	     visible: which content type this column serves. -->
+	<include name="GenrePickerList">
+		<param name="id" />
+		<param name="otherid" />
+		<param name="path" />
+		<param name="visible" />
+		<definition>
+			<control type="list" id="$PARAM[id]">
+				<visible>$PARAM[visible]</visible>
+				<left>610</left>
+				<top>232</top>
+				<width>660</width>
+				<height>630</height>
+				<onleft>$PARAM[id]</onleft>
+				<onright>9503</onright>
+				<onup>$PARAM[otherid]</onup>
+				<ondown>9502</ondown>
+				<!-- Back returns to the side menu's Filter button, whose
+				     onfocus closes this overlay. -->
+				<onback>8004</onback>
+				<pagecontrol>9503</pagecontrol>
+				<scrolltime tween="cubic" easing="out">200</scrolltime>
+				<onclick>Skin.SetString(genre_active,$ESCINFO[ListItem.Label])</onclick>
+				<onclick>Container.Update($ESCINFO[ListItem.FolderPath])</onclick>
+				<!-- Hand focus back to whichever view is up before the overlay
+				     disappears out from under it (the Close button in the side
+				     menu picks its target the same way). -->
+				<onclick condition="Control.IsVisible(50)">SetFocus(50)</onclick>
+				<onclick condition="!Control.IsVisible(50)">SetFocus(51)</onclick>
+				<onclick>Skin.Reset(genre_menu_open)</onclick>
+				<onclick>Skin.Reset(filter_menu_open)</onclick>
+				<itemlayout height="70" width="660">
+					<control type="label">
+						<left>24</left>
+						<top>0</top>
+						<width>612</width>
+						<height>70</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+				</itemlayout>
+				<focusedlayout height="70" width="660">
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>660</width>
+						<height>70</height>
+						<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+						<visible>Control.HasFocus($PARAM[id])</visible>
+					</control>
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>660</width>
+						<height>70</height>
+						<texture colordiffuse="40FFFFFF">white.png</texture>
+						<visible>!Control.HasFocus($PARAM[id])</visible>
+					</control>
+					<control type="label">
+						<left>24</left>
+						<top>0</top>
+						<width>612</width>
+						<height>70</height>
+						<font>font_reg</font>
+						<textcolor>white</textcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+				</focusedlayout>
+				<!-- The genres node comes back in database order, which looks
+				     random on screen; sort it here rather than expecting the
+				     reader to hunt. -->
+				<content sortby="label" sortorder="ascending">$PARAM[path]</content>
+			</control>
+		</definition>
+	</include>
+
+	<!-- ===== FAST-SCROLL SORT BADGE =====
+	     The accent pill that pops out of the library info bar while a list is
+	     being flicked, showing where in the current sort you are. Two shapes
+	     are instantiated in MyVideoNav: a 150px square for the short values
+	     (sort letter, year, rating) and a wide slab for the date sorts, whose
+	     value is a full formatted date. Position is passed as <top> for both
+	     the top-bar and bottom-bar cases, because an include parameter can
+	     substitute a value but never a tag name.
+	     top:     y position of the pill (bottom-bar case is 1080-122-150).
+	     width:   pill width; the pill is anchored to right=50.
+	     font:    font for the value.
+	     visible: the full visibility condition, including the scroll gate. -->
+	<include name="ScrollSortBadge">
+		<param name="top" />
+		<param name="width" />
+		<param name="font" />
+		<param name="visible" />
+		<definition>
+			<control type="group">
+				<visible>$PARAM[visible]</visible>
+				<animation effect="fade" start="0" end="100" time="100">Visible</animation>
+				<animation effect="fade" start="100" end="0" time="250">Hidden</animation>
+				<control type="image">
+					<right>50</right>
+					<top>$PARAM[top]</top>
+					<width>$PARAM[width]</width>
+					<height>150</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<right>50</right>
+					<top>$PARAM[top]</top>
+					<width>$PARAM[width]</width>
+					<height>150</height>
+					<font>$PARAM[font]</font>
+					<align>center</align>
+					<aligny>center</aligny>
+					<textcolor>white</textcolor>
+					<label>$VAR[ScrollSortBadgeLabel]</label>
+				</control>
 			</control>
 		</definition>
 	</include>

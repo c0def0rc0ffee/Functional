@@ -3,7 +3,7 @@ Build both release zips for skin.functional.
 
 USE THIS, NOT PowerShell's Compress-Archive. Compress-Archive emits zip
 entries with backslash separators and (more importantly) no explicit
-directory entries — Linux Kodi (LibreELEC, Bazzite, every non-Windows
+directory entries, and Linux Kodi (LibreELEC, Bazzite, every non-Windows
 build) refuses to install zips that lack directory records, even though
 Windows Kodi accepts them silently.
 
@@ -13,7 +13,7 @@ This script writes portable zips:
   - DEFLATE compression
   - reads the version straight out of skin.functional/addon.xml so the
     output filenames always match the manifest (addon.xml is the version
-    source of truth — Kodi requires it there, so no separate VERSION file)
+    source of truth, because Kodi requires it there, so no separate VERSION file)
 
 Usage:
     python build_zip.py        (or: powershell -File build-zip.ps1)
@@ -46,7 +46,7 @@ DIST = os.path.join(REPO, "Skin Dist")
 GIT = os.path.join(REPO, "Skin Git")
 
 # Directory names that must never ship anywhere. @eaDir is Synology NAS
-# indexing metadata — its @SynoEAStream entries crash Kodi's zip
+# indexing metadata, whose @SynoEAStream entries crash Kodi's zip
 # extraction on install (seen on Kodi 21 / Linux).
 JUNK_DIRS = ("__pycache__", ".git", "@eaDir", "#recycle", ".svn")
 JUNK_FILES = ("Thumbs.db", "desktop.ini", ".DS_Store")
@@ -70,6 +70,40 @@ SRC_ZIP_EXCLUDE_GLOBS = ("*.zip", "*.7z", "*.tmp", "*.log",
                          ".publish-allow", "GITHUB-RELEASE-GUIDE.md",
                          "Github repository", "PROJECT_NOTES.md")
 
+
+def git_ignored_root_files():
+    """Root level filenames that git is told to ignore, read at build time.
+
+    The source snapshot is meant to match `git ls-files` exactly, so whatever
+    git ignores has to be left out of the zip as well. Reading the names out
+    of the ignore files rather than listing them above keeps the list in step
+    on its own, and keeps local only filenames from being written into this
+    file, which does ship.
+
+    Only root anchored plain filenames are taken ("/Notes.md"). Directory
+    rules, wildcards and negations are left to the existing globs, so a
+    pattern here can never widen the exclusion beyond one named file.
+
+    :returns: tuple of filenames, empty when neither ignore file is present
+              (a build from an extracted snapshot still works, it just falls
+              back to the explicit globs above).
+    """
+    names = []
+    for rel in (".gitignore", os.path.join(".git", "info", "exclude")):
+        path = os.path.join(REPO, rel)
+        if not os.path.isfile(path):
+            continue
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            for raw in handle:
+                line = raw.strip()
+                if (not line or line.startswith(("#", "!"))
+                        or not line.startswith("/") or line.endswith("/")):
+                    continue
+                name = line[1:]
+                if name and "/" not in name and "*" not in name:
+                    names.append(name)
+    return tuple(names)
+
 MIRROR_CONF = os.path.join(REPO, "release-mirror.conf")
 
 
@@ -77,7 +111,7 @@ def read_version():
     addon_xml = os.path.join(SRC, "addon.xml")
     with open(addon_xml, encoding="utf-8-sig") as fh:
         text = fh.read()
-    # Match the addon-tag's version attribute specifically — not the XML
+    # Match the addon-tag's version attribute specifically, not the XML
     # declaration's version="1.0" on the first line.
     m = re.search(r'<addon\b[^>]*\bversion="([^"]+)"', text)
     if not m:
@@ -120,7 +154,7 @@ def write_zip(out, walk_root, arc_base, exclude_dirs=(), exclude_globs=()):
 
     with zipfile.ZipFile(out, "w", compression=zipfile.ZIP_DEFLATED) as z:
         if arc_base:
-            # Top-level directory entry first — Linux Kodi requires this.
+            # Top-level directory entry first, because Linux Kodi requires this.
             z.writestr(dir_entry(arc_base + "/"), b"")
             seen_dirs.add(arc_base + "/")
 
@@ -177,7 +211,7 @@ def verify_zip(out, must_contain=(), must_not_contain_globs=()):
                       and not (i.external_attr >> 16) & 0o111]
     if bad or corrupt or missing or unreadable:
         os.remove(out)
-        sys.exit(f"ABORTED — bad zip {os.path.basename(out)}: "
+        sys.exit(f"ABORTED: bad zip {os.path.basename(out)}: "
                  f"junk/forbidden={bad} missing={missing} corrupt={corrupt} "
                  f"unreadable_dirs={unreadable}")
 
@@ -217,7 +251,7 @@ def mirror_targets():
 
     live = [p for p in candidates if os.path.isdir(p)]
     if not live:
-        sys.exit("ABORTED — no destination in release-mirror.conf is "
+        sys.exit("ABORTED: no destination in release-mirror.conf is "
                  "reachable:\n  " + "\n  ".join(candidates) +
                  "\nMount the share and build again, or comment the line out.")
     return live[:1]
@@ -237,11 +271,11 @@ def mirror(paths, *zips):
                 shutil.copyfile(src, target)
                 copied = os.path.getsize(target)
             except OSError as exc:
-                sys.exit(f"ABORTED — could not copy "
+                sys.exit(f"ABORTED: could not copy "
                          f"{os.path.basename(src)} to {dest}: {exc}")
             original = os.path.getsize(src)
             if copied != original:
-                sys.exit(f"ABORTED — {os.path.basename(src)} copied to {dest} "
+                sys.exit(f"ABORTED: {os.path.basename(src)} copied to {dest} "
                          f"is {copied:,} bytes, expected {original:,}.")
             print(f"Mirrored: {target}")
 
@@ -285,8 +319,8 @@ def main():
         changed = zip_members(rebuild) != zip_members(dist_out)
         os.remove(rebuild)
         if changed:
-            sys.exit(f"ABORTED — version {version} already released with "
-                     "different content — bump the addon.xml version first "
+            sys.exit(f"ABORTED: version {version} already released with "
+                     "different content, so bump the addon.xml version first "
                      "(or pass --force to overwrite the existing zip).")
         print(f"Existing {os.path.basename(dist_out)} has identical "
               "content, kept as is")
@@ -299,14 +333,17 @@ def main():
     report("dist", dist_out, files, dirs)
 
     # --- Source zip: the whole repo tree as pushed to GitHub ---
+    # Ignore files are read here, not at import time, so an edit to them takes
+    # effect on the next build without touching this script.
+    src_globs = SRC_ZIP_EXCLUDE_GLOBS + git_ignored_root_files()
     src_out = os.path.join(GIT, f"skin.functional-{version}-src.zip")
     files, dirs = write_zip(src_out, REPO, "",
                             exclude_dirs=SRC_ZIP_EXCLUDE_DIRS,
-                            exclude_globs=SRC_ZIP_EXCLUDE_GLOBS)
+                            exclude_globs=src_globs)
     verify_zip(src_out,
                must_contain=("skin.functional/addon.xml", "README.md",
                              ".gitignore", "build_zip.py"),
-               must_not_contain_globs=SRC_ZIP_EXCLUDE_GLOBS)
+               must_not_contain_globs=src_globs)
     report("src", src_out, files, dirs)
 
     print("  verified: no junk entries, archive integrity OK")

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  INACTIVE. Kodi does not load Defaults.xml on its own - only Includes.xml is
+  INACTIVE. Kodi does not load Defaults.xml on its own: only Includes.xml is
   auto-loaded, and it deliberately does not pull this file in (Estuary does
   pull its own in, which is why control defaults work there and not here).
 

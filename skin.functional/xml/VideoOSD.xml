@@ -193,10 +193,10 @@
 		     cache for some sources (see the buffer-mode setting), so hide the
 		     readout when there is no cache rather than pinning "Buffer 0%" on
 		     local playback. During a stall CacheLevel can hit 0 while
-		     Player.Caching is true - keep it visible then, that is when the
+		     Player.Caching is true, so keep it visible then, that is when the
 		     number matters most. -->
 		<!-- buffer_detail ("39 MB, ~52s ahead") comes from
-		     service.py:update_buffer_stats - skin XML can't multiply. -->
+		     service.py:update_buffer_stats, because skin XML can't multiply. -->
 		<control type="label">
 			<right>180</right>
 			<bottom>78</bottom>
@@ -433,10 +433,16 @@
 		</control>
 
 		<!-- 214 Buffer entire file, for THIS playback (x=1406). Hands off to
-		     service.py via cache_command=fullfile: flips Kodi to unlimited
-		     disk caching and restarts the stream where it left off; the
-		     service puts the previous buffer size back when playback ends.
-		     While active the button is replaced by the dim tag below. -->
+		     service.py via Skin.String(cache_command): "fullfile" flips Kodi
+		     to unlimited disk caching and restarts the stream where it left
+		     off, "normalbuffer" puts the previous buffer size back and
+		     restarts it again. The service also restores the size on its own
+		     when playback ends.
+
+		     One button in both states, not a button plus a dim "FULL BUFFER
+		     ON" tag: the tag was not clickable, so once full buffering was on
+		     the only way back to the normal buffer was to stop the film. The
+		     ON state is still obvious from the label. -->
 		<control type="button" id="214">
 			<left>1406</left>
 			<bottom>10</bottom>
@@ -448,25 +454,13 @@
 			<focusedcolor>white</focusedcolor>
 			<align>center</align>
 			<aligny>center</aligny>
-			<label>BUFFER ALL</label>
+			<label>$VAR[OsdFullBufferLabel]</label>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-			<onclick>Skin.SetString(cache_command,fullfile)</onclick>
+			<onclick condition="String.IsEmpty(Window(home).Property(buffer_fullfile))">Skin.SetString(cache_command,fullfile)</onclick>
+			<onclick condition="!String.IsEmpty(Window(home).Property(buffer_fullfile))">Skin.SetString(cache_command,normalbuffer)</onclick>
 			<onleft>213</onleft>
 			<onright>214</onright>
-			<visible>String.IsEmpty(Window(home).Property(buffer_fullfile))</visible>
-		</control>
-		<control type="label">
-			<left>1406</left>
-			<bottom>10</bottom>
-			<width>200</width>
-			<height>56</height>
-			<font>font_small</font>
-			<align>center</align>
-			<aligny>center</aligny>
-			<textcolor>$VAR[AccentColor]</textcolor>
-			<label>FULL BUFFER ON</label>
-			<visible>!String.IsEmpty(Window(home).Property(buffer_fullfile))</visible>
 		</control>
 
 	</control>

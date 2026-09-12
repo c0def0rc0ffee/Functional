@@ -33,8 +33,8 @@
       on their own, so only the mouse worked.
     - All rows nested inside one outer vertical grouplist, to let Kodi
       auto-navigate between them. Nested groups inside a grouplist break
-      focus traversal - the same trap as the MusicOSD transport row and the
-      favourites category chips (see PROJECT_NOTES) - so focus reached the
+      focus traversal, the same trap as the MusicOSD transport row and the
+      favourites category chips (see PROJECT_NOTES), so focus reached the
       top row and stopped there, leaving Done and Cancel unreachable by
       remote.
 

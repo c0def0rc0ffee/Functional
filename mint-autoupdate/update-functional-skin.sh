@@ -32,7 +32,7 @@ for cmd in unzip mktemp; do
 done
 sort --version-sort /dev/null >/dev/null 2>&1 || missing="$missing sort(-V)"
 if [ -n "$missing" ]; then
-    log "ERROR: missing required command(s):$missing - install them, no update attempted"
+    log "ERROR: missing required command(s):$missing, install them, no update attempted"
     exit 1
 fi
 

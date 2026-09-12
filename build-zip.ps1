@@ -1,6 +1,6 @@
 # Builds both versioned zips for skin.functional:
-#   Skin Dist\skin.functional-<version>.zip      - Kodi-installable skin
-#   Skin Git\skin.functional-<version>-src.zip   - GitHub-bound source snapshot
+#   Skin Dist\skin.functional-<version>.zip      : Kodi-installable skin
+#   Skin Git\skin.functional-<version>-src.zip   : GitHub-bound source snapshot
 #
 # This is a thin wrapper: the real work is in build_zip.py, which MUST be
 # used instead of Compress-Archive. Compress-Archive writes backslash paths

@@ -4,7 +4,7 @@
 
   This is a skin-owned custom window, NOT favouritesbrowser (10060). That
   window is a CGUIMediaWindow: Kodi binds its own favourites:// content into
-  the skin's view container, clobbering our static filtered list — which broke
+  the skin's view container, clobbering our static filtered list, which broke
   both the category filtering and focus behaviour. Hosting the UI in a custom
   window keeps Kodi's hands off it. MyFavourites.xml redirects here so remote
   keys / keymaps that open favouritesbrowser land on this screen too.
@@ -37,7 +37,7 @@
 		</control>
 
 		<!-- Category filter chips. Flat buttons with explicit wrap-around
-		     left/right chains — NOT a grouplist of button-in-group wrappers,
+		     left/right chains, NOT a grouplist of button-in-group wrappers,
 		     which broke traversal past "All" (see the FavCategoryButton
 		     include). Left from All wraps to Other and right from Other
 		     wraps to All; hidden (empty) categories are skipped
