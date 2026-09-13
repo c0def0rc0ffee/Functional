@@ -1,6 +1,8 @@
 """
+<summary>
 Build the Kodi repository tree for auto updates.
-
+</summary>
+<remarks>
 Kodi can update the skin on its own once a device has the small
 repository.functional add-on installed. That add-on points at three URLs
 served straight from the "repo" branch of the GitHub repository:
@@ -24,6 +26,7 @@ rebuilt, so the repo tree always ships the exact zip that was tested.
 
 Usage:
     python build_zip.py && python build_repo.py
+</remarks>
 """
 
 import hashlib

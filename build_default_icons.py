@@ -1,5 +1,8 @@
-"""Generate the stock Default*.png fallback icons the XML references.
-
+"""
+<summary>
+Generate the stock Default*.png fallback icons the XML references.
+</summary>
+<remarks>
 Kodi looks these up in the skin's own media/ folder (core ships none), so a
 skin that references them via fallback= must bundle them; Estuary packs its
 own set into Textures.xbt. Without them, any list item lacking real art
@@ -9,6 +12,7 @@ Style matches the skin: an opaque near-bg rounded panel with a muted
 blue-grey glyph, so placeholders read as intentional, not as missing art.
 None of the referencing controls colordiffuse their fallback, so the
 colours here are final.
+</remarks>
 """
 from PIL import Image, ImageDraw
 from pathlib import Path

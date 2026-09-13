@@ -1395,7 +1395,7 @@
 				</control>
 
 				<!-- Folder picker (mode = folder). Uses the IMAGE browser so the
-				     pictures are visible (with thumbnails) while you navigate -
+				     pictures are visible (with thumbnails) while you navigate:
 				     pick any image in the folder you want and the service uses
 				     that whole folder for the slideshow. -->
 				<control type="button" id="7120">

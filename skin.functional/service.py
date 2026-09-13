@@ -1,6 +1,8 @@
 """
+<summary>
 Functional skin, helper service.
-
+</summary>
+<remarks>
 Single long-running service that does jobs the skin XML can't do on its own:
 arithmetic on infolabels, async DB queries, time formatting, etc.
 
@@ -113,6 +115,7 @@ Future handlers
 - update_focused_filesize() , see PROJECT_NOTES "Focused-item file size"
 - anything else that needs Python; add a method here and trigger it from
   onNotification or the polling loop in run().
+</remarks>
 """
 
 import json
@@ -1534,7 +1537,7 @@ class FunctionalHelper(xbmc.Monitor):
         if new_val != current:
             xbmc.executebuiltin("Skin.SetString({0},{1})".format(key, new_val))
             # Panel position picks up the change live via the
-            # ClearanceAnimations include applied to the wrapping group -
+            # ClearanceAnimations include applied to the wrapping group:
             # one conditional slide animation per discrete value activates
             # as soon as String.IsEqual matches. No window reload needed.
 

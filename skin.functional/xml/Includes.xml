@@ -141,7 +141,7 @@
 	</variable>
 
 	<!-- Buffer readout for the OSD and pause/seek bar. In per-movie
-	     full-file mode (memorysize 0) Player.CacheLevel is meaningless -
+	     full-file mode (memorysize 0) Player.CacheLevel is meaningless:
 	     there is no fixed buffer to be a percentage of, so lead with the
 	     mode instead. buffer_detail/buffer_fullfile come from
 	     service.py:update_buffer_stats(). -->

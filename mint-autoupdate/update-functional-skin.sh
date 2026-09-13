@@ -102,7 +102,7 @@ fi
 # --- update ---
 # Stage on the DESTINATION filesystem (mktemp -d usually lands on tmpfs, and a
 # cross-filesystem mv is a copy that can fail halfway), swap the old install
-# aside instead of deleting it, and only log success when every step worked -
+# aside instead of deleting it, and only log success when every step worked,
 # so a failed update leaves the previous skin in place, not a missing addon.
 # Every ERROR path sets status=1 so the exit code reports the failure (the
 # systemd oneshot variant in the README shows it; start-kodi.sh ignores it

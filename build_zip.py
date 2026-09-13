@@ -1,6 +1,8 @@
 """
+<summary>
 Build both release zips for skin.functional.
-
+</summary>
+<remarks>
 USE THIS, NOT PowerShell's Compress-Archive. Compress-Archive emits zip
 entries with backslash separators and (more importantly) no explicit
 directory entries, and Linux Kodi (LibreELEC, Bazzite, every non-Windows
@@ -31,6 +33,7 @@ Output:
 Both zips are also copied to every folder listed in release-mirror.conf, if
 that file exists. See mirror_targets() for the format. Without the file the
 build simply produces the two zips, so a fresh clone works unchanged.
+</remarks>
 """
 
 import fnmatch

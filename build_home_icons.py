@@ -1,5 +1,8 @@
-"""Generate the three home icons as combined disc+glyph PNGs.
-
+"""
+<summary>
+Generate the three home icons as combined disc+glyph PNGs.
+</summary>
+<remarks>
 Each PNG has:
   * an alpha~80 white disc (so colordiffuse tints it semi-strong)
   * an alpha=255 white glyph (cog / 2x2 grid / power) on top
@@ -9,6 +12,7 @@ of the target colour while the glyph appears full-strength, giving
 contrast on both focused (accent) and unfocused (bg_panel) buttons.
 The icon is then a single texture on a normal <button>, which keeps it
 focus-navigable inside its grouplist parent.
+</remarks>
 """
 from PIL import Image, ImageDraw
 from math import cos, sin, radians
