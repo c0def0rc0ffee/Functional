@@ -29,7 +29,7 @@
 			<font>font_med</font>
 			<textcolor>text</textcolor>
 			<aligny>center</aligny>
-			<label>Video Queue</label>
+			<label>31178</label>
 			<visible>Window.IsActive(videoplaylist)</visible>
 		</control>
 		<control type="label">
@@ -40,7 +40,7 @@
 			<font>font_med</font>
 			<textcolor>text</textcolor>
 			<aligny>center</aligny>
-			<label>Music Queue</label>
+			<label>31179</label>
 			<visible>Window.IsActive(musicplaylist)</visible>
 		</control>
 
@@ -54,7 +54,7 @@
 			<textcolor>text</textcolor>
 			<align>right</align>
 			<aligny>center</aligny>
-			<label>$INFO[Container.NumItems] items · Total $INFO[Container.TotalTime]</label>
+			<label>$INFO[Container.NumItems] $LOCALIZE[31180] $INFO[Container.TotalTime]</label>
 		</control>
 		<!-- Queue end time. Container.TotalTime is a duration ("5h 40m"),
 		     which still leaves you doing sums against the clock, so
@@ -72,7 +72,7 @@
 			<textcolor>$VAR[AccentColor]</textcolor>
 			<align>right</align>
 			<aligny>center</aligny>
-			<label>Queue ends at $INFO[Window(home).Property(queue_finish_time)]$INFO[Window(home).Property(queue_remaining), · , left]</label>
+			<label>$LOCALIZE[31181] $INFO[Window(home).Property(queue_finish_time)]$INFO[Window(home).Property(queue_remaining), · , $LOCALIZE[31182]]</label>
 			<visible>!String.IsEmpty(Window(home).Property(queue_finish_time))</visible>
 		</control>
 		<control type="label">
@@ -84,7 +84,7 @@
 			<textcolor>$VAR[AccentColor]</textcolor>
 			<align>right</align>
 			<aligny>center</aligny>
-			<label>Now playing ends at $INFO[Player.FinishTime]</label>
+			<label>$LOCALIZE[31183] $INFO[Player.FinishTime]</label>
 			<visible>Player.HasMedia + String.IsEmpty(Window(home).Property(queue_finish_time))</visible>
 		</control>
 
@@ -226,7 +226,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Play All</label>
+				<label>31184</label>
 			</control>
 
 			<control type="button" id="20">
@@ -241,7 +241,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Shuffle</label>
+				<label>31185</label>
 			</control>
 
 			<control type="button" id="26">
@@ -256,7 +256,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Repeat: $VAR[RepeatStateLabel]</label>
+				<label>$LOCALIZE[31186] $VAR[RepeatStateLabel]</label>
 			</control>
 
 			<control type="button" id="21">
@@ -271,7 +271,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Save Playlist</label>
+				<label>31187</label>
 			</control>
 
 			<!-- Lists (skin feature): the whole queue becomes a new named
@@ -289,7 +289,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Save as List</label>
+				<label>31188</label>
 				<onclick>Skin.SetString(list_command,save_queue)</onclick>
 			</control>
 
@@ -305,7 +305,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Clear Queue</label>
+				<label>31189</label>
 			</control>
 
 		</control>

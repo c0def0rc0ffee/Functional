@@ -41,7 +41,7 @@
 			<font>font_reg</font>
 			<aligny>center</aligny>
 			<textcolor>text</textcolor>
-			<label>Volume</label>
+			<label>31081</label>
 			<visible>!Player.Muted</visible>
 		</control>
 		<control type="label">
@@ -52,7 +52,7 @@
 			<font>font_reg</font>
 			<aligny>center</aligny>
 			<textcolor>$VAR[AccentColor]</textcolor>
-			<label>Muted</label>
+			<label>31082</label>
 			<visible>Player.Muted</visible>
 		</control>
 

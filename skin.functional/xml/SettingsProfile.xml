@@ -9,7 +9,7 @@
 	<controls>
 		<include content="WindowBackground"/>
 		<include content="HeaderBar">
-			<param name="title" value="Profiles"/>
+			<param name="title" value="$LOCALIZE[31231]"/>
 		</include>
 		<control type="list" id="2">
 			<left>60</left>

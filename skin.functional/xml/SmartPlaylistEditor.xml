@@ -150,7 +150,7 @@
 				<textoffsetx>20</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Order direction</label>
+				<label>31326</label>
 			</control>
 			<control type="button" id="23">
 				<width>620</width>

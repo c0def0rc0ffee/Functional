@@ -26,27 +26,27 @@
 
 	<!-- Variables -->
 	<variable name="DebugYesNoFiltered">
-		<value condition="Container.Filtered">yes</value>
-		<value>no</value>
+		<value condition="Container.Filtered">$LOCALIZE[31100]</value>
+		<value>$LOCALIZE[31101]</value>
 	</variable>
 	<variable name="DebugYesNoUpdating">
-		<value condition="Container.IsUpdating">yes</value>
-		<value>no</value>
+		<value condition="Container.IsUpdating">$LOCALIZE[31100]</value>
+		<value>$LOCALIZE[31101]</value>
 	</variable>
 
 	<variable name="RepeatStateLabel">
-		<value condition="Playlist.IsRepeatOne">One</value>
-		<value condition="Playlist.IsRepeat">All</value>
-		<value>Off</value>
+		<value condition="Playlist.IsRepeatOne">$LOCALIZE[31102]</value>
+		<value condition="Playlist.IsRepeat">$LOCALIZE[31008]</value>
+		<value>$LOCALIZE[31103]</value>
 	</variable>
 
 	<variable name="SortDirectionLabel">
-		<value condition="Container.SortDirection(ascending)">↑ Asc</value>
-		<value condition="Container.SortDirection(descending)">↓ Desc</value>
-		<value condition="String.IsEqual(Container.SortDirection,ascending)">↑ Asc</value>
-		<value condition="String.IsEqual(Container.SortDirection,descending)">↓ Desc</value>
-		<value condition="String.IsEqual(Container.SortDirection,asc)">↑ Asc</value>
-		<value condition="String.IsEqual(Container.SortDirection,desc)">↓ Desc</value>
+		<value condition="Container.SortDirection(ascending)">$LOCALIZE[31104]</value>
+		<value condition="Container.SortDirection(descending)">$LOCALIZE[31105]</value>
+		<value condition="String.IsEqual(Container.SortDirection,ascending)">$LOCALIZE[31104]</value>
+		<value condition="String.IsEqual(Container.SortDirection,descending)">$LOCALIZE[31105]</value>
+		<value condition="String.IsEqual(Container.SortDirection,asc)">$LOCALIZE[31104]</value>
+		<value condition="String.IsEqual(Container.SortDirection,desc)">$LOCALIZE[31105]</value>
 		<value>$INFO[Container.SortDirection,(,)]</value>
 	</variable>
 
@@ -74,24 +74,24 @@
 		</control>
 	</include>
 	<variable name="BgLabelPositionLabel">
-		<value condition="String.IsEqual(Skin.String(bg_label_position),topleft)">Top Left</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">Top Right</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomleft)">Bottom Left</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomright)">Bottom Right</value>
-		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomcenter)">Bottom Centre</value>
-		<value>Off</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),topleft)">$LOCALIZE[31106]</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">$LOCALIZE[31107]</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomleft)">$LOCALIZE[31108]</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomright)">$LOCALIZE[31109]</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomcenter)">$LOCALIZE[31110]</value>
+		<value>$LOCALIZE[31103]</value>
 	</variable>
 
 	<!-- Unified background mode, one mutually-exclusive selector so the
 	     static image and slideshow can never override each other.
 	     Empty = Off. -->
 	<variable name="BgModeLabel">
-		<value condition="String.IsEqual(Skin.String(bg_mode),image)">Static Image</value>
-		<value condition="String.IsEqual(Skin.String(bg_mode),recent)">Slideshow: Recently Watched</value>
-		<value condition="String.IsEqual(Skin.String(bg_mode),random)">Slideshow: Random Library</value>
-		<value condition="String.IsEqual(Skin.String(bg_mode),folder)">Slideshow: Folder</value>
-		<value condition="String.IsEqual(Skin.String(bg_mode),genre)">Slideshow: By Genre</value>
-		<value>Off</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),image)">$LOCALIZE[31111]</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),recent)">$LOCALIZE[31112]</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),random)">$LOCALIZE[31113]</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),folder)">$LOCALIZE[31114]</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),genre)">$LOCALIZE[31115]</value>
+		<value>$LOCALIZE[31103]</value>
 	</variable>
 
 	<!-- Time-scheduled backgrounds. bg_schedule_slots = 2..4 turns the
@@ -100,17 +100,17 @@
 	     settings is open, the Background controls edit the slot in
 	     Skin.String(bg_edit_slot) instead. -->
 	<variable name="BgScheduleLabel">
-		<value condition="String.IsEqual(Skin.String(bg_schedule_slots),2)">2 Time Slots</value>
-		<value condition="String.IsEqual(Skin.String(bg_schedule_slots),3)">3 Time Slots</value>
-		<value condition="String.IsEqual(Skin.String(bg_schedule_slots),4)">4 Time Slots</value>
-		<value>Off</value>
+		<value condition="String.IsEqual(Skin.String(bg_schedule_slots),2)">$LOCALIZE[31116]</value>
+		<value condition="String.IsEqual(Skin.String(bg_schedule_slots),3)">$LOCALIZE[31117]</value>
+		<value condition="String.IsEqual(Skin.String(bg_schedule_slots),4)">$LOCALIZE[31118]</value>
+		<value>$LOCALIZE[31103]</value>
 	</variable>
 
 	<variable name="BgEditSlotLabel">
-		<value condition="String.IsEqual(Skin.String(bg_edit_slot),2)">Slot 2 (from $INFO[Skin.String(bg_slot2_start)])</value>
-		<value condition="String.IsEqual(Skin.String(bg_edit_slot),3)">Slot 3 (from $INFO[Skin.String(bg_slot3_start)])</value>
-		<value condition="String.IsEqual(Skin.String(bg_edit_slot),4)">Slot 4 (from $INFO[Skin.String(bg_slot4_start)])</value>
-		<value>Slot 1 (from $INFO[Skin.String(bg_slot1_start)])</value>
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),2)">$LOCALIZE[31119] $INFO[Skin.String(bg_slot2_start)])</value>
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),3)">$LOCALIZE[31120] $INFO[Skin.String(bg_slot3_start)])</value>
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),4)">$LOCALIZE[31121] $INFO[Skin.String(bg_slot4_start)])</value>
+		<value>$LOCALIZE[31122] $INFO[Skin.String(bg_slot1_start)])</value>
 	</variable>
 
 	<variable name="BgEditSlotStart">
@@ -127,13 +127,13 @@
 	     hardcoded genre list here to drift out of date. -->
 	<variable name="BgGenreLabel">
 		<value condition="!String.IsEmpty(Skin.String(bg_genre))">$INFO[Skin.String(bg_genre)]</value>
-		<value>[COLOR grey]not set, tap to choose[/COLOR]</value>
+		<value>[COLOR grey]$LOCALIZE[31123][/COLOR]</value>
 	</variable>
 
 	<variable name="BgGenreTypeLabel">
-		<value condition="String.IsEqual(Skin.String(bg_genre_type),tvshows)">TV Shows</value>
-		<value condition="String.IsEqual(Skin.String(bg_genre_type),both)">Movies + TV Shows</value>
-		<value>Movies</value>
+		<value condition="String.IsEqual(Skin.String(bg_genre_type),tvshows)">$LOCALIZE[31093]</value>
+		<value condition="String.IsEqual(Skin.String(bg_genre_type),both)">$LOCALIZE[31124]</value>
+		<value>$LOCALIZE[31009]</value>
 	</variable>
 
 	<!-- Slideshow interval in milliseconds, for the folder multiimage control
@@ -142,9 +142,9 @@
 	<variable name="BgSlideshowIntervalLabel">
 		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),10)">10s</value>
 		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),30)">30s</value>
-		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),60)">1 min</value>
-		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),120)">2 min</value>
-		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),300)">5 min</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),60)">$LOCALIZE[31125]</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),120)">$LOCALIZE[31126]</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),300)">$LOCALIZE[31127]</value>
 		<value>20s</value>
 	</variable>
 
@@ -161,8 +161,8 @@
 	     The $INFO[x,prefix,suffix] form renders nothing when the property is
 	     empty, so an unknown percentage leaves no stray "%" behind. -->
 	<variable name="BufferReadout">
-		<value condition="!String.IsEmpty(Window(home).Property(buffer_fullfile))">Full buffer$INFO[Window(home).Property(buffer_pct_label), ,]$INFO[Window(home).Property(buffer_detail), · ,]</value>
-		<value>Buffer $INFO[Player.CacheLevel]%$INFO[Window(home).Property(buffer_detail), · ,]</value>
+		<value condition="!String.IsEmpty(Window(home).Property(buffer_fullfile))">$LOCALIZE[31128]$INFO[Window(home).Property(buffer_pct_label), ,]$INFO[Window(home).Property(buffer_detail), · ,]</value>
+		<value>$LOCALIZE[31129] $INFO[Player.CacheLevel]%$INFO[Window(home).Property(buffer_detail), · ,]</value>
 	</variable>
 
 	<!-- Label for the OSD's single full-buffer toggle (control 214). It used
@@ -171,8 +171,8 @@
 	     playback. One button, two states: the second click restarts the
 	     stream again on the previous buffer size. -->
 	<variable name="OsdFullBufferLabel">
-		<value condition="!String.IsEmpty(Window(home).Property(buffer_fullfile))">FULL BUFFER ON</value>
-		<value>BUFFER ALL</value>
+		<value condition="!String.IsEmpty(Window(home).Property(buffer_fullfile))">$LOCALIZE[31130]</value>
+		<value>$LOCALIZE[31131]</value>
 	</variable>
 
 	<!-- Pretty resolution label for the currently-playing item (used by VideoOSD) -->
@@ -209,8 +209,8 @@
 	     drops its prefix when it would open the line (TV shows have no
 	     duration, so the old versions rendered a stray leading dot). -->
 	<variable name="ItemEndsAtLabel">
-		<value condition="!Skin.HasSetting(hide_endsat) + !String.IsEmpty(Window(home).Property(focused_finish_time)) + String.IsEmpty(ListItem.Duration)">Ends at $INFO[Window(home).Property(focused_finish_time)]</value>
-		<value condition="!Skin.HasSetting(hide_endsat) + !String.IsEmpty(Window(home).Property(focused_finish_time))"> · Ends at $INFO[Window(home).Property(focused_finish_time)]</value>
+		<value condition="!Skin.HasSetting(hide_endsat) + !String.IsEmpty(Window(home).Property(focused_finish_time)) + String.IsEmpty(ListItem.Duration)">$LOCALIZE[31098] $INFO[Window(home).Property(focused_finish_time)]</value>
+		<value condition="!Skin.HasSetting(hide_endsat) + !String.IsEmpty(Window(home).Property(focused_finish_time))"> $LOCALIZE[31132] $INFO[Window(home).Property(focused_finish_time)]</value>
 		<value></value>
 	</variable>
 	<variable name="ItemStarRatingLabel">
@@ -237,21 +237,21 @@
 
 	<!-- Context-menu placement (SkinSettings 7223, applied in DialogContextMenu). -->
 	<variable name="ContextMenuPositionLabel">
-		<value condition="String.IsEqual(Skin.String(context_menu_pos),left)">Left Edge</value>
-		<value>Centre</value>
+		<value condition="String.IsEqual(Skin.String(context_menu_pos),left)">$LOCALIZE[31133]</value>
+		<value>$LOCALIZE[31134]</value>
 	</variable>
 
 	<!-- Info bar position label (left-menu mirror of SkinSettings 7200). -->
 	<variable name="InfoBarPositionLabel">
-		<value condition="Skin.HasSetting(infobar_top)">Top</value>
-		<value>Bottom</value>
+		<value condition="Skin.HasSetting(infobar_top)">$LOCALIZE[31135]</value>
+		<value>$LOCALIZE[31136]</value>
 	</variable>
 
 	<!-- Poster shape: Tall (default) absorbs scale-crop on 2:3 art;
 	     Compact uses strict 2:3 for TVs whose overscan clips bottom. -->
 	<variable name="PosterShapeLabel">
-		<value condition="Skin.HasSetting(compact_posters)">Compact (2:3)</value>
-		<value>Tall</value>
+		<value condition="Skin.HasSetting(compact_posters)">$LOCALIZE[31137]</value>
+		<value>$LOCALIZE[31138]</value>
 	</variable>
 
 	<!-- Dim level for the video-playing backdrop behind the video
@@ -266,11 +266,11 @@
 		<value>C0000000</value>
 	</variable>
 	<variable name="VideoDimLabel">
-		<value condition="String.IsEqual(Skin.String(video_dim),0)">Off</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),0)">$LOCALIZE[31103]</value>
 		<value condition="String.IsEqual(Skin.String(video_dim),25)">25 %</value>
 		<value condition="String.IsEqual(Skin.String(video_dim),50)">50 %</value>
 		<value condition="String.IsEqual(Skin.String(video_dim),90)">90 %</value>
-		<value>75 % (default)</value>
+		<value>$LOCALIZE[31139]</value>
 	</variable>
 
 	<!-- Idle (no-focus) colordiffuse for the home round buttons.
@@ -305,7 +305,7 @@
 	     is actually on screen. -->
 	<variable name="GenreFilterLabel">
 		<value condition="!String.IsEmpty(Window(home).Property(genre_active))">$INFO[Window(home).Property(genre_active)]</value>
-		<value>All</value>
+		<value>$LOCALIZE[31008]</value>
 	</variable>
 
 	<!-- Default sort per content type, shown on the two cycle buttons in the
@@ -315,43 +315,43 @@
 	     which is the out-of-the-box behaviour. service.py applies the choice
 	     whenever the library container lands on a new node. -->
 	<variable name="DefaultSortMoviesLabel">
-		<value condition="String.IsEqual(Skin.String(default_sort_movies),title)">Title</value>
-		<value condition="String.IsEqual(Skin.String(default_sort_movies),year)">Year</value>
-		<value condition="String.IsEqual(Skin.String(default_sort_movies),rating)">Rating</value>
-		<value condition="String.IsEqual(Skin.String(default_sort_movies),dateadded)">Date Added</value>
-		<value condition="String.IsEqual(Skin.String(default_sort_movies),lastplayed)">Last Played</value>
-		<value>Leave as Kodi has it</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_movies),title)">$LOCALIZE[31140]</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_movies),year)">$LOCALIZE[31141]</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_movies),rating)">$LOCALIZE[31142]</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_movies),dateadded)">$LOCALIZE[31143]</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_movies),lastplayed)">$LOCALIZE[31144]</value>
+		<value>$LOCALIZE[31145]</value>
 	</variable>
 	<variable name="DefaultSortTvLabel">
-		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),title)">Title</value>
-		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),year)">Year</value>
-		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),rating)">Rating</value>
-		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),dateadded)">Date Added</value>
-		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),lastplayed)">Last Played</value>
-		<value>Leave as Kodi has it</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),title)">$LOCALIZE[31140]</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),year)">$LOCALIZE[31141]</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),rating)">$LOCALIZE[31142]</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),dateadded)">$LOCALIZE[31143]</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),lastplayed)">$LOCALIZE[31144]</value>
+		<value>$LOCALIZE[31145]</value>
 	</variable>
 
 	<!-- Direction for the above. Unset is not "ascending", it is "whichever
 	     way round that sort is actually useful": A-Z for Title, newest first
 	     for Year, Date Added, Last Played and Rating. -->
 	<variable name="DefaultSortMoviesDirLabel">
-		<value condition="String.IsEqual(Skin.String(default_sort_movies_dir),asc)">Ascending</value>
-		<value condition="String.IsEqual(Skin.String(default_sort_movies_dir),desc)">Descending</value>
-		<value>Automatic</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_movies_dir),asc)">$LOCALIZE[31146]</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_movies_dir),desc)">$LOCALIZE[31147]</value>
+		<value>$LOCALIZE[31148]</value>
 	</variable>
 	<!-- Hint under the backup buttons in skin settings. settings_backup_when
 	     is written by service.py from the snapshot file's own timestamp, so an
 	     empty value means no snapshot has ever been taken (which is also what
 	     disables the Restore button). -->
 	<variable name="SettingsBackupLabel">
-		<value condition="!String.IsEmpty(Skin.String(settings_backup_when))">Last backup: $INFO[Skin.String(settings_backup_when)]. Kept up to date automatically.</value>
-		<value>No backup yet. One is taken automatically the next time Kodi saves your skin settings.</value>
+		<value condition="!String.IsEmpty(Skin.String(settings_backup_when))">$LOCALIZE[31149] $INFO[Skin.String(settings_backup_when)]$LOCALIZE[31150]</value>
+		<value>$LOCALIZE[31151]</value>
 	</variable>
 
 	<variable name="DefaultSortTvDirLabel">
-		<value condition="String.IsEqual(Skin.String(default_sort_tvshows_dir),asc)">Ascending</value>
-		<value condition="String.IsEqual(Skin.String(default_sort_tvshows_dir),desc)">Descending</value>
-		<value>Automatic</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows_dir),asc)">$LOCALIZE[31146]</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows_dir),desc)">$LOCALIZE[31147]</value>
+		<value>$LOCALIZE[31148]</value>
 	</variable>
 
 	<!-- Value shown in the fast-scroll badge while a library list is flicked.
@@ -411,16 +411,16 @@
 
 	<!-- Title suffix: TV episode shows first air date, movies show year -->
 	<variable name="ItemTitleSuffix">
-		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.Premiered)"> · Aired $INFO[ListItem.Premiered]</value>
-		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.FirstAired)"> · Aired $INFO[ListItem.FirstAired]</value>
+		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.Premiered)"> $LOCALIZE[31152] $INFO[ListItem.Premiered]</value>
+		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.FirstAired)"> $LOCALIZE[31152] $INFO[ListItem.FirstAired]</value>
 		<value condition="!String.IsEmpty(ListItem.Year)"> ($INFO[ListItem.Year])</value>
 		<value></value>
 	</variable>
 
 	<!-- Date label for info dialog: air date for episodes, year for everything else -->
 	<variable name="InfoDateLabel">
-		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.Premiered)">Aired $INFO[ListItem.Premiered]</value>
-		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.FirstAired)">Aired $INFO[ListItem.FirstAired]</value>
+		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.Premiered)">$LOCALIZE[31153] $INFO[ListItem.Premiered]</value>
+		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.FirstAired)">$LOCALIZE[31153] $INFO[ListItem.FirstAired]</value>
 		<value>$INFO[ListItem.Year]</value>
 	</variable>
 
@@ -469,33 +469,33 @@
 	</variable>
 
 	<variable name="BgDimLabel">
-		<value condition="String.IsEqual(Skin.String(bg_dim),0)">0% (none)</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),0)">$LOCALIZE[31154]</value>
 		<value condition="String.IsEqual(Skin.String(bg_dim),25)">25%</value>
 		<value condition="String.IsEqual(Skin.String(bg_dim),50)">50%</value>
 		<value condition="String.IsEqual(Skin.String(bg_dim),75)">75%</value>
 		<value condition="String.IsEqual(Skin.String(bg_dim),90)">90%</value>
-		<value>60% (default)</value>
+		<value>$LOCALIZE[31155]</value>
 	</variable>
 
 	<variable name="BgWindowsDimLabel">
-		<value condition="String.IsEqual(Skin.String(bg_windows_dim),0)">0% (none)</value>
+		<value condition="String.IsEqual(Skin.String(bg_windows_dim),0)">$LOCALIZE[31154]</value>
 		<value condition="String.IsEqual(Skin.String(bg_windows_dim),25)">25%</value>
 		<value condition="String.IsEqual(Skin.String(bg_windows_dim),50)">50%</value>
 		<value condition="String.IsEqual(Skin.String(bg_windows_dim),60)">60%</value>
 		<value condition="String.IsEqual(Skin.String(bg_windows_dim),90)">90%</value>
-		<value>75% (default)</value>
+		<value>$LOCALIZE[31156]</value>
 	</variable>
 
 	<!-- Weather window location button: blank until a provider is set up -->
 	<variable name="WeatherLocationLabel">
 		<value condition="!String.IsEmpty(Weather.Location)">$INFO[Weather.Location]</value>
-		<value>Location</value>
+		<value>$LOCALIZE[31157]</value>
 	</variable>
 
 	<!-- Video OSD vertical position -->
 	<variable name="OsdPositionLabel">
-		<value condition="String.IsEqual(Skin.String(osd_position),top)">Top</value>
-		<value>Bottom</value>
+		<value condition="String.IsEqual(Skin.String(osd_position),top)">$LOCALIZE[31135]</value>
+		<value>$LOCALIZE[31136]</value>
 	</variable>
 
 	<!-- Applied to VideoOSD's wrapper group (via include condition, i.e. at
@@ -509,32 +509,32 @@
 
 	<!-- Default category the Favourites screen opens on -->
 	<variable name="FavDefaultCategoryLabel">
-		<value condition="String.IsEqual(Skin.String(fav_default_category),movies)">Movies</value>
-		<value condition="String.IsEqual(Skin.String(fav_default_category),tvshows)">TV</value>
-		<value condition="String.IsEqual(Skin.String(fav_default_category),music)">Music</value>
-		<value condition="String.IsEqual(Skin.String(fav_default_category),apps)">Apps</value>
-		<value condition="String.IsEqual(Skin.String(fav_default_category),other)">Other</value>
-		<value>All</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),movies)">$LOCALIZE[31009]</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),tvshows)">$LOCALIZE[31010]</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),music)">$LOCALIZE[31011]</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),apps)">$LOCALIZE[31012]</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),other)">$LOCALIZE[31013]</value>
+		<value>$LOCALIZE[31008]</value>
 	</variable>
 
 <!-- Main menu vertical position on home -->
 	<variable name="MainMenuPositionLabel">
-		<value condition="String.IsEqual(Skin.String(menu_position),top)">Top</value>
-		<value condition="String.IsEqual(Skin.String(menu_position),bottom)">Bottom</value>
-		<value>Centre</value>
+		<value condition="String.IsEqual(Skin.String(menu_position),top)">$LOCALIZE[31135]</value>
+		<value condition="String.IsEqual(Skin.String(menu_position),bottom)">$LOCALIZE[31136]</value>
+		<value>$LOCALIZE[31134]</value>
 	</variable>
 
 	<variable name="NotificationPositionLabel">
-		<value condition="String.IsEqual(Skin.String(notification_position),tl)">Top Left</value>
-		<value condition="String.IsEqual(Skin.String(notification_position),tc)">Top Centre</value>
-		<value condition="String.IsEqual(Skin.String(notification_position),tr)">Top Right</value>
-		<value condition="String.IsEqual(Skin.String(notification_position),bl)">Bottom Left</value>
-		<value condition="String.IsEqual(Skin.String(notification_position),bc)">Bottom Centre</value>
-		<value>Bottom Right</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),tl)">$LOCALIZE[31106]</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),tc)">$LOCALIZE[31158]</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),tr)">$LOCALIZE[31107]</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),bl)">$LOCALIZE[31108]</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),bc)">$LOCALIZE[31110]</value>
+		<value>$LOCALIZE[31109]</value>
 	</variable>
 	<!-- ItemSizeLabel removed; see PROJECT_NOTES "Focused-item file size". -->
 	<variable name="ItemLastPlayedLabel">
-		<value condition="Skin.HasSetting(show_lastplayed) + !String.IsEmpty(ListItem.LastPlayed)"> · Played $INFO[ListItem.LastPlayed]</value>
+		<value condition="Skin.HasSetting(show_lastplayed) + !String.IsEmpty(ListItem.LastPlayed)"> $LOCALIZE[31159] $INFO[ListItem.LastPlayed]</value>
 		<value></value>
 	</variable>
 
@@ -550,20 +550,20 @@
 		<value>FF1E88E5</value>
 	</variable>
 	<variable name="QueueCountLabel">
-		<value condition="Integer.IsGreater(Playlist.Length(video),0)">Queue ($INFO[Playlist.Length(video)])</value>
-		<value condition="Integer.IsGreater(Playlist.Length(music),0)">Queue ($INFO[Playlist.Length(music)])</value>
-		<value>Queue</value>
+		<value condition="Integer.IsGreater(Playlist.Length(video),0)">$LOCALIZE[31160]$INFO[Playlist.Length(video)])</value>
+		<value condition="Integer.IsGreater(Playlist.Length(music),0)">$LOCALIZE[31160]$INFO[Playlist.Length(music)])</value>
+		<value>$LOCALIZE[31161]</value>
 	</variable>
 
 	<variable name="AccentColorLabel">
-		<value condition="String.IsEqual(Skin.String(accent_color),red)">Red</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),green)">Green</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),orange)">Orange</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),purple)">Purple</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),teal)">Teal</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),pink)">Pink</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),amber)">Amber</value>
-		<value>Blue</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),red)">$LOCALIZE[31162]</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),green)">$LOCALIZE[31163]</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),orange)">$LOCALIZE[31164]</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),purple)">$LOCALIZE[31165]</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),teal)">$LOCALIZE[31166]</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),pink)">$LOCALIZE[31167]</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),amber)">$LOCALIZE[31168]</value>
+		<value>$LOCALIZE[31169]</value>
 	</variable>
 
 	<!-- Solid color textures via diffuse -->
@@ -572,10 +572,10 @@
 	     conditional <itemlayout>/<focusedlayout> blocks. Pass poster_w/h
 	     matching the outer tile (which has a 4px margin all round). -->
 	<variable name="GallerySizeLabel">
-		<value condition="String.IsEqual(Skin.String(gallery_size),small)">Small</value>
-		<value condition="String.IsEqual(Skin.String(gallery_size),large)">Large</value>
-		<value condition="String.IsEqual(Skin.String(gallery_size),xlarge)">Extra Large</value>
-		<value>Medium</value>
+		<value condition="String.IsEqual(Skin.String(gallery_size),small)">$LOCALIZE[31170]</value>
+		<value condition="String.IsEqual(Skin.String(gallery_size),large)">$LOCALIZE[31171]</value>
+		<value condition="String.IsEqual(Skin.String(gallery_size),xlarge)">$LOCALIZE[31172]</value>
+		<value>$LOCALIZE[31173]</value>
 	</variable>
 
 	<include name="GalleryTileBody">
@@ -1180,7 +1180,7 @@
 				<height>40</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
-				<label>$INFO[Container(50).CurrentPage] / $INFO[Container(50).NumPages] · $INFO[Container(50).NumItems] items</label>
+				<label>$INFO[Container(50).CurrentPage] / $INFO[Container(50).NumPages] · $INFO[Container(50).NumItems] $LOCALIZE[31016]</label>
 			</control>
 
 			<control type="scrollbar" id="60">
@@ -1518,9 +1518,9 @@
 	<!-- <summary>Caption for the Lists porting default in skin settings:
 	     what happens to the current queue when a list is ported.</summary> -->
 	<variable name="ListPortClearLabel">
-		<value condition="String.IsEqual(Skin.String(list_port_clear),clear)">Clear the queue</value>
-		<value condition="String.IsEqual(Skin.String(list_port_clear),keep)">Keep the queue</value>
-		<value>Ask each time</value>
+		<value condition="String.IsEqual(Skin.String(list_port_clear),clear)">$LOCALIZE[31174]</value>
+		<value condition="String.IsEqual(Skin.String(list_port_clear),keep)">$LOCALIZE[31175]</value>
+		<value>$LOCALIZE[31176]</value>
 	</variable>
 
 	<!-- ListsContextButton: one of the two Lists entries at the top of the
@@ -1783,7 +1783,7 @@
 				<font>font_small</font>
 				<aligny>center</aligny>
 				<textcolor>text_dim</textcolor>
-				<label>$INFO[VideoPlayer.AudioCodec]$INFO[VideoPlayer.AudioChannels, · , ch]$INFO[VideoPlayer.AudioLanguage, · ,]</label>
+				<label>$INFO[VideoPlayer.AudioCodec]$INFO[VideoPlayer.AudioChannels, · , $LOCALIZE[31069]]$INFO[VideoPlayer.AudioLanguage, · ,]</label>
 			</control>
 
 			<!-- Plot, the meat of the card -->
@@ -1816,7 +1816,7 @@
 				<font>font_reg</font>
 				<align>right</align>
 				<textcolor>$VAR[AccentColor]</textcolor>
-				<label>Ends at $INFO[Player.FinishTime]</label>
+				<label>$LOCALIZE[31098] $INFO[Player.FinishTime]</label>
 				<visible>Player.HasMedia + !Player.Paused</visible>
 			</control>
 		</definition>
@@ -1975,7 +1975,7 @@
 				<height>30</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
-				<label>No cast information for this title</label>
+				<label>31099</label>
 				<!-- Count=="0" means the service finished looking and found
 				     nothing; while the lookup is still running the property
 				     is cleared, so this shows nothing instead of flashing on
@@ -2121,6 +2121,100 @@
 					<aligny>center</aligny>
 					<textcolor>white</textcolor>
 					<label>$VAR[ScrollSortBadgeLabel]</label>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- ===== ABOUT-PAGE-BLOCK =====
+	     Pieces used only by the About page (custom window 1152). Kept here
+	     rather than inline so the accent tints follow the user's chosen
+	     accent colour the same way every other control does. -->
+
+	<!--
+	  <summary>Accent colour at 12% alpha, for the sweeping glow band.</summary>
+	-->
+	<variable name="AccentColorGlow">
+		<value condition="String.IsEqual(Skin.String(accent_color),red)">1FE53935</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),green)">1F43A047</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),orange)">1FFB8C00</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),purple)">1F8E24AA</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),teal)">1F00897B</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),pink)">1FEC407A</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),amber)">1FFFB300</value>
+		<value>1F1E88E5</value>
+	</variable>
+
+	<!--
+	  <summary>Accent colour at 50% alpha, for the hairline that sweeps with it.</summary>
+	-->
+	<variable name="AccentColorHair">
+		<value condition="String.IsEqual(Skin.String(accent_color),red)">80E53935</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),green)">8043A047</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),orange)">80FB8C00</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),purple)">808E24AA</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),teal)">8000897B</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),pink)">80EC407A</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),amber)">80FFB300</value>
+		<value>801E88E5</value>
+	</variable>
+
+	<!--
+	  <summary>
+	  One key/value row on the About page, sliding in from the right.
+	  </summary>
+	  <param name="top">Y position inside the parent group.</param>
+	  <param name="key">Left-hand caption, shown dim and upper case.</param>
+	  <param name="value">Right-hand value, usually an $INFO lookup.</param>
+	  <param name="delay">Milliseconds to hold this row back, so the rows
+	  arrive one after another rather than all at once.</param>
+	-->
+	<include name="AboutRow">
+		<param name="top" default="0" />
+		<param name="key" default="" />
+		<param name="value" default="" />
+		<param name="delay" default="0" />
+		<definition>
+			<control type="group">
+				<left>0</left>
+				<top>$PARAM[top]</top>
+				<width>960</width>
+				<height>54</height>
+				<animation effect="slide" start="60,0" end="0,0" time="340" delay="$PARAM[delay]" tween="cubic" easing="out">WindowOpen</animation>
+				<animation effect="fade" start="0" end="100" time="340" delay="$PARAM[delay]">WindowOpen</animation>
+
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>200</width>
+					<height>54</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<label>$PARAM[key]</label>
+				</control>
+
+				<!-- Hairline under each row, so the column reads as a table
+				     without drawing a box around it. -->
+				<control type="image">
+					<left>0</left>
+					<top>53</top>
+					<width>860</width>
+					<height>1</height>
+					<texture colordiffuse="14FFFFFF">white.png</texture>
+				</control>
+
+				<control type="label">
+					<left>210</left>
+					<top>0</top>
+					<width>650</width>
+					<height>54</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<label>$PARAM[value]</label>
 				</control>
 			</control>
 		</definition>

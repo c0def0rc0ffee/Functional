@@ -117,7 +117,7 @@
 			<font>font_reg</font>
 			<textcolor>$VAR[AccentColor]</textcolor>
 			<align>right</align>
-			<label>Ends at $INFO[Player.FinishTime]</label>
+			<label>$LOCALIZE[31098] $INFO[Player.FinishTime]</label>
 			<visible>Player.HasMedia + !Player.Paused</visible>
 		</control>
 

@@ -21,7 +21,7 @@
 
 		<include content="WindowBackground"/>
 		<include content="HeaderBar">
-			<param name="title" value="     Event Log"/>
+			<param name="title" value="     $LOCALIZE[31085]"/>
 		</include>
 
 		<!-- Logo -->
@@ -79,7 +79,7 @@
 				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">white.png</textureradioonnofocus>
 				<textureradioofffocus colordiffuse="grey">white.png</textureradioofffocus>
 				<textureradiooffnofocus colordiffuse="grey_dark">white.png</textureradiooffnofocus>
-				<label>Show description</label>
+				<label>31083</label>
 			</control>
 
 			<control type="button" id="20">
@@ -128,7 +128,7 @@
 			<ondown>50</ondown>
 			<pagecontrol>60</pagecontrol>
 			<scrolltime tween="cubic" easing="out">200</scrolltime>
-			<viewtype label="List">list</viewtype>
+			<viewtype label="31014">list</viewtype>
 
 			<itemlayout height="90" width="1400">
 				<control type="image">
@@ -256,7 +256,7 @@
 			<font>font_med</font>
 			<align>center</align>
 			<textcolor>text_dim</textcolor>
-			<label>No events yet, they'll appear here as Kodi reports them.</label>
+			<label>31084</label>
 		</control>
 
 	</controls>

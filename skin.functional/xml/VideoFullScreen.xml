@@ -84,7 +84,7 @@
 				<font>font_reg</font>
 				<align>center</align>
 				<textcolor>text</textcolor>
-				<label>Buffering… $INFO[Player.CacheLevel]%</label>
+				<label>$LOCALIZE[31327] $INFO[Player.CacheLevel]%</label>
 			</control>
 			<control type="progress">
 				<left>40</left>

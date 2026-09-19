@@ -25,7 +25,7 @@
 	<controls>
 		<include content="WindowBackground"/>
 		<include content="HeaderBar">
-			<param name="title" value="     System Info"/>
+			<param name="title" value="     $LOCALIZE[31233]"/>
 		</include>
 
 		<!-- Logo in header -->

@@ -40,7 +40,7 @@
 			<font>font_med</font>
 			<align>center</align>
 			<textcolor>text</textcolor>
-			<label>Power</label>
+			<label>31040</label>
 		</control>
 
 		<!-- Panel: Kodi populates with item entries from this skin's content list -->
@@ -88,32 +88,32 @@
 			</focusedlayout>
 			<content>
 				<item>
-					<label>Exit Kodi</label>
+					<label>31041</label>
 					<onclick>Quit()</onclick>
 					<visible>System.ShowExitButton</visible>
 				</item>
 				<item>
-					<label>Power Off</label>
+					<label>31042</label>
 					<onclick>Powerdown()</onclick>
 					<visible>System.CanPowerDown</visible>
 				</item>
 				<item>
-					<label>Suspend</label>
+					<label>31043</label>
 					<onclick>Suspend()</onclick>
 					<visible>System.CanSuspend</visible>
 				</item>
 				<item>
-					<label>Hibernate</label>
+					<label>31044</label>
 					<onclick>Hibernate()</onclick>
 					<visible>System.CanHibernate</visible>
 				</item>
 				<item>
-					<label>Reboot</label>
+					<label>31045</label>
 					<onclick>Reset()</onclick>
 					<visible>System.CanReboot</visible>
 				</item>
 				<item>
-					<label>Log Off</label>
+					<label>31046</label>
 					<onclick>System.LogOff</onclick>
 					<visible>System.HasLoginScreen | Integer.IsGreater(System.ProfileCount,1)</visible>
 				</item>

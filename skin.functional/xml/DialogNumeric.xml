@@ -169,7 +169,7 @@
 				<onright>4004</onright>
 				<control type="button" id="23"><include>NumericKey</include><label>←</label><onup>17</onup><ondown>20</ondown></control>
 				<control type="button" id="10"><include>NumericKey</include><label>$LOCALIZE[12310]</label><onup>18</onup><ondown>12</ondown></control>
-				<control type="button" id="21"><include>NumericKey</include><label>OK</label><onup>19</onup><ondown>22</ondown></control>
+				<control type="button" id="21"><include>NumericKey</include><label>31056</label><onup>19</onup><ondown>22</ondown></control>
 			</control>
 
 		</control>

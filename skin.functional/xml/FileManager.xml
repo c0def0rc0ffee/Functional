@@ -19,7 +19,7 @@
 
 		<include content="WindowBackground"/>
 		<include content="HeaderBar">
-			<param name="title" value="     File Manager"/>
+			<param name="title" value="     $LOCALIZE[31086]"/>
 		</include>
 
 		<!-- Logo in header -->
@@ -289,7 +289,7 @@
 			<height>40</height>
 			<font>font_small</font>
 			<textcolor>text_dim</textcolor>
-			<label>$INFO[Container(20).CurrentItem] / $INFO[Container(20).NumItems] items</label>
+			<label>$INFO[Container(20).CurrentItem] / $INFO[Container(20).NumItems] $LOCALIZE[31016]</label>
 		</control>
 		<control type="label">
 			<right>40</right>
@@ -299,7 +299,7 @@
 			<font>font_small</font>
 			<textcolor>text_dim</textcolor>
 			<align>right</align>
-			<label>$INFO[Container(21).CurrentItem] / $INFO[Container(21).NumItems] items</label>
+			<label>$INFO[Container(21).CurrentItem] / $INFO[Container(21).NumItems] $LOCALIZE[31016]</label>
 		</control>
 
 	</controls>

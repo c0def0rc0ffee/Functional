@@ -10,7 +10,7 @@
 	<views>50</views>
 	<controls>
 		<include content="MediaBrowseContent">
-			<param name="title" value="Music"/>
+			<param name="title" value="$LOCALIZE[31011]"/>
 		</include>
 	</controls>
 </window>

@@ -160,10 +160,40 @@ import time
 import traceback
 import xml.etree.ElementTree as ET
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
 HOME_WINDOW_ID = 10000
+
+# ---- Localised strings ----------------------------------------------------
+# Every string the user can see comes from the skin's strings.po, so the
+# service can be translated along with the rest of the skin. Kodi's own
+# strings stay with Kodi: xbmc.getLocalizedString() for those.
+_ADDON = xbmcaddon.Addon()
+
+
+def _L(string_id):
+    """
+    <summary>One of this add-on's own localised strings.</summary>
+    <param name="string_id">Numeric id as it appears in strings.po.</param>
+    <returns>The translated text, or the English source when untranslated.</returns>
+    <remarks>
+    Two lookups, because this add-on is the running skin. Kodi loads the
+    active skin's strings into its main table, which is what $LOCALIZE in
+    the XML reads and what xbmc.getLocalizedString() sees; the per-add-on
+    lookup comes back empty for them. The add-on lookup is tried first so
+    this keeps working unchanged if the service is ever split out into a
+    script add-on of its own, where only that call resolves.
+
+    Returning the id rather than "" on a miss matters: several of these
+    strings are format templates, and "" % (1,) raises TypeError, which
+    turns a missing translation into a broken feature.
+    </remarks>
+    """
+    return (_ADDON.getLocalizedString(string_id)
+            or xbmc.getLocalizedString(string_id)
+            or str(string_id))
 
 # ---- Debug logging --------------------------------------------------------
 # When Skin.HasSetting(debug_logging) is on, _dlog() appends timestamped
@@ -1579,21 +1609,21 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("fullfile: could not read filecache.memorysize, not switching",
                   xbmc.LOGWARNING)
             xbmcgui.Dialog().notification(
-                "Functional", "Could not read the buffer size, not switching",
+                "Functional", _L(31328),
                 xbmcgui.NOTIFICATION_WARNING, 4000)
             return
         if mode == "fullfile":
             if current == 0:
                 xbmcgui.Dialog().notification(
-                    "Functional", "Already buffering the entire file",
+                    "Functional", _L(31331),
                     xbmcgui.NOTIFICATION_INFO, 4000)
                 return
             target_size = 0
-            message = "Restarting stream with unlimited buffering"
+            message = _L(31329)
         else:
             if current != 0:
                 xbmcgui.Dialog().notification(
-                    "Functional", "Full buffering is not on",
+                    "Functional", _L(31332),
                     xbmcgui.NOTIFICATION_INFO, 4000)
                 return
             # Nothing remembered means the uncapped size was set somewhere
@@ -1606,7 +1636,7 @@ class FunctionalHelper(xbmc.Monitor):
                 # A remembered 0 would restart straight back into unlimited
                 # buffering, i.e. the button would do nothing.
                 target_size = self.CACHE_DEFAULTS["filecache.memorysize"]
-            message = "Restarting stream with normal buffering"
+            message = _L(31330)
         players = (_jsonrpc("Player.GetActivePlayers").get("result") or [])
         pid = next((p.get("playerid") for p in players
                     if p.get("type") == "video"), None)
@@ -2047,6 +2077,9 @@ class FunctionalHelper(xbmc.Monitor):
     LISTS_FILE = "special://profile/addon_data/skin.functional/lists.json"
     LISTS_MAX = 60           # rows on the Lists screen's left column
     LIST_ITEMS_MAX = 200     # rows on its right column (and per-list cap)
+    # Minutes offered by "Port by Time" for a list that has never been
+    # filled before. Per-list once chosen, stored as "fill" in lists.json.
+    LIST_FILL_DEFAULT = 180
     LISTS_WINDOW_ID = 1151
     LIST_PLAYLIST_IDS = {"music": 0, "video": 1}
     # ListItem.DBTYPE -> the JSON-RPC Playlist.Item key that plays it by id
@@ -2088,8 +2121,17 @@ class FunctionalHelper(xbmc.Monitor):
                             continue
                         items = [self._list_item_clean(it)
                                  for it in entry.get("items", []) or []]
+                        # "fill" is the Port by Time length in minutes,
+                        # remembered per list. 0 means never set, so the
+                        # dialog opens on LIST_FILL_DEFAULT. Clamped
+                        # because _parse_hhmm tops out at 23:59.
+                        try:
+                            fill = int(entry.get("fill") or 0)
+                        except (TypeError, ValueError):
+                            fill = 0
                         lists.append({"name": name,
-                                      "items": [it for it in items if it]})
+                                      "items": [it for it in items if it],
+                                      "fill": min(max(fill, 0), 23 * 60 + 59)})
                     last = str(data.get("last", "") or "")
                 except Exception:  # noqa: BLE001
                     _dlog("lists.json unreadable, starting empty:\n"
@@ -2124,7 +2166,7 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("lists.json write failed:\n" + traceback.format_exc(),
                   xbmc.LOGERROR)
             xbmcgui.Dialog().notification(
-                "Lists", "Could not save lists.json",
+                _L(31024), _L(31333),
                 xbmcgui.NOTIFICATION_ERROR, 4000)
         self._set_or_reset("lists_last", self._lists_last)
         self._lists_publish()
@@ -2205,8 +2247,8 @@ class FunctionalHelper(xbmc.Monitor):
             if i < len(shown):
                 lst = shown[i]
                 total = sum(it["duration"] for it in lst["items"])
-                sub = "%d item%s" % (len(lst["items"]),
-                                     "" if len(lst["items"]) == 1 else "s")
+                sub = (_L(31334) if len(lst["items"]) == 1
+                       else _L(31335)) % len(lst["items"])
                 if total:
                     sub += " · " + self._fmt_secs(total)
                 win.setProperty("Lists.%d.Name" % n, lst["name"])
@@ -2232,9 +2274,19 @@ class FunctionalHelper(xbmc.Monitor):
         win.setProperty("Lists.Sel.Idx", str(idx if lst else 0))
         win.setProperty("Lists.Sel.Name", lst["name"] if lst else "")
         win.setProperty("Lists.Sel.Count", str(len(items)))
+        # Pre-formatted so the heading does not have to say "1 items".
+        win.setProperty("Lists.Sel.CountLabel",
+                        (_L(31334) if len(items) == 1
+                         else _L(31335)) % len(items) if lst else "")
         total = sum(it["duration"] for it in items)
         win.setProperty("Lists.Sel.Duration",
                         self._fmt_secs(total) if total else "")
+        # Shown on the Port by Time button, so the remembered length for
+        # this list is visible before opening the dialog.
+        win.setProperty("Lists.Sel.Fill",
+                        self._fmt_hhmm(int((lst or {}).get("fill") or
+                                           self.LIST_FILL_DEFAULT))
+                        if lst else "")
         used_before = self._list_item_slots_used
         for i in range(max(len(items), used_before)):
             n = i + 1
@@ -2255,8 +2307,9 @@ class FunctionalHelper(xbmc.Monitor):
         list_command values on the dialog thread and keeps the Lists
         screen's right column following the focused list.</summary>
         <remarks>Commands: add_last, add_pick (item in list_item_* Home
-        properties); new, rename, delete, port, port_shuffle (act on the
-        selected list); item:N (action menu for row N of the selected
+        properties); new, rename, delete, port, port_shuffle, port_time
+        (act on the selected list); item:N (action menu for row N of the
+        selected
         list); save_queue (the open queue window becomes a new list).
         A command arriving while another dialog is up is dropped, as with
         bg_command, rather than queued behind a picker nobody can see.</remarks>"""
@@ -2298,6 +2351,8 @@ class FunctionalHelper(xbmc.Monitor):
             self._lists_delete()
         elif cmd in ("port", "port_shuffle"):
             self._lists_port(shuffle=(cmd == "port_shuffle"))
+        elif cmd == "port_time":
+            self._lists_port_time()
         elif cmd.startswith("item:"):
             self._lists_item_menu(cmd[5:])
         elif cmd == "save_queue":
@@ -2325,7 +2380,7 @@ class FunctionalHelper(xbmc.Monitor):
         <param name="error">True for the error icon, otherwise the info icon.</param>
         """
         xbmcgui.Dialog().notification(
-            "Lists", text,
+            _L(31024), text,
             xbmcgui.NOTIFICATION_ERROR if error else xbmcgui.NOTIFICATION_INFO,
             3500)
 
@@ -2341,7 +2396,7 @@ class FunctionalHelper(xbmc.Monitor):
             taken = any(l["name"].lower() == name.lower()
                         and l["name"] != default for l in self._lists or [])
         if taken:
-            self._lists_notify("A list called %s already exists" % name, True)
+            self._lists_notify(_L(31336) % name, True)
             return ""
         return name
 
@@ -2361,7 +2416,8 @@ class FunctionalHelper(xbmc.Monitor):
         """<summary>Append a new list and save.</summary>
         <returns>The new list's 1-based index.</returns>"""
         with self._lists_lock:
-            self._lists.append({"name": name, "items": list(items or [])})
+            self._lists.append({"name": name, "items": list(items or []),
+                                "fill": 0})
             idx = len(self._lists)
             self._lists_last = name
         self._lists_save()
@@ -2373,7 +2429,7 @@ class FunctionalHelper(xbmc.Monitor):
         <param name="pick">True to always show the picker.</param>"""
         item = self._lists_capture_item()
         if item is None:
-            self._lists_notify("Nothing playable to add", True)
+            self._lists_notify(_L(31337), True)
             return
         with self._lists_lock:
             lists = list(self._lists)
@@ -2383,11 +2439,11 @@ class FunctionalHelper(xbmc.Monitor):
             target = next((l for l in lists if l["name"] == last), None)
         if target is None:
             names = [l["name"] for l in lists] + ["New list"]
-            choice = xbmcgui.Dialog().select("Add to list", names)
+            choice = xbmcgui.Dialog().select(_L(31050), names)
             if choice < 0:
                 return
             if choice == len(lists):
-                name = self._lists_ask_name("New list name")
+                name = self._lists_ask_name(_L(31338))
                 if not name:
                     return
                 self._lists_create(name)
@@ -2401,16 +2457,16 @@ class FunctionalHelper(xbmc.Monitor):
             else:
                 dup = False
                 if len(target["items"]) >= self.LIST_ITEMS_MAX:
-                    self._lists_notify("%s is full (%d items)" % (
+                    self._lists_notify(_L(31339) % (
                         target["name"], self.LIST_ITEMS_MAX), True)
                     return
                 target["items"].append(item)
             self._lists_last = target["name"]
         self._lists_save()
         if dup:
-            self._lists_notify("%s is already in %s" % (item["label"], target["name"]))
+            self._lists_notify(_L(31340) % (item["label"], target["name"]))
         else:
-            self._lists_notify("Added to %s" % target["name"])
+            self._lists_notify(_L(31341) % target["name"])
 
     def _lists_new(self):
         """
@@ -2418,7 +2474,7 @@ class FunctionalHelper(xbmc.Monitor):
         Prompt for a name and create a new list.
         </summary>
         """
-        name = self._lists_ask_name("New list name")
+        name = self._lists_ask_name(_L(31338))
         if name:
             self._lists_create(name)
 
@@ -2436,7 +2492,7 @@ class FunctionalHelper(xbmc.Monitor):
         if not lst:
             return
         old = lst["name"]
-        name = self._lists_ask_name("Rename list", old)
+        name = self._lists_ask_name(_L(31342), old)
         if not name or name == old:
             return
         with self._lists_lock:
@@ -2451,7 +2507,7 @@ class FunctionalHelper(xbmc.Monitor):
         if not lst:
             return
         if not xbmcgui.Dialog().yesno(
-                "Remove list", "Remove the list %s and its %d items?" % (
+                _L(31343), _L(31344) % (
                     lst["name"], len(lst["items"]))):
             return
         with self._lists_lock:
@@ -2471,30 +2527,100 @@ class FunctionalHelper(xbmc.Monitor):
         return {"file": it["file"]}
 
     def _lists_port(self, shuffle):
-        """<summary>Copy the selected list into Kodi's queue(s) and start
-        it playing.</summary>
-        <param name="shuffle">Randomise the order before queueing.</param>
-        <remarks>Skin.String(list_port_clear) = clear / keep decides whether
-        the existing queue goes first; unset means ask, with a Cancel. Video
-        items go to the video queue and songs to the music queue; the video
-        queue starts if it got anything, else the music one. With "keep"
-        and something already playing, the items are only appended.</remarks>"""
+        """<summary>Copy the whole selected list into Kodi's queue(s) and
+        start it playing.</summary>
+        <param name="shuffle">Randomise the order before queueing.</param>"""
         idx, lst = self._lists_selected()
         if not lst:
             return
         with self._lists_lock:
             items = list(lst["items"])
         if not items:
-            self._lists_notify("%s is empty" % lst["name"], True)
+            self._lists_notify(_L(31345) % lst["name"], True)
             return
         if shuffle:
             random.shuffle(items)
+        self._lists_queue(lst, items, _L(31355) if shuffle else _L(31356))
+
+    def _lists_port_time(self):
+        """<summary>Queue a random pick from the selected list, enough of it
+        to fill a length of time the user chooses.</summary>
+        <remarks>The length is remembered per list (the "fill" key in
+        lists.json) so the same list offers the same answer next time. It
+        is asked as HH:MM through the same numeric dialog the background
+        schedule uses, which gives half hours for free and is one keypad
+        on a remote.
+
+        "At least" is meant literally: the item that takes the running
+        total past the target is included rather than dropped, so an
+        evening set to three hours runs slightly over rather than short.
+        A list whose whole content is shorter than the target is queued
+        in full, and the notification reports what was actually
+        achieved.</remarks>"""
+        idx, lst = self._lists_selected()
+        if not lst:
+            return
+        with self._lists_lock:
+            items = list(lst["items"])
+            current = int(lst.get("fill") or self.LIST_FILL_DEFAULT)
+        if not items:
+            self._lists_notify(_L(31345) % lst["name"], True)
+            return
+        answer = xbmcgui.Dialog().numeric(2, _L(31379),
+                                          self._fmt_hhmm(current))
+        minutes = self._parse_hhmm(answer)
+        if not minutes:
+            return  # cancelled, or 00:00 which would queue nothing
+        with self._lists_lock:
+            lst["fill"] = minutes
+        self._lists_save()
+        picked, total = self._lists_pick_for_duration(items, minutes * 60)
+        _dlog("list fill: %s target %s picked %d of %d, total %s" % (
+            lst["name"], self._fmt_hhmm(minutes), len(picked), len(items),
+            self._fmt_secs(total)))
+        self._lists_queue(lst, picked, _L(31380),
+                          extra=[self._fmt_secs(total)] if total else None)
+
+    @staticmethod
+    def _lists_pick_for_duration(items, target_secs):
+        """<summary>A random selection from *items* lasting at least
+        *target_secs*, or all of them if the list is shorter.</summary>
+        <param name="items">The list's items, not modified.</param>
+        <param name="target_secs">Length to reach, in seconds.</param>
+        <returns>(picked items, their total duration in seconds).</returns>
+        <remarks>Items Kodi has no duration for count as zero. They are
+        still queued when drawn, but they cannot advance the total, so a
+        list made entirely of them ends up queued in full rather than
+        spinning. The walk is over a finite shuffled copy either way.</remarks>"""
+        pool = list(items)
+        random.shuffle(pool)
+        picked, total = [], 0
+        for it in pool:
+            if total >= target_secs:
+                break
+            picked.append(it)
+            total += it["duration"]
+        return picked, total
+
+    def _lists_queue(self, lst, items, verb, extra=None):
+        """<summary>Put *items* into Kodi's queue(s) and start playing.</summary>
+        <param name="lst">The list they came from, for the notification.</param>
+        <param name="items">Already ordered and filtered; queued as given.</param>
+        <param name="verb">Localised word for what happened, e.g. Ported.</param>
+        <param name="extra">Extra phrases to append to the notification.</param>
+        <remarks>Skin.String(list_port_clear) = clear / keep decides whether
+        the existing queue goes first; unset means ask, with a Cancel. Video
+        items go to the video queue and songs to the music queue; the video
+        queue starts if it got anything, else the music one. With "keep"
+        and something already playing, the items are only appended.</remarks>"""
+        if not items:
+            return
         mode = xbmc.getInfoLabel("Skin.String(list_port_clear)")
         if mode not in ("clear", "keep"):
             answer = xbmcgui.Dialog().yesnocustom(
-                "Port %s" % lst["name"],
-                "Clear the current queue first?",
-                customlabel="Cancel", nolabel="Keep queue", yeslabel="Clear queue")
+                _L(31346) % lst["name"],
+                _L(31347),
+                customlabel=_L(31348), nolabel=_L(31349), yeslabel=_L(31350))
             if answer in (-1, 2):
                 return
             mode = "clear" if answer == 1 else "keep"
@@ -2529,15 +2655,14 @@ class FunctionalHelper(xbmc.Monitor):
                 "position": start.get(kind, 0)}})
         counts = []
         if groups["video"]:
-            counts.append("%d video%s" % (len(groups["video"]),
-                                          "" if len(groups["video"]) == 1 else "s"))
+            counts.append((_L(31351) if len(groups["video"]) == 1
+                           else _L(31352)) % len(groups["video"]))
         if groups["music"]:
-            counts.append("%d song%s" % (len(groups["music"]),
-                                         "" if len(groups["music"]) == 1 else "s"))
-        self._lists_notify("%s %s: %s" % (
-            "Shuffled" if shuffle else "Ported", lst["name"], ", ".join(counts)))
-        _dlog("list ported: %s shuffle=%s mode=%s %s" % (
-            lst["name"], shuffle, mode, counts))
+            counts.append((_L(31353) if len(groups["music"]) == 1
+                           else _L(31354)) % len(groups["music"]))
+        counts.extend(extra or [])
+        self._lists_notify(_L(31357) % (verb, lst["name"], ", ".join(counts)))
+        _dlog("list queued: %s mode=%s %s" % (lst["name"], mode, counts))
 
     def _lists_item_menu(self, row):
         """<summary>Action menu for one row of the selected list: play it
@@ -2552,7 +2677,7 @@ class FunctionalHelper(xbmc.Monitor):
             return
         it = lst["items"][pos]
         choice = xbmcgui.Dialog().contextmenu(
-            ["Play now", "Move up", "Move down", "Remove from list"])
+            [_L(31358), _L(31359), _L(31360), _L(31361)])
         _dlog("list item menu: row %d of %s -> choice %d" % (
             pos + 1, lst["name"], choice))
         if choice == 0:
@@ -2616,14 +2741,14 @@ class FunctionalHelper(xbmc.Monitor):
             if it and not any(self._list_item_same(it, x) for x in items):
                 items.append(it)
         if not items:
-            self._lists_notify("The queue is empty", True)
+            self._lists_notify(_L(31362), True)
             return
-        name = self._lists_ask_name("Save queue as list")
+        name = self._lists_ask_name(_L(31363))
         if not name:
             return
         self._lists_create(name, items[:self.LIST_ITEMS_MAX])
-        self._lists_notify("Saved %d item%s to %s" % (
-            len(items), "" if len(items) == 1 else "s", name))
+        self._lists_notify((_L(31364) if len(items) == 1 else _L(31365)) % (
+            len(items), name))
 
     # ---- Video nav: genre label + per-content default sort ----------------
     #
@@ -2922,14 +3047,14 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("backup: snapshot written, {0} bytes".format(len(data)))
             if announce:
                 xbmcgui.Dialog().notification(
-                    "Functional", "Skin settings backed up",
+                    "Functional", _L(31366),
                     xbmcgui.NOTIFICATION_INFO, 3000)
         except Exception:  # noqa: BLE001
             _dlog("backup failed:\n{0}".format(traceback.format_exc()),
                   xbmc.LOGERROR)
             if announce:
                 xbmcgui.Dialog().notification(
-                    "Functional", "Backup failed, see the log",
+                    "Functional", _L(31367),
                     xbmcgui.NOTIFICATION_WARNING, 4000)
 
     # Below this many stored settings there is nothing worth protecting, and
@@ -3004,7 +3129,7 @@ class FunctionalHelper(xbmc.Monitor):
         path = self._backup_path()
         if not os.path.isfile(path):
             xbmcgui.Dialog().ok("Functional",
-                                "There is no backup to restore from yet.")
+                                _L(31368))
             return
         try:
             entries = self._read_backup(path)
@@ -3012,19 +3137,17 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("restore: unreadable backup:\n{0}".format(
                 traceback.format_exc()), xbmc.LOGERROR)
             xbmcgui.Dialog().ok("Functional",
-                                "That backup could not be read. Nothing has "
-                                "been changed.")
+                                _L(31369))
             return
         if not entries:
-            xbmcgui.Dialog().ok("Functional", "That backup is empty. Nothing "
-                                              "has been changed.")
+            xbmcgui.Dialog().ok("Functional",
+                                _L(31370))
             return
         when = xbmc.getInfoLabel("Skin.String(settings_backup_when)")
         if not xbmcgui.Dialog().yesno(
-                "Restore skin settings",
-                "Replace all {0} current skin settings with the backup taken "
-                "{1}?[CR][CR]The skin will reload.".format(
-                    len(entries), when or "earlier")):
+                _L(31371),
+                _L(31372).format(
+                    len(entries), when or _L(31373))):
             return
         for key, kind, value in entries:
             value = value.strip()
@@ -3040,7 +3163,7 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("restore: re-applied {0} settings from {1}".format(
             len(entries), path))
         xbmcgui.Dialog().notification(
-            "Functional", "{0} settings restored".format(len(entries)),
+            "Functional", _L(31374).format(len(entries)),
             xbmcgui.NOTIFICATION_INFO, 3000)
         # The reload is what makes load-time includes (OSD position, colours)
         # pick the restored values up.
@@ -3241,11 +3364,11 @@ class FunctionalHelper(xbmc.Monitor):
         if not genres:
             _dlog("genre picker: no genres for type {0!r}".format(gtype))
             xbmcgui.Dialog().notification(
-                "Functional", "No genres found in the library",
+                "Functional", _L(31375),
                 xbmcgui.NOTIFICATION_INFO, 4000)
             return
 
-        idx = xbmcgui.Dialog().select("Background genre", genres)
+        idx = xbmcgui.Dialog().select(_L(31376), genres)
         if idx < 0:
             return  # cancelled, keep whatever was set before
         _set_skin_string("bg_genre", genres[idx])
@@ -3318,6 +3441,21 @@ class FunctionalHelper(xbmc.Monitor):
         if hours > 23 or minutes > 59:
             return None
         return hours * 60 + minutes
+
+    @staticmethod
+    def _fmt_hhmm(minutes):
+        """
+        <summary>
+        180 -> '03:00'. The inverse of _parse_hhmm, for seeding its dialog.
+        </summary>
+        <remarks>
+        Both fields are zero padded. Kodi's numeric time dialog silently
+        ignores a default it cannot parse and seeds itself from the clock
+        instead, so "3:00" turned a three hour default into whatever the
+        time happened to be.
+        </remarks>
+        """
+        return "{0:02d}:{1:02d}".format(minutes // 60, minutes % 60)
 
     def _bg_slot_store(self, slot):
         """
@@ -3477,7 +3615,7 @@ class FunctionalHelper(xbmc.Monitor):
         slot = min(max(slot, 1), self.BG_SCHED_MAX_SLOTS)
         key = "bg_slot{0}_start".format(slot)
         current = self._get_skin(key) or "00:00"
-        result = xbmcgui.Dialog().numeric(2, "Slot {0} start time".format(slot),
+        result = xbmcgui.Dialog().numeric(2, _L(31377).format(slot),
                                           current)
         minutes = self._parse_hhmm(result)
         if minutes is None:
