@@ -221,13 +221,13 @@
 			<orientation>horizontal</orientation>
 			<itemgap>5</itemgap>
 			<align>center</align>
-			<include content="KeyboardKey"><param name="id" value="302"/><param name="width" value="150"/><param name="label" value="Shift"/></include>
-			<include content="KeyboardKey"><param name="id" value="303"/><param name="width" value="150"/><param name="label" value="Caps"/></include>
-			<include content="KeyboardKey"><param name="id" value="304"/><param name="width" value="150"/><param name="label" value="Sym"/></include>
-			<include content="KeyboardKey"><param name="id" value="32"/><param name="width" value="320"/><param name="label" value="Space"/></include>
+			<include content="KeyboardKey"><param name="id" value="302"/><param name="width" value="150"/><param name="label" value="$LOCALIZE[31050]"/></include>
+			<include content="KeyboardKey"><param name="id" value="303"/><param name="width" value="150"/><param name="label" value="$LOCALIZE[31051]"/></include>
+			<include content="KeyboardKey"><param name="id" value="304"/><param name="width" value="150"/><param name="label" value="$LOCALIZE[31052]"/></include>
+			<include content="KeyboardKey"><param name="id" value="32"/><param name="width" value="320"/><param name="label" value="$LOCALIZE[31053]"/></include>
 			<include content="KeyboardKey"><param name="id" value="305"/><param name="width" value="90"/><param name="label" value="◄"/></include>
 			<include content="KeyboardKey"><param name="id" value="306"/><param name="width" value="90"/><param name="label" value="►"/></include>
-			<include content="KeyboardKey"><param name="id" value="8"/><param name="width" value="120"/><param name="label" value="Backspace"/></include>
+			<include content="KeyboardKey"><param name="id" value="8"/><param name="width" value="120"/><param name="label" value="$LOCALIZE[31054]"/></include>
 		</control>
 
 		<!-- ===== ACTION ROW (Done / Cancel / Clear) ===== -->

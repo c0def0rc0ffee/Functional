@@ -17,11 +17,16 @@
   jumps into its items. Clicking an item asks the service for its action
   menu (play now, move up, move down, remove). The footer buttons act on the
   selected list through Skin.String(list_command): new, rename, delete,
-  port, port_shuffle.
+  port, port_shuffle, port_time.
 
   Porting copies the list into Kodi's video and/or music queue and starts it
   playing. Shuffled means the order is randomised before queueing, so the
   queue itself holds the jumbled order and Kodi's own shuffle stays off.
+
+  Port by Time queues a random pick instead of the whole list, enough of it
+  to fill a length the user gives as HH:MM. The length is remembered per
+  list in lists.json and shown on the button, and the pick overshoots
+  rather than falls short: the item that crosses the target is kept.
   </remarks>
 -->
 <window id="1151" type="window">
@@ -33,7 +38,7 @@
 
 		<include content="WindowBackground"/>
 		<include content="HeaderBar">
-			<param name="title" value="     Lists"/>
+			<param name="title" value="     $LOCALIZE[31024]"/>
 		</include>
 
 		<!-- Logo -->
@@ -54,7 +59,7 @@
 			<height>40</height>
 			<font>font_small</font>
 			<textcolor>text_dim</textcolor>
-			<label>YOUR LISTS  $INFO[Window(home).Property(Lists.Count),(,)]</label>
+			<label>$LOCALIZE[31015]  $INFO[Window(home).Property(Lists.Count),(,)]</label>
 		</control>
 
 		<control type="list" id="50">
@@ -68,7 +73,7 @@
 			<ondown>9000</ondown>
 			<onup>9000</onup>
 			<scrolltime tween="cubic" easing="out">200</scrolltime>
-			<viewtype label="List">list</viewtype>
+			<viewtype label="31014">list</viewtype>
 
 			<itemlayout height="70" width="560">
 				<control type="label">
@@ -152,7 +157,7 @@
 				<height>40</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
-				<label>$INFO[Window(home).Property(Lists.Sel.Name)]  ·  $INFO[Window(home).Property(Lists.Sel.Count)] items$INFO[Window(home).Property(Lists.Sel.Duration),  ·  ]</label>
+				<label>$INFO[Window(home).Property(Lists.Sel.Name)]  ·  $INFO[Window(home).Property(Lists.Sel.CountLabel)]$INFO[Window(home).Property(Lists.Sel.Duration),  ·  ]</label>
 			</control>
 
 			<control type="list" id="51">
@@ -166,7 +171,7 @@
 				<onup>9000</onup>
 				<pagecontrol>60</pagecontrol>
 				<scrolltime tween="cubic" easing="out">200</scrolltime>
-				<viewtype label="List">list</viewtype>
+				<viewtype label="31014">list</viewtype>
 
 				<itemlayout height="70" width="1180">
 					<control type="label">
@@ -303,7 +308,7 @@
 				<font>font_med</font>
 				<align>center</align>
 				<textcolor>text_dim</textcolor>
-				<label>This list is empty. Hold Select on any movie, episode or song and choose Add To List.</label>
+				<label>31017</label>
 			</control>
 		</control>
 
@@ -317,7 +322,7 @@
 			<font>font_med</font>
 			<align>center</align>
 			<textcolor>text_dim</textcolor>
-			<label>No lists yet. Press New List, or hold Select on any movie, episode or song and choose Add To List.</label>
+			<label>31018</label>
 		</control>
 
 		<!-- ===== Footer / actions ===== -->
@@ -360,7 +365,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>New List</label>
+				<label>31019</label>
 				<onclick>Skin.SetString(list_command,new)</onclick>
 			</control>
 
@@ -377,7 +382,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Rename</label>
+				<label>31020</label>
 				<onclick>Skin.SetString(list_command,rename)</onclick>
 			</control>
 
@@ -394,7 +399,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Remove List</label>
+				<label>31021</label>
 				<onclick>Skin.SetString(list_command,delete)</onclick>
 			</control>
 
@@ -411,7 +416,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Port to Queue</label>
+				<label>31022</label>
 				<onclick>Skin.SetString(list_command,port)</onclick>
 			</control>
 
@@ -428,8 +433,29 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Port Shuffled</label>
+				<label>31023</label>
 				<onclick>Skin.SetString(list_command,port_shuffle)</onclick>
+			</control>
+
+			<!-- Port by Time: a random pick from the list, enough of it to
+			     fill the length asked for. The remembered length for this
+			     list rides on the label so it is visible before you open
+			     the dialog. -->
+			<control type="button" id="9006">
+				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Count),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
+				<width>320</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[31378]  $INFO[Window(home).Property(Lists.Sel.Fill)]</label>
+				<onclick>Skin.SetString(list_command,port_time)</onclick>
 			</control>
 
 		</control>

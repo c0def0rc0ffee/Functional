@@ -15,7 +15,7 @@
 
 		<include content="WindowBackground"/>
 		<include content="HeaderBar">
-			<param name="title" value="     Weather"/>
+			<param name="title" value="     $LOCALIZE[31095]"/>
 		</include>
 
 		<!-- Logo in header -->
@@ -69,7 +69,7 @@
 				<aligny>center</aligny>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Refresh</label>
+				<label>31217</label>
 				<onclick>Weather.Refresh</onclick>
 			</control>
 
@@ -85,7 +85,7 @@
 				<aligny>center</aligny>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Settings</label>
+				<label>31218</label>
 				<onclick>ActivateWindow(servicesettings,weather)</onclick>
 			</control>
 		</control>
@@ -101,7 +101,7 @@
 				<font>font_med</font>
 				<align>center</align>
 				<textcolor>text_dim</textcolor>
-				<label>No weather data yet, pick a location, or configure your provider via Settings.</label>
+				<label>31219</label>
 			</control>
 		</control>
 
@@ -149,7 +149,7 @@
 				<height>40</height>
 				<font>font_reg</font>
 				<textcolor>text_dim</textcolor>
-				<label>Feels $INFO[Window(Weather).Property(Current.FeelsLike)]$INFO[System.TemperatureUnits]   ·   Humidity $INFO[Window(Weather).Property(Current.Humidity)]   ·   Wind $INFO[Window(Weather).Property(Current.Wind)]   ·   UV $INFO[Window(Weather).Property(Current.UVIndex)]</label>
+				<label>$LOCALIZE[31220] $INFO[Window(Weather).Property(Current.FeelsLike)]$INFO[System.TemperatureUnits]   $LOCALIZE[31221] $INFO[Window(Weather).Property(Current.Humidity)]   $LOCALIZE[31222] $INFO[Window(Weather).Property(Current.Wind)]   $LOCALIZE[31223] $INFO[Window(Weather).Property(Current.UVIndex)]</label>
 			</control>
 
 			<!-- ===== HOURLY (next 8 hours) =====
@@ -171,7 +171,7 @@
 				<height>30</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
-				<label>NEXT 8 HOURS</label>
+				<label>31224</label>
 			</control>
 
 			<control type="grouplist">
@@ -209,7 +209,7 @@
 				<height>30</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
-				<label>5-DAY FORECAST</label>
+				<label>31225</label>
 			</control>
 
 			<control type="grouplist">

@@ -48,35 +48,35 @@
 					<height>48</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<label>$INFO[VideoPlayer.VideoCodec,[COLOR accent_hi]Video codec:[/COLOR] ]$INFO[VideoPlayer.VideoBitrate,$COMMA , kb/s]</label>
+					<label>$INFO[VideoPlayer.VideoCodec,[COLOR accent_hi]$LOCALIZE[31057][/COLOR] ]$INFO[VideoPlayer.VideoBitrate,$COMMA , $LOCALIZE[31058]]</label>
 				</control>
 				<control type="label">
 					<width>1000</width>
 					<height>48</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<label>$INFO[Player.Process(videodecoder),[COLOR accent_hi]Video decoder:[/COLOR] ]</label>
+					<label>$INFO[Player.Process(videodecoder),[COLOR accent_hi]$LOCALIZE[31059][/COLOR] ]</label>
 				</control>
 				<control type="label">
 					<width>1000</width>
 					<height>48</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<label>$INFO[Player.Process(pixformat),[COLOR accent_hi]Pixel format:[/COLOR] ]</label>
+					<label>$INFO[Player.Process(pixformat),[COLOR accent_hi]$LOCALIZE[31060][/COLOR] ]</label>
 				</control>
 				<control type="label">
 					<width>1000</width>
 					<height>48</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<label>$INFO[Player.Process(deintmethod),[COLOR accent_hi]Deinterlace:[/COLOR] ]</label>
+					<label>$INFO[Player.Process(deintmethod),[COLOR accent_hi]$LOCALIZE[31061][/COLOR] ]</label>
 				</control>
 				<control type="label">
 					<width>1000</width>
 					<height>48</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<label>$INFO[Player.Process(videowidth),[COLOR accent_hi]Video size:[/COLOR] ,x]$INFO[Player.Process(videoheight)]$INFO[Player.Process(videoscantype)]$INFO[Player.Process(videodar),$COMMA , AR]$INFO[Player.Process(videofps),$COMMA , fps]</label>
+					<label>$INFO[Player.Process(videowidth),[COLOR accent_hi]$LOCALIZE[31062][/COLOR] ,x]$INFO[Player.Process(videoheight)]$INFO[Player.Process(videoscantype)]$INFO[Player.Process(videodar),$COMMA , $LOCALIZE[31063]]$INFO[Player.Process(videofps),$COMMA , $LOCALIZE[31064]]</label>
 				</control>
 			</control>
 
@@ -94,35 +94,35 @@
 					<height>48</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<label>[COLOR accent_hi]Audio:[/COLOR] $INFO[Player.Process(audiochannels),,$COMMA ]$INFO[Player.Process(audiodecoder)]$INFO[Player.Process(audiobitspersample),$COMMA , bits]$INFO[Player.Process(audiosamplerate),$COMMA , Hz]</label>
+					<label>[COLOR accent_hi]$LOCALIZE[31065][/COLOR] $INFO[Player.Process(audiochannels),,$COMMA ]$INFO[Player.Process(audiodecoder)]$INFO[Player.Process(audiobitspersample),$COMMA , $LOCALIZE[31066]]$INFO[Player.Process(audiosamplerate),$COMMA , $LOCALIZE[31067]]</label>
 				</control>
 				<control type="label">
 					<width>740</width>
 					<height>48</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<label>$INFO[VideoPlayer.AudioCodec,[COLOR accent_hi]Audio codec:[/COLOR] ]$INFO[VideoPlayer.AudioChannels,$COMMA , ch]</label>
+					<label>$INFO[VideoPlayer.AudioCodec,[COLOR accent_hi]$LOCALIZE[31068][/COLOR] ]$INFO[VideoPlayer.AudioChannels,$COMMA , $LOCALIZE[31069]]</label>
 				</control>
 				<control type="label">
 					<width>740</width>
 					<height>48</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<label>$INFO[System.ScreenResolution,[COLOR accent_hi]Screen:[/COLOR] ]</label>
+					<label>$INFO[System.ScreenResolution,[COLOR accent_hi]$LOCALIZE[31070][/COLOR] ]</label>
 				</control>
 				<control type="label">
 					<width>740</width>
 					<height>48</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<label>$INFO[System.FPS,[COLOR accent_hi]GUI:[/COLOR] , fps]</label>
+					<label>$INFO[System.FPS,[COLOR accent_hi]$LOCALIZE[31071][/COLOR] , $LOCALIZE[31064]]</label>
 				</control>
 				<control type="label">
 					<width>740</width>
 					<height>48</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<label>$INFO[System.CpuUsage,[COLOR accent_hi]CPU:[/COLOR] ]</label>
+					<label>$INFO[System.CpuUsage,[COLOR accent_hi]$LOCALIZE[31072][/COLOR] ]</label>
 					<visible>System.SupportsCPUUsage</visible>
 				</control>
 				<control type="label">
@@ -130,7 +130,7 @@
 					<height>48</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<label>$INFO[System.Memory(used.percent),[COLOR accent_hi]Memory:[/COLOR] ]</label>
+					<label>$INFO[System.Memory(used.percent),[COLOR accent_hi]$LOCALIZE[31073][/COLOR] ]</label>
 					<visible>!System.SupportsCPUUsage</visible>
 				</control>
 			</control>

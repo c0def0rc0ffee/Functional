@@ -36,7 +36,7 @@
 				<height>40</height>
 				<font>font_med</font>
 				<textcolor>$VAR[AccentColor]</textcolor>
-				<label>MOVIES</label>
+				<label>31087</label>
 			</control>
 			<control type="image">
 				<left>0</left>
@@ -53,7 +53,7 @@
 				<height>34</height>
 				<font>font_reg</font>
 				<textcolor>text_dim</textcolor>
-				<label>Total</label>
+				<label>31088</label>
 			</control>
 			<control type="label">
 				<left>180</left>
@@ -72,7 +72,7 @@
 				<height>34</height>
 				<font>font_reg</font>
 				<textcolor>text_dim</textcolor>
-				<label>Unwatched</label>
+				<label>31089</label>
 			</control>
 			<control type="label">
 				<left>180</left>
@@ -91,7 +91,7 @@
 				<height>34</height>
 				<font>font_reg</font>
 				<textcolor>text_dim</textcolor>
-				<label>Watched</label>
+				<label>31080</label>
 			</control>
 			<control type="label">
 				<left>180</left>
@@ -114,7 +114,7 @@
 				<height>40</height>
 				<font>font_med</font>
 				<textcolor>$VAR[AccentColor]</textcolor>
-				<label>TV SHOWS</label>
+				<label>31090</label>
 			</control>
 			<control type="image">
 				<left>0</left>
@@ -131,7 +131,7 @@
 				<height>34</height>
 				<font>font_reg</font>
 				<textcolor>text_dim</textcolor>
-				<label>Shows</label>
+				<label>31091</label>
 			</control>
 			<control type="label">
 				<left>180</left>
@@ -150,7 +150,7 @@
 				<height>34</height>
 				<font>font_reg</font>
 				<textcolor>text_dim</textcolor>
-				<label>Episodes</label>
+				<label>31092</label>
 			</control>
 			<control type="label">
 				<left>180</left>
@@ -169,7 +169,7 @@
 				<height>34</height>
 				<font>font_reg</font>
 				<textcolor>text_dim</textcolor>
-				<label>Unwatched</label>
+				<label>31089</label>
 			</control>
 			<control type="label">
 				<left>180</left>
@@ -281,7 +281,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
 				<texturenofocus>-</texturenofocus>
-				<label>Movies</label>
+				<label>31009</label>
 				<onclick>ActivateWindow(Videos,MovieTitles,return)</onclick>
 			</control>
 
@@ -298,7 +298,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
 				<texturenofocus>-</texturenofocus>
-				<label>TV Shows</label>
+				<label>31093</label>
 				<onclick>ActivateWindow(Videos,TvShowTitles,return)</onclick>
 			</control>
 
@@ -315,7 +315,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
 				<texturenofocus>-</texturenofocus>
-				<label>Music</label>
+				<label>31011</label>
 				<onclick>ActivateWindow(Music,root,return)</onclick>
 			</control>
 
@@ -332,7 +332,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
 				<texturenofocus>-</texturenofocus>
-				<label>Pictures</label>
+				<label>31094</label>
 				<onclick>ActivateWindow(Pictures)</onclick>
 			</control>
 
@@ -349,7 +349,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
 				<texturenofocus>-</texturenofocus>
-				<label>Weather</label>
+				<label>31095</label>
 				<onclick>ActivateWindow(Weather)</onclick>
 			</control>
 
@@ -368,7 +368,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
 				<texturenofocus>-</texturenofocus>
-				<label>Lists</label>
+				<label>31024</label>
 				<onclick>ActivateWindow(1151)</onclick>
 			</control>
 
@@ -402,7 +402,7 @@
 				<textoffsetx>20</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="accent_hi">white.png</texturenofocus>
-				<label>Back to: $INFO[VideoPlayer.Title]$INFO[MusicPlayer.Title]</label>
+				<label>$LOCALIZE[31096] $INFO[VideoPlayer.Title]$INFO[MusicPlayer.Title]</label>
 				<onclick condition="Player.HasVideo">ActivateWindow(fullscreenvideo)</onclick>
 				<onclick condition="Player.HasAudio + !Player.HasVideo">ActivateWindow(visualisation)</onclick>
 				<animation effect="fade" time="200">VisibleChange</animation>
@@ -485,7 +485,7 @@
 			<height>40</height>
 			<font>font_small</font>
 			<textcolor>text_dim</textcolor>
-			<label>Functional v$INFO[System.AddonVersion(skin.functional)]</label>
+			<label>$LOCALIZE[31097]$INFO[System.AddonVersion(skin.functional)]</label>
 			<visible>!Skin.HasSetting(hide_version)</visible>
 		</control>
 

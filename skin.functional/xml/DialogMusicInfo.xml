@@ -84,7 +84,7 @@
 			<height>34</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
-			<label>★ $INFO[ListItem.Rating]$INFO[ListItem.UserRating,    ·  Your rating: ,]</label>
+			<label>★ $INFO[ListItem.Rating]$INFO[ListItem.UserRating,    $LOCALIZE[31055] ,]</label>
 			<visible>!String.IsEmpty(ListItem.Rating) | !String.IsEmpty(ListItem.UserRating)</visible>
 		</control>
 

@@ -46,7 +46,7 @@
 			<font>font_med</font>
 			<align>center</align>
 			<textcolor>$VAR[AccentColor]</textcolor>
-			<label>Loading…</label>
+			<label>31039</label>
 		</control>
 
 	</controls>

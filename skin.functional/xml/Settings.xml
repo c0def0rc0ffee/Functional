@@ -11,7 +11,7 @@
 
 		<include content="WindowBackground"/>
 		<include content="HeaderBar">
-			<param name="title" value="Settings"/>
+			<param name="title" value="$LOCALIZE[31218]"/>
 		</include>
 
 		<control type="panel" id="9000">
@@ -66,19 +66,19 @@
 			</focusedlayout>
 			<content>
 				<item>
-					<label>Player</label>
+					<label>31226</label>
 					<onclick>ActivateWindow(PlayerSettings)</onclick>
 				</item>
 				<item>
-					<label>Media</label>
+					<label>31227</label>
 					<onclick>ActivateWindow(MediaSettings)</onclick>
 				</item>
 				<item>
-					<label>PVR &amp; Live TV</label>
+					<label>31228</label>
 					<onclick>ActivateWindow(PVRSettings)</onclick>
 				</item>
 				<item>
-					<label>Services</label>
+					<label>31229</label>
 					<onclick>ActivateWindow(ServiceSettings)</onclick>
 				</item>
 				<item>
@@ -87,35 +87,35 @@
 					<onclick>ActivateWindow(GameSettings)</onclick>
 				</item>
 				<item>
-					<label>Interface</label>
+					<label>31230</label>
 					<onclick>ActivateWindow(InterfaceSettings)</onclick>
 				</item>
 				<item>
-					<label>Profiles</label>
+					<label>31231</label>
 					<onclick>ActivateWindow(Profiles)</onclick>
 				</item>
 				<item>
-					<label>System</label>
+					<label>31232</label>
 					<onclick>ActivateWindow(SystemSettings)</onclick>
 				</item>
 				<item>
-					<label>System Info</label>
+					<label>31233</label>
 					<onclick>ActivateWindow(SystemInfo)</onclick>
 				</item>
 				<item>
-					<label>Add-ons</label>
+					<label>31005</label>
 					<onclick>ActivateWindow(AddonBrowser)</onclick>
 				</item>
 				<item>
-					<label>File Manager</label>
+					<label>31086</label>
 					<onclick>ActivateWindow(FileManager)</onclick>
 				</item>
 				<item>
-					<label>Event Log</label>
+					<label>31085</label>
 					<onclick>ActivateWindow(EventLog)</onclick>
 				</item>
 				<item>
-					<label>Skin Settings</label>
+					<label>31234</label>
 					<onclick>ActivateWindow(SkinSettings)</onclick>
 				</item>
 			</content>

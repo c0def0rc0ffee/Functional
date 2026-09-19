@@ -12,7 +12,7 @@
 	<controls>
 
 		<include content="MediaBrowseContent">
-			<param name="title" value="Add-ons"/>
+			<param name="title" value="$LOCALIZE[31005]"/>
 			<!-- Shift the list right of the 340-px sidebar (40..380 + 20 gap). -->
 			<param name="list_left" value="400"/>
 			<param name="list_width" value="760"/>
@@ -55,7 +55,7 @@
 				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">white.png</textureradioonnofocus>
 				<textureradioofffocus colordiffuse="grey">white.png</textureradioofffocus>
 				<textureradiooffnofocus colordiffuse="grey_dark">white.png</textureradiooffnofocus>
-				<label>Hide foreign</label>
+				<label>31001</label>
 			</control>
 
 			<control type="radiobutton" id="8">
@@ -74,7 +74,7 @@
 				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">white.png</textureradioonnofocus>
 				<textureradioofffocus colordiffuse="grey">white.png</textureradioofffocus>
 				<textureradiooffnofocus colordiffuse="grey_dark">white.png</textureradiooffnofocus>
-				<label>Hide incompatible</label>
+				<label>31002</label>
 			</control>
 
 			<control type="button" id="9">
@@ -89,7 +89,7 @@
 				<textoffsetx>20</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Check for updates</label>
+				<label>31003</label>
 			</control>
 
 			<control type="button" id="5">
@@ -104,7 +104,7 @@
 				<textoffsetx>20</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>Add-on settings</label>
+				<label>31004</label>
 			</control>
 
 		</control>

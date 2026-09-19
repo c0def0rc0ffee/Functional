@@ -87,7 +87,7 @@
 				<font>font_med</font>
 				<textcolor>accent_hi</textcolor>
 				<aligny>center</aligny>
-				<label>Actions</label>
+				<label>31047</label>
 			</control>
 			<control type="label">
 				<left>30</left>
@@ -108,7 +108,7 @@
 			<include content="ListsContextButton">
 				<param name="id" value="950" />
 				<param name="top" value="110" />
-				<param name="label" value="Add to list $INFO[Skin.String(lists_last)]" />
+				<param name="label" value="$LOCALIZE[31048] $INFO[Skin.String(lists_last)]" />
 				<param name="command" value="add_last" />
 				<param name="visible" value="!String.IsEmpty(Skin.String(lists_last))" />
 				<param name="onup" value="950" />
@@ -117,7 +117,7 @@
 			<include content="ListsContextButton">
 				<param name="id" value="951" />
 				<param name="top" value="110" />
-				<param name="label" value="Add To List" />
+				<param name="label" value="$LOCALIZE[31049]" />
 				<param name="command" value="add_pick" />
 				<param name="onup" value="950" />
 				<param name="ondown" value="996" />

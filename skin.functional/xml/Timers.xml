@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Skin timer definitions. Deliberately empty.
+  </summary>
+  <remarks>
+  The skin defines no timers: everything that would need one is driven by
+  service.py instead. The file still has to exist, because Kodi looks for
+  it on every skin load and logs a warning when it is missing, and the
+  repository rules treat skin-attributable log warnings as a defect.
+
+  If a timer is ever needed, add a <timer> element here; see Estuary's
+  Timers.xml for the start / reset / stop / onstop condition shape.
+  </remarks>
+-->
+<timers>
+</timers>

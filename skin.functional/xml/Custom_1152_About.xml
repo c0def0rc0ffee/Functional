@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  About screen (custom window 1152): what this skin is, which version is
+  running and what it is running on.
+  </summary>
+  <remarks>
+  Deliberately not on the Skin Settings category list. It is reached by
+  pressing Up from the top of that list, which lands on the otherwise
+  invisible logo hotspot (control 7900 in SkinSettings.xml), then clicking
+  it five times. Five taps sets Skin.String(about_taps) up to 4 and the
+  fifth activates this window; the counter is cleared here on load and
+  again whenever Skin Settings opens, so the sequence always starts fresh.
+
+  Everything here is drawn from white.png tinted with the user's accent
+  colour, so the page inherits the theme without shipping any artwork of
+  its own. The two diagonal beams are conditional loop animations that
+  start and finish off screen, which is what hides the seam when the loop
+  restarts: a slide loop jumps back to its start position, so the travel
+  has to begin and end outside the visible area.
+
+  All values are live infolabels rather than skin properties, so the page
+  needs nothing from service.py and works with the service stopped.
+  </remarks>
+-->
+<window id="1152" type="window">
+	<defaultcontrol always="true">9000</defaultcontrol>
+	<!-- Clear the tap counter so leaving and coming back needs the full
+	     five clicks again. -->
+	<onload>Skin.Reset(about_taps)</onload>
+	<animation effect="fade" time="200">WindowOpen</animation>
+	<animation effect="fade" time="200">WindowClose</animation>
+	<controls>
+
+		<!-- ========== BACKDROP ========== -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="bg">white.png</texture>
+		</control>
+
+		<!-- Soft accent band sweeping down the page. Oversized and tilted,
+		     so its ends are off screen at both ends of the travel. -->
+		<control type="image">
+			<left>-300</left>
+			<top>0</top>
+			<width>2520</width>
+			<height>220</height>
+			<texture colordiffuse="$VAR[AccentColorGlow]">white.png</texture>
+			<animation effect="rotate" end="-12" center="960,540" time="0" condition="true">Conditional</animation>
+			<animation effect="slide" start="0,-600" end="0,1780" time="34000" loop="true" condition="true">Conditional</animation>
+		</control>
+
+		<!-- Hairline riding just ahead of the band. -->
+		<control type="image">
+			<left>-300</left>
+			<top>0</top>
+			<width>2520</width>
+			<height>2</height>
+			<texture colordiffuse="$VAR[AccentColorHair]">white.png</texture>
+			<animation effect="rotate" end="-12" center="960,540" time="0" condition="true">Conditional</animation>
+			<animation effect="slide" start="0,-620" end="0,1760" time="34000" loop="true" condition="true">Conditional</animation>
+		</control>
+
+		<!-- ========== LEFT: IDENTITY ========== -->
+		<control type="group">
+			<left>120</left>
+			<top>0</top>
+			<animation effect="slide" start="-40,0" end="0,0" time="400" tween="cubic" easing="out">WindowOpen</animation>
+			<animation effect="fade" start="0" end="100" time="400">WindowOpen</animation>
+
+			<control type="image">
+				<left>0</left>
+				<top>140</top>
+				<width>150</width>
+				<height>150</height>
+				<aspectratio>keep</aspectratio>
+				<texture>logo.png</texture>
+				<animation effect="zoom" start="80" end="100" center="75,215" time="500" tween="back" easing="out">WindowOpen</animation>
+			</control>
+
+			<control type="label">
+				<left>0</left>
+				<top>320</top>
+				<width>620</width>
+				<height>90</height>
+				<font>font_huge</font>
+				<textcolor>white</textcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<label>FUNCTIONAL</label>
+			</control>
+
+			<control type="label">
+				<left>4</left>
+				<top>404</top>
+				<width>620</width>
+				<height>34</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<label>A  S K I N  F O R  K O D I</label>
+			</control>
+
+			<!-- Accent rule, drawn from nothing outwards. Zoom on the x
+			     axis only, centred on the bar's own left edge, so it grows
+			     rightwards instead of out from its middle. -->
+			<control type="image">
+				<left>0</left>
+				<top>460</top>
+				<width>360</width>
+				<height>4</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				<animation effect="zoom" start="0,100" end="100,100" center="120,462" time="600" delay="250" tween="cubic" easing="out">WindowOpen</animation>
+			</control>
+
+			<!-- Version chip -->
+			<control type="group">
+				<left>0</left>
+				<top>500</top>
+				<animation effect="fade" start="0" end="100" time="300" delay="500">WindowOpen</animation>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>220</width>
+					<height>50</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>220</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<label>v$INFO[System.AddonVersion(skin.functional)]</label>
+				</control>
+			</control>
+
+			<control type="textbox">
+				<left>0</left>
+				<top>580</top>
+				<width>600</width>
+				<height>260</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>$LOCALIZE[31025][CR][CR]$LOCALIZE[31026]</label>
+			</control>
+		</control>
+
+		<!-- ========== RIGHT: LIVE READOUT ========== -->
+		<control type="group">
+			<left>840</left>
+			<top>0</top>
+
+			<control type="label">
+				<left>0</left>
+				<top>150</top>
+				<width>860</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<label>T H I S   I N S T A L L</label>
+				<animation effect="fade" start="0" end="100" time="300" delay="200">WindowOpen</animation>
+			</control>
+
+			<control type="group">
+				<left>0</left>
+				<top>210</top>
+				<include content="AboutRow">
+					<param name="top" value="0"/>
+					<param name="delay" value="240"/>
+					<param name="key" value="$LOCALIZE[31029]"/>
+					<param name="value" value="skin.functional"/>
+				</include>
+				<include content="AboutRow">
+					<param name="top" value="58"/>
+					<param name="delay" value="300"/>
+					<param name="key" value="$LOCALIZE[31030]"/>
+					<param name="value" value="c0def0rc0ffee"/>
+				</include>
+				<include content="AboutRow">
+					<param name="top" value="116"/>
+					<param name="delay" value="360"/>
+					<param name="key" value="$LOCALIZE[31031]"/>
+					<param name="value" value="GPL-2.0-or-later"/>
+				</include>
+				<include content="AboutRow">
+					<param name="top" value="174"/>
+					<param name="delay" value="420"/>
+					<param name="key" value="KODI"/>
+					<param name="value" value="$INFO[System.BuildVersion]"/>
+				</include>
+				<include content="AboutRow">
+					<param name="top" value="232"/>
+					<param name="delay" value="480"/>
+					<param name="key" value="$LOCALIZE[31033]"/>
+					<param name="value" value="$INFO[System.FriendlyName]"/>
+				</include>
+				<include content="AboutRow">
+					<param name="top" value="290"/>
+					<param name="delay" value="540"/>
+					<param name="key" value="$LOCALIZE[31034]"/>
+					<param name="value" value="$INFO[System.ScreenResolution]"/>
+				</include>
+				<include content="AboutRow">
+					<param name="top" value="348"/>
+					<param name="delay" value="600"/>
+					<param name="key" value="$LOCALIZE[31035]"/>
+					<param name="value" value="$INFO[System.FreeMemory]"/>
+				</include>
+				<include content="AboutRow">
+					<param name="top" value="406"/>
+					<param name="delay" value="660"/>
+					<param name="key" value="$LOCALIZE[31036]"/>
+					<param name="value" value="$INFO[System.Uptime]"/>
+				</include>
+				<include content="AboutRow">
+					<param name="top" value="464"/>
+					<param name="delay" value="720"/>
+					<param name="key" value="$LOCALIZE[31037]"/>
+					<param name="value" value="$INFO[System.ProfileName]"/>
+				</include>
+				<include content="AboutRow">
+					<param name="top" value="522"/>
+					<param name="delay" value="780"/>
+					<param name="key" value="$LOCALIZE[31038]"/>
+					<param name="value" value="$INFO[System.Language]"/>
+				</include>
+			</control>
+		</control>
+
+		<!-- ========== FOOTER ========== -->
+		<control type="label">
+			<left>120</left>
+			<top>975</top>
+			<width>1360</width>
+			<height>50</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<scroll>true</scroll>
+			<label>31027</label>
+			<animation effect="fade" start="0" end="100" time="400" delay="900">WindowOpen</animation>
+		</control>
+
+		<control type="button" id="9000">
+			<right>120</right>
+			<top>960</top>
+			<width>200</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<label>31028</label>
+			<onclick>Back</onclick>
+			<onup>9000</onup>
+			<ondown>9000</ondown>
+			<onleft>9000</onleft>
+			<onright>9000</onright>
+			<!-- Slide, not fade. This is the default control, so Kodi
+			     focuses it the instant the window opens; a fade starting
+			     at 0 makes it untargetable for the length of the delay
+			     and Kodi logs "has been asked to focus, but it can't". -->
+			<animation effect="slide" start="0,40" end="0,0" time="400" delay="0" tween="cubic" easing="out">WindowOpen</animation>
+		</control>
+
+	</controls>
+</window>

@@ -47,7 +47,7 @@
 				<height>30</height>
 				<font>font_small</font>
 				<textcolor>$VAR[AccentColor]</textcolor>
-				<label>FILTER DEBUG: Content / FolderPath / Items / IsFiltered</label>
+				<label>31191</label>
 			</control>
 			<control type="label">
 				<left>40</left>
@@ -56,7 +56,7 @@
 				<height>30</height>
 				<font>font_small</font>
 				<textcolor>white</textcolor>
-				<label>Content: $INFO[Container.Content]    Items: $INFO[Container(51).NumItems]    Filtered: $VAR[DebugYesNoFiltered]    Updating: $VAR[DebugYesNoUpdating]</label>
+				<label>$LOCALIZE[31192] $INFO[Container.Content]    $LOCALIZE[31193] $INFO[Container(51).NumItems]    $LOCALIZE[31194] $VAR[DebugYesNoFiltered]    $LOCALIZE[31195] $VAR[DebugYesNoUpdating]</label>
 			</control>
 			<control type="label">
 				<left>40</left>
@@ -65,7 +65,7 @@
 				<height>30</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
-				<label>Path: $INFO[Container.FolderPath]</label>
+				<label>$LOCALIZE[31196] $INFO[Container.FolderPath]</label>
 			</control>
 		</control>
 
@@ -103,7 +103,7 @@
 			<orientation>vertical</orientation>
 			<scrolltime tween="cubic" easing="out">200</scrolltime>
 			<pagecontrol>60</pagecontrol>
-			<viewtype label="Gallery">icon</viewtype>
+			<viewtype label="31200">icon</viewtype>
 
 			<!-- ===== GALLERY TILE SIZE VARIANTS =====
 			     Two ratio modes:
@@ -285,7 +285,7 @@
 			<onfocus>Skin.Reset(genre_menu_open)</onfocus>
 			<scrolltime tween="cubic" easing="out">200</scrolltime>
 			<pagecontrol>60</pagecontrol>
-			<viewtype label="List">list</viewtype>
+			<viewtype label="31014">list</viewtype>
 
 			<itemlayout height="60" width="1860">
 				<control type="image">
@@ -492,7 +492,7 @@
 				<font>font_med</font>
 				<textcolor>accent_hi</textcolor>
 				<align>right</align>
-				<label>$INFO[Container.CurrentItem] / $INFO[Container.NumItems] items</label>
+				<label>$INFO[Container.CurrentItem] / $INFO[Container.NumItems] $LOCALIZE[31016]</label>
 			</control>
 			<!-- Bottom-right: descriptive metadata, right-aligned so it grows leftward -->
 			<control type="label">
@@ -556,7 +556,7 @@
 				<font>font_med</font>
 				<textcolor>accent_hi</textcolor>
 				<align>right</align>
-				<label>$INFO[Container.CurrentItem] / $INFO[Container.NumItems] items</label>
+				<label>$INFO[Container.CurrentItem] / $INFO[Container.NumItems] $LOCALIZE[31016]</label>
 			</control>
 			<!-- Bottom-right: descriptive metadata, right-aligned so it grows leftward -->
 			<control type="label">
@@ -606,7 +606,7 @@
 				<height>50</height>
 				<font>font_med</font>
 				<textcolor>accent_hi</textcolor>
-				<label>Library Options</label>
+				<label>31197</label>
 			</control>
 			<control type="label">
 				<left>30</left>
@@ -615,7 +615,7 @@
 				<height>30</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
-				<label>← / right to close</label>
+				<label>31198</label>
 			</control>
 
 			<!-- Buttons stacked vertically -->
@@ -641,7 +641,7 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>View: $INFO[Container.Viewmode]</label>
+					<label>$LOCALIZE[31199] $INFO[Container.Viewmode]</label>
 					<onclick>Skin.ToggleSetting(view_menu_open)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
@@ -663,7 +663,7 @@
 					<textoffsetx>70</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Gallery</label>
+					<label>31200</label>
 					<onclick>Container.SetViewMode(51)</onclick>
 					<onclick>Skin.Reset(view_menu_open)</onclick>
 					<onclick>SetFocus(8001)</onclick>
@@ -687,7 +687,7 @@
 					<textoffsetx>70</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>List</label>
+					<label>31014</label>
 					<onclick>Container.SetViewMode(50)</onclick>
 					<onclick>Skin.Reset(view_menu_open)</onclick>
 					<onclick>SetFocus(8001)</onclick>
@@ -714,7 +714,7 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Sort: $INFO[Container.SortMethod]</label>
+					<label>$LOCALIZE[31201] $INFO[Container.SortMethod]</label>
 					<onclick>Skin.ToggleSetting(sort_menu_open)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
@@ -736,7 +736,7 @@
 					<textoffsetx>70</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Title</label>
+					<label>31140</label>
 					<!-- Movie/TV title nodes sort by "sorttitle" = SortBySortTitle
 					     (29). SortByTitle (7) and SortByLabel (1) aren't
 					     registered for these nodes, so they're silently ignored.
@@ -768,7 +768,7 @@
 					<textoffsetx>70</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Year</label>
+					<label>31141</label>
 					<onclick>Container.SetSortMethod(16)</onclick>
 					<onclick>Skin.SetString(sort_want,desc)</onclick>
 					<onclick>Skin.SetString(sort_active,year)</onclick>
@@ -794,7 +794,7 @@
 					<textoffsetx>70</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Rating</label>
+					<label>31142</label>
 					<onclick>Container.SetSortMethod(17)</onclick>
 					<onclick>Skin.SetString(sort_want,desc)</onclick>
 					<onclick>Skin.SetString(sort_active,rating)</onclick>
@@ -820,7 +820,7 @@
 					<textoffsetx>70</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Date Added</label>
+					<label>31143</label>
 					<onclick>Container.SetSortMethod(40)</onclick>
 					<!-- Newest first by default. Reading the direction in the same
 					     click as SetSortMethod is racy (stale state), so we ask the
@@ -850,7 +850,7 @@
 					<textoffsetx>70</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Last Played</label>
+					<label>31144</label>
 					<onclick>Container.SetSortMethod(41)</onclick>
 					<!-- Most recent first by default (see Date Added note above). -->
 					<onclick>Skin.SetString(sort_want,desc)</onclick>
@@ -875,7 +875,7 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Direction: $VAR[SortDirectionLabel]</label>
+					<label>$LOCALIZE[31202] $VAR[SortDirectionLabel]</label>
 					<onclick>Skin.Reset(sort_want)</onclick>
 					<onclick>Container.SetSortDirection</onclick>
 					<onclick>SetFocus(8003)</onclick>
@@ -903,7 +903,7 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Filter: $VAR[FilterStateLabel]</label>
+					<label>$LOCALIZE[31203] $VAR[FilterStateLabel]</label>
 					<onclick>Skin.ToggleSetting(filter_menu_open)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<!-- Back out of the genre picker lands here (its onback),
@@ -962,7 +962,7 @@
 					<textoffsetx>70</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Genre: $VAR[GenreFilterLabel]</label>
+					<label>$LOCALIZE[31204] $VAR[GenreFilterLabel]</label>
 					<onclick>Skin.SetBool(genre_menu_open)</onclick>
 					<!-- Focus the list that is actually up for this content. -->
 					<onclick condition="Container.Content(tvshows)">SetFocus(9501)</onclick>
@@ -987,7 +987,7 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>View Queue ($INFO[Playlist.Length(video)])</label>
+					<label>$LOCALIZE[31205]$INFO[Playlist.Length(video)])</label>
 					<onclick>ActivateWindow(VideoPlaylist)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
@@ -1019,7 +1019,7 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Layout Adjust</label>
+					<label>31206</label>
 					<onclick>Skin.ToggleSetting(layout_adjust)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
@@ -1042,7 +1042,7 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Size: $VAR[GallerySizeLabel]</label>
+					<label>$LOCALIZE[31207] $VAR[GallerySizeLabel]</label>
 					<onclick condition="String.IsEmpty(Skin.String(gallery_size))">Skin.SetString(gallery_size,small)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(gallery_size),small)">Skin.SetString(gallery_size,large)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(gallery_size),large)">Skin.SetString(gallery_size,xlarge)</onclick>
@@ -1068,7 +1068,7 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Info Bar: $VAR[InfoBarPositionLabel]</label>
+					<label>$LOCALIZE[31208] $VAR[InfoBarPositionLabel]</label>
 					<onclick>Skin.ToggleSetting(infobar_top)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
@@ -1092,7 +1092,7 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Poster Shape: $VAR[PosterShapeLabel]</label>
+					<label>$LOCALIZE[31209] $VAR[PosterShapeLabel]</label>
 					<onclick>Skin.ToggleSetting(compact_posters)</onclick>
 					<onclick>Container.Refresh</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
@@ -1114,7 +1114,7 @@
 					<aligny>center</aligny>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Top  −  10 px</label>
+					<label>31210</label>
 					<onclick>Skin.SetString(layout_command,top_dec)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
@@ -1135,7 +1135,7 @@
 					<aligny>center</aligny>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Top: $INFO[Skin.String(infobar_clearance_top)] px · tap to type</label>
+					<label>$LOCALIZE[31211] $INFO[Skin.String(infobar_clearance_top)] $LOCALIZE[31212]</label>
 					<onclick>Skin.SetNumeric(infobar_clearance_top)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
@@ -1156,7 +1156,7 @@
 					<aligny>center</aligny>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Top  +  10 px</label>
+					<label>31213</label>
 					<onclick>Skin.SetString(layout_command,top_inc)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
@@ -1176,7 +1176,7 @@
 					<aligny>center</aligny>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Small Cols: $VAR[SmallColsLabel]</label>
+					<label>$LOCALIZE[31214] $VAR[SmallColsLabel]</label>
 					<onclick condition="String.IsEqual(Skin.String(small_cols),11)">Skin.Reset(small_cols)</onclick>
 					<onclick condition="!String.IsEqual(Skin.String(small_cols),11)">Skin.SetString(small_cols,11)</onclick>
 					<onclick>Container.Refresh</onclick>
@@ -1199,7 +1199,7 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>Close</label>
+					<label>31028</label>
 					<onclick condition="Control.IsVisible(50)">SetFocus(50)</onclick>
 					<onclick condition="!Control.IsVisible(50)">SetFocus(51)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
@@ -1253,7 +1253,7 @@
 				<font>font_med</font>
 				<textcolor>text</textcolor>
 				<aligny>center</aligny>
-				<label>Select Genre</label>
+				<label>31215</label>
 			</control>
 			<control type="image">
 				<left>580</left>
@@ -1307,7 +1307,7 @@
 				<aligny>center</aligny>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>All Genres</label>
+				<label>31216</label>
 				<onclick condition="Container.Content(tvshows)">Container.Update(videodb://tvshows/titles/,replace)</onclick>
 				<onclick condition="!Container.Content(tvshows)">Container.Update(videodb://movies/titles/,replace)</onclick>
 				<onclick condition="Control.IsVisible(50)">SetFocus(50)</onclick>

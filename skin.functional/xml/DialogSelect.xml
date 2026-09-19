@@ -72,7 +72,7 @@
 			<align>center</align>
 			<aligny>center</aligny>
 			<textcolor>text_dim</textcolor>
-			<label>No items available</label>
+			<label>31076</label>
 			<visible>Integer.IsEqual(Container(3).NumItems,0) + Integer.IsEqual(Container(6).NumItems,0)</visible>
 		</control>
 
