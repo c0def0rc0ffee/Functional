@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Lists screen (custom window 1151): named media lists that port into the
+  queue.
+  </summary>
+  <remarks>
+  Left column (list 50) is one row per list, right column (list 51) the
+  items of whichever list is selected on the left. Both are static lists
+  bound to Home window properties published by service.py:update_lists
+  (Lists.N.* and LI.N.*), the same pattern as the Favourites screen: the
+  window is skin-owned so Kodi never binds its own content into it.
+
+  Selection follows focus. Each left row carries an idx property and the
+  service reads Container(50).ListItem.Property(idx) every tick while this
+  window is up, so moving the cursor fills the right column; clicking a row
+  jumps into its items. Clicking an item asks the service for its action
+  menu (play now, move up, move down, remove). The footer buttons act on the
+  selected list through Skin.String(list_command): new, rename, delete,
+  port, port_shuffle.
+
+  Porting copies the list into Kodi's video and/or music queue and starts it
+  playing. Shuffled means the order is randomised before queueing, so the
+  queue itself holds the jumbled order and Kodi's own shuffle stays off.
+  </remarks>
+-->
+<window id="1151" type="window">
+	<defaultcontrol always="true">50</defaultcontrol>
+	<!-- With no lists yet list 50 has nothing focusable, so land on the
+	     footer where New List lives. -->
+	<onload condition="String.IsEmpty(Window(home).Property(Lists.Count)) | String.IsEqual(Window(home).Property(Lists.Count),0)">SetFocus(9000)</onload>
+	<controls>
+
+		<include content="WindowBackground"/>
+		<include content="HeaderBar">
+			<param name="title" value="     Lists"/>
+		</include>
+
+		<!-- Logo -->
+		<control type="image">
+			<left>20</left>
+			<top>5</top>
+			<width>80</width>
+			<height>80</height>
+			<aspectratio>keep</aspectratio>
+			<texture>logo.png</texture>
+		</control>
+
+		<!-- ===== Left column: the lists ===== -->
+		<control type="label">
+			<left>60</left>
+			<top>110</top>
+			<width>560</width>
+			<height>40</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<label>YOUR LISTS  $INFO[Window(home).Property(Lists.Count),(,)]</label>
+		</control>
+
+		<control type="list" id="50">
+			<left>60</left>
+			<top>150</top>
+			<width>560</width>
+			<height>770</height>
+			<onleft>50</onleft>
+			<onright condition="Control.IsVisible(51)">51</onright>
+			<onright>9000</onright>
+			<ondown>9000</ondown>
+			<onup>9000</onup>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+			<viewtype label="List">list</viewtype>
+
+			<itemlayout height="70" width="560">
+				<control type="label">
+					<left>20</left>
+					<top>4</top>
+					<width>520</width>
+					<height>36</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<left>20</left>
+					<top>38</top>
+					<width>520</width>
+					<height>28</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label2]</label>
+				</control>
+			</itemlayout>
+
+			<focusedlayout height="70" width="560">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>560</width>
+					<height>70</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+					<visible>Control.HasFocus(50)</visible>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>560</width>
+					<height>70</height>
+					<texture colordiffuse="40FFFFFF">white.png</texture>
+					<visible>!Control.HasFocus(50)</visible>
+				</control>
+				<control type="label">
+					<left>20</left>
+					<top>4</top>
+					<width>520</width>
+					<height>36</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<left>20</left>
+					<top>38</top>
+					<width>520</width>
+					<height>28</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label2]</label>
+				</control>
+			</focusedlayout>
+
+			<content>
+				<include content="ListsRows"/>
+			</content>
+		</control>
+
+		<!-- ===== Right column: items of the selected list ===== -->
+		<control type="group">
+			<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Idx),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
+
+			<control type="label">
+				<left>660</left>
+				<top>110</top>
+				<width>1200</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>$INFO[Window(home).Property(Lists.Sel.Name)]  ·  $INFO[Window(home).Property(Lists.Sel.Count)] items$INFO[Window(home).Property(Lists.Sel.Duration),  ·  ]</label>
+			</control>
+
+			<control type="list" id="51">
+				<left>660</left>
+				<top>150</top>
+				<width>1180</width>
+				<height>770</height>
+				<onleft>50</onleft>
+				<onright>60</onright>
+				<ondown>9000</ondown>
+				<onup>9000</onup>
+				<pagecontrol>60</pagecontrol>
+				<scrolltime tween="cubic" easing="out">200</scrolltime>
+				<viewtype label="List">list</viewtype>
+
+				<itemlayout height="70" width="1180">
+					<control type="label">
+						<left>10</left>
+						<top>0</top>
+						<width>50</width>
+						<height>70</height>
+						<font>font_small</font>
+						<textcolor>text_dim</textcolor>
+						<selectedcolor>accent_hi</selectedcolor>
+						<align>right</align>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.CurrentItem]</label>
+					</control>
+					<control type="image">
+						<left>80</left>
+						<top>5</top>
+						<width>107</width>
+						<height>60</height>
+						<aspectratio>scale</aspectratio>
+						<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Icon]</texture>
+					</control>
+					<control type="label">
+						<left>210</left>
+						<top>4</top>
+						<width>940</width>
+						<height>36</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<selectedcolor>accent_hi</selectedcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<control type="label">
+						<left>210</left>
+						<top>38</top>
+						<width>940</width>
+						<height>28</height>
+						<font>font_small</font>
+						<textcolor>text_dim</textcolor>
+						<selectedcolor>accent_hi</selectedcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label2]</label>
+					</control>
+				</itemlayout>
+
+				<focusedlayout height="70" width="1180">
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>1180</width>
+						<height>70</height>
+						<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+						<visible>Control.HasFocus(51)</visible>
+					</control>
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>1180</width>
+						<height>70</height>
+						<texture colordiffuse="40FFFFFF">white.png</texture>
+						<visible>!Control.HasFocus(51)</visible>
+					</control>
+					<control type="label">
+						<left>10</left>
+						<top>0</top>
+						<width>50</width>
+						<height>70</height>
+						<font>font_small</font>
+						<textcolor>white</textcolor>
+						<selectedcolor>white</selectedcolor>
+						<align>right</align>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.CurrentItem]</label>
+					</control>
+					<control type="image">
+						<left>80</left>
+						<top>5</top>
+						<width>107</width>
+						<height>60</height>
+						<aspectratio>scale</aspectratio>
+						<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Icon]</texture>
+					</control>
+					<control type="label">
+						<left>210</left>
+						<top>4</top>
+						<width>940</width>
+						<height>36</height>
+						<font>font_reg</font>
+						<textcolor>white</textcolor>
+						<selectedcolor>white</selectedcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<control type="label">
+						<left>210</left>
+						<top>38</top>
+						<width>940</width>
+						<height>28</height>
+						<font>font_small</font>
+						<textcolor>white</textcolor>
+						<selectedcolor>white</selectedcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label2]</label>
+					</control>
+				</focusedlayout>
+
+				<content>
+					<include content="ListsItemRows"/>
+				</content>
+			</control>
+
+			<control type="scrollbar" id="60">
+				<right>14</right>
+				<top>150</top>
+				<width>10</width>
+				<height>770</height>
+				<orientation>vertical</orientation>
+				<showonepage>false</showonepage>
+				<onleft>51</onleft>
+				<onright>51</onright>
+				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			</control>
+
+			<!-- Empty list -->
+			<control type="label">
+				<visible>String.IsEqual(Window(home).Property(Lists.Sel.Count),0)</visible>
+				<left>660</left>
+				<top>460</top>
+				<width>1180</width>
+				<height>60</height>
+				<font>font_med</font>
+				<align>center</align>
+				<textcolor>text_dim</textcolor>
+				<label>This list is empty. Hold Select on any movie, episode or song and choose Add To List.</label>
+			</control>
+		</control>
+
+		<!-- No lists at all -->
+		<control type="label">
+			<visible>String.IsEmpty(Window(home).Property(Lists.Count)) | String.IsEqual(Window(home).Property(Lists.Count),0)</visible>
+			<left>60</left>
+			<top>460</top>
+			<width>1800</width>
+			<height>60</height>
+			<font>font_med</font>
+			<align>center</align>
+			<textcolor>text_dim</textcolor>
+			<label>No lists yet. Press New List, or hold Select on any movie, episode or song and choose Add To List.</label>
+		</control>
+
+		<!-- ===== Footer / actions ===== -->
+		<control type="image">
+			<left>0</left>
+			<bottom>0</bottom>
+			<width>1920</width>
+			<height>120</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+		<control type="image">
+			<left>0</left>
+			<bottom>120</bottom>
+			<width>1920</width>
+			<height>2</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<control type="grouplist" id="9000">
+			<left>40</left>
+			<bottom>30</bottom>
+			<width>1840</width>
+			<height>60</height>
+			<orientation>horizontal</orientation>
+			<itemgap>14</itemgap>
+			<onup condition="Control.IsVisible(51)">51</onup>
+			<onup>50</onup>
+			<ondown condition="Control.IsVisible(51)">51</ondown>
+			<ondown>50</ondown>
+
+			<control type="button" id="9001">
+				<width>240</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>New List</label>
+				<onclick>Skin.SetString(list_command,new)</onclick>
+			</control>
+
+			<control type="button" id="9002">
+				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Idx),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
+				<width>240</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Rename</label>
+				<onclick>Skin.SetString(list_command,rename)</onclick>
+			</control>
+
+			<control type="button" id="9003">
+				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Idx),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
+				<width>240</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Remove List</label>
+				<onclick>Skin.SetString(list_command,delete)</onclick>
+			</control>
+
+			<control type="button" id="9004">
+				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Count),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
+				<width>300</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Port to Queue</label>
+				<onclick>Skin.SetString(list_command,port)</onclick>
+			</control>
+
+			<control type="button" id="9005">
+				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Count),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
+				<width>300</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Port Shuffled</label>
+				<onclick>Skin.SetString(list_command,port_shuffle)</onclick>
+			</control>
+
+		</control>
+
+	</controls>
+</window>

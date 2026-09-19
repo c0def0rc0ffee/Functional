@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Favourites window (favouritesbrowser, id 10060).
+  </summary>
+  <remarks>
+  This window is a CGUIMediaWindow: Kodi force-binds its own favourites://
+  content into the skin's view container, which clobbers any static list and
+  broke the categorised/filterable favourites UI when it lived here. The real
+  UI now lives in the custom window 1150 (Custom_1150_Favourites.xml); this
+  window just forwards there so every entry point (Home button, remote keys,
+  keymaps) lands on the same screen. ReplaceWindow (not ActivateWindow) so
+  Back skips this shim and returns to wherever the user came from.
+  </remarks>
+-->
+<window>
+	<onload>ReplaceWindow(1150)</onload>
+	<controls>
+		<include content="WindowBackground"/>
+	</controls>
+</window>

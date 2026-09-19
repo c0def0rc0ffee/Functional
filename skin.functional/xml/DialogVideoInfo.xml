@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Video info dialog for movies, shows and episodes. Publishes the item's
+  fanart to Home as infobackground while open; grouplist 9000 holds the
+  action buttons and the cast strip is fed by service.py's InfoCast
+  properties.
+  </summary>
+-->
+<window>
+	<defaultcontrol always="true">8</defaultcontrol>
+	<onload>SetProperty(infobackground,$ESCINFO[ListItem.Art(fanart)],home)</onload>
+	<onunload>ClearProperty(infobackground,home)</onunload>
+	<controls>
+
+		<!-- Fanart background dimmed -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<aspectratio>scale</aspectratio>
+			<texture background="true">$INFO[ListItem.Art(fanart)]</texture>
+		</control>
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="C0101418">white.png</texture>
+		</control>
+
+		<!-- Top accent stripe -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>4</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Poster left -->
+		<control type="image">
+			<left>80</left>
+			<top>80</top>
+			<width>500</width>
+			<height>750</height>
+			<aspectratio>scale</aspectratio>
+			<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+		</control>
+
+		<!-- Title and meta right. Stops 300px short of the edge so a long,
+		     scrolling title never runs under the "Watched" tag (x 1640-1840). -->
+		<control type="label">
+			<left>620</left>
+			<top>80</top>
+			<right>300</right>
+			<height>60</height>
+			<font>font_huge</font>
+			<textcolor>text</textcolor>
+			<label>$INFO[ListItem.Title]</label>
+			<scroll>true</scroll>
+		</control>
+
+		<control type="label">
+			<left>620</left>
+			<top>150</top>
+			<right>80</right>
+			<height>30</height>
+			<font>font_reg</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>$INFO[ListItem.TVShowTitle]$INFO[ListItem.Season,  ·  S,]$INFO[ListItem.Episode,E,]</label>
+			<visible>!String.IsEmpty(ListItem.TVShowTitle)</visible>
+		</control>
+
+		<control type="label">
+			<left>620</left>
+			<top>190</top>
+			<right>80</right>
+			<height>34</height>
+			<font>font_reg</font>
+			<textcolor>text_dim</textcolor>
+			<label>$VAR[InfoDateLabel]$INFO[ListItem.Genre,  ·  ,]$INFO[ListItem.Duration,  ·  ,]$INFO[ListItem.MPAA,  ·  ,]</label>
+		</control>
+
+		<control type="label">
+			<left>620</left>
+			<top>234</top>
+			<right>80</right>
+			<height>34</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<label>★ $INFO[ListItem.Rating]$INFO[ListItem.Votes,   (,)]$INFO[ListItem.UserRating,    ·  Your rating: ,]</label>
+			<visible>!String.IsEmpty(ListItem.Rating)</visible>
+		</control>
+
+		<!-- Tagline -->
+		<control type="label">
+			<left>620</left>
+			<top>284</top>
+			<right>80</right>
+			<height>30</height>
+			<font>font_reg</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>$INFO[ListItem.Tagline]</label>
+			<scroll>true</scroll>
+			<visible>!String.IsEmpty(ListItem.Tagline)</visible>
+		</control>
+
+		<!-- Plot -->
+		<control type="textbox">
+			<left>620</left>
+			<top>330</top>
+			<right>80</right>
+			<height>290</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<label>$INFO[ListItem.Plot]</label>
+			<autoscroll delay="5000" repeat="7500" time="5000">true</autoscroll>
+		</control>
+
+		<!-- Director / Writer -->
+		<control type="label">
+			<left>620</left>
+			<top>636</top>
+			<right>80</right>
+			<height>30</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<label>$INFO[ListItem.Director,Directed by ,]</label>
+			<visible>!String.IsEmpty(ListItem.Director)</visible>
+		</control>
+		<control type="label">
+			<left>620</left>
+			<top>668</top>
+			<right>80</right>
+			<height>30</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<label>$INFO[ListItem.Writer,Written by ,]</label>
+			<visible>!String.IsEmpty(ListItem.Writer)</visible>
+		</control>
+
+		<!-- Cast strip, fed by service.py's InfoCast.* properties.
+		     See the CastPortrait include for why this isn't Kodi's control 50. -->
+		<include content="InfoCastStrip" />
+
+		<!-- Watched indicator -->
+		<control type="label">
+			<right>80</right>
+			<top>80</top>
+			<width>200</width>
+			<height>40</height>
+			<font>font_reg</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<align>right</align>
+			<label>Watched</label>
+			<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
+		</control>
+
+		<!-- Action buttons row.
+
+		     IDs are fixed by CGUIDialogVideoInfo and are NOT free to choose:
+		     5 cast/seasons toggle, 6 refresh, 7 user rating, 8 play, 9 resume,
+		     10 choose art, 11 trailer, 13 director. Kodi labels only the cast
+		     toggle itself (it flips between "Cast" and "Seasons"); every other
+		     button is blank unless the skin supplies a <label>, which is why
+		     this row rendered as a line of empty boxes.
+
+		     Optional buttons are gated on Control.IsEnabled(): Kodi disables the
+		     ones that don't apply to the focused item, and the grouplist closes
+		     the gap left by a hidden one. -->
+		<control type="grouplist" id="9000">
+			<left>80</left>
+			<bottom>40</bottom>
+			<width>1760</width>
+			<height>80</height>
+			<orientation>horizontal</orientation>
+			<itemgap>10</itemgap>
+			<align>center</align>
+			<onleft>9000</onleft>
+			<onright>9000</onright>
+			<onup condition="!String.IsEmpty(Window(home).Property(InfoCast.1.Name))">8001</onup>
+			<onup>9000</onup>
+			<ondown>9000</ondown>
+
+			<!-- 8 = Play -->
+			<control type="button" id="8">
+				<width>200</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[208]</label>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			</control>
+			<!-- 9 = Resume -->
+			<control type="button" id="9">
+				<width>200</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[13381]</label>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>Control.IsEnabled(9)</visible>
+			</control>
+			<!-- 11 = Trailer -->
+			<control type="button" id="11">
+				<width>200</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[20410]</label>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>!String.IsEmpty(ListItem.Trailer)</visible>
+			</control>
+			<!-- No button 5 (Kodi's Cast/Plot toggle): this skin renders cast as
+			     its own service-fed strip and always shows the plot, so the
+			     toggle has nothing to switch. If the button exists Kodi flips
+			     its caption against hidden ids 4/50 and it looks broken. -->
+			<!-- 13 = More from this director -->
+			<control type="button" id="13">
+				<width>200</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[20339]</label>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>!String.IsEmpty(ListItem.Director)</visible>
+			</control>
+			<!-- 7 = User rating -->
+			<control type="button" id="7">
+				<width>200</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[38023]</label>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			</control>
+			<!-- 10 = Choose art -->
+			<control type="button" id="10">
+				<width>200</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[13511]</label>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>Control.IsEnabled(10)</visible>
+			</control>
+			<!-- 6 = Refresh / get info -->
+			<control type="button" id="6">
+				<width>200</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<label>$LOCALIZE[184]</label>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<visible>Control.IsEnabled(6)</visible>
+			</control>
+
+		</control>
+
+	</controls>
+</window>

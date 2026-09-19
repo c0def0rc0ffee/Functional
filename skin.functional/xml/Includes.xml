@@ -1,0 +1,2129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Shared includes, variables and expressions for every window: background
+  handling, header bar, media browse content, gallery tiles, forecast rows,
+  keyboard and numeric keys, the Lists and Favourites rows and the full
+  screen info card. Kodi auto loads this file; Defaults.xml it does not.
+  </summary>
+-->
+<includes>
+	<!-- Live video is showing through the GUI: the option is on, something is
+	     playing, and we're not in the picture slideshow (which owns the
+	     screen). Everything in SkinBackground that would paint over the video
+	     hides on this. -->
+	<expression name="bg_video_showing">Skin.HasSetting(bg_video_behind) + Player.HasVideo + !Slideshow.IsActive</expression>
+
+	<!-- WindowBackground draws the configurable background on non-home windows.
+	     True either because the user asked for it everywhere, or transiently
+	     because video is playing through, so video-behind works even with
+	     "Show On All Screens" off. Home.xml's own copy stands down on the same
+	     expression, so the block renders exactly once either way. -->
+	<expression name="bg_windows_active">Skin.HasSetting(bg_all_windows) | [Skin.HasSetting(bg_video_behind) + Player.HasVideo + !Slideshow.IsActive]</expression>
+
+	<!-- Deliberately NOT pulling in Defaults.xml, see the note at the top of
+	     that file: every control in this skin styles itself explicitly. -->
+
+	<!-- Variables -->
+	<variable name="DebugYesNoFiltered">
+		<value condition="Container.Filtered">yes</value>
+		<value>no</value>
+	</variable>
+	<variable name="DebugYesNoUpdating">
+		<value condition="Container.IsUpdating">yes</value>
+		<value>no</value>
+	</variable>
+
+	<variable name="RepeatStateLabel">
+		<value condition="Playlist.IsRepeatOne">One</value>
+		<value condition="Playlist.IsRepeat">All</value>
+		<value>Off</value>
+	</variable>
+
+	<variable name="SortDirectionLabel">
+		<value condition="Container.SortDirection(ascending)">↑ Asc</value>
+		<value condition="Container.SortDirection(descending)">↓ Desc</value>
+		<value condition="String.IsEqual(Container.SortDirection,ascending)">↑ Asc</value>
+		<value condition="String.IsEqual(Container.SortDirection,descending)">↓ Desc</value>
+		<value condition="String.IsEqual(Container.SortDirection,asc)">↑ Asc</value>
+		<value condition="String.IsEqual(Container.SortDirection,desc)">↓ Desc</value>
+		<value>$INFO[Container.SortDirection,(,)]</value>
+	</variable>
+
+	<!-- ===== Background slideshow caption position =====
+	     Kodi never resolves $VAR/$INFO inside <left>/<top>/<align> (they are
+	     parsed as raw numbers at window load), so the position choices are
+	     baked as one label per position via $PARAM, which IS substituted at
+	     include-expansion time. Home.xml instantiates BgCaption five times,
+	     one per position; "off"/unset shows none. -->
+	<include name="BgCaption">
+		<control type="label">
+			<left>60</left>
+			<top>$PARAM[top]</top>
+			<right>60</right>
+			<height>40</height>
+			<font>font_med</font>
+			<align>$PARAM[align]</align>
+			<aligny>center</aligny>
+			<textcolor>white</textcolor>
+			<shadowcolor>FF000000</shadowcolor>
+			<scroll>true</scroll>
+			<label>$INFO[Window(home).Property(home_bg_label)]</label>
+			<visible>!String.IsEmpty(Window(home).Property(home_bg_label)) + String.IsEqual(Skin.String(bg_label_position),$PARAM[pos])</visible>
+			<animation effect="fade" time="400">VisibleChange</animation>
+		</control>
+	</include>
+	<variable name="BgLabelPositionLabel">
+		<value condition="String.IsEqual(Skin.String(bg_label_position),topleft)">Top Left</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">Top Right</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomleft)">Bottom Left</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomright)">Bottom Right</value>
+		<value condition="String.IsEqual(Skin.String(bg_label_position),bottomcenter)">Bottom Centre</value>
+		<value>Off</value>
+	</variable>
+
+	<!-- Unified background mode, one mutually-exclusive selector so the
+	     static image and slideshow can never override each other.
+	     Empty = Off. -->
+	<variable name="BgModeLabel">
+		<value condition="String.IsEqual(Skin.String(bg_mode),image)">Static Image</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),recent)">Slideshow: Recently Watched</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),random)">Slideshow: Random Library</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),folder)">Slideshow: Folder</value>
+		<value condition="String.IsEqual(Skin.String(bg_mode),genre)">Slideshow: By Genre</value>
+		<value>Off</value>
+	</variable>
+
+	<!-- Time-scheduled backgrounds. bg_schedule_slots = 2..4 turns the
+	     schedule on; the service (update_bg_schedule) copies the clock-active
+	     slot's stored settings into the live bg_* strings. While skin
+	     settings is open, the Background controls edit the slot in
+	     Skin.String(bg_edit_slot) instead. -->
+	<variable name="BgScheduleLabel">
+		<value condition="String.IsEqual(Skin.String(bg_schedule_slots),2)">2 Time Slots</value>
+		<value condition="String.IsEqual(Skin.String(bg_schedule_slots),3)">3 Time Slots</value>
+		<value condition="String.IsEqual(Skin.String(bg_schedule_slots),4)">4 Time Slots</value>
+		<value>Off</value>
+	</variable>
+
+	<variable name="BgEditSlotLabel">
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),2)">Slot 2 (from $INFO[Skin.String(bg_slot2_start)])</value>
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),3)">Slot 3 (from $INFO[Skin.String(bg_slot3_start)])</value>
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),4)">Slot 4 (from $INFO[Skin.String(bg_slot4_start)])</value>
+		<value>Slot 1 (from $INFO[Skin.String(bg_slot1_start)])</value>
+	</variable>
+
+	<variable name="BgEditSlotStart">
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),2)">$INFO[Skin.String(bg_slot2_start)]</value>
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),3)">$INFO[Skin.String(bg_slot3_start)]</value>
+		<value condition="String.IsEqual(Skin.String(bg_edit_slot),4)">$INFO[Skin.String(bg_slot4_start)]</value>
+		<value>$INFO[Skin.String(bg_slot1_start)]</value>
+	</variable>
+
+	<!-- Genre slideshow (bg_mode = genre). The service picks random fanart
+	     from the library filtered to Skin.String(bg_genre), restricted to the
+	     media type in Skin.String(bg_genre_type). Genre is chosen from a
+	     dialog the service builds off the real library, so there's no
+	     hardcoded genre list here to drift out of date. -->
+	<variable name="BgGenreLabel">
+		<value condition="!String.IsEmpty(Skin.String(bg_genre))">$INFO[Skin.String(bg_genre)]</value>
+		<value>[COLOR grey]not set, tap to choose[/COLOR]</value>
+	</variable>
+
+	<variable name="BgGenreTypeLabel">
+		<value condition="String.IsEqual(Skin.String(bg_genre_type),tvshows)">TV Shows</value>
+		<value condition="String.IsEqual(Skin.String(bg_genre_type),both)">Movies + TV Shows</value>
+		<value>Movies</value>
+	</variable>
+
+	<!-- Slideshow interval in milliseconds, for the folder multiimage control
+	     (which counts in ms). Mirrors the seconds presets below. -->
+	<!-- Background slideshow rotate interval (seconds); cycle through presets -->
+	<variable name="BgSlideshowIntervalLabel">
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),10)">10s</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),30)">30s</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),60)">1 min</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),120)">2 min</value>
+		<value condition="String.IsEqual(Skin.String(bg_slideshow_interval),300)">5 min</value>
+		<value>20s</value>
+	</variable>
+
+	<!-- Buffer readout for the OSD and pause/seek bar. In per-movie
+	     full-file mode (memorysize 0) Player.CacheLevel is meaningless:
+	     there is no fixed buffer to be a percentage of, so lead with the
+	     mode instead. buffer_detail/buffer_fullfile come from
+	     service.py:update_buffer_stats(). -->
+	<!-- buffer_pct_label ("72%", or empty when unknown) is how far into the
+	     WHOLE FILE the cache reaches, from service.py. Under full buffering
+	     it is the only number that means anything: Player.CacheLevel is the
+	     fill percentage of the memory buffer, and full buffering sets the
+	     memory buffer to zero, so the readout used to show no figure at all.
+	     The $INFO[x,prefix,suffix] form renders nothing when the property is
+	     empty, so an unknown percentage leaves no stray "%" behind. -->
+	<variable name="BufferReadout">
+		<value condition="!String.IsEmpty(Window(home).Property(buffer_fullfile))">Full buffer$INFO[Window(home).Property(buffer_pct_label), ,]$INFO[Window(home).Property(buffer_detail), · ,]</value>
+		<value>Buffer $INFO[Player.CacheLevel]%$INFO[Window(home).Property(buffer_detail), · ,]</value>
+	</variable>
+
+	<!-- Label for the OSD's single full-buffer toggle (control 214). It used
+	     to be a button plus a separate dead label, so once full buffering was
+	     on there was no way back to the normal buffer without ending
+	     playback. One button, two states: the second click restarts the
+	     stream again on the previous buffer size. -->
+	<variable name="OsdFullBufferLabel">
+		<value condition="!String.IsEmpty(Window(home).Property(buffer_fullfile))">FULL BUFFER ON</value>
+		<value>BUFFER ALL</value>
+	</variable>
+
+	<!-- Pretty resolution label for the currently-playing item (used by VideoOSD) -->
+	<variable name="OsdResolutionLabel">
+		<!-- Kodi reports UHD as the strings "4K" / "8K", never 2160/4320. -->
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,8K)">8K</value>
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,4K)">4K</value>
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,1080)">1080p</value>
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,720)">720p</value>
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,576)">576p</value>
+		<value condition="String.IsEqual(VideoPlayer.VideoResolution,480)">480p</value>
+		<value condition="!String.IsEmpty(VideoPlayer.VideoResolution)">$INFO[VideoPlayer.VideoResolution]p</value>
+		<value></value>
+	</variable>
+
+	<!-- Pretty resolution label (ListItem.VideoResolution returns 480/540/576/720/1080/4K/8K) -->
+	<variable name="ItemResolutionLabel">
+		<value condition="String.IsEqual(ListItem.VideoResolution,8K)">8K</value>
+		<value condition="String.IsEqual(ListItem.VideoResolution,4K)">4K</value>
+		<value condition="String.IsEqual(ListItem.VideoResolution,1080)">1080p</value>
+		<value condition="String.IsEqual(ListItem.VideoResolution,720)">720p</value>
+		<value condition="String.IsEqual(ListItem.VideoResolution,480)">480p</value>
+		<value condition="!String.IsEmpty(ListItem.VideoResolution)">$INFO[ListItem.VideoResolution]p</value>
+		<value></value>
+	</variable>
+
+	<!-- Toggleable info-bar fields. Most use hide_X (visible by default).
+	     show_filesize and show_lastplayed are off by default. -->
+	<variable name="ItemGenreLabel">
+		<value condition="!Skin.HasSetting(hide_genre) + !String.IsEmpty(ListItem.Genre)">$INFO[ListItem.Genre]</value>
+		<value></value>
+	</variable>
+	<!-- The " · " prefixes assume an earlier segment rendered; each variable
+	     drops its prefix when it would open the line (TV shows have no
+	     duration, so the old versions rendered a stray leading dot). -->
+	<variable name="ItemEndsAtLabel">
+		<value condition="!Skin.HasSetting(hide_endsat) + !String.IsEmpty(Window(home).Property(focused_finish_time)) + String.IsEmpty(ListItem.Duration)">Ends at $INFO[Window(home).Property(focused_finish_time)]</value>
+		<value condition="!Skin.HasSetting(hide_endsat) + !String.IsEmpty(Window(home).Property(focused_finish_time))"> · Ends at $INFO[Window(home).Property(focused_finish_time)]</value>
+		<value></value>
+	</variable>
+	<variable name="ItemStarRatingLabel">
+		<value condition="!Skin.HasSetting(hide_rating) + !String.IsEmpty(ListItem.Rating) + String.IsEmpty(ListItem.Duration) + String.IsEmpty(Window(home).Property(focused_finish_time))">★ $INFO[ListItem.Rating]</value>
+		<value condition="!Skin.HasSetting(hide_rating) + !String.IsEmpty(ListItem.Rating)"> · ★ $INFO[ListItem.Rating]</value>
+		<value></value>
+	</variable>
+	<variable name="ItemMPAALabel">
+		<value condition="!Skin.HasSetting(hide_mpaa) + !String.IsEmpty(ListItem.MPAA)"> · $INFO[ListItem.MPAA]</value>
+		<value></value>
+	</variable>
+	<variable name="ItemResolutionLabelGated">
+		<value condition="!Skin.HasSetting(hide_resolution) + !String.IsEmpty(ListItem.VideoResolution)"> · $VAR[ItemResolutionLabel]</value>
+		<value></value>
+	</variable>
+
+	<!-- Override label for the small-gallery column count toggle.
+	     Default 12 columns (panel-width / 155 = 12). Some TVs with overscan
+	     prefer 11 (panel-width / 169 ≈ 11). -->
+	<variable name="SmallColsLabel">
+		<value condition="String.IsEqual(Skin.String(small_cols),11)">11</value>
+		<value>12</value>
+	</variable>
+
+	<!-- Context-menu placement (SkinSettings 7223, applied in DialogContextMenu). -->
+	<variable name="ContextMenuPositionLabel">
+		<value condition="String.IsEqual(Skin.String(context_menu_pos),left)">Left Edge</value>
+		<value>Centre</value>
+	</variable>
+
+	<!-- Info bar position label (left-menu mirror of SkinSettings 7200). -->
+	<variable name="InfoBarPositionLabel">
+		<value condition="Skin.HasSetting(infobar_top)">Top</value>
+		<value>Bottom</value>
+	</variable>
+
+	<!-- Poster shape: Tall (default) absorbs scale-crop on 2:3 art;
+	     Compact uses strict 2:3 for TVs whose overscan clips bottom. -->
+	<variable name="PosterShapeLabel">
+		<value condition="Skin.HasSetting(compact_posters)">Compact (2:3)</value>
+		<value>Tall</value>
+	</variable>
+
+	<!-- Dim level for the video-playing backdrop behind the video
+	     settings dialog. Stored as a 0-100 string; the variable maps
+	     to a 0xAA000000 alpha byte. 0 = no dim (video at full
+	     brightness), 100 = solid black. -->
+	<variable name="VideoDimColor">
+		<value condition="String.IsEqual(Skin.String(video_dim),0)">00000000</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),25)">40000000</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),50)">80000000</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),90)">E5000000</value>
+		<value>C0000000</value>
+	</variable>
+	<variable name="VideoDimLabel">
+		<value condition="String.IsEqual(Skin.String(video_dim),0)">Off</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),25)">25 %</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),50)">50 %</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),90)">90 %</value>
+		<value>75 % (default)</value>
+	</variable>
+
+	<!-- Idle (no-focus) colordiffuse for the home round buttons.
+	     Kodi renders colordiffuse=00000000 as opaque white (alpha-0
+	     quirk seen elsewhere), which incidentally gives the cleanest
+	     icon look, so that's the default. The "hide" setting swaps
+	     in FF181C22 (the home-panel bg colour) which blends the disc
+	     into the background, leaving the focused-only reveal effect. -->
+	<variable name="HomeRoundButtonIdleColor">
+		<value condition="Skin.HasSetting(hide_round_buttons)">FF181C22</value>
+		<value>00000000</value>
+	</variable>
+
+	<!-- Active filter label for the collapsed Filter button on MyVideoNav side menu -->
+	<!-- Filter button label mirrors the native watched-status toggle
+	     (control 10), whose label Kodi keeps in sync as
+	     "All Videos / Unwatched / Watched". -->
+	<variable name="FilterStateLabel">
+		<value>$INFO[Control.GetLabel(10)]</value>
+	</variable>
+
+	<!-- Genre sub-filter label for the same side menu.
+
+	     This reads a WINDOW PROPERTY, not a Skin.String, and that is the whole
+	     point. The string version recorded what the user had clicked in the
+	     genre picker, so it went stale on every route the skin is not told
+	     about: Back out of a genre node, or Movies to TV and back, is plain
+	     directory navigation, and the label carried on claiming a genre that
+	     was no longer applied (or claiming "All" over a list that was still
+	     filtered). service.py:update_video_nav_state now derives the genre
+	     from Container.FolderPath every tick, so this cannot drift from what
+	     is actually on screen. -->
+	<variable name="GenreFilterLabel">
+		<value condition="!String.IsEmpty(Window(home).Property(genre_active))">$INFO[Window(home).Property(genre_active)]</value>
+		<value>All</value>
+	</variable>
+
+	<!-- Default sort per content type, shown on the two cycle buttons in the
+	     Media Selection settings page. The stored value is the same key the
+	     side menu's Sort buttons write (title / year / rating / dateadded /
+	     lastplayed); empty means "leave Kodi's own remembered sort alone",
+	     which is the out-of-the-box behaviour. service.py applies the choice
+	     whenever the library container lands on a new node. -->
+	<variable name="DefaultSortMoviesLabel">
+		<value condition="String.IsEqual(Skin.String(default_sort_movies),title)">Title</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_movies),year)">Year</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_movies),rating)">Rating</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_movies),dateadded)">Date Added</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_movies),lastplayed)">Last Played</value>
+		<value>Leave as Kodi has it</value>
+	</variable>
+	<variable name="DefaultSortTvLabel">
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),title)">Title</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),year)">Year</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),rating)">Rating</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),dateadded)">Date Added</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows),lastplayed)">Last Played</value>
+		<value>Leave as Kodi has it</value>
+	</variable>
+
+	<!-- Direction for the above. Unset is not "ascending", it is "whichever
+	     way round that sort is actually useful": A-Z for Title, newest first
+	     for Year, Date Added, Last Played and Rating. -->
+	<variable name="DefaultSortMoviesDirLabel">
+		<value condition="String.IsEqual(Skin.String(default_sort_movies_dir),asc)">Ascending</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_movies_dir),desc)">Descending</value>
+		<value>Automatic</value>
+	</variable>
+	<!-- Hint under the backup buttons in skin settings. settings_backup_when
+	     is written by service.py from the snapshot file's own timestamp, so an
+	     empty value means no snapshot has ever been taken (which is also what
+	     disables the Restore button). -->
+	<variable name="SettingsBackupLabel">
+		<value condition="!String.IsEmpty(Skin.String(settings_backup_when))">Last backup: $INFO[Skin.String(settings_backup_when)]. Kept up to date automatically.</value>
+		<value>No backup yet. One is taken automatically the next time Kodi saves your skin settings.</value>
+	</variable>
+
+	<variable name="DefaultSortTvDirLabel">
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows_dir),asc)">Ascending</value>
+		<value condition="String.IsEqual(Skin.String(default_sort_tvshows_dir),desc)">Descending</value>
+		<value>Automatic</value>
+	</variable>
+
+	<!-- Value shown in the fast-scroll badge while a library list is flicked.
+	     It follows the ACTIVE SORT rather than always showing
+	     ListItem.SortLetter: under a rating or date sort the sort letter is
+	     the first character of that field ("1", "2"), which tells you
+	     nothing. Each branch re-checks its own field so an item missing it
+	     falls through to the sort letter rather than flashing an empty pill.
+	     sort_active is written by the Sort buttons in MyVideoNav's side menu. -->
+	<variable name="ScrollSortBadgeLabel">
+		<value condition="String.IsEqual(Skin.String(sort_active),year) + !String.IsEmpty(ListItem.Year)">$INFO[ListItem.Year]</value>
+		<value condition="String.IsEqual(Skin.String(sort_active),rating) + !String.IsEmpty(ListItem.Rating)">★ $INFO[ListItem.Rating]</value>
+		<value condition="String.IsEqual(Skin.String(sort_active),dateadded) + !String.IsEmpty(ListItem.DateAdded)">$INFO[ListItem.DateAdded]</value>
+		<value condition="String.IsEqual(Skin.String(sort_active),lastplayed) + !String.IsEmpty(ListItem.LastPlayed)">$INFO[ListItem.LastPlayed]</value>
+		<value>$INFO[ListItem.SortLetter]</value>
+	</variable>
+
+	<!-- Pre-baked conditional slide animations for the gallery / list panels.
+	     One animation per discrete clearance value (0, 10, ..., 250 px).
+	     Whichever value the Skin.String currently equals, that animation
+	     activates and translates the panel by that many pixels. Bypasses
+	     a build-specific bug where $INFO substitution doesn't evaluate live
+	     in panel coordinate attributes. Used via <include content="ClearanceAnimations"/>.
+	     Bottom-infobar case: NO slide. The old slide-up-by-clearance variant
+	     permanently hid the top 140px of every library view (worst in short
+	     lists like seasons); instead the wrapping groups carry a static
+	     140px bottom inset matching the default clearance. -->
+	<include name="ClearanceAnimations">
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),0)" end="0,0" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),10)" end="0,10" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),20)" end="0,20" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),30)" end="0,30" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),40)" end="0,40" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),50)" end="0,50" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),60)" end="0,60" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),70)" end="0,70" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),80)" end="0,80" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),90)" end="0,90" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),100)" end="0,100" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),110)" end="0,110" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),120)" end="0,120" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),130)" end="0,130" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),140)" end="0,140" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),150)" end="0,150" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),160)" end="0,160" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),170)" end="0,170" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),180)" end="0,180" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),190)" end="0,190" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),200)" end="0,200" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),210)" end="0,210" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),220)" end="0,220" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),230)" end="0,230" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),240)" end="0,240" reversible="true">Conditional</animation>
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),250)" end="0,250" reversible="true">Conditional</animation>
+	</include>
+
+
+	<!-- Title suffix: TV episode shows first air date, movies show year -->
+	<variable name="ItemTitleSuffix">
+		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.Premiered)"> · Aired $INFO[ListItem.Premiered]</value>
+		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.FirstAired)"> · Aired $INFO[ListItem.FirstAired]</value>
+		<value condition="!String.IsEmpty(ListItem.Year)"> ($INFO[ListItem.Year])</value>
+		<value></value>
+	</variable>
+
+	<!-- Date label for info dialog: air date for episodes, year for everything else -->
+	<variable name="InfoDateLabel">
+		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.Premiered)">Aired $INFO[ListItem.Premiered]</value>
+		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.FirstAired)">Aired $INFO[ListItem.FirstAired]</value>
+		<value>$INFO[ListItem.Year]</value>
+	</variable>
+
+	<!-- Notification placement (notification dialog 460x140; screen 1920x1080)
+	     Setting: notification_position = tl | tc | tr | bl | bc | br (default br)
+	     Centre x: (1920-460)/2 = 730 -->
+	<!-- Background dim overlay (alpha-on-black).
+
+	     Two ladders in one variable. Off the home screen (only reachable
+	     when bg_all_windows is on) the background sits under list rows and
+	     settings labels rather than a mostly-empty screen, so it reads from
+	     bg_windows_dim and defaults heavier, 75% against Home's 60%. Those
+	     conditions come first because they are the more specific case. -->
+	<variable name="BgOverlayColor">
+		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),0)">00000000</value>
+		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),25)">40000000</value>
+		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),50)">80000000</value>
+		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),60)">A0000000</value>
+		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),90)">E6000000</value>
+		<value condition="Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)">C0000000</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),0)">00000000</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),25)">40000000</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),50)">80000000</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),75)">C0000000</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),90)">E6000000</value>
+		<value>A0000000</value>
+	</variable>
+
+	<!-- Same dim levels expressed as an image brightness multiplier, for the
+	     folder multiimage (dimmed via colordiffuse rather than a separate
+	     overlay, which doesn't reliably sit over a background multiimage).
+	     Same home / off-home split as BgOverlayColor above. -->
+	<variable name="BgImageDiffuse">
+		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),0)">FFFFFFFF</value>
+		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),25)">FFBFBFBF</value>
+		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),50)">FF808080</value>
+		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),60)">FF666666</value>
+		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),90)">FF1A1A1A</value>
+		<value condition="Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)">FF404040</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),0)">FFFFFFFF</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),25)">FFBFBFBF</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),50)">FF808080</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),75)">FF404040</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),90)">FF1A1A1A</value>
+		<value>FF666666</value>
+	</variable>
+
+	<variable name="BgDimLabel">
+		<value condition="String.IsEqual(Skin.String(bg_dim),0)">0% (none)</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),25)">25%</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),50)">50%</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),75)">75%</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),90)">90%</value>
+		<value>60% (default)</value>
+	</variable>
+
+	<variable name="BgWindowsDimLabel">
+		<value condition="String.IsEqual(Skin.String(bg_windows_dim),0)">0% (none)</value>
+		<value condition="String.IsEqual(Skin.String(bg_windows_dim),25)">25%</value>
+		<value condition="String.IsEqual(Skin.String(bg_windows_dim),50)">50%</value>
+		<value condition="String.IsEqual(Skin.String(bg_windows_dim),60)">60%</value>
+		<value condition="String.IsEqual(Skin.String(bg_windows_dim),90)">90%</value>
+		<value>75% (default)</value>
+	</variable>
+
+	<!-- Weather window location button: blank until a provider is set up -->
+	<variable name="WeatherLocationLabel">
+		<value condition="!String.IsEmpty(Weather.Location)">$INFO[Weather.Location]</value>
+		<value>Location</value>
+	</variable>
+
+	<!-- Video OSD vertical position -->
+	<variable name="OsdPositionLabel">
+		<value condition="String.IsEqual(Skin.String(osd_position),top)">Top</value>
+		<value>Bottom</value>
+	</variable>
+
+	<!-- Applied to VideoOSD's wrapper group (via include condition, i.e. at
+	     skin load) when osd_position=top: shifts the bottom-anchored 190px
+	     panel to the top of the screen. Explicit height keeps the group the
+	     full 1080 so the children's <bottom> anchors are unaffected. -->
+	<include name="OsdTopModeShift">
+		<top>-890</top>
+		<height>1080</height>
+	</include>
+
+	<!-- Default category the Favourites screen opens on -->
+	<variable name="FavDefaultCategoryLabel">
+		<value condition="String.IsEqual(Skin.String(fav_default_category),movies)">Movies</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),tvshows)">TV</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),music)">Music</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),apps)">Apps</value>
+		<value condition="String.IsEqual(Skin.String(fav_default_category),other)">Other</value>
+		<value>All</value>
+	</variable>
+
+<!-- Main menu vertical position on home -->
+	<variable name="MainMenuPositionLabel">
+		<value condition="String.IsEqual(Skin.String(menu_position),top)">Top</value>
+		<value condition="String.IsEqual(Skin.String(menu_position),bottom)">Bottom</value>
+		<value>Centre</value>
+	</variable>
+
+	<variable name="NotificationPositionLabel">
+		<value condition="String.IsEqual(Skin.String(notification_position),tl)">Top Left</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),tc)">Top Centre</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),tr)">Top Right</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),bl)">Bottom Left</value>
+		<value condition="String.IsEqual(Skin.String(notification_position),bc)">Bottom Centre</value>
+		<value>Bottom Right</value>
+	</variable>
+	<!-- ItemSizeLabel removed; see PROJECT_NOTES "Focused-item file size". -->
+	<variable name="ItemLastPlayedLabel">
+		<value condition="Skin.HasSetting(show_lastplayed) + !String.IsEmpty(ListItem.LastPlayed)"> · Played $INFO[ListItem.LastPlayed]</value>
+		<value></value>
+	</variable>
+
+	<!-- Configurable accent colour (Skin.String(accent_color)) -->
+	<variable name="AccentColor">
+		<value condition="String.IsEqual(Skin.String(accent_color),red)">FFE53935</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),green)">FF43A047</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),orange)">FFFB8C00</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),purple)">FF8E24AA</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),teal)">FF00897B</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),pink)">FFEC407A</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),amber)">FFFFB300</value>
+		<value>FF1E88E5</value>
+	</variable>
+	<variable name="QueueCountLabel">
+		<value condition="Integer.IsGreater(Playlist.Length(video),0)">Queue ($INFO[Playlist.Length(video)])</value>
+		<value condition="Integer.IsGreater(Playlist.Length(music),0)">Queue ($INFO[Playlist.Length(music)])</value>
+		<value>Queue</value>
+	</variable>
+
+	<variable name="AccentColorLabel">
+		<value condition="String.IsEqual(Skin.String(accent_color),red)">Red</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),green)">Green</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),orange)">Orange</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),purple)">Purple</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),teal)">Teal</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),pink)">Pink</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),amber)">Amber</value>
+		<value>Blue</value>
+	</variable>
+
+	<!-- Solid color textures via diffuse -->
+	<!-- ===== Gallery view tile content =====
+	     Used by MyVideoNav's panel; called once per size variant from inside
+	     conditional <itemlayout>/<focusedlayout> blocks. Pass poster_w/h
+	     matching the outer tile (which has a 4px margin all round). -->
+	<variable name="GallerySizeLabel">
+		<value condition="String.IsEqual(Skin.String(gallery_size),small)">Small</value>
+		<value condition="String.IsEqual(Skin.String(gallery_size),large)">Large</value>
+		<value condition="String.IsEqual(Skin.String(gallery_size),xlarge)">Extra Large</value>
+		<value>Medium</value>
+	</variable>
+
+	<include name="GalleryTileBody">
+		<param name="poster_w">200</param>
+		<param name="poster_h">300</param>
+		<definition>
+			<control type="image">
+				<left>4</left>
+				<top>4</top>
+				<width>$PARAM[poster_w]</width>
+				<height>$PARAM[poster_h]</height>
+				<aspectratio>scale</aspectratio>
+				<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+			</control>
+			<!-- Items without poster art (add-on / plugin menu entries) get a
+			     name label so the tile isn't a blank square. Library items with
+			     posters stay clean. Shows the icon above the name when present. -->
+			<control type="image">
+				<left>4</left>
+				<top>4</top>
+				<width>$PARAM[poster_w]</width>
+				<height>$PARAM[poster_h]</height>
+				<texture colordiffuse="bg_panel">white.png</texture>
+				<visible>String.IsEmpty(ListItem.Art(poster))</visible>
+			</control>
+			<control type="image">
+				<centerleft>50%</centerleft>
+				<top>18</top>
+				<width>$PARAM[poster_w]</width>
+				<height>72</height>
+				<aspectratio>keep</aspectratio>
+				<texture fallback="DefaultAddon.png">$INFO[ListItem.Icon]</texture>
+				<visible>String.IsEmpty(ListItem.Art(poster))</visible>
+			</control>
+			<control type="label">
+				<left>8</left>
+				<top>100</top>
+				<width>$PARAM[poster_w]</width>
+				<height>180</height>
+				<font>font_small</font>
+				<textcolor>text</textcolor>
+				<selectedcolor>accent_hi</selectedcolor>
+				<align>center</align>
+				<aligny>top</aligny>
+				<label>$INFO[ListItem.Label]</label>
+				<wrapmultiline>true</wrapmultiline>
+				<visible>String.IsEmpty(ListItem.Art(poster))</visible>
+			</control>
+			<!-- Watched corner-triangle badge -->
+			<control type="image">
+				<right>4</right>
+				<top>4</top>
+				<width>64</width>
+				<height>64</height>
+				<aspectratio>stretch</aspectratio>
+				<texture colordiffuse="$VAR[AccentColor]">corner_triangle.png</texture>
+				<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
+			</control>
+			<!-- Texture, not a "✓" label: NotoSans has no U+2713 glyph, so the
+			     text version rendered as a missing-glyph box. -->
+			<control type="image">
+				<right>8</right>
+				<top>6</top>
+				<width>24</width>
+				<height>24</height>
+				<aspectratio>keep</aspectratio>
+				<texture colordiffuse="white">tick.png</texture>
+				<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
+			</control>
+		</definition>
+	</include>
+
+	<include name="GalleryFocusedBody">
+		<param name="tile_w">208</param>
+		<param name="bg_h">308</param>
+		<param name="poster_w">200</param>
+		<param name="poster_h">300</param>
+		<definition>
+			<!-- Focused tile background (sits behind poster, clipped 4px shorter at bottom) -->
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>$PARAM[tile_w]</width>
+				<height>$PARAM[bg_h]</height>
+				<texture colordiffuse="accent_hi">white.png</texture>
+			</control>
+			<include content="GalleryTileBody">
+				<param name="poster_w" value="$PARAM[poster_w]"/>
+				<param name="poster_h" value="$PARAM[poster_h]"/>
+			</include>
+		</definition>
+	</include>
+
+	<!-- Window background: the opaque base fill every window sits on, plus
+	     the configurable background when bg_all_windows is on. Home.xml
+	     renders SkinBackground itself when the setting is off, so the block
+	     is drawn exactly once either way. -->
+	<include name="WindowBackground">
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="bg">white.png</texture>
+		</control>
+		<include content="SkinBackground">
+			<param name="visible" value="$EXP[bg_windows_active]"/>
+			<!-- Home's own SkinBackground stands down while this one is on, so
+			     the caption has to come from here when Home is the window. -->
+			<param name="captions" value="Window.IsActive(home)"/>
+		</include>
+	</include>
+
+	<!-- The configurable background (slideshow / static image / folder
+	     slideshow, plus caption and dim overlay). Lifted out of Home.xml so
+	     WindowBackground can render the same thing on every other window
+	     when bg_all_windows is on. Exactly one caller shows it at a time:
+	     WindowBackground when the setting is on, Home.xml when it is off.
+
+	     'visible'  : condition gating the whole block.
+	     'captions' : the slideshow title label. Home only by default; off
+	                  the home screen it would collide with HeaderBar. -->
+	<include name="SkinBackground">
+		<param name="visible" default="true"/>
+		<param name="captions" default="false"/>
+		<definition>
+			<control type="group">
+				<visible>$PARAM[visible]</visible>
+				<left>0</left>
+				<top>0</top>
+				<width>1920</width>
+				<height>1080</height>
+				<!-- Live video behind the GUI. Kodi keeps playing when you leave
+				     fullscreen; this is the surface it renders into, so the
+				     menus sit straight over the picture. Must come before the
+				     stills below, they are opaque and would cover it. -->
+				<control type="videowindow">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<visible>$EXP[bg_video_showing]</visible>
+				</control>
+
+				<!-- Slideshow background: rotates through recently watched movies' fanart.
+				     Service writes the current URL into Window(home).Property(home_bg_fanart)
+				     every ~20s. Hidden when bg_slideshow is off or the property is empty. -->
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<aspectratio>scale</aspectratio>
+					<fadetime>800</fadetime>
+					<texture background="true">$INFO[Window(home).Property(home_bg_fanart)]</texture>
+					<!-- The service only populates this property while a
+					     bg_slideshow_source is active, so the property check
+					     alone tells us whether the slideshow is running. -->
+					<visible>[!String.IsEmpty(Window(home).Property(home_bg_fanart))] + !$EXP[bg_video_showing]</visible>
+				</control>
+
+				<!-- User-selected static background image (Skin.String(home_background)).
+				     Hidden when slideshow is active so the rotating fanart shows through. -->
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<aspectratio>scale</aspectratio>
+					<texture background="true">$INFO[Skin.String(home_background)]</texture>
+					<!-- Static image shows only in 'image' mode. The service clears
+					     home_bg_fanart in non-slideshow modes, so there's never a
+					     clash with the slideshow. -->
+					<visible>[String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))] + !$EXP[bg_video_showing]</visible>
+					<animation effect="fade" time="400">VisibleChange</animation>
+				</control>
+
+				<!-- Folder slideshow (mode = folder). One instance per interval preset;
+				     only the matching one is visible. timeperimage needs a literal, so
+				     it can't be a single dynamic control. The service publishes the
+				     resolved folder as Skin.String(bg_slideshow_dir). -->
+				<include content="FolderSlideshow"><param name="ms" value="20000"/><param name="when" value="String.IsEmpty(Skin.String(bg_slideshow_interval))"/></include>
+				<include content="FolderSlideshow"><param name="ms" value="10000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),10)"/></include>
+				<include content="FolderSlideshow"><param name="ms" value="30000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),30)"/></include>
+				<include content="FolderSlideshow"><param name="ms" value="60000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),60)"/></include>
+				<include content="FolderSlideshow"><param name="ms" value="120000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),120)"/></include>
+				<include content="FolderSlideshow"><param name="ms" value="300000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),300)"/></include>
+
+				<!-- Slideshow caption (Title (Year)); one label per position choice,
+				     since coordinates can't take $VAR (see BgCaption in Includes) -->
+				<control type="group">
+					<visible>[$PARAM[captions]] + !$EXP[bg_video_showing]</visible>
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<include content="BgCaption"><param name="pos" value="topleft"/><param name="top" value="40"/><param name="align" value="left"/></include>
+					<include content="BgCaption"><param name="pos" value="topright"/><param name="top" value="40"/><param name="align" value="right"/></include>
+					<include content="BgCaption"><param name="pos" value="bottomleft"/><param name="top" value="980"/><param name="align" value="left"/></include>
+					<include content="BgCaption"><param name="pos" value="bottomright"/><param name="top" value="980"/><param name="align" value="right"/></include>
+					<include content="BgCaption"><param name="pos" value="bottomcenter"/><param name="top" value="980"/><param name="align" value="center"/></include>
+				</control>
+
+				<!-- Dim overlay over whichever background is showing -->
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<!-- Folder mode dims via colordiffuse on the multiimage itself, so
+					     it's excluded here to avoid double-dimming. -->
+					<texture colordiffuse="$VAR[BgOverlayColor]">white.png</texture>
+					<visible>[!String.IsEmpty(Window(home).Property(home_bg_fanart)) | [String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))]] + !$EXP[bg_video_showing]</visible>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- Header bar at top -->
+	<include name="HeaderBar">
+		<param name="title" default="" />
+		<definition>
+			<control type="group">
+				<left>0</left>
+				<top>0</top>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>90</height>
+					<texture colordiffuse="bg_panel">white.png</texture>
+				</control>
+				<control type="label">
+					<left>60</left>
+					<top>0</top>
+					<width>1800</width>
+					<height>90</height>
+					<font>font_med</font>
+					<textcolor>text</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<label>$PARAM[title]</label>
+				</control>
+				<control type="label">
+					<right>60</right>
+					<top>0</top>
+					<width>600</width>
+					<height>90</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[System.Time]</label>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- A standard menu button used on Home -->
+	<!-- Standard list item layout (used by lists) -->
+	<!-- One column in the hourly forecast strip on MyWeather. -->
+	<include name="ForecastHour">
+		<param name="n" />
+		<definition>
+			<control type="group">
+				<width>210</width>
+				<height>160</height>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>210</width>
+					<height>160</height>
+					<texture colordiffuse="bg_panel">white.png</texture>
+				</control>
+				<!-- ShortTime with fallback to Time. $INFO's suffix arg is literal
+				     text, not a fallback (it only ever renders when the label is
+				     NON-empty), so the fallback needs two gated labels. -->
+				<control type="label">
+					<left>0</left>
+					<top>8</top>
+					<width>210</width>
+					<height>30</height>
+					<font>font_reg</font>
+					<align>center</align>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>$INFO[Window(Weather).Property(Hourly.$PARAM[n].ShortTime)]</label>
+					<visible>!String.IsEmpty(Window(Weather).Property(Hourly.$PARAM[n].ShortTime))</visible>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>8</top>
+					<width>210</width>
+					<height>30</height>
+					<font>font_reg</font>
+					<align>center</align>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>$INFO[Window(Weather).Property(Hourly.$PARAM[n].Time)]</label>
+					<visible>String.IsEmpty(Window(Weather).Property(Hourly.$PARAM[n].ShortTime))</visible>
+				</control>
+				<control type="image">
+					<centerleft>50%</centerleft>
+					<top>42</top>
+					<width>70</width>
+					<height>70</height>
+					<aspectratio>keep</aspectratio>
+					<texture>$INFO[Window(Weather).Property(Hourly.$PARAM[n].OutlookIcon)]</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>116</top>
+					<width>210</width>
+					<height>34</height>
+					<font>font_med</font>
+					<align>center</align>
+					<textcolor>text</textcolor>
+					<label>$INFO[Window(Weather).Property(Hourly.$PARAM[n].Temperature)]$INFO[System.TemperatureUnits]</label>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- One column in the 5-day forecast strip on MyWeather. -->
+	<include name="ForecastDay">
+		<param name="n" />
+		<definition>
+			<control type="group">
+				<width>340</width>
+				<height>320</height>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>340</width>
+					<height>320</height>
+					<texture colordiffuse="bg_panel">white.png</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>10</top>
+					<width>340</width>
+					<height>40</height>
+					<font>font_med</font>
+					<align>center</align>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>$INFO[Window(Weather).Property(Day$PARAM[n].Title)]</label>
+				</control>
+				<control type="image">
+					<centerleft>50%</centerleft>
+					<top>60</top>
+					<width>140</width>
+					<height>140</height>
+					<aspectratio>keep</aspectratio>
+					<texture>$INFO[Window(Weather).Property(Day$PARAM[n].OutlookIcon)]</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>210</top>
+					<width>340</width>
+					<height>40</height>
+					<font>font_reg</font>
+					<align>center</align>
+					<textcolor>text</textcolor>
+					<label>$INFO[Window(Weather).Property(Day$PARAM[n].Outlook)]</label>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>260</top>
+					<width>340</width>
+					<height>40</height>
+					<font>font_reg</font>
+					<align>center</align>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[Window(Weather).Property(Day$PARAM[n].HighTemp)]$INFO[System.TemperatureUnits] / $INFO[Window(Weather).Property(Day$PARAM[n].LowTemp)]$INFO[System.TemperatureUnits]</label>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- One full-screen folder slideshow instance. multiimage's timeperimage
+	     must be a literal int (it ignores $VAR/$INFO), so we instantiate one
+	     per interval preset and show only the one whose 'when' matches.
+	     'ms' = milliseconds per image, 'when' = the interval-match condition. -->
+	<include name="FolderSlideshow">
+		<param name="ms" />
+		<param name="when" />
+		<definition>
+			<control type="multiimage">
+				<left>0</left>
+				<top>0</top>
+				<width>1920</width>
+				<height>1080</height>
+				<aspectratio>scale</aspectratio>
+				<fadetime>800</fadetime>
+				<timeperimage>$PARAM[ms]</timeperimage>
+				<randomize>true</randomize>
+				<!-- Dim applied directly to the images (the separate overlay
+				     doesn't reliably cover a background multiimage). -->
+				<colordiffuse>$VAR[BgImageDiffuse]</colordiffuse>
+				<imagepath background="true">$INFO[Skin.String(bg_slideshow_dir)]</imagepath>
+				<visible>[String.IsEqual(Skin.String(bg_mode),folder) + !String.IsEmpty(Skin.String(bg_slideshow_dir)) + [$PARAM[when]]] + !$EXP[bg_video_showing]</visible>
+			</control>
+		</definition>
+	</include>
+
+	<!-- One key in DialogKeyboard. For the character grid (IDs 100-112,
+	     120-132, 140-152, 160-172) leave label empty, Kodi's keyboard
+	     engine fills the glyph from the active layout and routes the click
+	     by control ID. Special keys (space/shift/etc.) pass their own
+	     static label since Kodi doesn't overwrite those. -->
+	<include name="KeyboardKey">
+		<param name="id" />
+		<param name="width" default="80" />
+		<param name="label" default="" />
+		<definition>
+			<control type="button" id="$PARAM[id]">
+				<width>$PARAM[width]</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$PARAM[label]</label>
+			</control>
+		</definition>
+	</include>
+
+	<!-- DialogNumeric keypad key: same styling as KeyboardKey, sized for the
+	     3-column grid. id/label/nav are set on the control itself. -->
+	<include name="NumericKey">
+		<width>166</width>
+		<height>85</height>
+		<font>font_med</font>
+		<textcolor>text</textcolor>
+		<focusedcolor>white</focusedcolor>
+		<disabledcolor>disabled</disabledcolor>
+		<align>center</align>
+		<aligny>center</aligny>
+		<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+		<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+	</include>
+
+	<!-- Generic browse window content area (header + list + footer) -->
+	<include name="MediaBrowseContent">
+		<param name="title" />
+		<!-- Defaults live in the default= attribute; Kodi ignores value= on a
+		     definition, which left Music/Pictures/Programs with an empty list
+		     geometry (no rows drawn) until 0.8.7. -->
+		<param name="list_left" default="60" />
+		<param name="list_width" default="1100" />
+		<!-- main label width inside a row; callers with a narrower list
+		     pass a smaller value so it stops short of the Label2 column -->
+		<param name="label_width" default="800" />
+		<!-- where Left/Right from the list go; only AddonBrowser has a sidebar
+		     (9000), the plain browse windows keep focus on the list -->
+		<param name="nav_left" default="50" />
+		<param name="nav_right" default="50" />
+		<definition>
+			<include content="WindowBackground"/>
+			<include content="HeaderBar">
+				<param name="title" value="$PARAM[title]"/>
+			</include>
+
+			<!-- Main list -->
+			<control type="list" id="50">
+				<left>$PARAM[list_left]</left>
+				<top>120</top>
+				<width>$PARAM[list_width]</width>
+				<height>880</height>
+				<onleft>$PARAM[nav_left]</onleft>
+				<onright>$PARAM[nav_right]</onright>
+				<pagecontrol>60</pagecontrol>
+				<scrolltime tween="cubic" easing="out">200</scrolltime>
+				<itemlayout height="60" width="$PARAM[list_width]">
+					<control type="image">
+						<left>10</left>
+						<top>5</top>
+						<width>50</width>
+						<height>50</height>
+						<texture fallback="DefaultFolder.png">$INFO[ListItem.Icon]</texture>
+					</control>
+					<control type="label">
+						<left>80</left>
+						<top>0</top>
+						<width>$PARAM[label_width]</width>
+						<height>60</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<selectedcolor>accent_hi</selectedcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<control type="label">
+						<right>20</right>
+						<top>0</top>
+						<width>200</width>
+						<height>60</height>
+						<font>font_small</font>
+						<textcolor>text_dim</textcolor>
+						<selectedcolor>accent_hi</selectedcolor>
+						<align>right</align>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label2]</label>
+					</control>
+				</itemlayout>
+				<focusedlayout height="60" width="$PARAM[list_width]">
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>$PARAM[list_width]</width>
+						<height>60</height>
+						<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+						<visible>Control.HasFocus(50)</visible>
+					</control>
+					<control type="image">
+						<left>10</left>
+						<top>5</top>
+						<width>50</width>
+						<height>50</height>
+						<texture fallback="DefaultFolder.png">$INFO[ListItem.Icon]</texture>
+					</control>
+					<control type="label">
+						<left>80</left>
+						<top>0</top>
+						<width>$PARAM[label_width]</width>
+						<height>60</height>
+						<font>font_reg</font>
+						<textcolor>white</textcolor>
+						<selectedcolor>white</selectedcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<control type="label">
+						<right>20</right>
+						<top>0</top>
+						<width>200</width>
+						<height>60</height>
+						<font>font_small</font>
+						<textcolor>white</textcolor>
+						<selectedcolor>white</selectedcolor>
+						<align>right</align>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label2]</label>
+					</control>
+				</focusedlayout>
+			</control>
+
+			<!-- Side info panel -->
+			<control type="group">
+				<left>1200</left>
+				<top>120</top>
+
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>660</width>
+					<height>880</height>
+					<texture colordiffuse="bg_panel">white.png</texture>
+				</control>
+
+				<control type="image">
+					<left>20</left>
+					<top>20</top>
+					<width>620</width>
+					<height>400</height>
+					<aspectratio>keep</aspectratio>
+					<texture background="true" fallback="DefaultFolder.png">$INFO[ListItem.Art(thumb)]</texture>
+				</control>
+
+				<control type="label">
+					<left>20</left>
+					<top>440</top>
+					<width>620</width>
+					<height>50</height>
+					<font>font_med</font>
+					<textcolor>text</textcolor>
+					<label>$INFO[ListItem.Label]</label>
+					<scroll>true</scroll>
+				</control>
+
+				<control type="textbox">
+					<left>20</left>
+					<top>500</top>
+					<width>620</width>
+					<height>360</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[ListItem.Plot]</label>
+				</control>
+
+			</control>
+
+			<!-- Page count overlay -->
+			<control type="label">
+				<left>60</left>
+				<bottom>20</bottom>
+				<width>600</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>$INFO[Container(50).CurrentPage] / $INFO[Container(50).NumPages] · $INFO[Container(50).NumItems] items</label>
+			</control>
+
+			<control type="scrollbar" id="60">
+				<left>1160</left>
+				<top>120</top>
+				<width>20</width>
+				<height>880</height>
+				<orientation>vertical</orientation>
+				<showonepage>false</showonepage>
+				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			</control>
+
+		</definition>
+	</include>
+
+	<!-- Settings list window content -->
+	<!-- Standard dialog frame -->
+	<!-- One entry in the categorised Favourites list. The helper service fills
+	     Fav.N.Label / Fav.N.Thumb / Fav.N.Cat on the Home window for the items
+	     matching the currently-selected category; clicking sets fav_run so the
+	     service runs that favourite's stored action. Items with no label are
+	     hidden, so the list length follows the active filter automatically. -->
+	<!-- Lists screen rows (custom window 1151). Static list items bound to
+	     the Lists.N.* (left column, one per list) and LI.N.* (right column,
+	     one per item of the selected list) Home properties that
+	     service.py:update_lists publishes. Each row hides when its slot is
+	     empty, so the list's length follows the data.
+	     <summary>One left-column row: a list's name and its size line.</summary>
+	     <param name="n">Slot number, 1 to 60.</param>
+	     <remarks>The idx property is how the service learns which list is
+	     selected: it reads Container(50).ListItem.Property(idx) every tick
+	     while the window is up. Clicking moves focus into the items.</remarks> -->
+	<include name="ListsRow">
+		<param name="n" />
+		<definition>
+			<item>
+				<label>$INFO[Window(home).Property(Lists.$PARAM[n].Name)]</label>
+				<label2>$INFO[Window(home).Property(Lists.$PARAM[n].Sub)]</label2>
+				<!-- $NUMBER[]: a bare number here is a string id (1 renders "Pictures"), same trap as <label>. -->
+				<property name="idx">$NUMBER[$PARAM[n]]</property>
+				<onclick>SetFocus(51)</onclick>
+				<visible>!String.IsEmpty(Window(home).Property(Lists.$PARAM[n].Name))</visible>
+			</item>
+		</definition>
+	</include>
+	<!-- <summary>One right-column row: an item of the selected list.</summary>
+	     <param name="n">Slot number, 1 to 200.</param>
+	     <remarks>Clicking asks the service for the row's action menu (play
+	     now, move up, move down, remove).</remarks> -->
+	<include name="ListsItemRow">
+		<param name="n" />
+		<definition>
+			<item>
+				<label>$INFO[Window(home).Property(LI.$PARAM[n].Label)]</label>
+				<label2>$INFO[Window(home).Property(LI.$PARAM[n].Sub)]</label2>
+				<icon>$INFO[Window(home).Property(LI.$PARAM[n].Thumb)]</icon>
+				<property name="kind">$INFO[Window(home).Property(LI.$PARAM[n].Kind)]</property>
+				<onclick>Skin.SetString(list_command,item:$PARAM[n])</onclick>
+				<visible>!String.IsEmpty(Window(home).Property(LI.$PARAM[n].Label))</visible>
+			</item>
+		</definition>
+	</include>
+	<!-- <summary>The 60 left-column and 200 right-column slots of the Lists
+	     screen, so the window file stays readable.</summary> -->
+	<include name="ListsRows">
+		<definition>
+			<include content="ListsRow"><param name="n" value="1" /></include>
+			<include content="ListsRow"><param name="n" value="2" /></include>
+			<include content="ListsRow"><param name="n" value="3" /></include>
+			<include content="ListsRow"><param name="n" value="4" /></include>
+			<include content="ListsRow"><param name="n" value="5" /></include>
+			<include content="ListsRow"><param name="n" value="6" /></include>
+			<include content="ListsRow"><param name="n" value="7" /></include>
+			<include content="ListsRow"><param name="n" value="8" /></include>
+			<include content="ListsRow"><param name="n" value="9" /></include>
+			<include content="ListsRow"><param name="n" value="10" /></include>
+			<include content="ListsRow"><param name="n" value="11" /></include>
+			<include content="ListsRow"><param name="n" value="12" /></include>
+			<include content="ListsRow"><param name="n" value="13" /></include>
+			<include content="ListsRow"><param name="n" value="14" /></include>
+			<include content="ListsRow"><param name="n" value="15" /></include>
+			<include content="ListsRow"><param name="n" value="16" /></include>
+			<include content="ListsRow"><param name="n" value="17" /></include>
+			<include content="ListsRow"><param name="n" value="18" /></include>
+			<include content="ListsRow"><param name="n" value="19" /></include>
+			<include content="ListsRow"><param name="n" value="20" /></include>
+			<include content="ListsRow"><param name="n" value="21" /></include>
+			<include content="ListsRow"><param name="n" value="22" /></include>
+			<include content="ListsRow"><param name="n" value="23" /></include>
+			<include content="ListsRow"><param name="n" value="24" /></include>
+			<include content="ListsRow"><param name="n" value="25" /></include>
+			<include content="ListsRow"><param name="n" value="26" /></include>
+			<include content="ListsRow"><param name="n" value="27" /></include>
+			<include content="ListsRow"><param name="n" value="28" /></include>
+			<include content="ListsRow"><param name="n" value="29" /></include>
+			<include content="ListsRow"><param name="n" value="30" /></include>
+			<include content="ListsRow"><param name="n" value="31" /></include>
+			<include content="ListsRow"><param name="n" value="32" /></include>
+			<include content="ListsRow"><param name="n" value="33" /></include>
+			<include content="ListsRow"><param name="n" value="34" /></include>
+			<include content="ListsRow"><param name="n" value="35" /></include>
+			<include content="ListsRow"><param name="n" value="36" /></include>
+			<include content="ListsRow"><param name="n" value="37" /></include>
+			<include content="ListsRow"><param name="n" value="38" /></include>
+			<include content="ListsRow"><param name="n" value="39" /></include>
+			<include content="ListsRow"><param name="n" value="40" /></include>
+			<include content="ListsRow"><param name="n" value="41" /></include>
+			<include content="ListsRow"><param name="n" value="42" /></include>
+			<include content="ListsRow"><param name="n" value="43" /></include>
+			<include content="ListsRow"><param name="n" value="44" /></include>
+			<include content="ListsRow"><param name="n" value="45" /></include>
+			<include content="ListsRow"><param name="n" value="46" /></include>
+			<include content="ListsRow"><param name="n" value="47" /></include>
+			<include content="ListsRow"><param name="n" value="48" /></include>
+			<include content="ListsRow"><param name="n" value="49" /></include>
+			<include content="ListsRow"><param name="n" value="50" /></include>
+			<include content="ListsRow"><param name="n" value="51" /></include>
+			<include content="ListsRow"><param name="n" value="52" /></include>
+			<include content="ListsRow"><param name="n" value="53" /></include>
+			<include content="ListsRow"><param name="n" value="54" /></include>
+			<include content="ListsRow"><param name="n" value="55" /></include>
+			<include content="ListsRow"><param name="n" value="56" /></include>
+			<include content="ListsRow"><param name="n" value="57" /></include>
+			<include content="ListsRow"><param name="n" value="58" /></include>
+			<include content="ListsRow"><param name="n" value="59" /></include>
+			<include content="ListsRow"><param name="n" value="60" /></include>
+		</definition>
+	</include>
+	<include name="ListsItemRows">
+		<definition>
+			<include content="ListsItemRow"><param name="n" value="1" /></include>
+			<include content="ListsItemRow"><param name="n" value="2" /></include>
+			<include content="ListsItemRow"><param name="n" value="3" /></include>
+			<include content="ListsItemRow"><param name="n" value="4" /></include>
+			<include content="ListsItemRow"><param name="n" value="5" /></include>
+			<include content="ListsItemRow"><param name="n" value="6" /></include>
+			<include content="ListsItemRow"><param name="n" value="7" /></include>
+			<include content="ListsItemRow"><param name="n" value="8" /></include>
+			<include content="ListsItemRow"><param name="n" value="9" /></include>
+			<include content="ListsItemRow"><param name="n" value="10" /></include>
+			<include content="ListsItemRow"><param name="n" value="11" /></include>
+			<include content="ListsItemRow"><param name="n" value="12" /></include>
+			<include content="ListsItemRow"><param name="n" value="13" /></include>
+			<include content="ListsItemRow"><param name="n" value="14" /></include>
+			<include content="ListsItemRow"><param name="n" value="15" /></include>
+			<include content="ListsItemRow"><param name="n" value="16" /></include>
+			<include content="ListsItemRow"><param name="n" value="17" /></include>
+			<include content="ListsItemRow"><param name="n" value="18" /></include>
+			<include content="ListsItemRow"><param name="n" value="19" /></include>
+			<include content="ListsItemRow"><param name="n" value="20" /></include>
+			<include content="ListsItemRow"><param name="n" value="21" /></include>
+			<include content="ListsItemRow"><param name="n" value="22" /></include>
+			<include content="ListsItemRow"><param name="n" value="23" /></include>
+			<include content="ListsItemRow"><param name="n" value="24" /></include>
+			<include content="ListsItemRow"><param name="n" value="25" /></include>
+			<include content="ListsItemRow"><param name="n" value="26" /></include>
+			<include content="ListsItemRow"><param name="n" value="27" /></include>
+			<include content="ListsItemRow"><param name="n" value="28" /></include>
+			<include content="ListsItemRow"><param name="n" value="29" /></include>
+			<include content="ListsItemRow"><param name="n" value="30" /></include>
+			<include content="ListsItemRow"><param name="n" value="31" /></include>
+			<include content="ListsItemRow"><param name="n" value="32" /></include>
+			<include content="ListsItemRow"><param name="n" value="33" /></include>
+			<include content="ListsItemRow"><param name="n" value="34" /></include>
+			<include content="ListsItemRow"><param name="n" value="35" /></include>
+			<include content="ListsItemRow"><param name="n" value="36" /></include>
+			<include content="ListsItemRow"><param name="n" value="37" /></include>
+			<include content="ListsItemRow"><param name="n" value="38" /></include>
+			<include content="ListsItemRow"><param name="n" value="39" /></include>
+			<include content="ListsItemRow"><param name="n" value="40" /></include>
+			<include content="ListsItemRow"><param name="n" value="41" /></include>
+			<include content="ListsItemRow"><param name="n" value="42" /></include>
+			<include content="ListsItemRow"><param name="n" value="43" /></include>
+			<include content="ListsItemRow"><param name="n" value="44" /></include>
+			<include content="ListsItemRow"><param name="n" value="45" /></include>
+			<include content="ListsItemRow"><param name="n" value="46" /></include>
+			<include content="ListsItemRow"><param name="n" value="47" /></include>
+			<include content="ListsItemRow"><param name="n" value="48" /></include>
+			<include content="ListsItemRow"><param name="n" value="49" /></include>
+			<include content="ListsItemRow"><param name="n" value="50" /></include>
+			<include content="ListsItemRow"><param name="n" value="51" /></include>
+			<include content="ListsItemRow"><param name="n" value="52" /></include>
+			<include content="ListsItemRow"><param name="n" value="53" /></include>
+			<include content="ListsItemRow"><param name="n" value="54" /></include>
+			<include content="ListsItemRow"><param name="n" value="55" /></include>
+			<include content="ListsItemRow"><param name="n" value="56" /></include>
+			<include content="ListsItemRow"><param name="n" value="57" /></include>
+			<include content="ListsItemRow"><param name="n" value="58" /></include>
+			<include content="ListsItemRow"><param name="n" value="59" /></include>
+			<include content="ListsItemRow"><param name="n" value="60" /></include>
+			<include content="ListsItemRow"><param name="n" value="61" /></include>
+			<include content="ListsItemRow"><param name="n" value="62" /></include>
+			<include content="ListsItemRow"><param name="n" value="63" /></include>
+			<include content="ListsItemRow"><param name="n" value="64" /></include>
+			<include content="ListsItemRow"><param name="n" value="65" /></include>
+			<include content="ListsItemRow"><param name="n" value="66" /></include>
+			<include content="ListsItemRow"><param name="n" value="67" /></include>
+			<include content="ListsItemRow"><param name="n" value="68" /></include>
+			<include content="ListsItemRow"><param name="n" value="69" /></include>
+			<include content="ListsItemRow"><param name="n" value="70" /></include>
+			<include content="ListsItemRow"><param name="n" value="71" /></include>
+			<include content="ListsItemRow"><param name="n" value="72" /></include>
+			<include content="ListsItemRow"><param name="n" value="73" /></include>
+			<include content="ListsItemRow"><param name="n" value="74" /></include>
+			<include content="ListsItemRow"><param name="n" value="75" /></include>
+			<include content="ListsItemRow"><param name="n" value="76" /></include>
+			<include content="ListsItemRow"><param name="n" value="77" /></include>
+			<include content="ListsItemRow"><param name="n" value="78" /></include>
+			<include content="ListsItemRow"><param name="n" value="79" /></include>
+			<include content="ListsItemRow"><param name="n" value="80" /></include>
+			<include content="ListsItemRow"><param name="n" value="81" /></include>
+			<include content="ListsItemRow"><param name="n" value="82" /></include>
+			<include content="ListsItemRow"><param name="n" value="83" /></include>
+			<include content="ListsItemRow"><param name="n" value="84" /></include>
+			<include content="ListsItemRow"><param name="n" value="85" /></include>
+			<include content="ListsItemRow"><param name="n" value="86" /></include>
+			<include content="ListsItemRow"><param name="n" value="87" /></include>
+			<include content="ListsItemRow"><param name="n" value="88" /></include>
+			<include content="ListsItemRow"><param name="n" value="89" /></include>
+			<include content="ListsItemRow"><param name="n" value="90" /></include>
+			<include content="ListsItemRow"><param name="n" value="91" /></include>
+			<include content="ListsItemRow"><param name="n" value="92" /></include>
+			<include content="ListsItemRow"><param name="n" value="93" /></include>
+			<include content="ListsItemRow"><param name="n" value="94" /></include>
+			<include content="ListsItemRow"><param name="n" value="95" /></include>
+			<include content="ListsItemRow"><param name="n" value="96" /></include>
+			<include content="ListsItemRow"><param name="n" value="97" /></include>
+			<include content="ListsItemRow"><param name="n" value="98" /></include>
+			<include content="ListsItemRow"><param name="n" value="99" /></include>
+			<include content="ListsItemRow"><param name="n" value="100" /></include>
+			<include content="ListsItemRow"><param name="n" value="101" /></include>
+			<include content="ListsItemRow"><param name="n" value="102" /></include>
+			<include content="ListsItemRow"><param name="n" value="103" /></include>
+			<include content="ListsItemRow"><param name="n" value="104" /></include>
+			<include content="ListsItemRow"><param name="n" value="105" /></include>
+			<include content="ListsItemRow"><param name="n" value="106" /></include>
+			<include content="ListsItemRow"><param name="n" value="107" /></include>
+			<include content="ListsItemRow"><param name="n" value="108" /></include>
+			<include content="ListsItemRow"><param name="n" value="109" /></include>
+			<include content="ListsItemRow"><param name="n" value="110" /></include>
+			<include content="ListsItemRow"><param name="n" value="111" /></include>
+			<include content="ListsItemRow"><param name="n" value="112" /></include>
+			<include content="ListsItemRow"><param name="n" value="113" /></include>
+			<include content="ListsItemRow"><param name="n" value="114" /></include>
+			<include content="ListsItemRow"><param name="n" value="115" /></include>
+			<include content="ListsItemRow"><param name="n" value="116" /></include>
+			<include content="ListsItemRow"><param name="n" value="117" /></include>
+			<include content="ListsItemRow"><param name="n" value="118" /></include>
+			<include content="ListsItemRow"><param name="n" value="119" /></include>
+			<include content="ListsItemRow"><param name="n" value="120" /></include>
+			<include content="ListsItemRow"><param name="n" value="121" /></include>
+			<include content="ListsItemRow"><param name="n" value="122" /></include>
+			<include content="ListsItemRow"><param name="n" value="123" /></include>
+			<include content="ListsItemRow"><param name="n" value="124" /></include>
+			<include content="ListsItemRow"><param name="n" value="125" /></include>
+			<include content="ListsItemRow"><param name="n" value="126" /></include>
+			<include content="ListsItemRow"><param name="n" value="127" /></include>
+			<include content="ListsItemRow"><param name="n" value="128" /></include>
+			<include content="ListsItemRow"><param name="n" value="129" /></include>
+			<include content="ListsItemRow"><param name="n" value="130" /></include>
+			<include content="ListsItemRow"><param name="n" value="131" /></include>
+			<include content="ListsItemRow"><param name="n" value="132" /></include>
+			<include content="ListsItemRow"><param name="n" value="133" /></include>
+			<include content="ListsItemRow"><param name="n" value="134" /></include>
+			<include content="ListsItemRow"><param name="n" value="135" /></include>
+			<include content="ListsItemRow"><param name="n" value="136" /></include>
+			<include content="ListsItemRow"><param name="n" value="137" /></include>
+			<include content="ListsItemRow"><param name="n" value="138" /></include>
+			<include content="ListsItemRow"><param name="n" value="139" /></include>
+			<include content="ListsItemRow"><param name="n" value="140" /></include>
+			<include content="ListsItemRow"><param name="n" value="141" /></include>
+			<include content="ListsItemRow"><param name="n" value="142" /></include>
+			<include content="ListsItemRow"><param name="n" value="143" /></include>
+			<include content="ListsItemRow"><param name="n" value="144" /></include>
+			<include content="ListsItemRow"><param name="n" value="145" /></include>
+			<include content="ListsItemRow"><param name="n" value="146" /></include>
+			<include content="ListsItemRow"><param name="n" value="147" /></include>
+			<include content="ListsItemRow"><param name="n" value="148" /></include>
+			<include content="ListsItemRow"><param name="n" value="149" /></include>
+			<include content="ListsItemRow"><param name="n" value="150" /></include>
+			<include content="ListsItemRow"><param name="n" value="151" /></include>
+			<include content="ListsItemRow"><param name="n" value="152" /></include>
+			<include content="ListsItemRow"><param name="n" value="153" /></include>
+			<include content="ListsItemRow"><param name="n" value="154" /></include>
+			<include content="ListsItemRow"><param name="n" value="155" /></include>
+			<include content="ListsItemRow"><param name="n" value="156" /></include>
+			<include content="ListsItemRow"><param name="n" value="157" /></include>
+			<include content="ListsItemRow"><param name="n" value="158" /></include>
+			<include content="ListsItemRow"><param name="n" value="159" /></include>
+			<include content="ListsItemRow"><param name="n" value="160" /></include>
+			<include content="ListsItemRow"><param name="n" value="161" /></include>
+			<include content="ListsItemRow"><param name="n" value="162" /></include>
+			<include content="ListsItemRow"><param name="n" value="163" /></include>
+			<include content="ListsItemRow"><param name="n" value="164" /></include>
+			<include content="ListsItemRow"><param name="n" value="165" /></include>
+			<include content="ListsItemRow"><param name="n" value="166" /></include>
+			<include content="ListsItemRow"><param name="n" value="167" /></include>
+			<include content="ListsItemRow"><param name="n" value="168" /></include>
+			<include content="ListsItemRow"><param name="n" value="169" /></include>
+			<include content="ListsItemRow"><param name="n" value="170" /></include>
+			<include content="ListsItemRow"><param name="n" value="171" /></include>
+			<include content="ListsItemRow"><param name="n" value="172" /></include>
+			<include content="ListsItemRow"><param name="n" value="173" /></include>
+			<include content="ListsItemRow"><param name="n" value="174" /></include>
+			<include content="ListsItemRow"><param name="n" value="175" /></include>
+			<include content="ListsItemRow"><param name="n" value="176" /></include>
+			<include content="ListsItemRow"><param name="n" value="177" /></include>
+			<include content="ListsItemRow"><param name="n" value="178" /></include>
+			<include content="ListsItemRow"><param name="n" value="179" /></include>
+			<include content="ListsItemRow"><param name="n" value="180" /></include>
+			<include content="ListsItemRow"><param name="n" value="181" /></include>
+			<include content="ListsItemRow"><param name="n" value="182" /></include>
+			<include content="ListsItemRow"><param name="n" value="183" /></include>
+			<include content="ListsItemRow"><param name="n" value="184" /></include>
+			<include content="ListsItemRow"><param name="n" value="185" /></include>
+			<include content="ListsItemRow"><param name="n" value="186" /></include>
+			<include content="ListsItemRow"><param name="n" value="187" /></include>
+			<include content="ListsItemRow"><param name="n" value="188" /></include>
+			<include content="ListsItemRow"><param name="n" value="189" /></include>
+			<include content="ListsItemRow"><param name="n" value="190" /></include>
+			<include content="ListsItemRow"><param name="n" value="191" /></include>
+			<include content="ListsItemRow"><param name="n" value="192" /></include>
+			<include content="ListsItemRow"><param name="n" value="193" /></include>
+			<include content="ListsItemRow"><param name="n" value="194" /></include>
+			<include content="ListsItemRow"><param name="n" value="195" /></include>
+			<include content="ListsItemRow"><param name="n" value="196" /></include>
+			<include content="ListsItemRow"><param name="n" value="197" /></include>
+			<include content="ListsItemRow"><param name="n" value="198" /></include>
+			<include content="ListsItemRow"><param name="n" value="199" /></include>
+			<include content="ListsItemRow"><param name="n" value="200" /></include>
+		</definition>
+	</include>
+	<!-- <summary>Caption for the Lists porting default in skin settings:
+	     what happens to the current queue when a list is ported.</summary> -->
+	<variable name="ListPortClearLabel">
+		<value condition="String.IsEqual(Skin.String(list_port_clear),clear)">Clear the queue</value>
+		<value condition="String.IsEqual(Skin.String(list_port_clear),keep)">Keep the queue</value>
+		<value>Ask each time</value>
+	</variable>
+
+	<!-- ListsContextButton: one of the two Lists entries at the top of the
+	     press-and-hold actions menu ("Add to list <last>" / "Add To List").
+	     <summary>A static button drawn above DialogContextMenu's grouplist 996
+	     that captures the focused item and hands it to service.py through the
+	     list_command channel.</summary>
+	     <param name="id">Control id, must stay below Kodi's clone range (1000+).</param>
+	     <param name="top">Y position inside the panel group.</param>
+	     <param name="label">Button caption, may carry $INFO.</param>
+	     <param name="command">list_command value: add_last or add_pick.</param>
+	     <param name="visible">Extra visibility condition ANDed with the playable-item gate.</param>
+	     <param name="onup">Navigation target above.</param>
+	     <param name="ondown">Navigation target below.</param>
+	     <param name="shift">Condition under which the row slides down one slot.</param>
+	     <remarks>The rows live OUTSIDE grouplist 996 on purpose. A grouplist
+	     remembers which child had focus, and a static child that is hidden
+	     the next time the menu opens (the Lists screen's own item menu, or
+	     "Add to list <name>" before any list exists) left the menu with no
+	     lit row and a first key press that landed anywhere. With only
+	     Kodi's clones inside 996 every remembered id is recreated on the
+	     next open, which is stock behaviour. The item's identity is copied
+	     into Home window properties at click time rather than read by the
+	     service afterwards, because the underlying container can move on
+	     before the next service tick. Only leaf items (never a show, season,
+	     album or plugin folder) in the library and queue windows show the
+	     rows.</remarks> -->
+	<include name="ListsContextButton">
+		<param name="id" />
+		<param name="top" />
+		<param name="label" />
+		<param name="command" />
+		<param name="visible" default="true" />
+		<param name="onup" />
+		<param name="ondown" />
+		<param name="shift" default="false" />
+		<definition>
+			<control type="image">
+				<left>0</left>
+				<top>$PARAM[top]</top>
+				<width>600</width>
+				<height>60</height>
+				<texture colordiffuse="bg_panel">white.png</texture>
+				<visible>Control.IsVisible($PARAM[id])</visible>
+				<animation effect="slide" end="0,60" time="0" condition="$PARAM[shift]">Conditional</animation>
+			</control>
+			<control type="button" id="$PARAM[id]">
+				<left>0</left>
+				<top>$PARAM[top]</top>
+				<width>600</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>30</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<label>$PARAM[label]</label>
+				<visible>$PARAM[visible] + !ListItem.IsFolder + !ListItem.IsParentFolder + !String.IsEmpty(ListItem.FilenameAndPath) + [Window.IsActive(videos) | Window.IsActive(music) | Window.IsActive(videoplaylist) | Window.IsActive(musicplaylist)]</visible>
+				<animation effect="slide" end="0,60" time="0" condition="$PARAM[shift]">Conditional</animation>
+				<onup>$PARAM[onup]</onup>
+				<ondown>$PARAM[ondown]</ondown>
+				<onclick>SetProperty(list_item_label,$ESCINFO[ListItem.Label],10000)</onclick>
+				<onclick>SetProperty(list_item_file,$ESCINFO[ListItem.FilenameAndPath],10000)</onclick>
+				<onclick>SetProperty(list_item_dbtype,$ESCINFO[ListItem.DBTYPE],10000)</onclick>
+				<onclick>SetProperty(list_item_dbid,$ESCINFO[ListItem.DBID],10000)</onclick>
+				<onclick>SetProperty(list_item_thumb,$ESCINFO[ListItem.Art(thumb)],10000)</onclick>
+				<onclick>SetProperty(list_item_duration,$ESCINFO[ListItem.Duration],10000)</onclick>
+				<onclick>SetProperty(list_item_show,$ESCINFO[ListItem.TVShowTitle],10000)</onclick>
+				<onclick>SetProperty(list_item_season,$ESCINFO[ListItem.Season],10000)</onclick>
+				<onclick>SetProperty(list_item_episode,$ESCINFO[ListItem.Episode],10000)</onclick>
+				<onclick>SetProperty(list_item_artist,$ESCINFO[ListItem.Artist],10000)</onclick>
+				<onclick>SetProperty(list_item_year,$ESCINFO[ListItem.Year],10000)</onclick>
+				<onclick condition="Window.IsActive(music) | Window.IsActive(musicplaylist)">SetProperty(list_item_kind,music,10000)</onclick>
+				<onclick condition="!Window.IsActive(music) + !Window.IsActive(musicplaylist)">SetProperty(list_item_kind,video,10000)</onclick>
+				<onclick>Skin.SetString(list_command,$PARAM[command])</onclick>
+				<onclick>Action(Close)</onclick>
+			</control>
+		</definition>
+	</include>
+
+	<include name="FavItem">
+		<param name="n" />
+		<definition>
+			<item>
+				<label>$INFO[Window(home).Property(Fav.$PARAM[n].Label)]</label>
+				<icon>$INFO[Window(home).Property(Fav.$PARAM[n].Thumb)]</icon>
+				<property name="favcat">$INFO[Window(home).Property(Fav.$PARAM[n].Cat)]</property>
+				<onclick>Skin.SetString(fav_run,$PARAM[n])</onclick>
+				<visible>!String.IsEmpty(Window(home).Property(Fav.$PARAM[n].Label))</visible>
+			</item>
+		</definition>
+	</include>
+
+	<!-- A category filter chip on the Favourites screen: a flat, absolutely
+	     positioned button paired with a separate underline image marking the
+	     active filter. Deliberately NOT a button-in-a-group inside a
+	     grouplist, because that nesting breaks focus traversal (same lesson as the
+	     MusicOSD transport row, see PROJECT_NOTES), which left every chip
+	     after "All" unreachable. Explicit onleft/onright chains wrap around
+	     the row; Kodi falls through hidden chips (empty categories are
+	     hidden via the visible param) in the same direction, so the chain
+	     survives any of them hiding.
+
+	     Fixed positions would leave a hole where a hidden chip sits, so
+	     each chip also takes one shiftN condition per predecessor that can
+	     hide, and slides itself one slot (190px) left for every one that is
+	     currently hidden. Conditional slide animations stack, so the row
+	     packs itself like a grouplist while keeping flat controls. -->
+	<include name="FavCategoryButton">
+		<param name="id" />
+		<param name="x" />
+		<param name="cat" />
+		<param name="label" />
+		<param name="onleft" />
+		<param name="onright" />
+		<param name="visible" default="true" />
+		<param name="shift1" default="false" />
+		<param name="shift2" default="false" />
+		<param name="shift3" default="false" />
+		<param name="shift4" default="false" />
+		<definition>
+			<control type="button" id="$PARAM[id]">
+				<left>$PARAM[x]</left>
+				<top>104</top>
+				<width>180</width>
+				<height>60</height>
+				<visible>$PARAM[visible]</visible>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift1]">Conditional</animation>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift2]">Conditional</animation>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift3]">Conditional</animation>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift4]">Conditional</animation>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<label>$PARAM[label]  $INFO[Window(home).Property(Fav.CatCount.$PARAM[cat]),(,)]</label>
+				<onleft>$PARAM[onleft]</onleft>
+				<onright>$PARAM[onright]</onright>
+				<onup>50</onup>
+				<ondown>50</ondown>
+				<onclick>Skin.SetString(fav_category,$PARAM[cat])</onclick>
+			</control>
+			<control type="image">
+				<left>$PARAM[x]</left>
+				<top>166</top>
+				<width>180</width>
+				<height>4</height>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift1]">Conditional</animation>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift2]">Conditional</animation>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift3]">Conditional</animation>
+				<animation effect="slide" end="-190,0" time="0" condition="$PARAM[shift4]">Conditional</animation>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				<visible>String.IsEqual(Window(home).Property(Fav.Category),$PARAM[cat]) + [$PARAM[visible]]</visible>
+			</control>
+		</definition>
+	</include>
+
+	<!-- ===== Full-screen info card (press "i" during playback) =====
+	     The card body is shared between the two card sizes: the plain 540px
+	     card, and the 780px one that carries a cast strip. Two sizes rather
+	     than one resizing group because Kodi can't make a group's height (or
+	     a centred group's top) conditional, and a fixed tall card would sit
+	     visibly off-centre with a block of empty space whenever the playing
+	     item has no cast (live TV, music videos, plain files). -->
+	<include name="FsInfoCardBody">
+		<definition>
+			<!-- Poster art (left column, 30 padding all round) -->
+			<control type="image">
+				<left>30</left>
+				<top>30</top>
+				<width>320</width>
+				<height>480</height>
+				<aspectratio>keep</aspectratio>
+				<texture fallback="DefaultVideo.png" background="true">$INFO[Player.Art(poster)]</texture>
+			</control>
+
+			<!-- Right column: title + metadata + plot -->
+
+			<!-- Episode marker (S01E03) above title, TV only -->
+			<control type="label">
+				<left>380</left>
+				<top>30</top>
+				<width>990</width>
+				<height>26</height>
+				<font>font_reg</font>
+				<textcolor>accent_hi</textcolor>
+				<label>$INFO[VideoPlayer.TVShowTitle] · $INFO[VideoPlayer.Season,S,]$INFO[VideoPlayer.Episode,E,]</label>
+				<visible>!String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
+			</control>
+
+			<!-- Title -->
+			<control type="label">
+				<left>380</left>
+				<top>56</top>
+				<width>990</width>
+				<height>50</height>
+				<font>font_big</font>
+				<textcolor>text</textcolor>
+				<scroll>true</scroll>
+				<label>$INFO[VideoPlayer.Title]$INFO[VideoPlayer.Year, ( ,)]</label>
+				<visible>String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
+			</control>
+			<control type="label">
+				<left>380</left>
+				<top>56</top>
+				<width>990</width>
+				<height>50</height>
+				<font>font_big</font>
+				<textcolor>text</textcolor>
+				<scroll>true</scroll>
+				<label>$INFO[VideoPlayer.Title]</label>
+				<visible>!String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
+			</control>
+
+			<!-- Metadata row: genre · runtime · rating · resolution -->
+			<control type="label">
+				<left>380</left>
+				<top>112</top>
+				<width>990</width>
+				<height>30</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<label>$INFO[VideoPlayer.Genre]$INFO[VideoPlayer.Duration, · ,]$INFO[VideoPlayer.Rating, · ★ ,]$INFO[VideoPlayer.MPAA, · ,]</label>
+			</control>
+
+			<!-- Resolution + audio pill row -->
+			<control type="image">
+				<left>380</left>
+				<top>156</top>
+				<width>120</width>
+				<height>30</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				<visible>!String.IsEmpty(VideoPlayer.VideoResolution)</visible>
+			</control>
+			<control type="label">
+				<left>380</left>
+				<top>156</top>
+				<width>120</width>
+				<height>30</height>
+				<font>font_small</font>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textcolor>white</textcolor>
+				<label>$VAR[OsdResolutionLabel]</label>
+				<visible>!String.IsEmpty(VideoPlayer.VideoResolution)</visible>
+			</control>
+			<control type="label">
+				<left>520</left>
+				<top>156</top>
+				<width>500</width>
+				<height>30</height>
+				<font>font_small</font>
+				<aligny>center</aligny>
+				<textcolor>text_dim</textcolor>
+				<label>$INFO[VideoPlayer.AudioCodec]$INFO[VideoPlayer.AudioChannels, · , ch]$INFO[VideoPlayer.AudioLanguage, · ,]</label>
+			</control>
+
+			<!-- Plot, the meat of the card -->
+			<control type="textbox">
+				<left>380</left>
+				<top>200</top>
+				<width>990</width>
+				<height>230</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<label>$INFO[VideoPlayer.Plot]</label>
+				<autoscroll time="3000" delay="3000" repeat="5000">true</autoscroll>
+			</control>
+
+			<!-- Bottom row: progress percent + ends-at -->
+			<control type="label">
+				<left>380</left>
+				<top>460</top>
+				<width>500</width>
+				<height>30</height>
+				<font>font_reg</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>$INFO[Player.Time(hh:mm:ss)] / $INFO[Player.Duration(hh:mm:ss)]  ·  $INFO[Player.Progress]%</label>
+			</control>
+			<control type="label">
+				<right>30</right>
+				<top>460</top>
+				<width>500</width>
+				<height>30</height>
+				<font>font_reg</font>
+				<align>right</align>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>Ends at $INFO[Player.FinishTime]</label>
+				<visible>Player.HasMedia + !Player.Paused</visible>
+			</control>
+		</definition>
+	</include>
+
+	<!-- One actor portrait. Both info screens use this: the full-screen card
+	     reads the Cast.* properties (the playing item), the video info dialog
+	     reads InfoCast.* (the item the dialog is about). Both namespaces are
+	     published by service.py.
+
+	     DialogVideoInfo does expose a built-in cast list (control 50) and
+	     binding a skin list to it is the documented route, but it stayed
+	     empty here through two attempts, so both screens now go through the
+	     properties instead: one mechanism, and one that is known to work. -->
+	<include name="CastPortrait">
+		<param name="prefix" />
+		<param name="n" />
+		<param name="x" />
+		<param name="y" />
+		<definition>
+			<control type="group">
+				<left>$PARAM[x]</left>
+				<top>$PARAM[y]</top>
+				<width>152</width>
+				<height>198</height>
+				<visible>!String.IsEmpty(Window(home).Property($PARAM[prefix].$PARAM[n].Name))</visible>
+
+				<control type="image">
+					<left>21</left>
+					<top>0</top>
+					<width>110</width>
+					<height>150</height>
+					<texture colordiffuse="grey_mid">white.png</texture>
+				</control>
+				<control type="image">
+					<left>21</left>
+					<top>0</top>
+					<width>110</width>
+					<height>150</height>
+					<aspectratio>scale</aspectratio>
+					<texture fallback="DefaultActor.png" background="true">$INFO[Window(home).Property($PARAM[prefix].$PARAM[n].Thumb)]</texture>
+				</control>
+
+				<control type="label">
+					<left>0</left>
+					<top>154</top>
+					<width>152</width>
+					<height>22</height>
+					<font>font_small</font>
+					<align>center</align>
+					<textcolor>text</textcolor>
+					<label>$INFO[Window(home).Property($PARAM[prefix].$PARAM[n].Name)]</label>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>176</top>
+					<width>152</width>
+					<height>22</height>
+					<font>font_small</font>
+					<align>center</align>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[Window(home).Property($PARAM[prefix].$PARAM[n].Role)]</label>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- Eight cast slots on the full-screen info card, group-relative. -->
+	<include name="FsInfoCastStrip">
+		<definition>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="1"/><param name="x" value="92"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="2"/><param name="x" value="244"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="3"/><param name="x" value="396"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="4"/><param name="x" value="548"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="5"/><param name="x" value="700"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="6"/><param name="x" value="852"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="7"/><param name="x" value="1004"/><param name="y" value="552"/></include>
+			<include content="CastPortrait"><param name="prefix" value="Cast"/><param name="n" value="8"/><param name="x" value="1156"/><param name="y" value="552"/></include>
+		</definition>
+	</include>
+
+	<!-- One selectable actor in the video info dialog. The portrait itself is
+	     the shared CastPortrait visual; this adds the focus frame behind it
+	     and a transparent button in front to take focus.
+
+	     onleft/onright chain slot to slot and Kodi falls through hidden ones
+	     in the same direction, so a title with three actors still navigates
+	     cleanly (same trick as FavCategoryButton). The click hands the slot
+	     number to service.py via Skin.String(cast_run) rather than building
+	     an xsp filter in XML, because Kodi splits builtin arguments on commas
+	     and the filter JSON is full of them. -->
+	<include name="InfoCastSlot">
+		<param name="n" />
+		<param name="id" />
+		<param name="x" />
+		<param name="onleft" />
+		<param name="onright" />
+		<definition>
+			<control type="group">
+				<left>$PARAM[x]</left>
+				<top>706</top>
+				<width>152</width>
+				<height>198</height>
+				<visible>!String.IsEmpty(Window(home).Property(InfoCast.$PARAM[n].Name))</visible>
+
+				<!-- Focus frame, drawn first so the portrait sits on top of it -->
+				<control type="image">
+					<left>17</left>
+					<top>-4</top>
+					<width>118</width>
+					<height>158</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+					<visible>Control.HasFocus($PARAM[id])</visible>
+				</control>
+
+				<include content="CastPortrait">
+					<param name="prefix" value="InfoCast"/>
+					<param name="n" value="$PARAM[n]"/>
+					<param name="x" value="0"/>
+					<param name="y" value="0"/>
+				</include>
+
+				<control type="button" id="$PARAM[id]">
+					<left>0</left>
+					<top>0</top>
+					<width>152</width>
+					<height>198</height>
+					<disabledcolor>disabled</disabledcolor>
+					<texturefocus />
+					<texturenofocus />
+					<onleft>$PARAM[onleft]</onleft>
+					<onright>$PARAM[onright]</onright>
+					<onup>$PARAM[id]</onup>
+					<ondown>9000</ondown>
+					<onclick>Skin.SetString(cast_run,$PARAM[n])</onclick>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- Eight cast slots in the video info dialog, window-absolute. -->
+	<include name="InfoCastStrip">
+		<definition>
+			<include content="InfoCastSlot"><param name="n" value="1"/><param name="id" value="8001"/><param name="x" value="620"/><param name="onleft" value="8001"/><param name="onright" value="8002"/></include>
+			<include content="InfoCastSlot"><param name="n" value="2"/><param name="id" value="8002"/><param name="x" value="772"/><param name="onleft" value="8001"/><param name="onright" value="8003"/></include>
+			<include content="InfoCastSlot"><param name="n" value="3"/><param name="id" value="8003"/><param name="x" value="924"/><param name="onleft" value="8002"/><param name="onright" value="8004"/></include>
+			<include content="InfoCastSlot"><param name="n" value="4"/><param name="id" value="8004"/><param name="x" value="1076"/><param name="onleft" value="8003"/><param name="onright" value="8005"/></include>
+			<include content="InfoCastSlot"><param name="n" value="5"/><param name="id" value="8005"/><param name="x" value="1228"/><param name="onleft" value="8004"/><param name="onright" value="8006"/></include>
+			<include content="InfoCastSlot"><param name="n" value="6"/><param name="id" value="8006"/><param name="x" value="1380"/><param name="onleft" value="8005"/><param name="onright" value="8007"/></include>
+			<include content="InfoCastSlot"><param name="n" value="7"/><param name="id" value="8007"/><param name="x" value="1532"/><param name="onleft" value="8006"/><param name="onright" value="8008"/></include>
+			<include content="InfoCastSlot"><param name="n" value="8"/><param name="id" value="8008"/><param name="x" value="1684"/><param name="onleft" value="8007"/><param name="onright" value="8008"/></include>
+			<control type="label">
+				<left>620</left>
+				<top>760</top>
+				<width>1220</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>No cast information for this title</label>
+				<!-- Count=="0" means the service finished looking and found
+				     nothing; while the lookup is still running the property
+				     is cleared, so this shows nothing instead of flashing on
+				     every dialog open. -->
+				<visible>String.IsEqual(Window(home).Property(InfoCast.Count),0)</visible>
+			</control>
+		</definition>
+	</include>
+
+	<!-- ===== GENRE PICKER LIST =====
+	     One column of the centred genre overlay in MyVideoNav. Instantiated
+	     twice, once per genres node, because a container's <content> path is
+	     read when the window loads and cannot follow an infolabel; only the
+	     one matching the current content is ever visible.
+
+	     Clicking a genre navigates the library container to that genre node,
+	     which is how Kodi itself filters by genre, so the view, sort and info
+	     bar all carry on as they were. The "All Genres" button below the list
+	     goes back to the plain titles node.
+
+	     id:      this list's control id.
+	     otherid: the sibling list, so Up out of the top of a hidden list
+	              still finds the visible one (Kodi follows navigation
+	              through controls that cannot take focus).
+	     path:    the genres node to populate from.
+	     visible: which content type this column serves. -->
+	<include name="GenrePickerList">
+		<param name="id" />
+		<param name="otherid" />
+		<param name="path" />
+		<param name="visible" />
+		<definition>
+			<control type="list" id="$PARAM[id]">
+				<visible>$PARAM[visible]</visible>
+				<left>610</left>
+				<top>232</top>
+				<width>660</width>
+				<height>630</height>
+				<onleft>$PARAM[id]</onleft>
+				<onright>9503</onright>
+				<onup>$PARAM[otherid]</onup>
+				<ondown>9502</ondown>
+				<!-- Back returns to the side menu's Filter button, whose
+				     onfocus closes this overlay. -->
+				<onback>8004</onback>
+				<pagecontrol>9503</pagecontrol>
+				<scrolltime tween="cubic" easing="out">200</scrolltime>
+				<!-- No label is stored: service.py reads the genre back
+				     off Container.FolderPath, which is the only version of
+				     the truth that survives navigating away and back. -->
+				<onclick>Container.Update($ESCINFO[ListItem.FolderPath])</onclick>
+				<!-- Hand focus back to whichever view is up before the overlay
+				     disappears out from under it (the Close button in the side
+				     menu picks its target the same way). -->
+				<onclick condition="Control.IsVisible(50)">SetFocus(50)</onclick>
+				<onclick condition="!Control.IsVisible(50)">SetFocus(51)</onclick>
+				<onclick>Skin.Reset(genre_menu_open)</onclick>
+				<onclick>Skin.Reset(filter_menu_open)</onclick>
+				<itemlayout height="70" width="660">
+					<control type="label">
+						<left>24</left>
+						<top>0</top>
+						<width>612</width>
+						<height>70</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+				</itemlayout>
+				<focusedlayout height="70" width="660">
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>660</width>
+						<height>70</height>
+						<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+						<visible>Control.HasFocus($PARAM[id])</visible>
+					</control>
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>660</width>
+						<height>70</height>
+						<texture colordiffuse="40FFFFFF">white.png</texture>
+						<visible>!Control.HasFocus($PARAM[id])</visible>
+					</control>
+					<control type="label">
+						<left>24</left>
+						<top>0</top>
+						<width>612</width>
+						<height>70</height>
+						<font>font_reg</font>
+						<textcolor>white</textcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+				</focusedlayout>
+				<!-- The genres node comes back in database order, which looks
+				     random on screen; sort it here rather than expecting the
+				     reader to hunt. -->
+				<content sortby="label" sortorder="ascending">$PARAM[path]</content>
+			</control>
+		</definition>
+	</include>
+
+	<!-- ===== FAST-SCROLL SORT BADGE =====
+	     The accent pill that pops out of the library info bar while a list is
+	     being flicked, showing where in the current sort you are. Two shapes
+	     are instantiated in MyVideoNav: a 150px square for the short values
+	     (sort letter, year, rating) and a wide slab for the date sorts, whose
+	     value is a full formatted date. Position is passed as <top> for both
+	     the top-bar and bottom-bar cases, because an include parameter can
+	     substitute a value but never a tag name.
+	     top:     y position of the pill (bottom-bar case is 1080-122-150).
+	     width:   pill width; the pill is anchored to right=50.
+	     font:    font for the value.
+	     visible: the full visibility condition, including the scroll gate. -->
+	<include name="ScrollSortBadge">
+		<param name="top" />
+		<param name="width" />
+		<param name="font" />
+		<param name="visible" />
+		<definition>
+			<control type="group">
+				<visible>$PARAM[visible]</visible>
+				<animation effect="fade" start="0" end="100" time="100">Visible</animation>
+				<animation effect="fade" start="100" end="0" time="250">Hidden</animation>
+				<control type="image">
+					<right>50</right>
+					<top>$PARAM[top]</top>
+					<width>$PARAM[width]</width>
+					<height>150</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<right>50</right>
+					<top>$PARAM[top]</top>
+					<width>$PARAM[width]</width>
+					<height>150</height>
+					<font>$PARAM[font]</font>
+					<align>center</align>
+					<aligny>center</aligny>
+					<textcolor>white</textcolor>
+					<label>$VAR[ScrollSortBadgeLabel]</label>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+</includes>

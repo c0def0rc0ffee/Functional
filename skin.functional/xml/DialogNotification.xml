@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Toast notification. Compact 640x150 panel. Kodi hardcodes the control ids:
+  400 = icon, 401 = title, 402 = message (GUIDialogKaiToast.cpp). 402 must be
+  a fadelabel: Kodi waits for it to finish scrolling before closing the toast.
+  </summary>
+  <remarks>
+  Position: coordinates/posx/posy cannot take $VAR (Kodi parses them as raw
+  numbers at load), so the window sits at the bottom-right default (1240,890)
+  and the Skin.String(notification_position) choices are applied as
+  conditional slide animations relative to that. 40px margins on a 1920x1080
+  canvas: left=40, centre=(1920-640)/2=640, right=1920-640-40=1240; top=40,
+  bottom=1080-150-40=890. Keep the deltas in sync if the box is resized.
+  </remarks>
+-->
+<window type="dialog">
+	<animation effect="fade" time="200">WindowOpen</animation>
+	<animation effect="fade" time="200">WindowClose</animation>
+	<animation effect="slide" end="-1200,-850" time="0" condition="String.IsEqual(Skin.String(notification_position),tl)">Conditional</animation>
+	<animation effect="slide" end="-600,-850" time="0" condition="String.IsEqual(Skin.String(notification_position),tc)">Conditional</animation>
+	<animation effect="slide" end="0,-850" time="0" condition="String.IsEqual(Skin.String(notification_position),tr)">Conditional</animation>
+	<animation effect="slide" end="-1200,0" time="0" condition="String.IsEqual(Skin.String(notification_position),bl)">Conditional</animation>
+	<animation effect="slide" end="-600,0" time="0" condition="String.IsEqual(Skin.String(notification_position),bc)">Conditional</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>1240</posx>
+		<posy>890</posy>
+	</coordinates>
+	<controls>
+
+		<!-- Panel -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>640</width>
+			<height>150</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+		<!-- Accent strip -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>640</width>
+			<height>4</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+
+		<!-- Icon -->
+		<control type="image" id="400">
+			<left>24</left>
+			<top>40</top>
+			<width>70</width>
+			<height>70</height>
+			<aspectratio>keep</aspectratio>
+		</control>
+
+		<!-- Heading -->
+		<control type="label" id="401">
+			<left>110</left>
+			<top>20</top>
+			<width>506</width>
+			<height>36</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<label></label>
+		</control>
+
+		<!-- Body; fadelabel so Kodi can hold the toast until it has scrolled -->
+		<control type="fadelabel" id="402">
+			<left>110</left>
+			<top>58</top>
+			<width>506</width>
+			<height>40</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<scrollout>false</scrollout>
+			<pauseatend>1500</pauseatend>
+		</control>
+
+	</controls>
+</window>

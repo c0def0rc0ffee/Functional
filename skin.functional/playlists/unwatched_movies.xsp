@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!--
+  <summary>
+  Smart playlist: movies with a play count of zero. Bundled so the skin
+  can offer it without the user creating it.
+  </summary>
+-->
+<smartplaylist type="movies">
+    <name>Unwatched Movies</name>
+    <match>all</match>
+    <rule field="playcount" operator="is">
+        <value>0</value>
+    </rule>
+</smartplaylist>

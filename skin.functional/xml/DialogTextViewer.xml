@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Scrolling text viewer for changelogs and descriptions: heading 1 and
+  Kodi's text box.
+  </summary>
+-->
+<window type="dialog">
+	<defaultcontrol always="true">1000</defaultcontrol>
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>160</posx>
+		<posy>80</posy>
+	</coordinates>
+	<controls>
+
+		<control type="image">
+			<left>-160</left>
+			<top>-80</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="C0000000">white.png</texture>
+		</control>
+
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1600</width>
+			<height>920</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+		</control>
+
+		<control type="label" id="1">
+			<left>0</left>
+			<top>10</top>
+			<width>1600</width>
+			<height>60</height>
+			<font>font_med</font>
+			<align>center</align>
+			<textcolor>text</textcolor>
+			<label></label>
+		</control>
+
+		<control type="textbox" id="5">
+			<left>40</left>
+			<top>80</top>
+			<width>1500</width>
+			<height>800</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<pagecontrol>60</pagecontrol>
+		</control>
+
+		<!-- Scrollbar for textbox 5 (hidden when the text fits on one page) -->
+		<control type="scrollbar" id="60">
+			<left>1564</left>
+			<top>80</top>
+			<width>16</width>
+			<height>800</height>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>1000</onleft>
+			<onright>1000</onright>
+			<onup>60</onup>
+			<ondown>60</ondown>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- Hidden focus holder: a textbox cannot take focus, so this button
+		     receives up/down and pages the textbox via its scrollbar (Estuary's
+		     id-1000 mechanism). -->
+		<control type="button" id="1000">
+			<left>-1000</left>
+			<top>-1000</top>
+			<width>1</width>
+			<height>1</height>
+			<label></label>
+			<disabledcolor>disabled</disabledcolor>
+			<texturefocus>-</texturefocus>
+			<texturenofocus>-</texturenofocus>
+			<onclick>Action(Close)</onclick>
+			<onup>PageUp(60)</onup>
+			<ondown>PageDown(60)</ondown>
+		</control>
+
+	</controls>
+</window>

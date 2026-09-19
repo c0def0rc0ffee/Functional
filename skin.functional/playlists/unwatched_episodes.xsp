@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!--
+  <summary>
+  Smart playlist: episodes with a play count of zero. Bundled so the
+  skin can offer it without the user creating it.
+  </summary>
+-->
+<smartplaylist type="episodes">
+    <name>Unwatched Episodes</name>
+    <match>all</match>
+    <rule field="playcount" operator="is">
+        <value>0</value>
+    </rule>
+</smartplaylist>

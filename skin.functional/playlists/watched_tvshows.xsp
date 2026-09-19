@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!--
+  <summary>
+  Smart playlist: TV shows with at least one watched episode. Bundled so
+  the skin can offer it without the user creating it.
+  </summary>
+-->
+<smartplaylist type="tvshows">
+    <name>Watched TV shows</name>
+    <match>all</match>
+    <rule field="numwatched" operator="greaterthan">
+        <value>0</value>
+    </rule>
+</smartplaylist>

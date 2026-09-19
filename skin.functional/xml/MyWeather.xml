@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Weather window. Kodi's own handling here is limited to control ids 2
+  (refresh) and 3 (location); 10000/20000/20001 are skin-private ids (Estuary
+  uses the same numbers as anchors) and do nothing on their own, so every
+  button carries an explicit builtin: Weather.LocationNext, Weather.Refresh,
+  ActivateWindow(servicesettings,weather).
+  Reads from $INFO[Window(Weather).Property(...)] and $INFO[Weather.*].
+  </summary>
+-->
+<window>
+	<defaultcontrol always="true">10000</defaultcontrol>
+	<controls>
+
+		<include content="WindowBackground"/>
+		<include content="HeaderBar">
+			<param name="title" value="     Weather"/>
+		</include>
+
+		<!-- Logo in header -->
+		<control type="image">
+			<left>20</left>
+			<top>5</top>
+			<width>80</width>
+			<height>80</height>
+			<aspectratio>keep</aspectratio>
+			<texture>logo.png</texture>
+		</control>
+
+		<!-- ===== TOP ACTION BAR =====
+		     Centred in the header: right-aligned it sat on top of the
+		     HeaderBar clock (both draw in the x 1220-1880 band). -->
+		<control type="grouplist">
+			<left>510</left>
+			<top>15</top>
+			<width>900</width>
+			<height>60</height>
+			<itemgap>10</itemgap>
+			<orientation>horizontal</orientation>
+			<align>center</align>
+			<ondown>10000</ondown>
+
+			<!-- Location cycler: steps through the configured locations. -->
+			<control type="button" id="10000">
+				<width>360</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$VAR[WeatherLocationLabel]</label>
+				<onclick>Weather.LocationNext</onclick>
+			</control>
+
+			<!-- Refresh -->
+			<control type="button" id="20000">
+				<width>140</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Refresh</label>
+				<onclick>Weather.Refresh</onclick>
+			</control>
+
+			<!-- Provider settings -->
+			<control type="button" id="20001">
+				<width>140</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>Settings</label>
+				<onclick>ActivateWindow(servicesettings,weather)</onclick>
+			</control>
+		</control>
+
+		<!-- ===== "Not configured" placeholder ===== -->
+		<control type="group">
+			<visible>!Weather.IsFetched</visible>
+			<control type="label">
+				<centerleft>50%</centerleft>
+				<top>460</top>
+				<width>1200</width>
+				<height>50</height>
+				<font>font_med</font>
+				<align>center</align>
+				<textcolor>text_dim</textcolor>
+				<label>No weather data yet, pick a location, or configure your provider via Settings.</label>
+			</control>
+		</control>
+
+		<!-- ===== CURRENT CONDITIONS (compact, top of body) ===== -->
+		<control type="group">
+			<visible>Weather.IsFetched</visible>
+
+			<!-- Outlook icon -->
+			<control type="image">
+				<left>60</left>
+				<top>110</top>
+				<width>220</width>
+				<height>220</height>
+				<aspectratio>keep</aspectratio>
+				<texture>$INFO[Window(Weather).Property(Current.OutlookIcon)]</texture>
+			</control>
+
+			<!-- Temperature -->
+			<control type="label">
+				<left>320</left>
+				<top>110</top>
+				<width>1500</width>
+				<height>130</height>
+				<font>font_huge</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>$INFO[Window(Weather).Property(Current.Temperature)]$INFO[System.TemperatureUnits]</label>
+			</control>
+
+			<!-- Condition text -->
+			<control type="label">
+				<left>320</left>
+				<top>240</top>
+				<width>1500</width>
+				<height>50</height>
+				<font>font_big</font>
+				<textcolor>text</textcolor>
+				<label>$INFO[Window(Weather).Property(Current.Condition)]</label>
+			</control>
+
+			<!-- Feels-like + humidity + wind + UV (one compact line) -->
+			<control type="label">
+				<left>320</left>
+				<top>295</top>
+				<width>1500</width>
+				<height>40</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<label>Feels $INFO[Window(Weather).Property(Current.FeelsLike)]$INFO[System.TemperatureUnits]   ·   Humidity $INFO[Window(Weather).Property(Current.Humidity)]   ·   Wind $INFO[Window(Weather).Property(Current.Wind)]   ·   UV $INFO[Window(Weather).Property(Current.UVIndex)]</label>
+			</control>
+
+			<!-- ===== HOURLY (next 8 hours) =====
+			     Hidden entirely for providers without hourly support, so the
+			     header never sits over eight permanently blank tiles. -->
+			<control type="group">
+				<visible>!String.IsEmpty(Window(Weather).Property(Hourly.IsFetched))</visible>
+			<control type="image">
+				<left>40</left>
+				<top>360</top>
+				<width>1840</width>
+				<height>2</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+			<control type="label">
+				<left>40</left>
+				<top>375</top>
+				<width>1840</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>NEXT 8 HOURS</label>
+			</control>
+
+			<control type="grouplist">
+				<left>40</left>
+				<top>410</top>
+				<width>1840</width>
+				<height>160</height>
+				<itemgap>10</itemgap>
+				<orientation>horizontal</orientation>
+				<align>center</align>
+
+				<include content="ForecastHour"><param name="n" value="1"/></include>
+				<include content="ForecastHour"><param name="n" value="2"/></include>
+				<include content="ForecastHour"><param name="n" value="3"/></include>
+				<include content="ForecastHour"><param name="n" value="4"/></include>
+				<include content="ForecastHour"><param name="n" value="5"/></include>
+				<include content="ForecastHour"><param name="n" value="6"/></include>
+				<include content="ForecastHour"><param name="n" value="7"/></include>
+				<include content="ForecastHour"><param name="n" value="8"/></include>
+			</control>
+			</control>
+
+			<!-- ===== 5-DAY FORECAST (bottom) ===== -->
+			<control type="image">
+				<left>40</left>
+				<top>600</top>
+				<width>1840</width>
+				<height>2</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+			<control type="label">
+				<left>40</left>
+				<top>615</top>
+				<width>1840</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>5-DAY FORECAST</label>
+			</control>
+
+			<control type="grouplist">
+				<left>40</left>
+				<top>650</top>
+				<width>1840</width>
+				<height>320</height>
+				<itemgap>20</itemgap>
+				<orientation>horizontal</orientation>
+				<align>center</align>
+
+				<include content="ForecastDay"><param name="n" value="1"/></include>
+				<include content="ForecastDay"><param name="n" value="2"/></include>
+				<include content="ForecastDay"><param name="n" value="3"/></include>
+				<include content="ForecastDay"><param name="n" value="4"/></include>
+				<include content="ForecastDay"><param name="n" value="5"/></include>
+			</control>
+
+		</control>
+
+	</controls>
+</window>

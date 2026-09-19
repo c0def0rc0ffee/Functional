@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Mouse pointer: a 32 px image control 2 with no texture, so no cursor
+  is drawn.
+  </summary>
+-->
+<window>
+	<controls>
+		<control type="image" id="2">
+			<width>32</width>
+			<height>32</height>
+			<texture>-</texture>
+		</control>
+	</controls>
+</window>

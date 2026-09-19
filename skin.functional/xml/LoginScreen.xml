@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Profile login screen: list 52 of profiles over the standard window
+  background.
+  </summary>
+-->
+<window>
+	<defaultcontrol always="true">52</defaultcontrol>
+	<controls>
+		<include content="WindowBackground"/>
+		<control type="label">
+			<left>0</left>
+			<top>200</top>
+			<width>1920</width>
+			<height>120</height>
+			<font>font_huge</font>
+			<align>center</align>
+			<textcolor>text</textcolor>
+			<label>Select Profile</label>
+		</control>
+		<control type="list" id="52">
+			<left>460</left>
+			<top>360</top>
+			<width>1000</width>
+			<height>560</height>
+			<onup>20</onup>
+			<ondown>20</ondown>
+			<itemlayout height="80" width="1000">
+				<control type="label">
+					<left>40</left>
+					<top>0</top>
+					<width>920</width>
+					<height>80</height>
+					<font>font_med</font>
+					<textcolor>text</textcolor>
+					<selectedcolor>accent_hi</selectedcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="80" width="1000">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1000</width>
+					<height>80</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>40</left>
+					<top>0</top>
+					<width>920</width>
+					<height>80</height>
+					<font>font_med</font>
+					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</focusedlayout>
+		</control>
+
+		<!-- Power: there is no other on-screen way to shut down before a
+		     profile has been chosen (Estuary has the same button, id 20). -->
+		<control type="button" id="20">
+			<left>460</left>
+			<top>960</top>
+			<width>1000</width>
+			<height>60</height>
+			<font>font_reg</font>
+			<textcolor>text_dim</textcolor>
+			<disabledcolor>disabled</disabledcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<label>$LOCALIZE[13016]</label>
+			<onclick>ActivateWindow(ShutdownMenu)</onclick>
+			<onup>52</onup>
+			<ondown>52</ondown>
+		</control>
+	</controls>
+</window>

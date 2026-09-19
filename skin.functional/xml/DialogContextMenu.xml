@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Context menu. Kodi's own button list sits in the grouplist; the Lists
+  rows (950 and 951) above it are skin owned entries for adding the item
+  to a named list, and take first focus whenever they are visible.
+  </summary>
+-->
+<window type="dialog">
+	<defaultcontrol always="true">996</defaultcontrol>
+	<!-- Lists rows (950 / 951) sit above Kodi's grouplist and take first
+	     focus when showing. Visibility has already been evaluated by the
+	     time onload runs. When neither shows (the Lists screen's own item
+	     menu, say) Kodi's stock focus on the grouplist stands. -->
+	<onload condition="Control.IsVisible(951) + !Control.IsVisible(950)">SetFocus(951)</onload>
+	<onload condition="Control.IsVisible(950)">SetFocus(950)</onload>
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<!-- Origin MUST stay at 0,0. Kodi repositions this window itself, centred
+	     on the focused container, and it adds that offset to whatever origin
+	     is declared here: a posx/posy of 660,140 pushed the menu off the
+	     bottom-right corner where half of it was unreachable. Estuary anchors
+	     at 0,0 for the same reason. -->
+	<coordinates>
+		<left>0</left>
+		<top>0</top>
+	</coordinates>
+	<controls>
+
+		<!-- Dim full-screen backdrop. Kodi repositions this whole window next to
+		     the focused item, so these layers are oversized (Estuary-style) to
+		     still cover the screen wherever the window ends up. -->
+		<control type="image">
+			<left>-1920</left>
+			<top>-1080</top>
+			<width>5760</width>
+			<height>3240</height>
+			<texture colordiffuse="C0000000">white.png</texture>
+		</control>
+
+		<!-- Click-outside-to-close hit-target -->
+		<control type="button">
+			<left>-1920</left>
+			<top>-1080</top>
+			<width>5760</width>
+			<height>3240</height>
+			<texturefocus>-</texturefocus>
+			<texturenofocus>-</texturenofocus>
+			<label></label>
+			<disabledcolor>disabled</disabledcolor>
+			<onclick>Action(close)</onclick>
+		</control>
+
+		<!-- Panel + accent + heading -->
+		<control type="group">
+			<left>0</left>
+			<top>0</top>
+
+			<!-- "Left Edge" placement (Media Selection > Context Menu). Kodi
+			     centres this 600-wide window on the focused container, so on a
+			     full-width library list it lands at x=660; sliding back 620
+			     parks the panel 40px off the left edge. Estuary nudges its own
+			     context menu the same way. Vertical placement is left to Kodi. -->
+			<animation effect="slide" end="-620,0" time="0"
+			           condition="String.IsEqual(Skin.String(context_menu_pos),left)">Conditional</animation>
+
+			<!-- Panel background (auto-grows with grouplist via separate height) -->
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>600</width>
+				<height>110</height>
+				<texture colordiffuse="bg_panel">white.png</texture>
+			</control>
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>600</width>
+				<height>4</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+			<control type="label">
+				<left>30</left>
+				<top>20</top>
+				<width>540</width>
+				<height>40</height>
+				<font>font_med</font>
+				<textcolor>accent_hi</textcolor>
+				<aligny>center</aligny>
+				<label>Actions</label>
+			</control>
+			<control type="label">
+				<left>30</left>
+				<top>62</top>
+				<width>540</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<scroll>true</scroll>
+				<label>$INFO[ListItem.Label]</label>
+			</control>
+
+			<!-- Lists (skin feature): "Add to list <last>" and "Add To List",
+			     ahead of Kodi's own entries. Each row that shows pushes the
+			     grouplist and its backdrop down a slot (the two slides
+			     stack). See the ListsContextButton include for why these
+			     are not children of grouplist 996. -->
+			<include content="ListsContextButton">
+				<param name="id" value="950" />
+				<param name="top" value="110" />
+				<param name="label" value="Add to list $INFO[Skin.String(lists_last)]" />
+				<param name="command" value="add_last" />
+				<param name="visible" value="!String.IsEmpty(Skin.String(lists_last))" />
+				<param name="onup" value="950" />
+				<param name="ondown" value="951" />
+			</include>
+			<include content="ListsContextButton">
+				<param name="id" value="951" />
+				<param name="top" value="110" />
+				<param name="label" value="Add To List" />
+				<param name="command" value="add_pick" />
+				<param name="onup" value="950" />
+				<param name="ondown" value="996" />
+				<param name="shift" value="Control.IsVisible(950)" />
+			</include>
+
+			<!-- Backdrop strip behind the menu list. Kodi resizes id 999
+			     (BACKGROUND_IMAGE) to the populated button count itself. -->
+			<control type="image" id="999">
+				<left>0</left>
+				<top>110</top>
+				<width>600</width>
+				<height>780</height>
+				<texture colordiffuse="bg_panel">white.png</texture>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(951)">Conditional</animation>
+			</control>
+
+			<!-- The actual menu items grouplist (Kodi clones button id=1000 into here) -->
+			<control type="grouplist" id="996">
+				<left>0</left>
+				<top>110</top>
+				<width>600</width>
+				<!-- 660, not 780: Kodi sizes and places this dialog from the
+				     grouplist's height and knows nothing of the two Lists rows
+				     above it, so the old maximum could push a long menu's last
+				     rows off the bottom of the screen. Eleven rows still show
+				     before it scrolls. -->
+				<height max="660">auto</height>
+				<usecontrolcoords>true</usecontrolcoords>
+				<orientation>vertical</orientation>
+				<itemgap>0</itemgap>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(951)">Conditional</animation>
+				<onleft>996</onleft>
+				<onright>996</onright>
+				<!-- Plain, not conditional: a condition on a grouplist's onup is
+				     copied onto its first child and then evaluated against the
+				     underlying window, where 951 does not exist, so it read
+				     false and the menu wrapped to the bottom instead. When the
+				     Lists rows are hidden Kodi follows 951's own onup, reaches
+				     950 pointing at itself and stops, so Up at the top of the
+				     menu simply holds. -->
+				<onup>951</onup>
+			</control>
+
+		</control>
+
+		<!-- Button template: Kodi clones one of these per menu action -->
+		<control type="button" id="1000">
+			<left>0</left>
+			<top>0</top>
+			<width>600</width>
+			<height>60</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>left</align>
+			<aligny>center</aligny>
+			<textoffsetx>30</textoffsetx>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus>-</texturenofocus>
+		</control>
+
+	</controls>
+</window>
