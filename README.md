@@ -1,6 +1,6 @@
 # Functional
 
-A clean, opinionated Kodi skin built for clarity. No bloat, no clutter, just your library, front and centre.
+A clean Kodi skin built for clarity, with every part of it configurable from the skin settings. No bloat, no clutter, just your library, front and centre.
 
 ## Screenshots
 
@@ -66,7 +66,10 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 
 - **View**: Gallery or List
 - **Sort**: Title, Year, Rating, Date Added, Last Played, with an ascending/descending direction toggle
+- **Default sort order**: a default sort and direction for Movies and for TV Shows, set once under Media Selection and applied whenever a library screen opens
+- **Scroll badge**: while you scroll, a badge shows the sort key of the item under the cursor (year, rating, date added, last played, or the initial letter), so you always know where you are in a long list
 - **Filter**: the native watched-status toggle (All Videos / Unwatched / Watched), which filters shows, seasons and episodes correctly and updates the menu label to match
+- **Genre**: a genre picker narrows the library to one genre, with an All Genres reset; the menu label always shows the genre actually in force on screen
 - Quick access to your queue
 - Layout adjust controls (gallery size, info-bar position, poster shape, clearance) right in the menu
 
@@ -80,6 +83,7 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 - Optional poster thumbnail
 - Nine transport buttons: previous, rewind, play/pause, stop, fast forward, next, audio settings, subtitle search, video settings
 - Positionable top or bottom; configurable backdrop dim while the video-settings dialog is open
+- **Playback buffer readout**: an optional buffer level on the OSD and the pause/seek bar (cache percentage, megabytes and seconds ahead), and an optional **Full Buffer** button that switches the current film to buffering the entire file and back again, reopening the stream at the same position. A reset restores Kodi's own buffering defaults (Video OSD > Playback Buffer)
 
 ### Weather
 
@@ -121,17 +125,21 @@ A lightweight Python service handles what the skin engine can't do alone, with a
 - **Library stats**: movie/TV/episode counts (total/watched/unwatched), refreshed on a background thread and whenever the library changes
 - **Focused item ETA**: provides the "Ends at" finish time shown in the info bar
 - **Background slideshow**: fetches recently-watched or random library fanart and rotates it on your chosen interval; the folder mode is rendered natively by Kodi
+- **Library state**: applies your default sort order and keeps the Genre label in step with the library node on screen
+- **Buffer readout and full-file switch**: publishes the OSD's buffer figures and reopens the stream when you switch the current film to a full buffer
+- **Lists**: runs the Add To List, port and queue actions behind the Lists screen
+- **Settings backup**: watches the skin's settings file and keeps a rolling snapshot current, for Restore from Backup
 - **Optional debug logging** to a file (Settings → Overall → Diagnostics) for troubleshooting
 
 ### Customisation
 
 All settings live in **Settings > Skin Settings**, organised into five categories:
 
-- **Overall**: accent colour (Blue, Red, Green, Orange, Amber, Purple, Teal, Pink), notification position (6 placements), and Diagnostics (debug logging + log folder)
+- **Overall**: accent colour (Blue, Red, Green, Orange, Amber, Purple, Teal, Pink), notification position (6 placements), Diagnostics (debug logging + log folder), and Skin Settings Backup (Back Up Now and Restore from Backup, with the age of the snapshot shown)
 - **Background**: the unified background mode, image/folder picker, dim, slideshow interval, caption position, the time-of-day schedule, and whether the background (or live video) shows on every screen
 - **Home Screen**: show/hide each menu item (incl. Weather and Lists), stats panels, Favourites/Add-ons/Power buttons, logo, footer, date/time, loading splash; main menu position; invisible round buttons; weather widget; default Favourites filter
-- **Media Selection**: gallery thumbnail size, small-grid column count, poster shape, info bar position, context menu position (centre or left edge), and toggles for every metadata field
-- **Video OSD**: OSD position, OSD thumbnail, and the video dim level
+- **Media Selection**: gallery thumbnail size, small-grid column count, poster shape, info bar position, context menu position (centre or left edge), default sort order and direction for Movies and TV Shows, what porting a list does to the current queue, and toggles for every metadata field
+- **Video OSD**: OSD position, OSD thumbnail, the video dim level, and the Playback Buffer section (buffer level on the OSD, the Full Buffer button, reset to Kodi defaults)
 
 Toggle settings show an accent **dot** when on. Most changes apply immediately; a few service-backed ones take effect on the next launch.
 
@@ -145,6 +153,6 @@ On a headless / remote-only Linux box, the scripts in [`mint-autoupdate/`](mint-
 
 For manual-copy installs, per-device paths, and migrating from the old `skin.starter` ID, see [INSTALL.md](INSTALL.md).
 
-## License
+## Licence
 
 [GPL-2.0-or-later](https://www.gnu.org/licenses/gpl-2.0.html)
