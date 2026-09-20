@@ -267,15 +267,13 @@
 			<itemgap>20</itemgap>
 			<orientation>horizontal</orientation>
 			<align>center</align>
-			<!-- The Continue Watching tab (9210 to 9213) sits at one screen
-			     edge chosen in Skin Settings, so the matching direction reaches
-			     it. Kodi takes the first condition that holds: the tab entries
-			     come first and the old targets stay as the fallback. -->
+			<!-- The Continue Watching tab (9210 bottom, 9211 top) sits on the
+			     edge chosen in Skin Settings; Up reaches the top one. Kodi takes
+			     the first condition that holds, so the tab entry comes first and
+			     the old target stays as the fallback. -->
 			<onup condition="Control.IsVisible(9211)">9211</onup>
 			<onup condition="Control.IsVisible(9006)">9006</onup>
 			<ondown>9100</ondown>
-			<onleft condition="Control.IsVisible(9212)">9212</onleft>
-			<onright condition="Control.IsVisible(9213)">9213</onright>
 
 			<control type="button" id="9001">
 				<visible>!Skin.HasSetting(hide_movies)</visible>
@@ -387,10 +385,10 @@
 		<control type="grouplist" id="9100">
 			<right>40</right>
 			<bottom>40</bottom>
-			<!-- Must hold Back-to (520) + Queue (140) + four 70px icons + gaps
-			     = 990px: when a grouplist overflows, Kodi drops the right
+			<!-- Must hold Back-to (520) + Queue (140) + five 70px icons + gaps
+			     = 1070px: when a grouplist overflows, Kodi drops the right
 			     alignment and scrolls, clipping the Power icon off-screen. -->
-			<width>1000</width>
+			<width>1080</width>
 			<height>70</height>
 			<itemgap>10</itemgap>
 			<orientation>horizontal</orientation>
@@ -438,13 +436,26 @@
 				<animation effect="fade" time="200">VisibleChange</animation>
 			</control>
 
-			<!-- Round icon buttons (Add-ons / Settings / Power).
+			<!-- Round icon buttons (Lists / Favourites / Add-ons / Settings / Power).
 			     Each icon PNG is a single texture combining a semi-transparent
 			     disc with an opaque glyph, so a colordiffuse renders the disc
 			     at half strength and the glyph at full, readable contrast on
 			     both focused (accent) and unfocused (bg_panel) buttons. Plain
 			     <button> so the parent grouplist's left/right arrow nav reaches
 			     them. -->
+
+			<!-- Lists, as a corner icon. Off by default and independent of the
+			     Lists entry in the main menu (hide_lists), so either, both or
+			     neither can show. -->
+			<control type="button" id="9105">
+				<visible>Skin.HasSetting(show_lists_icon)</visible>
+				<width>70</width>
+				<height>70</height>
+				<disabledcolor>disabled</disabledcolor>
+				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_lists.png</texturefocus>
+				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_lists.png</texturenofocus>
+				<onclick>ActivateWindow(1151)</onclick>
+			</control>
 
 			<control type="button" id="9104">
 				<visible>!Skin.HasSetting(hide_favourites)</visible>
@@ -505,9 +516,9 @@
 		     left or right. The tab toggles Skin.HasSetting(continue_open) and
 		     hands focus to the panel's first list; Back, or moving out of a
 		     list, closes the panel again, and the window's onload resets it
-		     so Home never reopens with the panel up. Top and bottom show two
-		     horizontal rows side by side (9201 movies, 9203 episodes), left
-		     and right two vertical columns stacked (9202, 9204).
+		     so Home never reopens with the panel up. The panel is a band
+		     holding two horizontal rows side by side (9201 movies, 9203
+		     episodes), above a bottom tab or below a top one.
 
 		     The lists are live library containers fed by the skin's
 		     continue_movies.xsp and continue_episodes.xsp (a "mixed" smart
@@ -520,11 +531,10 @@
 		     DialogContextMenu swaps in the skin's own Resume / Mark as
 		     watched / Mark as unwatched rows while Window(home).Property(
 		     continue_focus) says one of these lists has focus (published by
-		     service.py:update_continue_watching). The closed panel and the
-		     layout not in use both sit off screen rather than hidden, so
-		     their lists are already filled when the tab is clicked and the
-		     click can focus one. hide_continue (Home Screen) removes tab and
-		     panel together. Drawn after the menu, stats and icons so it sits
+		     service.py:update_continue_watching). The closed panel sits off
+		     screen rather than hidden, so its lists are already filled when
+		     the tab is clicked and the click can focus one. hide_continue
+		     (Home Screen) removes tab and panel together. Drawn after the menu, stats and icons so it sits
 		     over them. -->
 		<control type="group" id="9200">
 			<visible allowhiddenfocus="true">!Skin.HasSetting(hide_continue)</visible>
@@ -536,13 +546,8 @@
 			<animation effect="slide" end="0,3000" time="0" condition="!Skin.HasSetting(continue_open)">Conditional</animation>
 			<animation effect="fade" time="200">VisibleChange</animation>
 
-			<!-- Horizontal band: above the bottom tab, or below the top one.
-			     The layout not in use is parked off screen rather than hidden:
-			     Kodi only fills a container it processes, and a hidden group is
-			     not processed, so a hidden pair of lists was still empty at the
-			     click that first revealed it and could not take focus. -->
+			<!-- The band: above the bottom tab, or slid up below the top one -->
 			<control type="group">
-				<animation effect="slide" end="0,-3000" time="0" condition="String.IsEqual(Skin.String(continue_tab),left) | String.IsEqual(Skin.String(continue_tab),right)">Conditional</animation>
 				<animation effect="slide" end="0,-640" time="0" condition="String.IsEqual(Skin.String(continue_tab),top)">Conditional</animation>
 				<control type="image">
 					<left>0</left>
@@ -823,300 +828,15 @@
 					<content target="videos" limit="12">special://skin/playlists/continue_episodes.xsp</content>
 				</control>
 			</control>
-
-			<!-- Vertical column: beside the left tab, or the right one. Parked
-			     off screen while a horizontal position is chosen, see above. -->
-			<control type="group">
-				<animation effect="slide" end="-3000,0" time="0" condition="!String.IsEqual(Skin.String(continue_tab),left) + !String.IsEqual(Skin.String(continue_tab),right)">Conditional</animation>
-				<animation effect="slide" end="1288,0" time="0" condition="String.IsEqual(Skin.String(continue_tab),right)">Conditional</animation>
-				<control type="image">
-					<left>36</left>
-					<top>0</top>
-					<width>560</width>
-					<height>1080</height>
-					<texture colordiffuse="F4181C22">white.png</texture>
-				</control>
-				<control type="label">
-					<left>66</left>
-					<top>40</top>
-					<width>500</width>
-					<height>34</height>
-					<font>font_med</font>
-					<textcolor>$VAR[AccentColor]</textcolor>
-					<label>31385</label>
-				</control>
-				<control type="label">
-					<left>66</left>
-					<top>84</top>
-					<width>500</width>
-					<height>24</height>
-					<font>font_small</font>
-					<textcolor>text_dim</textcolor>
-					<label>31087</label>
-				</control>
-
-				<control type="list" id="9202">
-					<visible allowhiddenfocus="true">true</visible>
-					<left>66</left>
-					<top>112</top>
-					<width>520</width>
-					<height>480</height>
-					<orientation>vertical</orientation>
-					<onleft>Skin.Reset(continue_open)</onleft>
-					<onleft condition="String.IsEqual(Skin.String(continue_tab),left)">9212</onleft>
-					<onleft condition="String.IsEqual(Skin.String(continue_tab),right)">9000</onleft>
-					<onright>Skin.Reset(continue_open)</onright>
-					<onright condition="String.IsEqual(Skin.String(continue_tab),right)">9213</onright>
-					<onright condition="String.IsEqual(Skin.String(continue_tab),left)">9000</onright>
-					<onback>Skin.Reset(continue_open)</onback>
-					<onback condition="String.IsEqual(Skin.String(continue_tab),left)">9212</onback>
-					<onback condition="String.IsEqual(Skin.String(continue_tab),right)">9213</onback>
-					<onup>9202</onup>
-					<ondown>9204</ondown>
-					<scrolltime tween="cubic" easing="out">200</scrolltime>
-
-					<itemlayout height="160" width="520">
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>100</width>
-							<height>150</height>
-							<texture colordiffuse="grey_mid">white.png</texture>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>100</width>
-							<height>150</height>
-							<aspectratio>scale</aspectratio>
-							<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
-						</control>
-						<control type="progress">
-							<left>0</left>
-							<top>144</top>
-							<width>100</width>
-							<height>6</height>
-							<info>ListItem.PercentPlayed</info>
-							<texturebg colordiffuse="80000000">white.png</texturebg>
-							<midtexture colordiffuse="accent_hi">white.png</midtexture>
-							<overlaytexture>-</overlaytexture>
-						</control>
-						<control type="label">
-							<left>116</left>
-							<top>40</top>
-							<width>400</width>
-							<height>30</height>
-							<font>font_reg</font>
-							<textcolor>text</textcolor>
-							<label>$INFO[ListItem.Label]</label>
-						</control>
-						<control type="label">
-							<left>116</left>
-							<top>76</top>
-							<width>400</width>
-							<height>26</height>
-							<font>font_small</font>
-							<textcolor>text_dim</textcolor>
-							<label>$INFO[ListItem.Year]</label>
-						</control>
-					</itemlayout>
-
-					<focusedlayout height="160" width="520">
-						<control type="image">
-							<left>-4</left>
-							<top>-4</top>
-							<width>108</width>
-							<height>158</height>
-							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
-							<visible>Control.HasFocus(9202)</visible>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>100</width>
-							<height>150</height>
-							<texture colordiffuse="grey_mid">white.png</texture>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>100</width>
-							<height>150</height>
-							<aspectratio>scale</aspectratio>
-							<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
-						</control>
-						<control type="progress">
-							<left>0</left>
-							<top>144</top>
-							<width>100</width>
-							<height>6</height>
-							<info>ListItem.PercentPlayed</info>
-							<texturebg colordiffuse="80000000">white.png</texturebg>
-							<midtexture colordiffuse="accent_hi">white.png</midtexture>
-							<overlaytexture>-</overlaytexture>
-						</control>
-						<control type="label">
-							<left>116</left>
-							<top>40</top>
-							<width>400</width>
-							<height>30</height>
-							<font>font_reg</font>
-							<textcolor>white</textcolor>
-							<label>$INFO[ListItem.Label]</label>
-						</control>
-						<control type="label">
-							<left>116</left>
-							<top>76</top>
-							<width>400</width>
-							<height>26</height>
-							<font>font_small</font>
-							<textcolor>text</textcolor>
-							<label>$INFO[ListItem.Year]</label>
-						</control>
-					</focusedlayout>
-					<content target="videos" limit="12">special://skin/playlists/continue_movies.xsp</content>
-				</control>
-
-				<control type="label">
-					<left>66</left>
-					<top>604</top>
-					<width>500</width>
-					<height>24</height>
-					<font>font_small</font>
-					<textcolor>text_dim</textcolor>
-					<label>31392</label>
-				</control>
-
-				<control type="list" id="9204">
-					<visible allowhiddenfocus="true">true</visible>
-					<left>66</left>
-					<top>632</top>
-					<width>520</width>
-					<height>320</height>
-					<orientation>vertical</orientation>
-					<onleft>Skin.Reset(continue_open)</onleft>
-					<onleft condition="String.IsEqual(Skin.String(continue_tab),left)">9212</onleft>
-					<onleft condition="String.IsEqual(Skin.String(continue_tab),right)">9000</onleft>
-					<onright>Skin.Reset(continue_open)</onright>
-					<onright condition="String.IsEqual(Skin.String(continue_tab),right)">9213</onright>
-					<onright condition="String.IsEqual(Skin.String(continue_tab),left)">9000</onright>
-					<onback>Skin.Reset(continue_open)</onback>
-					<onback condition="String.IsEqual(Skin.String(continue_tab),left)">9212</onback>
-					<onback condition="String.IsEqual(Skin.String(continue_tab),right)">9213</onback>
-					<onup>9202</onup>
-					<ondown>9204</ondown>
-					<scrolltime tween="cubic" easing="out">200</scrolltime>
-
-					<itemlayout height="160" width="520">
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>100</width>
-							<height>150</height>
-							<texture colordiffuse="grey_mid">white.png</texture>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>100</width>
-							<height>150</height>
-							<aspectratio>scale</aspectratio>
-							<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
-						</control>
-						<control type="progress">
-							<left>0</left>
-							<top>144</top>
-							<width>100</width>
-							<height>6</height>
-							<info>ListItem.PercentPlayed</info>
-							<texturebg colordiffuse="80000000">white.png</texturebg>
-							<midtexture colordiffuse="accent_hi">white.png</midtexture>
-							<overlaytexture>-</overlaytexture>
-						</control>
-						<control type="label">
-							<left>116</left>
-							<top>40</top>
-							<width>400</width>
-							<height>30</height>
-							<font>font_reg</font>
-							<textcolor>text</textcolor>
-							<label>$INFO[ListItem.Label]</label>
-						</control>
-						<control type="label">
-							<left>116</left>
-							<top>76</top>
-							<width>400</width>
-							<height>26</height>
-							<font>font_small</font>
-							<textcolor>text_dim</textcolor>
-							<label>$INFO[ListItem.TVShowTitle] $INFO[ListItem.Season,S]$INFO[ListItem.Episode,E]</label>
-						</control>
-					</itemlayout>
-
-					<focusedlayout height="160" width="520">
-						<control type="image">
-							<left>-4</left>
-							<top>-4</top>
-							<width>108</width>
-							<height>158</height>
-							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
-							<visible>Control.HasFocus(9204)</visible>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>100</width>
-							<height>150</height>
-							<texture colordiffuse="grey_mid">white.png</texture>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>100</width>
-							<height>150</height>
-							<aspectratio>scale</aspectratio>
-							<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
-						</control>
-						<control type="progress">
-							<left>0</left>
-							<top>144</top>
-							<width>100</width>
-							<height>6</height>
-							<info>ListItem.PercentPlayed</info>
-							<texturebg colordiffuse="80000000">white.png</texturebg>
-							<midtexture colordiffuse="accent_hi">white.png</midtexture>
-							<overlaytexture>-</overlaytexture>
-						</control>
-						<control type="label">
-							<left>116</left>
-							<top>40</top>
-							<width>400</width>
-							<height>30</height>
-							<font>font_reg</font>
-							<textcolor>white</textcolor>
-							<label>$INFO[ListItem.Label]</label>
-						</control>
-						<control type="label">
-							<left>116</left>
-							<top>76</top>
-							<width>400</width>
-							<height>26</height>
-							<font>font_small</font>
-							<textcolor>text</textcolor>
-							<label>$INFO[ListItem.TVShowTitle] $INFO[ListItem.Season,S]$INFO[ListItem.Episode,E]</label>
-						</control>
-					</focusedlayout>
-					<content target="videos" limit="12">special://skin/playlists/continue_episodes.xsp</content>
-				</control>
-			</control>
 		</control>
 
 		<!-- The Continue Watching tab, one button per edge so the nav
-		     conditions elsewhere can name the visible one. Left and right
-		     are the bottom tab turned on its centre. -->
+		     conditions elsewhere can name the visible one. -->
 		<!-- Bottom edge, the default -->
 		<control type="button" id="9210">
-			<visible>$EXP[continue_tab_shown] + [String.IsEmpty(Skin.String(continue_tab)) | String.IsEqual(Skin.String(continue_tab),bottom)]</visible>
+			<!-- Anything but "top" is bottom, so a left or right value saved by
+			     0.11.1 still shows a tab. -->
+			<visible>$EXP[continue_tab_shown] + !String.IsEqual(Skin.String(continue_tab),top)</visible>
 			<animation effect="fade" time="200">VisibleChange</animation>
 			<left>810</left>
 			<top>1044</top>
@@ -1164,60 +884,6 @@
 			<onclick condition="!Skin.HasSetting(continue_open)">SetFocus(9201)</onclick>
 			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
 			<ondown>9000</ondown>
-		</control>
-
-		<!-- Left edge -->
-		<control type="button" id="9212">
-			<visible>$EXP[continue_tab_shown] + [String.IsEqual(Skin.String(continue_tab),left)]</visible>
-			<animation effect="fade" time="200">VisibleChange</animation>
-			<animation effect="rotate" end="-90" center="auto" time="0" condition="true">Conditional</animation>
-			<left>-132</left>
-			<top>522</top>
-			<width>300</width>
-			<height>36</height>
-			<font>font_small</font>
-			<textcolor>text</textcolor>
-			<focusedcolor>white</focusedcolor>
-			<disabledcolor>disabled</disabledcolor>
-			<align>center</align>
-			<aligny>center</aligny>
-			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-			<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
-			<label>31385</label>
-			<!-- Both onclicks see the state before the toggle (Kodi snapshots
-			     the conditions at click time), so the focus hop only fires on
-			     the click that opens the panel. -->
-			<onclick>Skin.ToggleSetting(continue_open)</onclick>
-			<onclick condition="!Skin.HasSetting(continue_open)">SetFocus(9202)</onclick>
-			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9202).NumItems,0)">SetFocus(9204)</onclick>
-			<onright>9000</onright>
-		</control>
-
-		<!-- Right edge -->
-		<control type="button" id="9213">
-			<visible>$EXP[continue_tab_shown] + [String.IsEqual(Skin.String(continue_tab),right)]</visible>
-			<animation effect="fade" time="200">VisibleChange</animation>
-			<animation effect="rotate" end="90" center="auto" time="0" condition="true">Conditional</animation>
-			<left>1752</left>
-			<top>522</top>
-			<width>300</width>
-			<height>36</height>
-			<font>font_small</font>
-			<textcolor>text</textcolor>
-			<focusedcolor>white</focusedcolor>
-			<disabledcolor>disabled</disabledcolor>
-			<align>center</align>
-			<aligny>center</aligny>
-			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-			<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
-			<label>31385</label>
-			<!-- Both onclicks see the state before the toggle (Kodi snapshots
-			     the conditions at click time), so the focus hop only fires on
-			     the click that opens the panel. -->
-			<onclick>Skin.ToggleSetting(continue_open)</onclick>
-			<onclick condition="!Skin.HasSetting(continue_open)">SetFocus(9202)</onclick>
-			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9202).NumItems,0)">SetFocus(9204)</onclick>
-			<onleft>9000</onleft>
 		</control>
 
 	</controls>

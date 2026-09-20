@@ -354,6 +354,32 @@
 					<onclick>Skin.ToggleSetting(hide_lists)</onclick>
 					<onleft>7000</onleft>
 					<onup>7122</onup>
+					<ondown>7130</ondown>
+				</control>
+
+				<!-- Lists as a round corner icon beside Favourites, independent
+				     of the menu entry above. -->
+				<control type="radiobutton" id="7130">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31393</label>
+					<selected>Skin.HasSetting(show_lists_icon)</selected>
+					<onclick>Skin.ToggleSetting(show_lists_icon)</onclick>
+					<onleft>7000</onleft>
+					<onup>7127</onup>
 					<ondown>7104</ondown>
 				</control>
 
@@ -377,7 +403,7 @@
 					<selected>!Skin.HasSetting(hide_logo)</selected>
 					<onclick>Skin.ToggleSetting(hide_logo)</onclick>
 					<onleft>7000</onleft>
-					<onup>7127</onup>
+					<onup>7130</onup>
 					<ondown>7105</ondown>
 				</control>
 
@@ -545,11 +571,10 @@
 					<onleft>7000</onleft>
 					<onup>7128</onup>
 					<ondown>7109</ondown>
-					<!-- Cycle: bottom, top, left, right, bottom -->
+					<!-- Toggle: bottom, top. A left or right value saved by 0.11.1
+					     reads as bottom everywhere and is normalised on the next click. -->
 					<onclick condition="String.IsEmpty(Skin.String(continue_tab)) | String.IsEqual(Skin.String(continue_tab),bottom)">Skin.SetString(continue_tab,top)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(continue_tab),top)">Skin.SetString(continue_tab,left)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(continue_tab),left)">Skin.SetString(continue_tab,right)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(continue_tab),right)">Skin.SetString(continue_tab,bottom)</onclick>
+					<onclick condition="!String.IsEmpty(Skin.String(continue_tab)) + !String.IsEqual(Skin.String(continue_tab),bottom)">Skin.SetString(continue_tab,bottom)</onclick>
 				</control>
 
 				<control type="radiobutton" id="7109">

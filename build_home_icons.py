@@ -1,11 +1,11 @@
 """
 <summary>
-Generate the three home icons as combined disc+glyph PNGs.
+Generate the home corner icons as combined disc+glyph PNGs.
 </summary>
 <remarks>
 Each PNG has:
   * an alpha~80 white disc (so colordiffuse tints it semi-strong)
-  * an alpha=255 white glyph (cog / 2x2 grid / power) on top
+  * an alpha=255 white glyph (cog / 2x2 grid / power / star / bars) on top
 
 When Kodi colordiffuses the texture, the disc appears as a darker shade
 of the target colour while the glyph appears full-strength, giving
@@ -148,9 +148,28 @@ def star(path: Path):
     img.save(path)
 
 
+def lines(path: Path):
+    """
+    <summary>
+    Three rounded horizontal bars, for the Lists corner button.
+    </summary>
+    <param name="path">Where the PNG is written.</param>
+    """
+    img, d = base_disc()
+    bar_w, bar_h, gap = 60, 12, 10
+    x0 = (SIZE - bar_w) / 2
+    top = (SIZE - (3 * bar_h + 2 * gap)) / 2
+    for i in range(3):
+        y = top + i * (bar_h + gap)
+        d.rounded_rectangle([x0, y, x0 + bar_w, y + bar_h], radius=bar_h / 2, fill=GLYPH_COLOUR)
+    img.save(path)
+
+
 cog(OUT / "home_settings.png")
 puzzle(OUT / "home_addons.png")
 power(OUT / "home_power.png")
 star(OUT / "home_favourites.png")
+lines(OUT / "home_lists.png")
 print("Wrote:", *(p.name for p in (OUT / n for n in (
-    "home_settings.png", "home_addons.png", "home_power.png", "home_favourites.png"))))
+    "home_settings.png", "home_addons.png", "home_power.png", "home_favourites.png",
+    "home_lists.png"))))
