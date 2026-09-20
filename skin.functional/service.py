@@ -31,6 +31,14 @@ update_focused_eta()
     Skin reads it via $INFO[Window(home).Property(focused_finish_time)].
     Property is cleared when nothing useful is focused.
 
+update_focused_age()
+    Same cadence and window gate as update_focused_eta(), for the focused
+    item's age in whole years ("31 years old") while Skin.HasSetting(show_age)
+    is on:
+        focused_age_label
+    Reuses _age_label / _year_of from the info screen ages. Only recomputed
+    when the year sources change, and cleared outside the videos window.
+
 update_layout_command()
     Watches Skin.String(layout_command); when the side-menu +/- buttons set it
     (e.g. "top_inc", "bottom_dec"), bumps the corresponding clearance Skin.String
@@ -401,6 +409,9 @@ class FunctionalHelper(xbmc.Monitor):
 
     FAV_MAX = 150  # how many favourites the custom favourites screen can show
 
+    # Continue Watching pop-up on Home (see update_continue_watching)
+    CONTINUE_LISTS = ("9201", "9202", "9203", "9204")  # Home.xml container ids
+
     CAST_MAX = 8  # portraits the full-screen info card has room for
 
     # ---- Video-nav state (genre label + default sort) ---------------------
@@ -452,6 +463,9 @@ class FunctionalHelper(xbmc.Monitor):
         # Age labels on the two info screens (see update_media_age), keyed by
         # Home property name so an unchanged label is never rewritten.
         self._age_last = {}
+        # Year sources of the focused list item as last seen by
+        # update_focused_age, so the label is only rebuilt on a real change.
+        self._focused_age_key = None
         self._bg_items = []        # list of (fanart_url, label_string)
         self._bg_idx = -1
         self._bg_last_change = 0.0
@@ -472,6 +486,13 @@ class FunctionalHelper(xbmc.Monitor):
         self._fav_mtime = -1.0      # favourites.xml mtime, to detect edits
         self._fav_loaded = False    # have we read favourites.xml at least once?
         self._fav_last_cat = None   # last category we populated properties for
+        # Continue Watching pop-up on Home (see update_continue_watching).
+        # The lock and key play the same role as the cast strip's: a resume
+        # lookup that finished after a newer row was focused must not publish.
+        self._continue_lock = threading.Lock()
+        self._continue_key = 0          # generation of the latest lookup
+        self._continue_focus_key = None  # (dbtype, dbid) of the row described
+        self._continue_focused = False   # continue_focus property is "1"
         # Cast strip on the full-screen info card (see update_playing_cast)
         # The lock makes "is this key still current?" + publish atomic, so a
         # worker that passed its staleness check can't interleave its slot
@@ -503,6 +524,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._genre_names = {}       # (dbtype, genreid) -> genre label
         self._genre_fetched = set()  # dbtypes whose genre list we already pulled
         self._genre_thread = None
+        self._random_thread = None   # random pick worker (see update_random_command)
         # Queue end time (see update_queue_eta)
         self._queue_last = None      # last (finish, remaining) pair published
         # Settings backup (see update_settings_backup)
@@ -818,6 +840,51 @@ class FunctionalHelper(xbmc.Monitor):
                 if cls.YEAR_MIN <= year <= cls.YEAR_MAX:
                     return year
         return None
+
+    def update_focused_age(self):
+        """
+        <summary>
+        Publish focused_age_label on Home: how old the focused list item is,
+        in whole years, for the info bar of the video windows.
+        </summary>
+        <remarks>
+        The third age after the two in update_media_age, and the one that
+        runs on every focus change rather than while a card is open, so it
+        is kept cheap: nothing is computed unless the item's year sources
+        differ from the last tick, and the label is built from the same
+        _age_label and _year_of helpers so the three ages can never
+        disagree. The latch key also carries the current year, so a title
+        that stays focused across midnight on New Year's Eve re-ages.
+
+        Gated on Skin.HasSetting(show_age), the toggle in the info bar's
+        visible fields, and on Window.IsActive(videos) like the finish time.
+        It deliberately ignores hide_media_age: that switch belongs to the
+        info screens, and a list field that silently obeyed it too would
+        look broken from the visible fields page. Cleared, not left stale,
+        whenever either gate closes.
+
+        The year sources are the same three as the info dialog, in the same
+        order, for the same reason: Year is a bare number, and the dates are
+        only a fallback because they arrive in the user's regional format
+        and only their four digit year can be trusted (see YEAR_RE).
+        </remarks>
+        """
+        if (not xbmc.getCondVisibility("Skin.HasSetting(show_age)")
+                or not xbmc.getCondVisibility("Window.IsActive(videos)")):
+            self._focused_age_key = None
+            self._set_age("focused_age_label", "")
+            return
+
+        sources = (
+            xbmc.getInfoLabel("ListItem.Year"),
+            xbmc.getInfoLabel("ListItem.Premiered"),
+            xbmc.getInfoLabel("ListItem.FirstAired"),
+        )
+        key = sources + (time.localtime().tm_year,)
+        if key == self._focused_age_key:
+            return
+        self._focused_age_key = key
+        self._set_age("focused_age_label", self._age_label(*sources))
 
     # ---- Queue end time ---------------------------------------------------
     # The queue header could already show the total running time, which is a
@@ -2172,6 +2239,166 @@ class FunctionalHelper(xbmc.Monitor):
         if reloaded or category != self._fav_last_cat:
             self._populate_favourites(category)
 
+    # ---- Continue Watching (pop-up on Home) -------------------------------
+    # <summary>
+    # The pop-up's lists are live library containers fed by the skin's
+    # continue_movies.xsp and continue_episodes.xsp, so Kodi owns the rows,
+    # plays them and keeps them current from its own library events. The
+    # service supplies the two things a skin cannot: the resume time of the
+    # focused row, for the press-and-hold menu's "Resume from" entry, and the
+    # three menu actions behind Skin.String(continue_command).
+    # </summary>
+
+    def update_continue_watching(self):
+        """
+        <summary>
+        Serve the Continue Watching pop-up: run a press-and-hold menu action
+        when Skin.String(continue_command) is set, publish continue_focus
+        while one of the pop-up's lists has focus so DialogContextMenu can
+        swap in the skin's own rows, and keep continue_resume describing the
+        focused row. Cheap enough to call every tick.
+        </summary>
+        <remarks>
+        The menu rows cannot capture the item themselves: inside a dialog
+        opened over Home, ListItem is empty (Home has no current item the
+        way a media window has), so the row acted on is the one this tick
+        last saw focused, remembered in _continue_focus_key and mirrored to
+        the continue_label property for the menu's heading. A press and
+        hold takes longer than a tick, so that key is current by the time
+        the menu opens. Nothing here changes while the context menu itself
+        is open: the focused control is then the menu's, and clearing
+        continue_focus at that moment would hide the rows the user is
+        looking at. The resume lookup runs on a daemon thread with a key
+        latch so a slow video database never stalls the loop and a late
+        reply never describes the wrong row.
+        </remarks>
+        """
+        cmd = xbmc.getInfoLabel("Skin.String(continue_command)").strip()
+        if cmd:
+            xbmc.executebuiltin("Skin.Reset(continue_command)")
+            dbtype, dbid = self._continue_focus_key or ("", 0)
+            self._continue_action(cmd, dbtype, dbid)
+            return
+
+        if xbmc.getCondVisibility("Window.IsActive(contextmenu)"):
+            return
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        focused = (xbmc.getCondVisibility("Window.IsActive(home)")
+                   and not xbmc.getCondVisibility("Skin.HasSetting(hide_continue)")
+                   and xbmc.getInfoLabel("System.CurrentControlId") in self.CONTINUE_LISTS)
+        if focused != self._continue_focused:
+            self._continue_focused = focused
+            if focused:
+                win.setProperty("continue_focus", "1")
+            else:
+                win.clearProperty("continue_focus")
+        if not focused:
+            if self._continue_focus_key is not None:
+                self._continue_focus_key = None
+                win.clearProperty("continue_resume")
+            return
+
+        dbtype = xbmc.getInfoLabel("ListItem.DBTYPE").strip().lower()
+        dbid = self._safe_int(xbmc.getInfoLabel("ListItem.DBID"), 0)
+        key = (dbtype, dbid)
+        if key == self._continue_focus_key:
+            return
+        self._continue_focus_key = key
+        win.clearProperty("continue_resume")
+        win.setProperty("continue_label", xbmc.getInfoLabel("ListItem.Label"))
+        if dbtype not in ("movie", "episode") or dbid <= 0:
+            return
+        with self._continue_lock:
+            self._continue_key += 1
+            gen = self._continue_key
+        threading.Thread(
+            target=self._continue_resume_worker, args=(gen, dbtype, dbid),
+            name="functional-continue", daemon=True).start()
+
+    def _continue_resume_worker(self, gen, dbtype, dbid):
+        """
+        <summary>
+        Daemon thread body: look up one row's resume point and publish it as
+        the continue_resume Home property (HH:MM:SS) if this lookup is still
+        the latest.
+        </summary>
+        <param name="gen">Generation number taken when the lookup started.</param>
+        <param name="dbtype">"movie" or "episode".</param>
+        <param name="dbid">Library id of the row.</param>
+        """
+        kind = "Movie" if dbtype == "movie" else "Episode"
+        resp = _jsonrpc("VideoLibrary.Get%sDetails" % kind,
+                        {dbtype + "id": dbid, "properties": ["resume"]})
+        details = (resp.get("result") or {}).get(dbtype + "details") or {}
+        try:
+            position = int(float((details.get("resume") or {}).get("position") or 0))
+        except (TypeError, ValueError):
+            position = 0
+        label = ""
+        if position > 0:
+            label = "%02d:%02d:%02d" % (position // 3600, (position % 3600) // 60, position % 60)
+        with self._continue_lock:
+            if gen != self._continue_key:
+                return
+            xbmcgui.Window(HOME_WINDOW_ID).setProperty("continue_resume", label)
+
+    def _continue_action(self, cmd, dbtype, dbid):
+        """
+        <summary>
+        Run one entry of the pop-up's press-and-hold menu.
+        </summary>
+        <param name="cmd">continue_command value: resume, watched or unwatched.</param>
+        <param name="dbtype">"movie" or "episode" of the row the menu was opened on.</param>
+        <param name="dbid">Library id of that row.</param>
+        <remarks>
+        "watched" bumps the play count and clears the resume point, which is
+        what Kodi's own "Mark as watched" does; "unwatched" zeroes both.
+        The row leaves the pop-up through Kodi's own VideoLibrary.OnUpdate
+        handling, which its directory provider honours within a second for
+        a row it holds (verified on 21.3) as long as the container is being
+        processed, which is why Home.xml parks the closed panel off screen
+        instead of hiding it. That announcement is only raised for a play
+        count change, see the unwatched branch. The remembered focus key is
+        dropped so the next tick re-reads the resume time of whatever row
+        is focused now.
+        </remarks>
+        """
+        if dbtype not in ("movie", "episode") or dbid <= 0:
+            _dlog("continue watching: %s ignored, no item captured" % cmd)
+            return
+        kind = "Movie" if dbtype == "movie" else "Episode"
+        idkey = dbtype + "id"
+        _dlog("continue watching: %s %s %d" % (cmd, dbtype, dbid))
+        if cmd == "resume":
+            _jsonrpc("Player.Open", {"item": {idkey: dbid}, "options": {"resume": True}})
+        elif cmd in ("watched", "unwatched"):
+            resp = _jsonrpc("VideoLibrary.Get%sDetails" % kind,
+                            {idkey: dbid, "properties": ["playcount"]})
+            details = (resp.get("result") or {}).get(dbtype + "details") or {}
+            count = self._safe_int(details.get("playcount"), 0)
+            params = {idkey: dbid, "resume": {"position": 0, "total": 0}}
+            if cmd == "watched":
+                params["playcount"] = count + 1
+                _jsonrpc("VideoLibrary.Set%sDetails" % kind, params)
+            elif count > 0:
+                params["playcount"] = 0
+                _jsonrpc("VideoLibrary.Set%sDetails" % kind, params)
+            else:
+                # Kodi announces VideoLibrary.OnUpdate only when the play
+                # count actually changes, and the pop-up's containers reload
+                # only on an announcement for a row they hold. Clearing the
+                # resume point of a never-finished title changes no play
+                # count, so it would stay in the row. Bump the count to one
+                # in the same write that clears the bookmark (the row goes),
+                # then back to zero (announced too, but the row no longer
+                # holds the item, so Kodi ignores it). Verified on 21.3.
+                params["playcount"] = 1
+                _jsonrpc("VideoLibrary.Set%sDetails" % kind, params)
+                _jsonrpc("VideoLibrary.Set%sDetails" % kind, {idkey: dbid, "playcount": 0})
+        else:
+            _dlog("continue command ignored: %r" % cmd)
+        self._continue_focus_key = None
+
     # ---- Lists (named media lists, ported into the queue) -----------------
     # <summary>
     # A list is a named, ordered set of playable items (movies, episodes,
@@ -3425,6 +3652,145 @@ class FunctionalHelper(xbmc.Monitor):
             return
         self._spawn_dialog(worker)
 
+    # ---- Random pick command --------------------------------------------
+
+    # Container.Content values that mean "the TV side of the library".
+    _RANDOM_TV_CONTENT = ("tvshows", "seasons", "episodes")
+
+    def update_random_command(self):
+        """
+        <summary>
+        Watch Skin.String(random_command): play one random title from the
+        library node the video window is showing.
+        </summary>
+        <remarks>
+        Values are "play_movies", "play_tvshows" (set by the side menu with
+        mutually exclusive onclick conditions, so the content type is fixed
+        at click time) or plain "play", which reads Container.Content on
+        this tick instead. The genre comes from Container.FolderPath through
+        the same _genre_for_path the Genre label uses, so the pick matches
+        what the screen says; with no genre node the whole library type is
+        the pool. The string is cleared before anything else so it cannot
+        re-fire on the next tick, and the query runs on a daemon thread
+        because a sleeping database must not stall the loop.
+        </remarks>
+        """
+        cmd = xbmc.getInfoLabel("Skin.String(random_command)").strip().lower()
+        if not cmd:
+            return
+        # Clear immediately so we don't re-trigger
+        xbmc.executebuiltin("Skin.Reset(random_command)")
+        if cmd not in ("play", "play_movies", "play_tvshows"):
+            return
+        path = (xbmc.getInfoLabel("Container.FolderPath") or "").strip()
+        if cmd == "play_tvshows":
+            kind = "tvshows"
+        elif cmd == "play_movies":
+            kind = "movies"
+        else:
+            kind = self._random_kind(path)
+        genre = self._genre_for_path(path)
+        if self._random_thread is not None and self._random_thread.is_alive():
+            return  # a pick is already on its way
+        self._random_thread = threading.Thread(
+            target=self._random_pick_worker, args=(kind, genre),
+            name="functional-random", daemon=True)
+        self._random_thread.start()
+
+    def _random_kind(self, path):
+        """
+        <summary>
+        "tvshows" or "movies" for the node the container is showing.
+        </summary>
+        <param name="path">Container.FolderPath, used when Container.Content is unset.</param>
+        <returns>"tvshows" for a show, season or episode node, otherwise "movies".</returns>
+        """
+        for content in self._RANDOM_TV_CONTENT:
+            if xbmc.getCondVisibility("Container.Content({0})".format(content)):
+                return "tvshows"
+        if path.lower().startswith("videodb://tvshows"):
+            return "tvshows"
+        return "movies"
+
+    def _random_pick_worker(self, kind, genre):
+        """
+        <summary>
+        Thread body: fetch one random title, start it, say what was picked.
+        </summary>
+        <param name="kind">"movies" or "tvshows".</param>
+        <param name="genre">Genre name to restrict to, empty for the whole library type.</param>
+        <remarks>
+        The TV side picks a random episode rather than a random show, since
+        a show is not something Kodi can play. Nothing found (an empty genre,
+        a library with no episodes) is a toast, never an exception.
+        </remarks>
+        """
+        try:
+            pick = self._fetch_random_pick(kind, genre)
+            if pick is None:
+                _dlog("random pick: nothing for {0} genre {1!r}".format(kind, genre))
+                xbmcgui.Dialog().notification(
+                    _L(31000), _L(31396), xbmcgui.NOTIFICATION_INFO, 3500)
+                return
+            id_key, db_id, label = pick
+            _dlog("random pick: {0} {1} -> {2!r}".format(id_key, db_id, label))
+            _jsonrpc("Player.Open", {"item": {id_key: db_id}})
+            xbmcgui.Dialog().notification(
+                _L(31000), _L(31397).format(label),
+                xbmcgui.NOTIFICATION_INFO, 3500)
+        except Exception:  # noqa: BLE001
+            _dlog("random pick failed:\n{0}".format(traceback.format_exc()),
+                  xbmc.LOGERROR)
+
+    @staticmethod
+    def _fetch_random_pick(kind, genre):
+        """
+        <summary>
+        One random movie or episode, optionally restricted to a genre.
+        </summary>
+        <param name="kind">"movies" or "tvshows".</param>
+        <param name="genre">Genre name for a "genre is" filter, empty for none.</param>
+        <returns>(id key, database id, display label) or None when nothing matched.</returns>
+        <remarks>
+        Kept separate from _fetch_genre_library / _fetch_random_library on
+        purpose: those return fanart tuples for the background slideshow
+        and carry no database ids, and changing their shape would ripple
+        through the slideshow. This asks for exactly one row. An episode's
+        genre filter matches the parent show's genres, which is what a
+        genre node in the TV library means.
+        </remarks>
+        """
+        if kind == "tvshows":
+            method, rows_key, id_key = "VideoLibrary.GetEpisodes", "episodes", "episodeid"
+            props = ["title", "showtitle", "season", "episode"]
+        else:
+            method, rows_key, id_key = "VideoLibrary.GetMovies", "movies", "movieid"
+            props = ["title", "year"]
+        params = {
+            "limits": {"start": 0, "end": 1},
+            "sort": {"order": "ascending", "method": "random"},
+            "properties": props,
+        }
+        if genre:
+            params["filter"] = {"field": "genre", "operator": "is", "value": genre}
+        resp = _jsonrpc(method, params)
+        rows = ((resp or {}).get("result") or {}).get(rows_key) or []
+        if not rows:
+            return None
+        row = rows[0]
+        db_id = row.get(id_key)
+        if db_id is None:
+            return None
+        title = (row.get("title") or "").strip()
+        if kind == "tvshows":
+            label = "{0} S{1:02d}E{2:02d} {3}".format(
+                (row.get("showtitle") or "").strip(),
+                int(row.get("season") or 0), int(row.get("episode") or 0), title).strip()
+        else:
+            year = row.get("year") or 0
+            label = "{0} ({1})".format(title, year) if year else title
+        return id_key, int(db_id), label
+
     def _spawn_dialog(self, worker):
         """
         <summary>
@@ -3909,10 +4275,13 @@ def run():
             helper.update_video_nav_state()
             helper.update_focused_eta()
             helper.update_media_age()
+            helper.update_focused_age()
             helper.update_settings_command()
             helper.update_layout_command()
             helper.update_bg_command()
+            helper.update_random_command()
             helper.update_favourites()
+            helper.update_continue_watching()
             helper.update_lists()
             helper.update_playing_cast()
             helper.update_info_cast()

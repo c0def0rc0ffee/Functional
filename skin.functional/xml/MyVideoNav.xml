@@ -472,15 +472,31 @@
 				<label>$INFO[ListItem.Label]$VAR[ItemTitleSuffix]</label>
 				<scroll>true</scroll>
 			</control>
-			<!-- Bottom-left: time-related metadata (anchored, doesn't jump) -->
-			<control type="label">
+			<!-- Bottom-left: time-related metadata (anchored, doesn't jump).
+			     A horizontal grouplist of auto width labels so the age is its
+			     own control: the first label clips at its own max and the age
+			     still renders, instead of being the tail that vanishes. -->
+			<control type="grouplist">
 				<left>40</left>
 				<bottom>30</bottom>
 				<width>800</width>
 				<height>30</height>
-				<font>font_reg</font>
-				<textcolor>text_dim</textcolor>
-				<label>$INFO[ListItem.Duration]$VAR[ItemEndsAtLabel]$VAR[ItemStarRatingLabel]</label>
+				<orientation>horizontal</orientation>
+				<itemgap>0</itemgap>
+				<control type="label">
+					<width min="0" max="560">auto</width>
+					<height>30</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[ListItem.Duration]$VAR[ItemEndsAtLabel]$VAR[ItemStarRatingLabel]</label>
+				</control>
+				<control type="label">
+					<width min="0" max="240">auto</width>
+					<height>30</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$VAR[ItemAgeLabel]</label>
+				</control>
 			</control>
 
 			<!-- Top-right: combined position/total -->
@@ -536,15 +552,29 @@
 				<label>$INFO[ListItem.Label]$VAR[ItemTitleSuffix]</label>
 				<scroll>true</scroll>
 			</control>
-			<!-- Bottom-left: time metadata (stable position) -->
-			<control type="label">
+			<!-- Bottom-left: time metadata (stable position). Same auto width
+			     grouplist as the bottom strip, so the age is its own control. -->
+			<control type="grouplist">
 				<left>40</left>
 				<top>60</top>
 				<width>800</width>
 				<height>30</height>
-				<font>font_reg</font>
-				<textcolor>text_dim</textcolor>
-				<label>$INFO[ListItem.Duration]$VAR[ItemEndsAtLabel]$VAR[ItemStarRatingLabel]</label>
+				<orientation>horizontal</orientation>
+				<itemgap>0</itemgap>
+				<control type="label">
+					<width min="0" max="560">auto</width>
+					<height>30</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[ListItem.Duration]$VAR[ItemEndsAtLabel]$VAR[ItemStarRatingLabel]</label>
+				</control>
+				<control type="label">
+					<width min="0" max="240">auto</width>
+					<height>30</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$VAR[ItemAgeLabel]</label>
+				</control>
 			</control>
 
 			<!-- Top-right: combined position/total -->
@@ -970,6 +1000,36 @@
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
 					<onup>10</onup>
+					<ondown>8006</ondown>
+				</control>
+
+				<!-- Play Random. One click plays a random title from the node on
+				     screen: inside a genre node the service restricts the pick to
+				     that genre (the same path logic the Genre label uses), at the
+				     titles level the whole library type is the pool. TV picks a
+				     random episode. The two onclick conditions are mutually
+				     exclusive so the content type is fixed at click time rather
+				     than read a tick later. Same visibility rule as Genre. -->
+				<control type="button" id="8006">
+					<visible>Skin.HasSetting(filter_menu_open) + [Container.Content(movies) | Container.Content(tvshows)] + String.StartsWith(Container.FolderPath,videodb://)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31395]</label>
+					<onclick condition="Container.Content(tvshows)">Skin.SetString(random_command,play_tvshows)</onclick>
+					<onclick condition="!Container.Content(tvshows)">Skin.SetString(random_command,play_movies)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8005</onup>
 					<ondown>8009</ondown>
 				</control>
 
@@ -991,7 +1051,7 @@
 					<onclick>ActivateWindow(VideoPlaylist)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
-					<onup>8005</onup>
+					<onup>8006</onup>
 					<ondown>8499</ondown>
 				</control>
 
