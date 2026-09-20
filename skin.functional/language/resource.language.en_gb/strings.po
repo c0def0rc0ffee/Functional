@@ -1631,3 +1631,75 @@ msgstr ""
 msgctxt "#31405"
 msgid "Age (years since release)"
 msgstr ""
+
+msgctxt "#31406"
+msgid "Stats"
+msgstr ""
+
+msgctxt "#31407"
+msgid "Show Stats Menu Button"
+msgstr ""
+
+msgctxt "#31408"
+msgid "Show Stats Corner Icon"
+msgstr ""
+
+msgctxt "#31409"
+msgid "THIS MONTH"
+msgstr ""
+
+msgctxt "#31410"
+msgid "ALL TIME"
+msgstr ""
+
+msgctxt "#31411"
+msgid "LAST 7 DAYS"
+msgstr ""
+
+msgctxt "#31412"
+msgid "Open JellyStat"
+msgstr ""
+
+msgctxt "#31413"
+msgid "JellyStat has not reported yet. Its figures appear a minute or two after Kodi starts."
+msgstr ""
+
+msgctxt "#31414"
+msgid "Plays"
+msgstr ""
+
+msgctxt "#31415"
+msgid "Ratings"
+msgstr ""
+
+msgctxt "#31416"
+msgid "Daily average"
+msgstr ""
+
+msgctxt "#31417"
+msgid "of waking hours"
+msgstr ""
+
+msgctxt "#31418"
+msgid "Against the week before"
+msgstr ""
+
+msgctxt "#31419"
+msgid "Sittings by time of day"
+msgstr ""
+
+msgctxt "#31420"
+msgid "Shows"
+msgstr ""
+
+msgctxt "#31421"
+msgid "Movies"
+msgstr ""
+
+msgctxt "#31422"
+msgid "Episodes"
+msgstr ""
+
+msgctxt "#31423"
+msgid "Measured from the play log on this box"
+msgstr ""
