@@ -410,7 +410,7 @@ class FunctionalHelper(xbmc.Monitor):
     FAV_MAX = 150  # how many favourites the custom favourites screen can show
 
     # Continue Watching pop-up on Home (see update_continue_watching)
-    CONTINUE_LISTS = ("9201", "9202", "9203", "9204")  # Home.xml container ids
+    CONTINUE_LISTS = ("9201", "9203")  # Home.xml container ids: movies, episodes
 
     CAST_MAX = 8  # portraits the full-screen info card has room for
 

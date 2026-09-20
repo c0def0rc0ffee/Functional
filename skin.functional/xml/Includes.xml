@@ -550,8 +550,6 @@
 	     Settings button. Empty means bottom.</summary> -->
 	<variable name="ContinueTabLabel">
 		<value condition="String.IsEqual(Skin.String(continue_tab),top)">$LOCALIZE[31135]</value>
-		<value condition="String.IsEqual(Skin.String(continue_tab),left)">$LOCALIZE[31388]</value>
-		<value condition="String.IsEqual(Skin.String(continue_tab),right)">$LOCALIZE[31389]</value>
 		<value>$LOCALIZE[31136]</value>
 	</variable>
 
