@@ -14,6 +14,8 @@
 	     menu, say) Kodi's stock focus on the grouplist stands. -->
 	<onload condition="Control.IsVisible(951) + !Control.IsVisible(950)">SetFocus(951)</onload>
 	<onload condition="Control.IsVisible(950)">SetFocus(950)</onload>
+	<!-- Continue Watching rows (960 to 962) replace Kodi's list entirely. -->
+	<onload condition="Control.IsVisible(960)">SetFocus(960)</onload>
 	<animation effect="fade" time="150">WindowOpen</animation>
 	<animation effect="fade" time="150">WindowClose</animation>
 	<!-- Origin MUST stay at 0,0. Kodi repositions this window itself, centred
@@ -97,7 +99,7 @@
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
 				<scroll>true</scroll>
-				<label>$INFO[ListItem.Label]</label>
+				<label>$VAR[ContextMenuItemLabel]</label>
 			</control>
 
 			<!-- Lists (skin feature): "Add to list <last>" and "Add To List",
@@ -124,6 +126,35 @@
 				<param name="shift" value="Control.IsVisible(950)" />
 			</include>
 
+			<!-- Continue Watching (Home pop-up): three skin rows stand in for
+			     Kodi's whole menu while one of the pop-up's lists has focus.
+			     The Lists rows and Kodi's grouplist hide for the same
+			     condition, see the ContinueContextButton include. -->
+			<include content="ContinueContextButton">
+				<param name="id" value="960" />
+				<param name="top" value="110" />
+				<param name="label" value="$VAR[ContinueResumeLabel]" />
+				<param name="command" value="resume" />
+				<param name="onup" value="960" />
+				<param name="ondown" value="961" />
+			</include>
+			<include content="ContinueContextButton">
+				<param name="id" value="961" />
+				<param name="top" value="170" />
+				<param name="label" value="$LOCALIZE[16103]" />
+				<param name="command" value="watched" />
+				<param name="onup" value="960" />
+				<param name="ondown" value="962" />
+			</include>
+			<include content="ContinueContextButton">
+				<param name="id" value="962" />
+				<param name="top" value="230" />
+				<param name="label" value="$LOCALIZE[16104]" />
+				<param name="command" value="unwatched" />
+				<param name="onup" value="961" />
+				<param name="ondown" value="962" />
+			</include>
+
 			<!-- Backdrop strip behind the menu list. Kodi resizes id 999
 			     (BACKGROUND_IMAGE) to the populated button count itself. -->
 			<control type="image" id="999">
@@ -132,6 +163,7 @@
 				<width>600</width>
 				<height>780</height>
 				<texture colordiffuse="bg_panel">white.png</texture>
+				<visible>!$EXP[continue_menu]</visible>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(951)">Conditional</animation>
 			</control>
@@ -148,6 +180,7 @@
 				     before it scrolls. -->
 				<height max="660">auto</height>
 				<usecontrolcoords>true</usecontrolcoords>
+				<visible>!$EXP[continue_menu]</visible>
 				<orientation>vertical</orientation>
 				<itemgap>0</itemgap>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>

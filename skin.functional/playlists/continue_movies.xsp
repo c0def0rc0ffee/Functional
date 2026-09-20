@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!--
+  <summary>
+  Smart playlist: movies with a resume point, most recently played first.
+  Feeds the Continue Watching pop-up on Home as a live library container,
+  so each item carries its database id and Kodi's press-and-hold context
+  menu works on it. Movies and episodes are separate playlists because a
+  "mixed" smart playlist returns nothing for video rules on Kodi 21.
+  </summary>
+-->
+<smartplaylist type="movies">
+    <name>Continue Watching Movies</name>
+    <match>all</match>
+    <rule field="inprogress" operator="true">
+        <value></value>
+    </rule>
+    <order direction="descending">lastplayed</order>
+    <limit>12</limit>
+</smartplaylist>

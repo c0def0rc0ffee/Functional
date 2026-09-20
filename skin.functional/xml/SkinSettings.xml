@@ -498,7 +498,58 @@
 					<onclick>Skin.ToggleSetting(hide_tvshows_count)</onclick>
 					<onleft>7000</onleft>
 					<onup>7107</onup>
+					<ondown>7128</ondown>
+				</control>
+
+				<!-- Continue Watching row on Home (service.py:update_continue_watching).
+				     Shown by default; the service stops querying while hidden. -->
+				<control type="radiobutton" id="7128">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31386</label>
+					<selected>!Skin.HasSetting(hide_continue)</selected>
+					<onclick>Skin.ToggleSetting(hide_continue)</onclick>
+					<onleft>7000</onleft>
+					<onup>7108</onup>
+					<ondown>7129</ondown>
+				</control>
+
+				<!-- Which screen edge carries the Continue Watching tab. -->
+				<control type="button" id="7129">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31387] $VAR[ContinueTabLabel]</label>
+					<enable>!Skin.HasSetting(hide_continue)</enable>
+					<onleft>7000</onleft>
+					<onup>7128</onup>
 					<ondown>7109</ondown>
+					<!-- Cycle: bottom, top, left, right, bottom -->
+					<onclick condition="String.IsEmpty(Skin.String(continue_tab)) | String.IsEqual(Skin.String(continue_tab),bottom)">Skin.SetString(continue_tab,top)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(continue_tab),top)">Skin.SetString(continue_tab,left)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(continue_tab),left)">Skin.SetString(continue_tab,right)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(continue_tab),right)">Skin.SetString(continue_tab,bottom)</onclick>
 				</control>
 
 				<control type="radiobutton" id="7109">
@@ -521,7 +572,7 @@
 					<selected>!Skin.HasSetting(hide_addons)</selected>
 					<onclick>Skin.ToggleSetting(hide_addons)</onclick>
 					<onleft>7000</onleft>
-					<onup>7108</onup>
+					<onup>7129</onup>
 					<ondown>7123</ondown>
 				</control>
 
@@ -1618,10 +1669,35 @@
 					<onclick>Skin.ToggleSetting(hide_resolution)</onclick>
 					<onleft>7000</onleft>
 					<onup>7204</onup>
-					<ondown>7207</ondown>
+					<ondown>7206</ondown>
 				</control>
 
-				<!-- File Size toggle removed; see PROJECT_NOTES "Focused-item file size" -->
+				<!-- 7206 was File Size (removed; see PROJECT_NOTES "Focused-item
+				     file size") and now carries the age field, which is off by
+				     default like the other show_* fields. -->
+				<control type="radiobutton" id="7206">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31405</label>
+					<selected>Skin.HasSetting(show_age)</selected>
+					<onclick>Skin.ToggleSetting(show_age)</onclick>
+					<onleft>7000</onleft>
+					<onup>7205</onup>
+					<ondown>7207</ondown>
+				</control>
 
 				<control type="radiobutton" id="7207">
 					<width>900</width>
@@ -1643,7 +1719,7 @@
 					<selected>Skin.HasSetting(show_lastplayed)</selected>
 					<onclick>Skin.ToggleSetting(show_lastplayed)</onclick>
 					<onleft>7000</onleft>
-					<onup>7205</onup>
+					<onup>7206</onup>
 					<ondown>7209</ondown>
 				</control>
 
