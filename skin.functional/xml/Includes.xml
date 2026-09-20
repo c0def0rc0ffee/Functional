@@ -19,6 +19,18 @@
 	     because video is playing through, so video-behind works even with
 	     "Show On All Screens" off. Home.xml's own copy stands down on the same
 	     expression, so the block renders exactly once either way. -->
+	<!-- The Continue Watching tab on Home shows only once the feature is
+	     on and one of the pop-up's library containers holds a row. -->
+	<expression name="continue_tab_shown">!Skin.HasSetting(hide_continue) + [Integer.IsGreater(Container(9201).NumItems,0) | Integer.IsGreater(Container(9203).NumItems,0)]</expression>
+
+	<!-- The press-and-hold menu was opened on one of the Continue Watching
+	     lists on Home, so DialogContextMenu shows the skin's own three rows
+	     instead of Kodi's. Kodi's "Resume from / Play from beginning"
+	     prompt after a short press is the same dialog with exactly two
+	     entries, and must keep them: a third cloned button (1003) is what
+	     tells the full menu apart. -->
+	<expression name="continue_menu">Window.IsActive(home) + String.IsEqual(Window(home).Property(continue_focus),1) + Control.IsVisible(1003)</expression>
+
 	<expression name="bg_windows_active">Skin.HasSetting(bg_all_windows) | [Skin.HasSetting(bg_video_behind) + Player.HasVideo + !Slideshow.IsActive]</expression>
 
 	<!-- Deliberately NOT pulling in Defaults.xml, see the note at the top of
@@ -200,7 +212,7 @@
 	</variable>
 
 	<!-- Toggleable info-bar fields. Most use hide_X (visible by default).
-	     show_filesize and show_lastplayed are off by default. -->
+	     show_filesize, show_lastplayed and show_age are off by default. -->
 	<variable name="ItemGenreLabel">
 		<value condition="!Skin.HasSetting(hide_genre) + !String.IsEmpty(ListItem.Genre)">$INFO[ListItem.Genre]</value>
 		<value></value>
@@ -534,6 +546,15 @@
 		<value>$LOCALIZE[31134]</value>
 	</variable>
 
+	<!-- <summary>Edge the Continue Watching tab sits on, for the Skin
+	     Settings button. Empty means bottom.</summary> -->
+	<variable name="ContinueTabLabel">
+		<value condition="String.IsEqual(Skin.String(continue_tab),top)">$LOCALIZE[31135]</value>
+		<value condition="String.IsEqual(Skin.String(continue_tab),left)">$LOCALIZE[31388]</value>
+		<value condition="String.IsEqual(Skin.String(continue_tab),right)">$LOCALIZE[31389]</value>
+		<value>$LOCALIZE[31136]</value>
+	</variable>
+
 	<variable name="NotificationPositionLabel">
 		<value condition="String.IsEqual(Skin.String(notification_position),tl)">$LOCALIZE[31106]</value>
 		<value condition="String.IsEqual(Skin.String(notification_position),tc)">$LOCALIZE[31158]</value>
@@ -545,6 +566,21 @@
 	<!-- ItemSizeLabel removed; see PROJECT_NOTES "Focused-item file size". -->
 	<variable name="ItemLastPlayedLabel">
 		<value condition="Skin.HasSetting(show_lastplayed) + !String.IsEmpty(ListItem.LastPlayed)"> $LOCALIZE[31159] $INFO[ListItem.LastPlayed]</value>
+		<value></value>
+	</variable>
+	<!-- <summary>The focused item's age ("31 years old") for the info bar's
+	     time row, from service.py:update_focused_age.</summary>
+	     <remarks>Rendered in its own auto width label after the duration row
+	     in MyVideoNav.xml rather than appended to it, so a long row clips
+	     itself and never this. The " · " prefix follows the same rule as
+	     ItemEndsAtLabel and ItemStarRatingLabel: dropped when nothing came
+	     before it, which is a TV show (no duration) with the star rating
+	     hidden or missing. The service already leaves the property empty
+	     when show_age is off; the condition here is belt and braces so a
+	     stale value can never show while the service is catching up.</remarks> -->
+	<variable name="ItemAgeLabel">
+		<value condition="Skin.HasSetting(show_age) + !String.IsEmpty(Window(home).Property(focused_age_label)) + String.IsEmpty(ListItem.Duration) + [Skin.HasSetting(hide_rating) | String.IsEmpty(ListItem.Rating)]">$INFO[Window(home).Property(focused_age_label)]</value>
+		<value condition="Skin.HasSetting(show_age) + !String.IsEmpty(Window(home).Property(focused_age_label))"> · $INFO[Window(home).Property(focused_age_label)]</value>
 		<value></value>
 	</variable>
 
@@ -1614,6 +1650,76 @@
 			</control>
 		</definition>
 	</include>
+
+	<!-- ContinueContextButton: one of the three rows DialogContextMenu shows
+	     for a Continue Watching item on Home.
+	     <summary>A static button drawn where Kodi's grouplist 996 normally
+	     sits, capturing the focused item and handing one action to
+	     service.py through the continue_command channel.</summary>
+	     <param name="id">Control id, below Kodi's clone range (1000+).</param>
+	     <param name="top">Y position inside the panel group.</param>
+	     <param name="label">Button caption, may carry $INFO.</param>
+	     <param name="command">continue_command value: resume, watched or unwatched.</param>
+	     <param name="onup">Navigation target above.</param>
+	     <param name="ondown">Navigation target below.</param>
+	     <remarks>Outside grouplist 996 for the reason ListsContextButton
+	     gives. Unlike those rows this one captures nothing: ListItem is
+	     empty inside a dialog over Home, so the service acts on the row it
+	     saw focused on its last tick.</remarks> -->
+	<include name="ContinueContextButton">
+		<param name="id" />
+		<param name="top" />
+		<param name="label" />
+		<param name="command" />
+		<param name="onup" />
+		<param name="ondown" />
+		<definition>
+			<control type="image">
+				<left>0</left>
+				<top>$PARAM[top]</top>
+				<width>600</width>
+				<height>60</height>
+				<texture colordiffuse="bg_panel">white.png</texture>
+				<visible>$EXP[continue_menu]</visible>
+			</control>
+			<control type="button" id="$PARAM[id]">
+				<left>0</left>
+				<top>$PARAM[top]</top>
+				<width>600</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>30</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<label>$PARAM[label]</label>
+				<visible>$EXP[continue_menu]</visible>
+				<onup>$PARAM[onup]</onup>
+				<ondown>$PARAM[ondown]</ondown>
+				<onclick>Skin.SetString(continue_command,$PARAM[command])</onclick>
+				<onclick>Action(Close)</onclick>
+			</control>
+		</definition>
+	</include>
+
+	<!-- <summary>Heading line of the context menu: the focused item's
+	     label, which over Home has to come from the service because
+	     ListItem is empty there.</summary> -->
+	<variable name="ContextMenuItemLabel">
+		<value condition="$EXP[continue_menu]">$INFO[Window(home).Property(continue_label)]</value>
+		<value>$INFO[ListItem.Label]</value>
+	</variable>
+
+	<!-- <summary>"Resume from HH:MM:SS" for the Continue Watching menu, or
+	     plain "Resume" while the service is still looking the time up.</summary> -->
+	<variable name="ContinueResumeLabel">
+		<value condition="!String.IsEmpty(Window(home).Property(continue_resume))">$LOCALIZE[31390] $INFO[Window(home).Property(continue_resume)]</value>
+		<value>$LOCALIZE[31391]</value>
+	</variable>
 
 	<include name="FavItem">
 		<param name="n" />
