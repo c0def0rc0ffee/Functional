@@ -1608,6 +1608,26 @@ msgctxt "#31399"
 msgid "years"
 msgstr ""
 
+msgctxt "#31400"
+msgid "WATCHING"
+msgstr ""
+
+msgctxt "#31401"
+msgid "This month"
+msgstr ""
+
+msgctxt "#31402"
+msgid "All time"
+msgstr ""
+
+msgctxt "#31403"
+msgid "Titles"
+msgstr ""
+
+msgctxt "#31404"
+msgid "Show JellyStat Stats"
+msgstr ""
+
 msgctxt "#31405"
 msgid "Age (years since release)"
 msgstr ""

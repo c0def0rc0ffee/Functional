@@ -524,6 +524,33 @@
 					<onclick>Skin.ToggleSetting(hide_tvshows_count)</onclick>
 					<onleft>7000</onleft>
 					<onup>7107</onup>
+					<ondown>7131</ondown>
+				</control>
+
+				<!-- JellyStat figures under the TV stats, only meaningful with
+				     script.jellystat installed; the Home block hides itself
+				     otherwise. -->
+				<control type="radiobutton" id="7131">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31404</label>
+					<selected>!Skin.HasSetting(hide_jellystat)</selected>
+					<onclick>Skin.ToggleSetting(hide_jellystat)</onclick>
+					<onleft>7000</onleft>
+					<onup>7108</onup>
 					<ondown>7128</ondown>
 				</control>
 
@@ -549,7 +576,7 @@
 					<selected>!Skin.HasSetting(hide_continue)</selected>
 					<onclick>Skin.ToggleSetting(hide_continue)</onclick>
 					<onleft>7000</onleft>
-					<onup>7108</onup>
+					<onup>7131</onup>
 					<ondown>7129</ondown>
 				</control>
 
