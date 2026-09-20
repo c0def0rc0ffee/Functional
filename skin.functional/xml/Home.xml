@@ -182,6 +182,91 @@
 				<textcolor>$VAR[AccentColor]</textcolor>
 				<label>$INFO[Skin.String(stat_tvshows_unwatched)]</label>
 			</control>
+
+			<!-- JELLYSTAT section: the headline figures the JellyStat add-on
+			     (script.jellystat, 0.26.4 or later) publishes as
+			     Window(home).Property(JellyStat.*) from its own service. The
+			     skin reads and never computes: no database, no web server,
+			     no dependency. Gated on the add-on being installed AND a
+			     figure being present, so a box with JellyStat installed but
+			     not yet reporting shows nothing rather than zeroes. Hidden
+			     by hide_jellystat (Home Screen). -->
+			<control type="group">
+				<visible>!Skin.HasSetting(hide_jellystat) + System.HasAddon(script.jellystat) + !String.IsEmpty(Window(home).Property(JellyStat.AllTime.Hours))</visible>
+				<control type="label">
+					<left>0</left>
+					<top>440</top>
+					<width>310</width>
+					<height>40</height>
+					<font>font_med</font>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>31400</label>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>484</top>
+					<width>310</width>
+					<height>2</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>500</top>
+					<width>160</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>31401</label>
+				</control>
+				<control type="label">
+					<left>160</left>
+					<top>500</top>
+					<width>150</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Month.Hours)]</label>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>540</top>
+					<width>160</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>31403</label>
+				</control>
+				<control type="label">
+					<left>160</left>
+					<top>540</top>
+					<width>150</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Month.Titles)]</label>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>580</top>
+					<width>160</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>31402</label>
+				</control>
+				<control type="label">
+					<left>160</left>
+					<top>580</top>
+					<width>150</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.AllTime.Hours)]</label>
+				</control>
+			</control>
 			</control>
 
 		</control>
