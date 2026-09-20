@@ -464,16 +464,36 @@
 				<onclick>ActivateWindow(1151)</onclick>
 			</control>
 
+			<!-- Stats (custom window 1153): JellyStat's figures as a page.
+			     Only with script.jellystat installed, and never a prompt to
+			     install it. Hidden by hide_stats_menu (Home Screen). -->
+			<control type="button" id="9008">
+				<visible>System.HasAddon(script.jellystat) + !Skin.HasSetting(hide_stats_menu)</visible>
+				<width>240</width>
+				<height>120</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<label>31406</label>
+				<onclick>ActivateWindow(1153)</onclick>
+			</control>
+
 		</control>
 
 		<!-- Bottom-right corner icons -->
 		<control type="grouplist" id="9100">
 			<right>40</right>
 			<bottom>40</bottom>
-			<!-- Must hold Back-to (520) + Queue (140) + five 70px icons + gaps
-			     = 1070px: when a grouplist overflows, Kodi drops the right
+			<!-- Must hold Back-to (520) + Queue (140) + six 70px icons + gaps
+			     = 1150px: when a grouplist overflows, Kodi drops the right
 			     alignment and scrolls, clipping the Power icon off-screen. -->
-			<width>1080</width>
+			<width>1160</width>
 			<height>70</height>
 			<itemgap>10</itemgap>
 			<orientation>horizontal</orientation>
@@ -521,7 +541,7 @@
 				<animation effect="fade" time="200">VisibleChange</animation>
 			</control>
 
-			<!-- Round icon buttons (Lists / Favourites / Add-ons / Settings / Power).
+			<!-- Round icon buttons (Stats / Lists / Favourites / Add-ons / Settings / Power).
 			     Each icon PNG is a single texture combining a semi-transparent
 			     disc with an opaque glyph, so a colordiffuse renders the disc
 			     at half strength and the glyph at full, readable contrast on
@@ -532,6 +552,18 @@
 			<!-- Lists, as a corner icon. Off by default and independent of the
 			     Lists entry in the main menu (hide_lists), so either, both or
 			     neither can show. -->
+			<!-- Stats page as a corner icon: off by default, only with
+			     script.jellystat installed, independent of the menu entry. -->
+			<control type="button" id="9106">
+				<visible>System.HasAddon(script.jellystat) + Skin.HasSetting(show_stats_icon)</visible>
+				<width>70</width>
+				<height>70</height>
+				<disabledcolor>disabled</disabledcolor>
+				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_stats.png</texturefocus>
+				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_stats.png</texturenofocus>
+				<onclick>ActivateWindow(1153)</onclick>
+			</control>
+
 			<control type="button" id="9105">
 				<visible>Skin.HasSetting(show_lists_icon)</visible>
 				<width>70</width>

@@ -354,12 +354,12 @@
 					<onclick>Skin.ToggleSetting(hide_lists)</onclick>
 					<onleft>7000</onleft>
 					<onup>7122</onup>
-					<ondown>7130</ondown>
+					<ondown>7136</ondown>
 				</control>
 
 				<!-- Lists as a round corner icon beside Favourites, independent
 				     of the menu entry above. -->
-				<control type="radiobutton" id="7130">
+				<control type="radiobutton" id="7136">
 					<width>900</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -403,7 +403,7 @@
 					<selected>!Skin.HasSetting(hide_logo)</selected>
 					<onclick>Skin.ToggleSetting(hide_logo)</onclick>
 					<onleft>7000</onleft>
-					<onup>7130</onup>
+					<onup>7136</onup>
 					<ondown>7105</ondown>
 				</control>
 
@@ -524,13 +524,14 @@
 					<onclick>Skin.ToggleSetting(hide_tvshows_count)</onclick>
 					<onleft>7000</onleft>
 					<onup>7107</onup>
-					<ondown>7131</ondown>
+					<ondown>7137</ondown>
 				</control>
 
-				<!-- JellyStat figures under the TV stats, only meaningful with
-				     script.jellystat installed; the Home block hides itself
-				     otherwise. -->
-				<control type="radiobutton" id="7131">
+				<!-- JellyStat figures under the TV stats. Only offered with
+				     script.jellystat installed; nothing here ever suggests
+				     installing it. -->
+				<control type="radiobutton" id="7137">
+					<visible>System.HasAddon(script.jellystat)</visible>
 					<width>900</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -551,6 +552,59 @@
 					<onclick>Skin.ToggleSetting(hide_jellystat)</onclick>
 					<onleft>7000</onleft>
 					<onup>7108</onup>
+					<ondown>7138</ondown>
+				</control>
+
+				<!-- Stats page (custom window 1153) entry in the main menu. Only
+				     offered with JellyStat installed, never as a prompt to install it. -->
+				<control type="radiobutton" id="7138">
+					<visible>System.HasAddon(script.jellystat)</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31407</label>
+					<selected>!Skin.HasSetting(hide_stats_menu)</selected>
+					<onclick>Skin.ToggleSetting(hide_stats_menu)</onclick>
+					<onleft>7000</onleft>
+					<onup>7137</onup>
+					<ondown>7139</ondown>
+				</control>
+
+				<!-- Stats page as a round corner icon, independent of the menu entry. -->
+				<control type="radiobutton" id="7139">
+					<visible>System.HasAddon(script.jellystat)</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31408</label>
+					<selected>Skin.HasSetting(show_stats_icon)</selected>
+					<onclick>Skin.ToggleSetting(show_stats_icon)</onclick>
+					<onleft>7000</onleft>
+					<onup>7138</onup>
 					<ondown>7128</ondown>
 				</control>
 
@@ -576,7 +630,7 @@
 					<selected>!Skin.HasSetting(hide_continue)</selected>
 					<onclick>Skin.ToggleSetting(hide_continue)</onclick>
 					<onleft>7000</onleft>
-					<onup>7131</onup>
+					<onup>7139</onup>
 					<ondown>7129</ondown>
 				</control>
 

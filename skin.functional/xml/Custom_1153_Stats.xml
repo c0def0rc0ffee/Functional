@@ -1,0 +1,719 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Stats screen (custom window 1153): JellyStat's viewing figures as a page.
+  </summary>
+  <remarks>
+  Everything on this page is read from the JellyStat.* Home window
+  properties that script.jellystat (0.26.5 or later) publishes from its
+  own service every five minutes: this month and all time from the
+  library, the last seven days from its play log. The skin computes nothing
+  and reads no database, so the page needs only the add-on to be running.
+
+  It is reached from the main menu entry and the corner icon on Home, both
+  of which exist only while script.jellystat is installed, so a box without
+  it never sees this page and is never told about it. With the add-on
+  installed but not yet reporting (the first minute or two after Kodi
+  starts, or a box that has not read its library) the tiles give way to a
+  single line saying so, which is the nearest thing to a prompt this page
+  ever shows.
+
+  The seven daily bars are a static list: a progress control can take its
+  percentage from a list item property but not from a window property, so
+  each day rides on an item with its share of the busiest day as "pct".
+  </remarks>
+-->
+<window id="1153" type="window">
+	<defaultcontrol always="true">9001</defaultcontrol>
+	<animation effect="fade" time="200">WindowOpen</animation>
+	<animation effect="fade" time="200">WindowClose</animation>
+	<controls>
+		<include content="WindowBackground"/>
+		<include content="HeaderBar">
+			<param name="title" value="     $LOCALIZE[31406]"/>
+		</include>
+		<control type="image">
+			<left>20</left>
+			<top>5</top>
+			<width>80</width>
+			<height>80</height>
+			<aspectratio>keep</aspectratio>
+			<texture>logo.png</texture>
+		</control>
+
+		<!-- Not reporting yet: one quiet line, no tiles -->
+		<control type="label">
+			<left>60</left>
+			<top>140</top>
+			<width>1800</width>
+			<height>40</height>
+			<font>font_reg</font>
+			<textcolor>text_dim</textcolor>
+			<label>$LOCALIZE[31413]</label>
+			<visible>String.IsEmpty(Window(home).Property(JellyStat.AllTime.Hours))</visible>
+		</control>
+
+		<control type="group">
+			<visible>!String.IsEmpty(Window(home).Property(JellyStat.AllTime.Hours))</visible>
+			<control type="group">
+				<left>60</left>
+				<top>120</top>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>880</width>
+					<height>300</height>
+					<texture colordiffuse="bg_panel">white.png</texture>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>880</width>
+					<height>4</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>30</left>
+					<top>20</top>
+					<width>820</width>
+					<height>40</height>
+					<font>font_med</font>
+					<textcolor>accent_hi</textcolor>
+					<label>$LOCALIZE[31409]  $INFO[Window(home).Property(JellyStat.Month),,]</label>
+				</control>
+				<control type="label">
+					<left>30</left>
+					<top>90</top>
+					<width>400</width>
+					<height>110</height>
+					<font>font_huge</font>
+					<textcolor>white</textcolor>
+					<label>$INFO[Window(home).Property(JellyStat.Month.Hours)]</label>
+				</control>
+				<control type="label">
+					<left>440</left>
+					<top>70</top>
+					<width>220</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31403]</label>
+				</control>
+				<control type="label">
+					<left>660</left>
+					<top>70</top>
+					<width>200</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Month.Titles)]</label>
+				</control>
+				<control type="label">
+					<left>440</left>
+					<top>106</top>
+					<width>220</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31421]</label>
+				</control>
+				<control type="label">
+					<left>660</left>
+					<top>106</top>
+					<width>200</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Month.Movies)]</label>
+				</control>
+				<control type="label">
+					<left>440</left>
+					<top>142</top>
+					<width>220</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31422]</label>
+				</control>
+				<control type="label">
+					<left>660</left>
+					<top>142</top>
+					<width>200</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Month.Episodes)]</label>
+				</control>
+				<control type="label">
+					<left>440</left>
+					<top>178</top>
+					<width>220</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31414]</label>
+				</control>
+				<control type="label">
+					<left>660</left>
+					<top>178</top>
+					<width>200</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Month.Plays)]</label>
+				</control>
+			</control>
+			<control type="group">
+				<left>980</left>
+				<top>120</top>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>880</width>
+					<height>300</height>
+					<texture colordiffuse="bg_panel">white.png</texture>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>880</width>
+					<height>4</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>30</left>
+					<top>20</top>
+					<width>820</width>
+					<height>40</height>
+					<font>font_med</font>
+					<textcolor>accent_hi</textcolor>
+					<label>$LOCALIZE[31410]</label>
+				</control>
+				<control type="label">
+					<left>30</left>
+					<top>90</top>
+					<width>400</width>
+					<height>110</height>
+					<font>font_huge</font>
+					<textcolor>white</textcolor>
+					<label>$INFO[Window(home).Property(JellyStat.AllTime.Hours)]</label>
+				</control>
+				<control type="label">
+					<left>440</left>
+					<top>70</top>
+					<width>220</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31403]</label>
+				</control>
+				<control type="label">
+					<left>660</left>
+					<top>70</top>
+					<width>200</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.AllTime.Titles)]</label>
+				</control>
+				<control type="label">
+					<left>440</left>
+					<top>106</top>
+					<width>220</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31421]</label>
+				</control>
+				<control type="label">
+					<left>660</left>
+					<top>106</top>
+					<width>200</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.AllTime.Movies)]</label>
+				</control>
+				<control type="label">
+					<left>440</left>
+					<top>142</top>
+					<width>220</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31422]</label>
+				</control>
+				<control type="label">
+					<left>660</left>
+					<top>142</top>
+					<width>200</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.AllTime.Episodes)]</label>
+				</control>
+				<control type="label">
+					<left>440</left>
+					<top>178</top>
+					<width>220</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31420]</label>
+				</control>
+				<control type="label">
+					<left>660</left>
+					<top>178</top>
+					<width>200</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.AllTime.Shows)]</label>
+				</control>
+				<control type="label">
+					<left>440</left>
+					<top>214</top>
+					<width>220</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31414]</label>
+				</control>
+				<control type="label">
+					<left>660</left>
+					<top>214</top>
+					<width>200</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.AllTime.Plays)]</label>
+				</control>
+				<control type="label">
+					<left>440</left>
+					<top>250</top>
+					<width>220</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31415]</label>
+				</control>
+				<control type="label">
+					<left>660</left>
+					<top>250</top>
+					<width>200</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.AllTime.Ratings)]</label>
+				</control>
+			</control>
+			<control type="group">
+				<left>60</left>
+				<top>450</top>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1800</width>
+					<height>470</height>
+					<texture colordiffuse="bg_panel">white.png</texture>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1800</width>
+					<height>4</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>30</left>
+					<top>20</top>
+					<width>800</width>
+					<height>40</height>
+					<font>font_med</font>
+					<textcolor>accent_hi</textcolor>
+					<label>$LOCALIZE[31411]</label>
+				</control>
+				<control type="label">
+					<left>30</left>
+					<top>58</top>
+					<width>1100</width>
+					<height>28</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31423]</label>
+				</control>
+				<control type="label">
+					<left>1130</left>
+					<top>20</top>
+					<width>640</width>
+					<height>40</height>
+					<font>font_med</font>
+					<textcolor>white</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Week.Hours)]</label>
+				</control>
+				<!-- Seven bars. A static list rather than seven fixed rows
+				     because a progress control can read its percentage off a
+				     list item property but not off a window property. -->
+				<control type="list" id="50">
+					<left>30</left>
+					<top>100</top>
+					<width>1100</width>
+					<height>350</height>
+					<onup>9000</onup>
+					<ondown>9000</ondown>
+					<onleft>9000</onleft>
+					<onright>9000</onright>
+					<itemlayout height="50" width="1100">
+					<control type="label">
+						<left>0</left>
+						<top>0</top>
+						<width>90</width>
+						<height>48</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<control type="progress">
+						<left>100</left>
+						<top>15</top>
+						<width>780</width>
+						<height>18</height>
+						<info>ListItem.Property(pct)</info>
+						<texturebg colordiffuse="40FFFFFF">white.png</texturebg>
+						<midtexture colordiffuse="$VAR[AccentColor]">white.png</midtexture>
+						<overlaytexture>-</overlaytexture>
+					</control>
+					<control type="label">
+						<left>900</left>
+						<top>0</top>
+						<width>200</width>
+						<height>48</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<align>right</align>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label2]</label>
+					</control>
+					</itemlayout>
+					<focusedlayout height="50" width="1100">
+					<control type="label">
+						<left>0</left>
+						<top>0</top>
+						<width>90</width>
+						<height>48</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<control type="progress">
+						<left>100</left>
+						<top>15</top>
+						<width>780</width>
+						<height>18</height>
+						<info>ListItem.Property(pct)</info>
+						<texturebg colordiffuse="40FFFFFF">white.png</texturebg>
+						<midtexture colordiffuse="$VAR[AccentColor]">white.png</midtexture>
+						<overlaytexture>-</overlaytexture>
+					</control>
+					<control type="label">
+						<left>900</left>
+						<top>0</top>
+						<width>200</width>
+						<height>48</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<align>right</align>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label2]</label>
+					</control>
+					</focusedlayout>
+					<content>
+					<item>
+						<label>$INFO[Window(home).Property(JellyStat.Day.1.Label)]</label>
+						<label2>$INFO[Window(home).Property(JellyStat.Day.1.Hours)]</label2>
+						<property name="pct">$INFO[Window(home).Property(JellyStat.Day.1.Percent)]</property>
+						<property name="today">$INFO[Window(home).Property(JellyStat.Day.1.Today)]</property>
+						<visible>!String.IsEmpty(Window(home).Property(JellyStat.Day.1.Label))</visible>
+					</item>
+					<item>
+						<label>$INFO[Window(home).Property(JellyStat.Day.2.Label)]</label>
+						<label2>$INFO[Window(home).Property(JellyStat.Day.2.Hours)]</label2>
+						<property name="pct">$INFO[Window(home).Property(JellyStat.Day.2.Percent)]</property>
+						<property name="today">$INFO[Window(home).Property(JellyStat.Day.2.Today)]</property>
+						<visible>!String.IsEmpty(Window(home).Property(JellyStat.Day.2.Label))</visible>
+					</item>
+					<item>
+						<label>$INFO[Window(home).Property(JellyStat.Day.3.Label)]</label>
+						<label2>$INFO[Window(home).Property(JellyStat.Day.3.Hours)]</label2>
+						<property name="pct">$INFO[Window(home).Property(JellyStat.Day.3.Percent)]</property>
+						<property name="today">$INFO[Window(home).Property(JellyStat.Day.3.Today)]</property>
+						<visible>!String.IsEmpty(Window(home).Property(JellyStat.Day.3.Label))</visible>
+					</item>
+					<item>
+						<label>$INFO[Window(home).Property(JellyStat.Day.4.Label)]</label>
+						<label2>$INFO[Window(home).Property(JellyStat.Day.4.Hours)]</label2>
+						<property name="pct">$INFO[Window(home).Property(JellyStat.Day.4.Percent)]</property>
+						<property name="today">$INFO[Window(home).Property(JellyStat.Day.4.Today)]</property>
+						<visible>!String.IsEmpty(Window(home).Property(JellyStat.Day.4.Label))</visible>
+					</item>
+					<item>
+						<label>$INFO[Window(home).Property(JellyStat.Day.5.Label)]</label>
+						<label2>$INFO[Window(home).Property(JellyStat.Day.5.Hours)]</label2>
+						<property name="pct">$INFO[Window(home).Property(JellyStat.Day.5.Percent)]</property>
+						<property name="today">$INFO[Window(home).Property(JellyStat.Day.5.Today)]</property>
+						<visible>!String.IsEmpty(Window(home).Property(JellyStat.Day.5.Label))</visible>
+					</item>
+					<item>
+						<label>$INFO[Window(home).Property(JellyStat.Day.6.Label)]</label>
+						<label2>$INFO[Window(home).Property(JellyStat.Day.6.Hours)]</label2>
+						<property name="pct">$INFO[Window(home).Property(JellyStat.Day.6.Percent)]</property>
+						<property name="today">$INFO[Window(home).Property(JellyStat.Day.6.Today)]</property>
+						<visible>!String.IsEmpty(Window(home).Property(JellyStat.Day.6.Label))</visible>
+					</item>
+					<item>
+						<label>$INFO[Window(home).Property(JellyStat.Day.7.Label)]</label>
+						<label2>$INFO[Window(home).Property(JellyStat.Day.7.Hours)]</label2>
+						<property name="pct">$INFO[Window(home).Property(JellyStat.Day.7.Percent)]</property>
+						<property name="today">$INFO[Window(home).Property(JellyStat.Day.7.Today)]</property>
+						<visible>!String.IsEmpty(Window(home).Property(JellyStat.Day.7.Label))</visible>
+					</item>
+					</content>
+				</control>
+				<control type="label">
+					<left>1210</left>
+					<top>100</top>
+					<width>300</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31418]</label>
+				</control>
+				<control type="label">
+					<left>1510</left>
+					<top>100</top>
+					<width>260</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Week.Delta)]</label>
+				</control>
+				<control type="label">
+					<left>1210</left>
+					<top>138</top>
+					<width>300</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31416]</label>
+				</control>
+				<control type="label">
+					<left>1510</left>
+					<top>138</top>
+					<width>260</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Week.Average)]</label>
+				</control>
+				<control type="label">
+					<left>1210</left>
+					<top>176</top>
+					<width>300</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31417]</label>
+				</control>
+				<control type="label">
+					<left>1510</left>
+					<top>176</top>
+					<width>260</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Week.WakingPercent),,%]</label>
+				</control>
+				<control type="label">
+					<left>1210</left>
+					<top>214</top>
+					<width>300</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31421]</label>
+				</control>
+				<control type="label">
+					<left>1510</left>
+					<top>214</top>
+					<width>260</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Week.Movies.Hours)]</label>
+				</control>
+				<control type="label">
+					<left>1210</left>
+					<top>252</top>
+					<width>300</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31420]</label>
+				</control>
+				<control type="label">
+					<left>1510</left>
+					<top>252</top>
+					<width>260</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Week.Shows.Hours)]</label>
+				</control>
+				<control type="label">
+					<left>1210</left>
+					<top>300</top>
+					<width>560</width>
+					<height>30</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>$LOCALIZE[31419]</label>
+				</control>
+				<control type="label">
+					<left>1210</left>
+					<top>334</top>
+					<width>300</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[Window(home).Property(JellyStat.Daypart.1.Label)]</label>
+				</control>
+				<control type="label">
+					<left>1510</left>
+					<top>334</top>
+					<width>260</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Daypart.1.Sessions)]</label>
+				</control>
+				<control type="label">
+					<left>1210</left>
+					<top>368</top>
+					<width>300</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[Window(home).Property(JellyStat.Daypart.2.Label)]</label>
+				</control>
+				<control type="label">
+					<left>1510</left>
+					<top>368</top>
+					<width>260</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Daypart.2.Sessions)]</label>
+				</control>
+				<control type="label">
+					<left>1210</left>
+					<top>402</top>
+					<width>300</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[Window(home).Property(JellyStat.Daypart.3.Label)]</label>
+				</control>
+				<control type="label">
+					<left>1510</left>
+					<top>402</top>
+					<width>260</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Daypart.3.Sessions)]</label>
+				</control>
+				<control type="label">
+					<left>1210</left>
+					<top>436</top>
+					<width>300</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[Window(home).Property(JellyStat.Daypart.4.Label)]</label>
+				</control>
+				<control type="label">
+					<left>1510</left>
+					<top>436</top>
+					<width>260</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<label>$INFO[Window(home).Property(JellyStat.Daypart.4.Sessions)]</label>
+				</control>
+			</control>
+		</control>
+
+		<control type="button" id="9000">
+			<right>340</right>
+			<top>960</top>
+			<width>300</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<label>$LOCALIZE[31412]</label>
+			<onclick>RunScript(script.jellystat)</onclick>
+			<onup>9000</onup>
+			<ondown>9000</ondown>
+			<onleft>9000</onleft>
+			<onright>9001</onright>
+		</control>
+		<control type="button" id="9001">
+			<right>120</right>
+			<top>960</top>
+			<width>200</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<label>$LOCALIZE[31028]</label>
+			<onclick>Back</onclick>
+			<onup>9001</onup>
+			<ondown>9001</ondown>
+			<onleft>9000</onleft>
+			<onright>9001</onright>
+		</control>
+	</controls>
+</window>
