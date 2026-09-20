@@ -417,6 +417,16 @@
 		<value></value>
 	</variable>
 
+	<!-- Air date for the full-screen info card's episode line, which had no
+	     date on it at all. Episodes only, and that is enforced by the
+	     control it sits on rather than here: movies carry their year in the
+	     title line already. Premiered is preferred over Year because it
+	     names the day the episode went out. -->
+	<variable name="FsInfoAiredLabel">
+		<value condition="!String.IsEmpty(VideoPlayer.Premiered)">$INFO[VideoPlayer.Premiered, · $LOCALIZE[31153] ,]</value>
+		<value>$INFO[VideoPlayer.Year, · ,]</value>
+	</variable>
+
 	<!-- Date label for info dialog: air date for episodes, year for everything else -->
 	<variable name="InfoDateLabel">
 		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.Premiered)">$LOCALIZE[31153] $INFO[ListItem.Premiered]</value>
@@ -1707,7 +1717,9 @@
 
 			<!-- Right column: title + metadata + plot -->
 
-			<!-- Episode marker (S01E03) above title, TV only -->
+			<!-- Episode marker (S01E03) above title, TV only, with the air date
+			     appended: this card showed no date for an episode at all, and the
+			     metadata row below it clips on shows with long genre lists. -->
 			<control type="label">
 				<left>380</left>
 				<top>30</top>
@@ -1715,7 +1727,7 @@
 				<height>26</height>
 				<font>font_reg</font>
 				<textcolor>accent_hi</textcolor>
-				<label>$INFO[VideoPlayer.TVShowTitle] · $INFO[VideoPlayer.Season,S,]$INFO[VideoPlayer.Episode,E,]</label>
+				<label>$INFO[VideoPlayer.TVShowTitle] · $INFO[VideoPlayer.Season,S,]$INFO[VideoPlayer.Episode,E,]$VAR[FsInfoAiredLabel]</label>
 				<visible>!String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
 			</control>
 
@@ -1743,7 +1755,7 @@
 				<visible>!String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
 			</control>
 
-			<!-- Metadata row: genre · runtime · rating · resolution -->
+			<!-- Metadata row: genre · runtime · rating · certificate -->
 			<control type="label">
 				<left>380</left>
 				<top>112</top>
@@ -1784,6 +1796,22 @@
 				<aligny>center</aligny>
 				<textcolor>text_dim</textcolor>
 				<label>$INFO[VideoPlayer.AudioCodec]$INFO[VideoPlayer.AudioChannels, · , $LOCALIZE[31069]]$INFO[VideoPlayer.AudioLanguage, · ,]</label>
+			</control>
+
+			<!-- How old the title is, published by service.py as
+			     playing_age_label. Empty under a year old and when the age is
+			     switched off. Right-aligned at the end of the pill row rather
+			     than appended to the metadata row, which clips. -->
+			<control type="label">
+				<left>1020</left>
+				<top>156</top>
+				<width>350</width>
+				<height>30</height>
+				<font>font_small</font>
+				<align>right</align>
+				<aligny>center</aligny>
+				<textcolor>text_dim</textcolor>
+				<label>$INFO[Window(home).Property(playing_age_label)]</label>
 			</control>
 
 			<!-- Plot, the meat of the card -->

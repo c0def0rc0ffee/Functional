@@ -94,6 +94,22 @@
 			<visible>!String.IsEmpty(ListItem.Rating)</visible>
 		</control>
 
+		<!-- How old the title is, published by service.py as info_age_label.
+		     Empty under a year old and when the age is switched off, so no
+		     <visible> is needed here. Its own control rather than a tail on
+		     the metadata row above: a long genre list clips that row, and
+		     the age would be the first thing to go. -->
+		<control type="label">
+			<right>80</right>
+			<top>234</top>
+			<width>400</width>
+			<height>34</height>
+			<font>font_reg</font>
+			<align>right</align>
+			<textcolor>text_dim</textcolor>
+			<label>$INFO[Window(home).Property(info_age_label)]</label>
+		</control>
+
 		<!-- Tagline -->
 		<control type="label">
 			<left>620</left>

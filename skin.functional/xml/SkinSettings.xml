@@ -702,7 +702,7 @@
 				<label>$LOCALIZE[31261] $VAR[AccentColorLabel]</label>
 				<onleft>7000</onleft>
 				<onright>7310</onright>
-				<onup>7301</onup>
+				<onup>7316</onup>
 				<ondown>7301</ondown>
 				<onclick condition="String.IsEmpty(Skin.String(accent_color)) | String.IsEqual(Skin.String(accent_color),blue)">Skin.SetString(accent_color,red)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(accent_color),red)">Skin.SetString(accent_color,green)</onclick>
@@ -749,7 +749,7 @@
 				<label>$LOCALIZE[31263] $VAR[NotificationPositionLabel]</label>
 				<onleft>7000</onleft>
 				<onup>7300</onup>
-				<ondown>7300</ondown>
+				<ondown>7316</ondown>
 				<!-- Cycle: br → bc → bl → tl → tc → tr → br -->
 				<onclick condition="String.IsEmpty(Skin.String(notification_position)) | String.IsEqual(Skin.String(notification_position),br)">Skin.SetString(notification_position,bc)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(notification_position),bc)">Skin.SetString(notification_position,bl)</onclick>
@@ -758,6 +758,49 @@
 				<onclick condition="String.IsEqual(Skin.String(notification_position),tc)">Skin.SetString(notification_position,tr)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(notification_position),tr)">Skin.SetString(notification_position,br)</onclick>
 				<onright>7310</onright>
+			</control>
+
+			<!-- Sub-header: info screens -->
+			<control type="label">
+				<left>440</left>
+				<top>510</top>
+				<width>900</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>31384</label>
+			</control>
+
+			<!-- Age on the video info dialog and the full-screen info card.
+			     service.py:update_media_age reads this setting and publishes
+			     an empty label when it is on, so the switch lives in one
+			     place rather than being repeated as a <visible> on each row.
+			     Anything under a year old shows nothing either way. -->
+			<control type="radiobutton" id="7316">
+				<left>440</left>
+				<top>550</top>
+				<width>900</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31383</label>
+				<selected>!Skin.HasSetting(hide_media_age)</selected>
+				<onclick>Skin.ToggleSetting(hide_media_age)</onclick>
+				<onleft>7000</onleft>
+				<onright>7310</onright>
+				<onup>7301</onup>
+				<ondown>7300</ondown>
 			</control>
 
 			<!-- ===== Right column: DIAGNOSTICS ===== -->
