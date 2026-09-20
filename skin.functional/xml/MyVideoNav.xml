@@ -1030,6 +1030,47 @@
 					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
 					<onright>51</onright>
 					<onup>8005</onup>
+					<ondown>8007</ondown>
+				</control>
+
+				<!-- Age. Cycles the "older than" threshold (Any, 10, 20, 30, 40,
+				     50 years) and asks the service to open the matching node: a
+				     videodb smart playlist URL with a year rule, plus the genre
+				     rule when the screen is inside a genre node, so the two
+				     filters stack. Kodi has no relative year rule, so the cutoff
+				     year is computed by service.py:update_age_command, which also
+				     keeps Skin.String(age_filter) equal to whatever the container
+				     on screen is actually filtered by. The node is swapped in
+				     place (Container.Update), so this section stays open and the
+				     button keeps focus for the next step. The cycling conditions
+				     are a snapshot at click time, so exactly one fires before the
+				     command is set. Same visibility rule as Genre. -->
+				<control type="button" id="8007">
+					<visible>Skin.HasSetting(filter_menu_open) + [Container.Content(movies) | Container.Content(tvshows)] + String.StartsWith(Container.FolderPath,videodb://)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31394] $VAR[AgeFilterLabel]</label>
+					<onclick condition="String.IsEmpty(Skin.String(age_filter))">Skin.SetString(age_filter,10)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(age_filter),10)">Skin.SetString(age_filter,20)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(age_filter),20)">Skin.SetString(age_filter,30)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(age_filter),30)">Skin.SetString(age_filter,40)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(age_filter),40)">Skin.SetString(age_filter,50)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(age_filter),50)">Skin.Reset(age_filter)</onclick>
+					<onclick condition="Container.Content(tvshows)">Skin.SetString(age_command,apply_tvshows)</onclick>
+					<onclick condition="!Container.Content(tvshows)">Skin.SetString(age_command,apply_movies)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8006</onup>
 					<ondown>8009</ondown>
 				</control>
 
@@ -1051,7 +1092,7 @@
 					<onclick>ActivateWindow(VideoPlaylist)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
-					<onup>8006</onup>
+					<onup>8007</onup>
 					<ondown>8499</ondown>
 				</control>
 

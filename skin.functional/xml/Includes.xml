@@ -548,6 +548,14 @@
 
 	<!-- <summary>Edge the Continue Watching tab sits on, for the Skin
 	     Settings button. Empty means bottom.</summary> -->
+	<!-- <summary>Value half of the "Age" button in the library filter menu:
+	     "Any", or "20+ years". Kept short: the sub button is 380 wide and a
+	     longer caption scrolled.</summary> -->
+	<variable name="AgeFilterLabel">
+		<value condition="String.IsEmpty(Skin.String(age_filter))">$LOCALIZE[31398]</value>
+		<value>$INFO[Skin.String(age_filter),,+] $LOCALIZE[31399]</value>
+	</variable>
+
 	<variable name="ContinueTabLabel">
 		<value condition="String.IsEqual(Skin.String(continue_tab),top)">$LOCALIZE[31135]</value>
 		<value>$LOCALIZE[31136]</value>
