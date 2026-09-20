@@ -1539,3 +1539,19 @@ msgstr ""
 msgctxt "#31380"
 msgid "Filled"
 msgstr ""
+
+msgctxt "#31381"
+msgid "{0} years old"
+msgstr ""
+
+msgctxt "#31382"
+msgid "1 year old"
+msgstr ""
+
+msgctxt "#31383"
+msgid "Show how old a title is on the info screens"
+msgstr ""
+
+msgctxt "#31384"
+msgid "INFO SCREENS"
+msgstr ""

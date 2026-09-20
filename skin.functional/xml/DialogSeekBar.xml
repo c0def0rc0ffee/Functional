@@ -103,13 +103,29 @@
 		<control type="label">
 			<left>260</left>
 			<bottom>40</bottom>
-			<width>1400</width>
+			<width>1160</width>
 			<height>30</height>
 			<font>font_small</font>
 			<align>center</align>
 			<textcolor>text_dim</textcolor>
 			<label>$INFO[Player.ChapterName]</label>
 			<visible>!String.IsEmpty(Player.ChapterName)</visible>
+		</control>
+
+		<!-- Position percentage, right aligned under the end of the bar.
+		     Same infolabel the bar itself is driven by, so the number can
+		     never disagree with what the bar is showing. Hidden without a
+		     duration, since a live stream would just read 0%. -->
+		<control type="label">
+			<left>1420</left>
+			<bottom>40</bottom>
+			<width>240</width>
+			<height>30</height>
+			<font>font_small</font>
+			<align>right</align>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>$INFO[Player.Progress]%</label>
+			<visible>!String.IsEmpty(Player.Duration)</visible>
 		</control>
 
 		<control type="label">
@@ -219,13 +235,26 @@
 		<control type="label">
 			<left>260</left>
 			<top>70</top>
-			<width>1400</width>
+			<width>1160</width>
 			<height>30</height>
 			<font>font_small</font>
 			<align>center</align>
 			<textcolor>text_dim</textcolor>
 			<label>$INFO[Player.ChapterName]</label>
 			<visible>!String.IsEmpty(Player.ChapterName)</visible>
+		</control>
+
+		<!-- Position percentage (see the bottom bar's twin) -->
+		<control type="label">
+			<left>1420</left>
+			<top>70</top>
+			<width>240</width>
+			<height>30</height>
+			<font>font_small</font>
+			<align>right</align>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>$INFO[Player.Progress]%</label>
+			<visible>!String.IsEmpty(Player.Duration)</visible>
 		</control>
 
 		<control type="label">

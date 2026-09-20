@@ -449,6 +449,9 @@ class FunctionalHelper(xbmc.Monitor):
         # reaches its loop, killing background, ETA and everything else.
         self._last_eta = None
         self._last_dur_dbg = None
+        # Age labels on the two info screens (see update_media_age), keyed by
+        # Home property name so an unchanged label is never rewritten.
+        self._age_last = {}
         self._bg_items = []        # list of (fanart_url, label_string)
         self._bg_idx = -1
         self._bg_last_change = 0.0
@@ -703,6 +706,118 @@ class FunctionalHelper(xbmc.Monitor):
         _set_home_property("focused_finish_time", value)
         if value:
             _dlog("eta set: ends at {0}".format(value))
+
+    # ---- Media age --------------------------------------------------------
+    # "31 years old" alongside the release year on the two info screens.
+    # Kodi's XML has no arithmetic, so the subtraction happens here and the
+    # skin is handed a finished label it can drop straight into a row.
+
+    # Kodi window name for DialogFullScreenInfo (window id 12006), the card
+    # the info key raises during playback.
+    FS_INFO_DIALOG = "fullscreeninfo"
+
+    # A four-digit year standing on its own, so it also survives being dug
+    # out of a formatted date. Premiered/FirstAired come back through the
+    # user's regional date format ("02/03/2014" on en_GB, "3/2/2014" on
+    # en_US), which is why only the year is taken from them and the age is
+    # a plain year difference rather than exact-date arithmetic: month and
+    # day cannot be told apart reliably across those formats.
+    YEAR_RE = re.compile(r"(?<!\d)(\d{4})(?!\d)")
+    YEAR_MIN = 1870  # pre-cinema, so anything below it is junk, not a film
+    YEAR_MAX = 2200
+
+    def update_media_age(self):
+        """
+        <summary>
+        Publish info_age_label and playing_age_label on Home: how old the
+        video info dialog's item and the playing item are, in whole years.
+        </summary>
+        <remarks>
+        Both are empty unless the screen that uses them is actually open, so
+        a stale age can never surface on a later item, and empty throughout
+        when Skin.HasSetting(hide_media_age) is on. Gating here rather than
+        in the XML keeps it one switch: the skin's rows use the plain
+        "prefix only when non-empty" $INFO form and need no extra condition.
+        </remarks>
+        """
+        if xbmc.getCondVisibility("Skin.HasSetting(hide_media_age)"):
+            self._set_age("info_age_label", "")
+            self._set_age("playing_age_label", "")
+            return
+
+        if xbmc.getCondVisibility("Window.IsActive({0})".format(self.INFO_DIALOG)):
+            # Year first: it is already a bare number. The dates are the
+            # fallback for episodes, whose year Kodi fills from first aired
+            # but which plugin listings sometimes leave unset.
+            self._set_age("info_age_label", self._age_label(
+                xbmc.getInfoLabel("ListItem.Year"),
+                xbmc.getInfoLabel("ListItem.Premiered"),
+                xbmc.getInfoLabel("ListItem.FirstAired")))
+        else:
+            self._set_age("info_age_label", "")
+
+        if xbmc.getCondVisibility("Window.IsActive({0})".format(self.FS_INFO_DIALOG)):
+            self._set_age("playing_age_label", self._age_label(
+                xbmc.getInfoLabel("VideoPlayer.Year"),
+                xbmc.getInfoLabel("VideoPlayer.Premiered")))
+        else:
+            self._set_age("playing_age_label", "")
+
+    def _set_age(self, key, value):
+        """
+        <summary>Publish an age label, skipping unchanged values.</summary>
+        <param name="key">Home property name.</param>
+        <param name="value">Finished label, or empty to clear.</param>
+        <remarks>
+        This runs every tick while a card is open, and redundant
+        Window(home) writes are implicated in the crashes behind
+        _set_bg_props, so nothing is written unless it actually changed.
+        </remarks>
+        """
+        if self._age_last.get(key) == value:
+            return
+        self._age_last[key] = value
+        _set_home_property(key, value)
+        if value:
+            _dlog("age: {0} = {1}".format(key, value))
+
+    @classmethod
+    def _age_label(cls, *sources):
+        """
+        <summary>
+        "31 years old" for the first source that carries a usable year.
+        </summary>
+        <param name="sources">Infolabel values to try, best first.</param>
+        <returns>The label, or empty when the age is unknown or under a year.</returns>
+        <remarks>
+        Under a year is deliberately empty rather than "0 years old": a row
+        that says nothing about this year's releases stays clean, and that
+        is the whole point of the feature.
+        </remarks>
+        """
+        year = cls._year_of(*sources)
+        if year is None:
+            return ""
+        years = time.localtime().tm_year - year
+        if years < 1:
+            return ""
+        if years == 1:
+            return _L(31382)
+        return _L(31381).format(years)
+
+    @classmethod
+    def _year_of(cls, *sources):
+        """
+        <summary>First plausible four-digit year across the given strings.</summary>
+        <param name="sources">Infolabel values to try, best first.</param>
+        <returns>The year as an int, or None when none of them held one.</returns>
+        """
+        for text in sources:
+            for match in cls.YEAR_RE.finditer(text or ""):
+                year = int(match.group(1))
+                if cls.YEAR_MIN <= year <= cls.YEAR_MAX:
+                    return year
+        return None
 
     # ---- Queue end time ---------------------------------------------------
     # The queue header could already show the total running time, which is a
@@ -3793,6 +3908,7 @@ def run():
             helper.update_sort_direction()
             helper.update_video_nav_state()
             helper.update_focused_eta()
+            helper.update_media_age()
             helper.update_settings_command()
             helper.update_layout_command()
             helper.update_bg_command()
