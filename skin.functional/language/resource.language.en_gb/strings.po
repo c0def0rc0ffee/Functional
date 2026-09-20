@@ -1584,6 +1584,10 @@ msgctxt "#31393"
 msgid "Show Lists Corner Icon"
 msgstr ""
 
+msgctxt "#31394"
+msgid "Age:"
+msgstr ""
+
 msgctxt "#31395"
 msgid "Play Random"
 msgstr ""
@@ -1594,6 +1598,14 @@ msgstr ""
 
 msgctxt "#31397"
 msgid "Random pick: {0}"
+msgstr ""
+
+msgctxt "#31398"
+msgid "Any"
+msgstr ""
+
+msgctxt "#31399"
+msgid "years"
 msgstr ""
 
 msgctxt "#31405"

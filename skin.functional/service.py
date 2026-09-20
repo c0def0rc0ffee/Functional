@@ -161,6 +161,7 @@ Future handlers
 
 import json
 import os
+import urllib.parse
 import random
 import re
 import threading
@@ -493,6 +494,8 @@ class FunctionalHelper(xbmc.Monitor):
         self._continue_key = 0          # generation of the latest lookup
         self._continue_focus_key = None  # (dbtype, dbid) of the row described
         self._continue_focused = False   # continue_focus property is "1"
+        # Age filter (see update_age_command)
+        self._age_last_path = None       # Container.FolderPath last derived from
         # Cast strip on the full-screen info card (see update_playing_cast)
         # The lock makes "is this key still current?" + publish atomic, so a
         # worker that passed its staleness check can't interleave its slot
@@ -3164,7 +3167,8 @@ class FunctionalHelper(xbmc.Monitor):
         """
         match = self.GENRE_PATH_RE.match(path or "")
         if not match:
-            return ""
+            # An age filtered node carries its genre inside the playlist.
+            return self._age_rule_from_path(path, "genre")
         dbtype = "movie" if match.group(1).lower() == "movies" else "tvshow"
         genre_id = int(match.group(2))
         name = self._genre_names.get((dbtype, genre_id))
@@ -3791,6 +3795,128 @@ class FunctionalHelper(xbmc.Monitor):
             label = "{0} ({1})".format(title, year) if year else title
         return id_key, int(db_id), label
 
+    # ---- Age filter (library filter menu, "Older than") ------------------
+    # <summary>
+    # Kodi gives a skin no way to filter a library node by a computed value
+    # and has no relative year rule, so "older than 20 years" is a smart
+    # playlist built here with the cutoff year worked out at click time and
+    # opened as a videodb node URL (videodb://movies/titles/?xsp=...), the
+    # same form the Continue Watching containers use. The genre of the node
+    # on screen rides along as a second rule so the two filters stack.
+    # </summary>
+
+    AGE_NODES = {
+        "movies": "videodb://movies/titles/",
+        "tvshows": "videodb://tvshows/titles/",
+    }
+
+    def update_age_command(self):
+        """
+        <summary>
+        Watch Skin.String(age_command) and open the node matching
+        Skin.String(age_filter); between clicks, keep age_filter equal to
+        the threshold the container on screen is actually filtered by.
+        Cheap enough to call every tick.
+        </summary>
+        <remarks>
+        Values are "apply_movies" and "apply_tvshows", set by the side menu
+        with mutually exclusive onclick conditions after it has cycled
+        age_filter. The string is cleared before anything else so it cannot
+        re-fire. With no threshold the plain titles node, or the genre's own
+        node, is loaded, so "Any" really does undo the filter. The path is only
+        re-read when it changes, and age_filter is only written when it
+        differs, so a normal tick costs one infolabel read.
+        </remarks>
+        """
+        cmd = xbmc.getInfoLabel("Skin.String(age_command)").strip().lower()
+        if cmd:
+            xbmc.executebuiltin("Skin.Reset(age_command)")
+            if cmd not in ("apply_movies", "apply_tvshows"):
+                return
+            kind = cmd[6:]
+            years = self._safe_int(xbmc.getInfoLabel("Skin.String(age_filter)"), 0)
+            path = (xbmc.getInfoLabel("Container.FolderPath") or "").strip()
+            genre = self._genre_for_path(path)
+            target = self._age_node(kind, years, genre)
+            _dlog("age filter: {0} older than {1}y genre {2!r} -> {3}".format(
+                kind, years, genre, target[:80]))
+            # Container.Update rather than ActivateWindow: the video window is
+            # already open, so this swaps its directory in place, which keeps
+            # the filter section open with the button focused and, unlike
+            # ActivateWindow, reloads the plain titles node even when the
+            # container is showing that node's own xsp filtered form (Kodi
+            # treated those as the same place and did nothing, so "Any"
+            # never undid the filter).
+            xbmc.executebuiltin("Container.Update({0})".format(target))
+            self._age_last_path = None  # re-derive on the new node
+            return
+
+        if not xbmc.getCondVisibility("Window.IsActive(videos)"):
+            return
+        path = (xbmc.getInfoLabel("Container.FolderPath") or "").strip()
+        if path == self._age_last_path:
+            return
+        self._age_last_path = path
+        cutoff = self._safe_int(self._age_rule_from_path(path, "year"), 0)
+        want = str(time.localtime().tm_year - cutoff) if cutoff else ""
+        if xbmc.getInfoLabel("Skin.String(age_filter)").strip() != want:
+            _set_skin_string("age_filter", want)
+
+    def _age_node(self, kind, years, genre):
+        """
+        <summary>
+        Build the node to open for an age threshold and optional genre.
+        </summary>
+        <param name="kind">"movies" or "tvshows".</param>
+        <param name="years">Threshold in years, 0 for none.</param>
+        <param name="genre">Genre name to keep, "" for none.</param>
+        <returns>A videodb smart playlist URL; with no threshold, the plain titles node, or the genre's own node when the genre is known so the normal Genre controls take over again.</returns>
+        <remarks>
+        "Older than N years" is a year strictly below the current year
+        minus N, so on 2026 a threshold of 20 shows titles up to 2005.
+        </remarks>
+        """
+        if years <= 0 and genre:
+            dbtype = "movie" if kind == "movies" else "tvshow"
+            for (gtype, gid), name in self._genre_names.items():
+                if gtype == dbtype and name == genre:
+                    return "videodb://{0}/genres/{1}/".format(kind, gid)
+        rules = []
+        if years > 0:
+            cutoff = time.localtime().tm_year - years
+            rules.append({"field": "year", "operator": "lessthan", "value": [str(cutoff)]})
+        if genre:
+            rules.append({"field": "genre", "operator": "is", "value": [genre]})
+        if not rules:
+            return self.AGE_NODES[kind]
+        xsp = {"name": "age", "type": kind, "rules": {"and": rules}}
+        return self.AGE_NODES[kind] + "?xsp=" + urllib.parse.quote(
+            json.dumps(xsp, separators=(",", ":")))
+
+    @staticmethod
+    def _age_rule_from_path(path, field):
+        """
+        <summary>
+        First value of one rule inside the xsp playlist a videodb URL carries.
+        </summary>
+        <param name="path">Container.FolderPath.</param>
+        <param name="field">Rule field to look for, such as "year" or "genre".</param>
+        <returns>The rule's first value, or "" when the path carries no such rule.</returns>
+        """
+        if "xsp=" not in (path or ""):
+            return ""
+        try:
+            query = urllib.parse.urlparse(path).query
+            raw = urllib.parse.parse_qs(query).get("xsp", [""])[0]
+            rules = (json.loads(raw).get("rules") or {}).get("and") or []
+        except (ValueError, TypeError, AttributeError):
+            return ""
+        for rule in rules:
+            if isinstance(rule, dict) and rule.get("field") == field:
+                values = rule.get("value") or []
+                return str(values[0]) if values else ""
+        return ""
+
     def _spawn_dialog(self, worker):
         """
         <summary>
@@ -4280,6 +4406,7 @@ def run():
             helper.update_layout_command()
             helper.update_bg_command()
             helper.update_random_command()
+            helper.update_age_command()
             helper.update_favourites()
             helper.update_continue_watching()
             helper.update_lists()
