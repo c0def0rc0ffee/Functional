@@ -66,7 +66,7 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 
 - **View**: Gallery or List
 - **Sort**: Title, Year, Rating, Date Added, Last Played, with an ascending/descending direction toggle
-- **Default sort order**: a default sort and direction for Movies and for TV Shows, set once under Media Selection and applied whenever a library screen opens
+- **Default sort order**: a default sort and direction for Movies and for TV Shows, set once under Library and applied whenever a library screen opens
 - **Scroll badge**: while you scroll, a badge shows the sort key of the item under the cursor (year, rating, date added, last played, or the initial letter), so you always know where you are in a long list
 - **Filter**: the native watched-status toggle (All Videos / Unwatched / Watched), which filters shows, seasons and episodes correctly and updates the menu label to match
 - **Genre**: a genre picker narrows the library to one genre, with an All Genres reset; the menu label always shows the genre actually in force on screen
@@ -83,7 +83,7 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 - Optional poster thumbnail
 - Nine transport buttons: previous, rewind, play/pause, stop, fast forward, next, audio settings, subtitle search, video settings
 - Positionable top or bottom; configurable backdrop dim while the video-settings dialog is open
-- **Playback buffer readout**: an optional buffer level on the OSD and the pause/seek bar (cache percentage, megabytes and seconds ahead), and an optional **Full Buffer** button that switches the current film to buffering the entire file and back again, reopening the stream at the same position. A reset restores Kodi's own buffering defaults (Video OSD > Playback Buffer)
+- **Playback buffer readout**: an optional buffer level on the OSD and the pause/seek bar (cache percentage, megabytes and seconds ahead), and an optional **Full Buffer** button that switches the current film to buffering the entire file and back again, reopening the stream at the same position. A reset restores Kodi's own buffering defaults (Playback > Playback Buffer)
 
 ### Weather
 
@@ -94,7 +94,7 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 
 - A **categorised, filterable Favourites screen**: chips across the top split your favourites into **All / Movies / TV / Music / Apps / Other**, with a live count on each (empty categories hide themselves)
 - Great for large, unsorted favourites lists (watch-later movies, launcher apps, quick-select add-ons): jump straight to the type you want
-- Remembers the filter you last used, and a **Default Favourites Filter** setting (Home Screen) chooses which one it opens on
+- Remembers the filter you last used, and a **Default Favourites Filter** setting (Lists and Favourites) chooses which one it opens on
 - The helper service classifies each favourite from its stored action, so no manual tagging is needed
 
 ### Lists
@@ -104,7 +104,7 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 - **Port to Queue** copies a list into Kodi's queue and starts it playing; **Port Shuffled** jumbles the order first, so a box set plays in a fresh order every time
 - Video and music can share a list: each goes to its own queue
 - **Save as List** on the queue screen keeps the current queue for later
-- Porting asks whether to clear the current queue first, or set a standing answer under Media Selection
+- Porting asks whether to clear the current queue first, or set a standing answer under Lists and Favourites
 
 ### Other Windows
 
@@ -133,13 +133,15 @@ A lightweight Python service handles what the skin engine can't do alone, with a
 
 ### Customisation
 
-All settings live in **Settings > Skin Settings**, organised into five categories:
+All settings live in **Settings > Skin Settings**, organised into seven categories:
 
 - **Overall**: accent colour (Blue, Red, Green, Orange, Amber, Purple, Teal, Pink), notification position (6 placements), Diagnostics (debug logging + log folder), and Skin Settings Backup (Back Up Now and Restore from Backup, with the age of the snapshot shown)
 - **Background**: the unified background mode, image/folder picker, dim, slideshow interval, caption position, the time-of-day schedule, and whether the background (or live video) shows on every screen
-- **Home Screen**: show/hide each menu item (incl. Weather and Lists), stats panels, Favourites/Add-ons/Power buttons, logo, footer, date/time, loading splash; main menu position; invisible round buttons; weather widget; default Favourites filter
-- **Media Selection**: gallery thumbnail size, small-grid column count, poster shape, info bar position, context menu position (centre or left edge), default sort order and direction for Movies and TV Shows, what porting a list does to the current queue, and toggles for every metadata field
-- **Video OSD**: OSD position, OSD thumbnail, the video dim level, and the Playback Buffer section (buffer level on the OSD, the Full Buffer button, reset to Kodi defaults)
+- **Main Menu**: show/hide each menu item (incl. Weather, Lists and Stats) and the main menu position; the corner bar position, its Favourites/Add-ons/Power buttons and Lists/Stats icons, and invisible round buttons
+- **Home Screen**: the stats panels and Continue Watching; logo, date/time, weather widget, footer and loading splash; the sleep timer and its countdown
+- **Library**: gallery thumbnail size, small-grid column count, poster shape, context menu position (centre or left edge), default sort order and direction for Movies and TV Shows, info bar position and toggles for every metadata field, and title age on the info screens
+- **Lists and Favourites**: what porting a list does to the current queue, and the default Favourites filter
+- **Playback**: OSD position, OSD thumbnail, the video dim level, and the Playback Buffer section (buffer level on the OSD, the Full Buffer button, reset to Kodi defaults)
 
 Toggle settings show an accent **dot** when on. Most changes apply immediately; a few service-backed ones take effect on the next launch.
 

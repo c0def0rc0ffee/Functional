@@ -969,11 +969,11 @@ msgid "Home Screen"
 msgstr ""
 
 msgctxt "#31238"
-msgid "Media Selection"
+msgid "Library"
 msgstr ""
 
 msgctxt "#31239"
-msgid "Video OSD"
+msgid "Playback"
 msgstr ""
 
 msgctxt "#31240"
@@ -1141,7 +1141,7 @@ msgid "Applied every time you open Movies or TV Shows, including after a genre f
 msgstr ""
 
 msgctxt "#31281"
-msgid "LISTS AND FAVOURITES"
+msgid "LISTS"
 msgstr ""
 
 msgctxt "#31282"
@@ -1754,4 +1754,24 @@ msgstr ""
 
 msgctxt "#31436"
 msgid "POWER MENU"
+msgstr ""
+
+msgctxt "#31437"
+msgid "Main Menu"
+msgstr ""
+
+msgctxt "#31438"
+msgid "Lists and Favourites"
+msgstr ""
+
+msgctxt "#31439"
+msgid "VIDEO OSD"
+msgstr ""
+
+msgctxt "#31440"
+msgid "FAVOURITES"
+msgstr ""
+
+msgctxt "#31441"
+msgid "Which filter the Favourites screen opens on. The last filter used is remembered for the rest of the session."
 msgstr ""
