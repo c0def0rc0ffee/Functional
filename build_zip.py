@@ -40,6 +40,7 @@ import fnmatch
 import os
 import re
 import shutil
+import subprocess
 import sys
 import zipfile
 
@@ -251,6 +252,33 @@ def dir_entry(arcname):
     return info
 
 
+def run_checks():
+    """
+    <summary>
+    Run checks/skin_checks.py and stop the build on any finding.
+    </summary>
+    <exception cref="SystemExit">
+    When the checker is missing, cannot run, or reports a finding.
+    </exception>
+    <remarks>
+    The static checks are the test suite this project has (include and
+    parameter cross references, string ids, navigation targets after include
+    expansion, setting name drift, colours and fonts, the service's call
+    targets, the dash and attribution rules). A red gate never ships, so a
+    missing checker is treated the same as a failing one rather than skipped.
+    </remarks>
+    """
+    script = os.path.join(REPO, "checks", "skin_checks.py")
+    if not os.path.isfile(script):
+        sys.exit("ABORTED: checks/skin_checks.py is missing, so the static "
+                 "checks cannot run. Not building.")
+    print("Static checks:")
+    result = subprocess.run([sys.executable, script], cwd=REPO)
+    if result.returncode != 0:
+        sys.exit("ABORTED: the static checks found problems (listed above). "
+                 "Not building.")
+
+
 def write_zip(out, walk_root, arc_base, exclude_dirs=(), exclude_globs=()):
     """
     <summary>
@@ -450,7 +478,8 @@ def main():
     Build the Dist and source zips for the current version, verify both and mirror them.
     </summary>
     <exception cref="SystemExit">
-    On an unknown argument, a missing source folder, an unreachable mirror,
+    On an unknown argument, a missing source folder, a static check finding,
+    an unreachable mirror,
     a changed rebuild of a released version without --force, or any
     verification failure.
     </exception>
@@ -471,6 +500,7 @@ def main():
 
     if not os.path.isdir(SRC):
         sys.exit(f"Source folder missing: {SRC}")
+    run_checks()
     os.makedirs(DIST, exist_ok=True)
     os.makedirs(GIT, exist_ok=True)
 
