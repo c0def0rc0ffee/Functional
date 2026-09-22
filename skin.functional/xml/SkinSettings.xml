@@ -206,7 +206,7 @@
 					<selected>!Skin.HasSetting(hide_movies)</selected>
 					<onclick>Skin.ToggleSetting(hide_movies)</onclick>
 					<onleft>7000</onleft>
-					<onup>7124</onup>
+					<onup>7142</onup>
 					<ondown>7101</ondown>
 								</control>
 
@@ -798,13 +798,94 @@
 					<label>$LOCALIZE[31259] $VAR[FavDefaultCategoryLabel]</label>
 					<onleft>7000</onleft>
 					<onup>7119</onup>
-					<ondown>7100</ondown>
+					<ondown>7140</ondown>
 					<onclick condition="String.IsEmpty(Skin.String(fav_default_category)) | String.IsEqual(Skin.String(fav_default_category),all)">Skin.SetString(fav_default_category,movies)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(fav_default_category),movies)">Skin.SetString(fav_default_category,tvshows)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(fav_default_category),tvshows)">Skin.SetString(fav_default_category,music)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(fav_default_category),music)">Skin.SetString(fav_default_category,apps)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(fav_default_category),apps)">Skin.SetString(fav_default_category,other)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(fav_default_category),other)">Skin.SetString(fav_default_category,all)</onclick>
+				</control>
+
+				<!-- Which corner or edge centre the row of round icons, the
+				     now playing banner and the queue button sit in. Cycle:
+				     bottom right (where it has always been) then anticlockwise
+				     round the bottom, then the top. -->
+				<control type="button" id="7140">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31430] $VAR[CornerBarPositionLabel]</label>
+					<onleft>7000</onleft>
+					<onup>7124</onup>
+					<ondown>7141</ondown>
+					<onclick condition="String.IsEmpty(Skin.String(corner_bar_position)) | String.IsEqual(Skin.String(corner_bar_position),br)">Skin.SetString(corner_bar_position,bl)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),bl)">Skin.SetString(corner_bar_position,bc)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),bc)">Skin.SetString(corner_bar_position,tl)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),tl)">Skin.SetString(corner_bar_position,tc)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),tc)">Skin.SetString(corner_bar_position,tr)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),tr)">Skin.SetString(corner_bar_position,br)</onclick>
+				</control>
+
+				<!-- The two sleep timer switches are deliberately separate:
+				     the timer can be armed from a menu row that is on screen
+				     with no countdown showing, or the countdown can be left on
+				     while the row itself is hidden from anyone who should not
+				     be setting one. -->
+				<control type="radiobutton" id="7141">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31431</label>
+					<selected>!Skin.HasSetting(hide_sleep_timer)</selected>
+					<onclick>Skin.ToggleSetting(hide_sleep_timer)</onclick>
+					<onleft>7000</onleft>
+					<onup>7140</onup>
+					<ondown>7142</ondown>
+				</control>
+
+				<control type="radiobutton" id="7142">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31432</label>
+					<selected>!Skin.HasSetting(hide_sleep_countdown)</selected>
+					<onclick>Skin.ToggleSetting(hide_sleep_countdown)</onclick>
+					<onleft>7000</onleft>
+					<onup>7141</onup>
+					<ondown>7100</ondown>
 				</control>
 			</control>
 

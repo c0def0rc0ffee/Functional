@@ -117,6 +117,27 @@
 					<onclick>System.LogOff</onclick>
 					<visible>System.HasLoginScreen | Integer.IsGreater(System.ProfileCount,1)</visible>
 				</item>
+				<!-- Sleep timer. The row hands the work to service.py through
+				     Skin.String(sleep_command), because the hours and minutes
+				     prompt is a blocking Python dialog and a skin cannot open
+				     one. The menu closes first: the prompt would otherwise
+				     appear behind this dialog.
+
+				     Both rows are switchable on their own from Skin Settings
+				     (Home Screen), and the countdown readout has a separate
+				     switch again, so the timer can run with nothing on screen. -->
+				<item>
+					<label>$VAR[SleepTimerMenuLabel]</label>
+					<onclick>Dialog.Close(shutdownmenu)</onclick>
+					<onclick>Skin.SetString(sleep_command,set)</onclick>
+					<visible>!Skin.HasSetting(hide_sleep_timer)</visible>
+				</item>
+				<item>
+					<label>31425</label>
+					<onclick>Dialog.Close(shutdownmenu)</onclick>
+					<onclick>Skin.SetString(sleep_command,cancel)</onclick>
+					<visible>!Skin.HasSetting(hide_sleep_timer) + $EXP[sleep_armed]</visible>
+				</item>
 			</content>
 		</control>
 
