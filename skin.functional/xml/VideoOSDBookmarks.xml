@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Bookmarks and chapters during playback (videobookmarks), reached from
+  the playback context menu: a band along the foot of the screen with
+  Create bookmark (2), Clear bookmarks (3), Set episode bookmark (4, which
+  Kodi enables only for episodes) and the bookmark thumbnails in panel 11.
+  Kodi's control ids, taken from Estuary; everything else is this skin's.
+  </summary>
+-->
+<window type="dialog">
+	<defaultcontrol always="true">2</defaultcontrol>
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>0</posx>
+		<posy>0</posy>
+	</coordinates>
+	<controls>
+
+		<!-- Clicking the video above the band closes the dialog -->
+		<control type="button">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>600</height>
+			<texturefocus>-</texturefocus>
+			<texturenofocus>-</texturenofocus>
+			<disabledcolor>disabled</disabledcolor>
+			<onclick>Action(close)</onclick>
+		</control>
+
+		<control type="group">
+			<top>600</top>
+			<height>480</height>
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>1920</width>
+				<height>480</height>
+				<texture colordiffuse="F4181C22">white.png</texture>
+			</control>
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>1920</width>
+				<height>4</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+			<control type="label">
+				<left>60</left>
+				<top>16</top>
+				<width>600</width>
+				<height>40</height>
+				<font>font_med</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>$LOCALIZE[298]</label>
+			</control>
+
+			<control type="grouplist" id="9001">
+				<left>60</left>
+				<top>66</top>
+				<width>1800</width>
+				<height>60</height>
+				<orientation>horizontal</orientation>
+				<itemgap>14</itemgap>
+				<onup>11</onup>
+				<ondown>11</ondown>
+				<control type="button" id="2">
+					<width>320</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<textoffsetx>0</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[294]</label>
+				</control>
+				<control type="button" id="3">
+					<width>320</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<textoffsetx>0</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[296]</label>
+				</control>
+				<control type="button" id="4">
+					<width>360</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<textoffsetx>0</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[20406]</label>
+					<visible>Control.IsEnabled(4)</visible>
+				</control>
+			</control>
+
+			<control type="label">
+				<left>60</left>
+				<top>140</top>
+				<width>1800</width>
+				<height>330</height>
+				<font>font_reg</font>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textcolor>text_dim</textcolor>
+				<label>31477</label>
+				<visible>Integer.IsEqual(Container(11).NumItems,0)</visible>
+			</control>
+
+			<control type="panel" id="11">
+				<left>60</left>
+				<top>140</top>
+				<width>1800</width>
+				<height>330</height>
+				<orientation>horizontal</orientation>
+				<onup>9001</onup>
+				<ondown>9001</ondown>
+				<scrolltime tween="cubic" easing="out">200</scrolltime>
+				<itemlayout width="300" height="330">
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>280</width>
+						<height>158</height>
+						<texture colordiffuse="grey_mid">white.png</texture>
+					</control>
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>280</width>
+						<height>158</height>
+						<aspectratio>scale</aspectratio>
+						<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Art(thumb)]</texture>
+					</control>
+					<control type="label">
+						<left>0</left>
+						<top>166</top>
+						<width>280</width>
+						<height>30</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<control type="label">
+						<left>0</left>
+						<top>196</top>
+						<width>280</width>
+						<height>26</height>
+						<font>font_small</font>
+						<textcolor>text_dim</textcolor>
+						<label>$INFO[ListItem.Label2]</label>
+					</control>
+				</itemlayout>
+				<focusedlayout width="300" height="330">
+					<control type="image">
+						<left>-4</left>
+						<top>-4</top>
+						<width>288</width>
+						<height>166</height>
+						<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+						<visible>Control.HasFocus(11)</visible>
+					</control>
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>280</width>
+						<height>158</height>
+						<texture colordiffuse="grey_mid">white.png</texture>
+					</control>
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>280</width>
+						<height>158</height>
+						<aspectratio>scale</aspectratio>
+						<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Art(thumb)]</texture>
+					</control>
+					<control type="label">
+						<left>0</left>
+						<top>166</top>
+						<width>280</width>
+						<height>30</height>
+						<font>font_reg</font>
+						<textcolor>white</textcolor>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<control type="label">
+						<left>0</left>
+						<top>196</top>
+						<width>280</width>
+						<height>26</height>
+						<font>font_small</font>
+						<textcolor>text</textcolor>
+						<label>$INFO[ListItem.Label2]</label>
+					</control>
+				</focusedlayout>
+			</control>
+		</control>
+
+	</controls>
+</window>

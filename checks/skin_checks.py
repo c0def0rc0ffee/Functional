@@ -116,7 +116,7 @@ def _subst(text, params):
                   lambda m: params.get(m.group(1), ""), text or "")
 
 
-def _expand(el, defs, params, depth=0):
+def _expand(el, defs, params, depth=0, skip_conditional=False):
     """<summary>Copy of el with every include inlined and parameters substituted.</summary>
     <param name="el">Element to expand.</param>
     <param name="defs">Include definitions from _include_defs().</param>
@@ -132,6 +132,8 @@ def _expand(el, defs, params, depth=0):
     new.text = _subst(el.text, params)
     for child in el:
         if child.tag == "include" and not child.get("name") and not child.get("file"):
+            if skip_conditional and child.get("condition"):
+                continue
             name = child.get("content") or (child.text or "").strip()
             if name not in defs:
                 continue
@@ -143,12 +145,38 @@ def _expand(el, defs, params, depth=0):
             for key, value in child.attrib.items():
                 if key not in ("content", "condition"):
                     merged[key] = _subst(value, params)
-            for grandchild in _expand(definition, defs, merged, depth + 1):
+            for grandchild in _expand(definition, defs, merged, depth + 1, skip_conditional):
                 if grandchild.tag != "param":
                     new.append(grandchild)
         elif child.tag != "param":
-            new.append(_expand(child, defs, params, depth))
+            new.append(_expand(child, defs, params, depth, skip_conditional))
     return new
+
+
+def _variants(root, defs):
+    """<summary>The expanded forms a window can take once Kodi picks its conditional includes.</summary>
+    <param name="root">The window element.</param>
+    <param name="defs">Include definitions.</param>
+    <returns>List of (label, expanded element): the window with every
+    conditional include left out, then one variant per conditional include
+    with that include added, since Kodi resolves those at load time and a
+    window such as DialogGameControllers is only ever one of them.</returns>"""
+    base = _expand(root, defs, {}, skip_conditional=True)
+    out = []
+    for child in list(root.iter("include")):
+        if child.get("condition") and not child.get("name") and not child.get("file"):
+            name = child.get("content") or (child.text or "").strip()
+            if name in defs:
+                variant = ET.Element("window")
+                for c in base:
+                    variant.append(c)
+                for c in _expand(defs[name][1], defs, {}):
+                    if c.tag != "param":
+                        variant.append(c)
+                out.append((" [" + name + "]", variant))
+    # A window with no conditional include is its own only variant; one that
+    # is nothing but conditional includes has no bare form worth judging.
+    return out or [("", base)]
 
 
 # ------------------------------------------------------------------- checks
@@ -261,48 +289,52 @@ def check_navigation(trees):
     <param name="trees">Parsed files.</param>
     <returns>Findings per window: duplicate ids outside the allowance, onup and
     friends pointing at missing ids, SetFocus and defaultcontrol targets that
-    do not exist, and Control() or Container() references to missing ids.</returns>"""
+    do not exist, and Control() or Container() references to missing ids.</returns>
+    <remarks>A window with conditional includes is checked once per variant,
+    since Kodi resolves those includes when the window loads and only one
+    of them is ever present.</remarks>"""
     findings = []
     defs = _include_defs(trees)
-    for name, tree in trees.items():
+    for fname, tree in trees.items():
         root = tree.getroot()
         if root.tag != "window":
             continue
-        expanded = _expand(root, defs, {})
-        ids = collections.Counter()
-        for control in expanded.iter("control"):
-            if control.get("id") and control.get("id").strip():
-                ids[control.get("id").strip()] += 1
-        for cid, count in ids.items():
-            if count > 1 and (name, cid) not in ALLOW_DUPLICATE_IDS:
-                findings.append("{0}: control id {1} appears {2} times".format(name, cid, count))
-        for control in expanded.iter("control"):
-            label = "{0} {1}".format(control.get("type"), control.get("id") or "(no id)")
-            for node in control:
-                if node.tag in NAV_TAGS:
-                    target = (node.text or "").strip()
-                    if re.fullmatch(r"\d+", target) and target not in ids:
-                        findings.append("{0}: {1} <{2}> points at missing id {3}".format(
-                            name, label, node.tag, target))
-            for node in control.iter():
-                if node.tag.startswith("on") and node.text:
+        for suffix, expanded in _variants(root, defs):
+            name = fname + suffix
+            ids = collections.Counter()
+            for control in expanded.iter("control"):
+                if control.get("id") and control.get("id").strip():
+                    ids[control.get("id").strip()] += 1
+            for cid, count in ids.items():
+                if count > 1 and (fname, cid) not in ALLOW_DUPLICATE_IDS:
+                    findings.append("{0}: control id {1} appears {2} times".format(name, cid, count))
+            for control in expanded.iter("control"):
+                label = "{0} {1}".format(control.get("type"), control.get("id") or "(no id)")
+                for node in control:
+                    if node.tag in NAV_TAGS:
+                        target = (node.text or "").strip()
+                        if re.fullmatch(r"\d+", target) and target not in ids:
+                            findings.append("{0}: {1} <{2}> points at missing id {3}".format(
+                                name, label, node.tag, target))
+                for node in control.iter():
+                    if node.tag.startswith("on") and node.text:
+                        for m in re.finditer(r"SetFocus\((\d+)", node.text):
+                            if m.group(1) not in ids:
+                                findings.append("{0}: {1} SetFocus({2}) targets a missing id".format(
+                                    name, label, m.group(1)))
+            for node in expanded.iter():
+                if node.tag in ("onload", "onunload") and node.text:
                     for m in re.finditer(r"SetFocus\((\d+)", node.text):
                         if m.group(1) not in ids:
-                            findings.append("{0}: {1} SetFocus({2}) targets a missing id".format(
-                                name, label, m.group(1)))
-        for node in expanded.iter():
-            if node.tag in ("onload", "onunload") and node.text:
-                for m in re.finditer(r"SetFocus\((\d+)", node.text):
-                    if m.group(1) not in ids:
-                        findings.append("{0}: <{1}> SetFocus({2}) targets a missing id".format(
-                            name, node.tag, m.group(1)))
-            if node.tag == "defaultcontrol" and node.text and node.text.strip() not in ids:
-                findings.append("{0}: defaultcontrol {1} does not exist".format(name, node.text.strip()))
-        text = ET.tostring(expanded, encoding="unicode")
-        refs = set(re.findall(r"Control\.(?:HasFocus|IsVisible|IsEnabled|GetLabel)\((\d+)\)", text))
-        refs |= set(re.findall(r"Container\((\d+)\)", text))
-        for ref in sorted(refs - set(ids)):
-            findings.append("{0}: Control() or Container() reference to missing id {1}".format(name, ref))
+                            findings.append("{0}: <{1}> SetFocus({2}) targets a missing id".format(
+                                name, node.tag, m.group(1)))
+                if node.tag == "defaultcontrol" and node.text and node.text.strip() not in ids:
+                    findings.append("{0}: defaultcontrol {1} does not exist".format(name, node.text.strip()))
+            text = ET.tostring(expanded, encoding="unicode")
+            refs = set(re.findall(r"Control\.(?:HasFocus|IsVisible|IsEnabled|GetLabel)\((\d+)\)", text))
+            refs |= set(re.findall(r"Container\((\d+)\)", text))
+            for ref in sorted(refs - set(ids)):
+                findings.append("{0}: Control() or Container() reference to missing id {1}".format(name, ref))
     return findings
 
 

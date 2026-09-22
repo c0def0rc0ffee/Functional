@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Controller configuration, port setup and players: one window id family
+  Kodi serves from this file, told apart at load time by
+  Window.IsDialogTopMost. The controls are in Includes_Games.xml.
+  </summary>
+-->
+<window type="dialog">
+	<defaultcontrol always="true">3</defaultcontrol>
+	<animation effect="fade" time="150">WindowOpen</animation>
+	<animation effect="fade" time="150">WindowClose</animation>
+	<coordinates>
+		<system>1</system>
+		<posx>0</posx>
+		<posy>0</posy>
+	</coordinates>
+	<controls>
+		<include condition="Window.IsDialogTopMost(gamecontrollers)">GameDialogControllers</include>
+		<include condition="Window.IsDialogTopMost(gameports)">GameDialogPorts</include>
+		<include condition="Window.IsDialogTopMost(gameagents)">GameDialogAgents</include>
+	</controls>
+</window>
