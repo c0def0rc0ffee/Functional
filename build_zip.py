@@ -76,7 +76,60 @@ SRC_ZIP_EXCLUDE_GLOBS = ("*.zip", "*.7z", "*.tmp", "*.log",
 # written here: this file is tracked and ships inside the source zip, and a
 # published file must not carry those names. They live in .git/info/exclude,
 # which is local to this clone and never published, and are read back out by
-# git_ignored_globs() below.
+# git_ignored_globs() below. A missing or empty exclude file stops the build
+# (ignore_file_lines()), because packaging without it is the whole risk.
+
+
+GIT_EXCLUDE_FILE = os.path.join(".git", "info", "exclude")
+
+
+def ignore_file_lines():
+    """
+    <summary>
+    Every pattern line from the ignore files, with the local exclude file
+    required: a build without it stops rather than packaging unprotected.
+    </summary>
+    <returns>
+    list of stripped, non-comment, non-blank lines from .gitignore (when
+    present) and .git/info/exclude, in that order.
+    </returns>
+    <exception cref="SystemExit">
+    When .git/info/exclude is missing or holds no pattern at all.
+    </exception>
+    <remarks>
+    .gitignore is optional here: it ships, so it can only ever hold
+    patterns that are safe to publish. .git/info/exclude is not optional.
+    It is the one place the editor and tooling filenames are allowed to
+    live, so a build that cannot read it would pack them into the source
+    zip without a word. Until 22/09/2026 a missing file fell back to "no
+    patterns" so that a snapshot build still worked, and verify_zip() then
+    tested the zip against that same empty set, which is exactly the case
+    the check exists for. Failing closed here means the after-build check
+    always has something real to test against, and matches what
+    publish-github.sh already does before staging.
+    </remarks>
+    """
+    lines = []
+    exclude_count = 0
+    for rel in (".gitignore", GIT_EXCLUDE_FILE):
+        path = os.path.join(REPO, rel)
+        if not os.path.isfile(path):
+            if rel == GIT_EXCLUDE_FILE:
+                sys.exit(f"ABORTED: {rel} is missing, so the editor and "
+                         "tooling exclusions are gone. Not building.")
+            continue
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            for raw in handle:
+                line = raw.strip()
+                if not line or line.startswith("#"):
+                    continue
+                lines.append(line)
+                if rel == GIT_EXCLUDE_FILE:
+                    exclude_count += 1
+    if exclude_count == 0:
+        sys.exit(f"ABORTED: {GIT_EXCLUDE_FILE} holds no patterns, so the "
+                 "editor and tooling exclusions are gone. Not building.")
+    return lines
 
 
 def git_ignored_root_files():
@@ -84,11 +137,11 @@ def git_ignored_root_files():
     <summary>
     Root level filenames that git is told to ignore, read at build time.
     </summary>
-    <returns>
-    tuple of filenames, empty when neither ignore file is present
-    (a build from an extracted snapshot still works, it just falls
-    back to the explicit globs above).
-    </returns>
+    <returns>tuple of filenames.</returns>
+    <exception cref="SystemExit">
+    Passed up from ignore_file_lines() when .git/info/exclude is missing
+    or empty.
+    </exception>
     <remarks>
     The source snapshot is meant to match `git ls-files` exactly, so whatever
     git ignores has to be left out of the zip as well. Reading the names out
@@ -102,31 +155,26 @@ def git_ignored_root_files():
     </remarks>
     """
     names = []
-    for rel in (".gitignore", os.path.join(".git", "info", "exclude")):
-        path = os.path.join(REPO, rel)
-        if not os.path.isfile(path):
+    for line in ignore_file_lines():
+        if (line.startswith("!") or not line.startswith("/")
+                or line.endswith("/")):
             continue
-        with open(path, encoding="utf-8", errors="replace") as handle:
-            for raw in handle:
-                line = raw.strip()
-                if (not line or line.startswith(("#", "!"))
-                        or not line.startswith("/") or line.endswith("/")):
-                    continue
-                name = line[1:]
-                if name and "/" not in name and "*" not in name:
-                    names.append(name)
+        name = line[1:]
+        if name and "/" not in name and "*" not in name:
+            names.append(name)
     return tuple(names)
+
 
 def git_ignored_globs():
     """
     <summary>
     Unanchored filename patterns git is told to ignore, read at build time.
     </summary>
-    <returns>
-    tuple of fnmatch patterns, empty when neither ignore file is
-    present (a build from an extracted snapshot still works, it
-    just falls back to the explicit globs above).
-    </returns>
+    <returns>tuple of fnmatch patterns.</returns>
+    <exception cref="SystemExit">
+    Passed up from ignore_file_lines() when .git/info/exclude is missing
+    or empty.
+    </exception>
     <remarks>
     Companion to git_ignored_root_files(). That one takes only root anchored
     plain filenames, which is deliberately narrow; this one takes the
@@ -141,17 +189,10 @@ def git_ignored_globs():
     </remarks>
     """
     patterns = []
-    for rel in (".gitignore", os.path.join(".git", "info", "exclude")):
-        path = os.path.join(REPO, rel)
-        if not os.path.isfile(path):
+    for line in ignore_file_lines():
+        if line.startswith(("!", "/")) or line.endswith("/") or "/" in line:
             continue
-        with open(path, encoding="utf-8", errors="replace") as handle:
-            for raw in handle:
-                line = raw.strip()
-                if (not line or line.startswith(("#", "!", "/"))
-                        or line.endswith("/") or "/" in line):
-                    continue
-                patterns.append(line)
+        patterns.append(line)
     return tuple(patterns)
 
 
@@ -471,6 +512,8 @@ def main():
     # effect on the next build without touching this script.
     src_globs = (SRC_ZIP_EXCLUDE_GLOBS + git_ignored_root_files()
                  + git_ignored_globs())
+    print(f"  {len(src_globs)} source exclusions in force, "
+          f"{GIT_EXCLUDE_FILE} read and non-empty")
     src_out = os.path.join(GIT, f"skin.functional-{version}-src.zip")
     files, dirs = write_zip(src_out, REPO, "",
                             exclude_dirs=SRC_ZIP_EXCLUDE_DIRS,

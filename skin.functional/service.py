@@ -494,6 +494,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._continue_key = 0          # generation of the latest lookup
         self._continue_focus_key = None  # (dbtype, dbid) of the row described
         self._continue_focused = False   # continue_focus property is "1"
+        self._continue_action_thread = None  # press and hold action worker
         # Age filter (see update_age_command)
         self._age_last_path = None       # Container.FolderPath last derived from
         # Cast strip on the full-screen info card (see update_playing_cast)
@@ -539,6 +540,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._lists = None           # [{name, items:[record]}], None = not loaded
         self._lists_last = ""        # name of the list an item last went into
         self._lists_sel = 1          # 1-based list the Lists screen has selected
+        self._lists_frozen = False   # saving refused, see _lists_set_aside
         self._lists_sel_pub = None   # selection the right column currently shows
         self._lists_slots_used = 0   # Lists.N.* slots written last publish
         # Sleep timer (see update_sleep_timer). Deliberately not persisted:
@@ -2279,14 +2281,31 @@ class FunctionalHelper(xbmc.Monitor):
         continue_focus at that moment would hide the rows the user is
         looking at. The resume lookup runs on a daemon thread with a key
         latch so a slow video database never stalls the loop and a late
-        reply never describes the wrong row.
+        reply never describes the wrong row. The menu action itself runs
+        on its own daemon thread for the same reason: it writes to the
+        video database and a sleeping database would otherwise hold the
+        whole loop, the sleep countdown and every command channel with
+        it, until the call timed out. A second press while one action is
+        still running is dropped and logged rather than queued.
         </remarks>
         """
         cmd = xbmc.getInfoLabel("Skin.String(continue_command)").strip()
         if cmd:
             xbmc.executebuiltin("Skin.Reset(continue_command)")
             dbtype, dbid = self._continue_focus_key or ("", 0)
-            self._continue_action(cmd, dbtype, dbid)
+            # Dropped here, on the loop, so the next tick re-reads the
+            # resume time of whatever row is focused now.
+            self._continue_focus_key = None
+            if (self._continue_action_thread is not None
+                    and self._continue_action_thread.is_alive()):
+                _dlog("continue watching: %s dropped, an action is still "
+                      "running" % cmd)
+                return
+            self._continue_action_thread = threading.Thread(
+                target=self._continue_action_worker,
+                args=(cmd, dbtype, dbid),
+                name="functional-continue-action", daemon=True)
+            self._continue_action_thread.start()
             return
 
         if xbmc.getCondVisibility("Window.IsActive(contextmenu)"):
@@ -2351,10 +2370,27 @@ class FunctionalHelper(xbmc.Monitor):
                 return
             xbmcgui.Window(HOME_WINDOW_ID).setProperty("continue_resume", label)
 
+    def _continue_action_worker(self, cmd, dbtype, dbid):
+        """
+        <summary>
+        Daemon thread body: run one press and hold menu action and log,
+        never raise, when it fails.
+        </summary>
+        <param name="cmd">continue_command value: resume, watched or unwatched.</param>
+        <param name="dbtype">"movie" or "episode" of the row the menu was opened on.</param>
+        <param name="dbid">Library id of that row.</param>
+        """
+        try:
+            self._continue_action(cmd, dbtype, dbid)
+        except Exception:  # noqa: BLE001
+            _dlog("continue watching: %s failed:\n%s"
+                  % (cmd, traceback.format_exc()), xbmc.LOGERROR)
+
     def _continue_action(self, cmd, dbtype, dbid):
         """
         <summary>
-        Run one entry of the pop-up's press-and-hold menu.
+        Run one entry of the pop-up's press-and-hold menu. Called on the
+        action thread, never on the loop.
         </summary>
         <param name="cmd">continue_command value: resume, watched or unwatched.</param>
         <param name="dbtype">"movie" or "episode" of the row the menu was opened on.</param>
@@ -2367,9 +2403,9 @@ class FunctionalHelper(xbmc.Monitor):
         a row it holds (verified on 21.3) as long as the container is being
         processed, which is why Home.xml parks the closed panel off screen
         instead of hiding it. That announcement is only raised for a play
-        count change, see the unwatched branch. The remembered focus key is
-        dropped so the next tick re-reads the resume time of whatever row
-        is focused now.
+        count change, see the unwatched branch. The caller drops the
+        remembered focus key before starting this thread, so the next
+        tick re-reads the resume time of whatever row is focused now.
         </remarks>
         """
         if dbtype not in ("movie", "episode") or dbid <= 0:
@@ -2406,7 +2442,6 @@ class FunctionalHelper(xbmc.Monitor):
                 _jsonrpc("VideoLibrary.Set%sDetails" % kind, {idkey: dbid, "playcount": 0})
         else:
             _dlog("continue command ignored: %r" % cmd)
-        self._continue_focus_key = None
 
     # ---- Lists (named media lists, ported into the queue) -----------------
     # <summary>
@@ -2455,12 +2490,16 @@ class FunctionalHelper(xbmc.Monitor):
         Skin.String(lists_last).</summary>
         <param name="force">Re-read even if already loaded.</param>
         <returns>The in-memory list of list dicts (never None).</returns>
-        <remarks>A missing or unreadable file is an empty set of lists, never
-        an error: the feature must degrade to "no lists yet".</remarks>"""
+        <remarks>A missing file is an empty set of lists, never an error:
+        the feature must degrade to "no lists yet". An unreadable file is
+        also an empty set for this session, but it is set aside first so
+        that the next save cannot write over it, see _lists_set_aside.
+        </remarks>"""
         with self._lists_lock:
             if self._lists is not None and not force:
                 return self._lists
             lists, last = [], ""
+            broken = False
             path = self._lists_path()
             if xbmcvfs.exists(path):
                 try:
@@ -2485,10 +2524,15 @@ class FunctionalHelper(xbmc.Monitor):
                                       "fill": min(max(fill, 0), 23 * 60 + 59)})
                     last = str(data.get("last", "") or "")
                 except Exception:  # noqa: BLE001
-                    _dlog("lists.json unreadable, starting empty:\n"
-                          + traceback.format_exc(), xbmc.LOGWARNING)
-                    lists = []
+                    _dlog("lists.json unreadable:\n" + traceback.format_exc(),
+                          xbmc.LOGWARNING)
+                    lists, last = [], ""
+                    broken = True
             self._lists = lists
+            if broken:
+                self._lists_set_aside(path)
+            else:
+                self._lists_frozen = False
             if last and not any(l["name"] == last for l in lists):
                 last = ""
             self._lists_last = last
@@ -2497,16 +2541,60 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("lists loaded: %d lists" % len(lists))
         return lists
 
+    def _lists_set_aside(self, path):
+        """
+        <summary>
+        Move an unreadable lists.json out of the way under a timestamped
+        name, or freeze saving when even that fails.
+        </summary>
+        <param name="path">Filesystem path of the unreadable file.</param>
+        <remarks>
+        An unreadable file used to become an empty set of lists, and the
+        next Add To List click then wrote that emptiness over the file:
+        one transient read failure plus one click and every list was
+        gone. Nothing is deleted here. The file is renamed to
+        lists.json.broken-STAMP beside where the fresh one will go, so
+        the lists can be recovered by hand, and a toast says so. If the
+        rename itself fails the file stays put and _lists_save refuses
+        to write until a later load succeeds, the only other way to be
+        sure nothing is overwritten. Called with _lists_lock held.
+        </remarks>
+        """
+        aside = "%s.broken-%s" % (path, time.strftime("%Y%m%d-%H%M%S"))
+        try:
+            os.replace(path, aside)
+        except OSError:
+            self._lists_frozen = True
+            _dlog("lists.json could not be set aside, saving is frozen:\n"
+                  + traceback.format_exc(), xbmc.LOGERROR)
+            xbmcgui.Dialog().notification(
+                _L(31024), _L(31442), xbmcgui.NOTIFICATION_ERROR, 6000)
+            return
+        self._lists_frozen = False
+        _dlog("lists.json set aside as %s" % os.path.basename(aside),
+              xbmc.LOGWARNING)
+        xbmcgui.Dialog().notification(
+            _L(31024), _L(31443), xbmcgui.NOTIFICATION_WARNING, 6000)
+
     def _lists_save(self):
         """<summary>Write self._lists and the last-used name to lists.json,
         then republish the screen properties.</summary>
         <remarks>Writes go to a temp file first and are renamed over the
         real one, so a crash mid-write cannot leave a truncated file that
-        the next load would read as "no lists".</remarks>"""
+        the next load would read as "no lists". Refused outright while
+        _lists_frozen is set: the file on disk could not be read and could
+        not be moved aside, so writing would destroy it.</remarks>"""
         with self._lists_lock:
+            frozen = self._lists_frozen
             payload = json.dumps({"version": 1, "last": self._lists_last,
                                   "lists": self._lists or []},
                                  ensure_ascii=False, indent=1)
+        if frozen:
+            _dlog("lists.json save refused: the file on disk is unreadable "
+                  "and could not be set aside", xbmc.LOGERROR)
+            xbmcgui.Dialog().notification(
+                _L(31024), _L(31442), xbmcgui.NOTIFICATION_ERROR, 4000)
+            return
         path = self._lists_path()
         tmp = path + ".tmp"
         try:
@@ -3277,13 +3365,12 @@ class FunctionalHelper(xbmc.Monitor):
     # the full-buffer restore strings, which describe a playback that ended
     # long ago and would have the service "restore" stale cache settings.
     BACKUP_SKIP_KEYS = frozenset((
-        "settings_reload", "settings_category", "settings_command",
+        "settings_reload", "settings_category",
         "settings_backup_when",  # describes the snapshot, not the settings
         "filter_menu_open", "genre_menu_open", "sort_menu_open",
         "view_menu_open", "left_menu_open", "layout_adjust",
         "genre_active", "sort_active", "sort_want",
-        "cache_command", "cache_mem_restore", "cache_mode_restore",
-        "cache_rf_restore", "bg_command", "layout_command", "cast_command",
+        "cache_mem_restore", "cache_mode_restore", "cache_rf_restore",
         # Readouts the service publishes, not choices the user made. Writing
         # a backup's library counts back would put last month's numbers on
         # the Home screen until the next stats refresh caught up.
@@ -3291,6 +3378,16 @@ class FunctionalHelper(xbmc.Monitor):
     ))
     # Same reasoning, by prefix: stat_movies_total, stat_episodes_total, ...
     BACKUP_SKIP_PREFIXES = ("stat_",)
+    # Command channels, by suffix. Every channel the skin sets and this
+    # service consumes ends in _command or _run (bg_command, cast_run,
+    # sleep_command and so on). They were once listed by name above and
+    # the list drifted: it named cast_command, which nothing reads, and
+    # missed every channel added after it. Kodi flushes settings.xml on
+    # its own schedule, so a snapshot can hold a channel set a moment
+    # before the flush, and a restore that wrote it back would run that
+    # command on the next tick. Matching the suffix also covers channels
+    # that do not exist yet.
+    BACKUP_SKIP_SUFFIXES = ("_command", "_run")
 
     def update_settings_backup(self):
         """
@@ -3453,7 +3550,8 @@ class FunctionalHelper(xbmc.Monitor):
         """
         <summary>
         Parse a snapshot into [(key, type, value), ...], skipping the
-        transient keys in BACKUP_SKIP_KEYS.
+        transient keys in BACKUP_SKIP_KEYS, BACKUP_SKIP_PREFIXES and
+        BACKUP_SKIP_SUFFIXES.
         </summary>
         """
         tree = ET.parse(path)
@@ -3461,7 +3559,8 @@ class FunctionalHelper(xbmc.Monitor):
         for node in tree.getroot().findall("setting"):
             key = (node.get("id") or "").strip()
             if (not key or key in cls.BACKUP_SKIP_KEYS
-                    or key.startswith(cls.BACKUP_SKIP_PREFIXES)):
+                    or key.startswith(cls.BACKUP_SKIP_PREFIXES)
+                    or key.endswith(cls.BACKUP_SKIP_SUFFIXES)):
                 continue
             out.append((key, (node.get("type") or "string").strip(),
                         node.text or ""))

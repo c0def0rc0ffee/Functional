@@ -1775,3 +1775,12 @@ msgstr ""
 msgctxt "#31441"
 msgid "Which filter the Favourites screen opens on. The last filter used is remembered for the rest of the session."
 msgstr ""
+
+# Lists: the lists.json on disk could not be read. 22/09/2026.
+msgctxt "#31442"
+msgid "Lists file unreadable and could not be set aside, saving is off"
+msgstr ""
+
+msgctxt "#31443"
+msgid "Lists file was unreadable and has been set aside, starting with no lists"
+msgstr ""
