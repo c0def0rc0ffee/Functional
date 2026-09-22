@@ -29,6 +29,7 @@ Home: library stats, clock, and a rotating fanart background.
 - Real-time date and time, with an optional **weather widget** (temperature + conditions) beside the clock
 - Library stats panel showing movie counts (total, unwatched, watched), TV show counts (total, unwatched) and total episodes, updated instantly via a background service rather than slow container queries
 - Resume button when media is playing; queue button with item count when items are queued
+- **Continue Watching** pop-up behind an edge tab: in-progress movies and episodes, plus a **Next Up** row with the next unwatched episode of every show you are part way through, each row with a press-and-hold Resume / Mark as watched / Mark as unwatched menu
 - Optional logo, version footer, loading splash, and date/time, all toggleable
 
 ### Backgrounds

@@ -359,6 +359,31 @@
 					<onclick condition="!String.IsEmpty(Skin.String(continue_tab)) + !String.IsEqual(Skin.String(continue_tab),bottom)">Skin.SetString(continue_tab,bottom)</onclick>
 					<onright>7022</onright>
 				</control>
+				<!-- Next Up row in the Continue Watching pop-up
+				     (service.py:update_next_up). Shown by default. -->
+				<control type="radiobutton" id="7143">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31466</label>
+					<enable>!Skin.HasSetting(hide_continue)</enable>
+					<selected>!Skin.HasSetting(hide_nextup)</selected>
+					<onclick>Skin.ToggleSetting(hide_nextup)</onclick>
+					<onleft>7000</onleft>
+					<onright>7022</onright>
+				</control>
 
 				<control type="label" id="7064">
 					<width>680</width>
