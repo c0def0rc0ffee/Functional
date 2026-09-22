@@ -977,7 +977,7 @@ msgid "Video OSD"
 msgstr ""
 
 msgctxt "#31240"
-msgid "MAIN MENU ITEMS"
+msgid "MAIN MENU"
 msgstr ""
 
 msgctxt "#31241"
@@ -1141,7 +1141,7 @@ msgid "Applied every time you open Movies or TV Shows, including after a genre f
 msgstr ""
 
 msgctxt "#31281"
-msgid "LISTS"
+msgid "LISTS AND FAVOURITES"
 msgstr ""
 
 msgctxt "#31282"
@@ -1209,7 +1209,7 @@ msgid "\"Ends at\" Time"
 msgstr ""
 
 msgctxt "#31298"
-msgid "Filter Debug Overlay (troubleshooting)"
+msgid "Filter Debug Overlay"
 msgstr ""
 
 msgctxt "#31299"
@@ -1738,4 +1738,20 @@ msgstr ""
 
 msgctxt "#31432"
 msgid "Show the sleep countdown on screen"
+msgstr ""
+
+msgctxt "#31433"
+msgid "CORNER BAR"
+msgstr ""
+
+msgctxt "#31434"
+msgid "HOME BLOCKS"
+msgstr ""
+
+msgctxt "#31435"
+msgid "AROUND THE SCREEN"
+msgstr ""
+
+msgctxt "#31436"
+msgid "POWER MENU"
 msgstr ""

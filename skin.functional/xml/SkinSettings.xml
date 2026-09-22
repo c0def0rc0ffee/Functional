@@ -8,6 +8,14 @@
   service.py. Default control 7000 is set without always, so the last
   focused control is restored after a ReloadSkin.
   </summary>
+  <remarks>
+  The Home Screen page is one grouplist (7020) split by section labels
+  that sit inside it and carry ids (7060 to 7064) so the grouplist can
+  link past them; rows in a grouplist carry no onup or ondown. Both
+  scrolling lists have a scrollbar (7050, 7051) that only shows when
+  something is below the fold. Two-column pages start both columns on
+  the 190 line.
+  </remarks>
 -->
 <window>
 	<!-- No always="true": Kodi then restores the last focused control when
@@ -166,26 +174,32 @@
 				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 			</control>
 
-			<!-- Sub-header: menu items -->
-			<control type="label">
+			<!-- One scrolling list, split by section labels (7060 to 7064) that
+			     live inside the grouplist so they scroll with their rows. The
+			     grouplist wires up/down between neighbours by id and skips a
+			     control that cannot take focus, so the labels need ids but no
+			     row carries an onup or ondown of its own: a new row goes in
+			     its section and nothing else changes. A label WITHOUT an id
+			     leaves its neighbours' links empty and up/down go dead.
+			     Add-ons, Favourites and Power are round icons on the corner
+			     bar, not main menu rows, which is why they sit under it. -->
+			<control type="grouplist" id="7020">
 				<left>440</left>
 				<top>190</top>
 				<width>900</width>
-				<height>40</height>
-				<font>font_small</font>
-				<textcolor>text_dim</textcolor>
-				<label>31240</label>
-			</control>
-
-			<control type="grouplist">
-				<left>440</left>
-				<top>230</top>
-				<width>900</width>
-				<height>800</height>
+				<height>840</height>
 				<itemgap>10</itemgap>
 				<orientation>vertical</orientation>
+				<pagecontrol>7050</pagecontrol>
 				<onleft>7000</onleft>
 
+				<control type="label" id="7060">
+					<width>900</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>31240</label>
+				</control>
 				<control type="radiobutton" id="7100">
 					<width>900</width>
 					<height>60</height>
@@ -206,10 +220,7 @@
 					<selected>!Skin.HasSetting(hide_movies)</selected>
 					<onclick>Skin.ToggleSetting(hide_movies)</onclick>
 					<onleft>7000</onleft>
-					<onup>7142</onup>
-					<ondown>7101</ondown>
-								</control>
-
+				</control>
 				<control type="radiobutton" id="7101">
 					<width>900</width>
 					<height>60</height>
@@ -230,10 +241,7 @@
 					<selected>!Skin.HasSetting(hide_tvshows)</selected>
 					<onclick>Skin.ToggleSetting(hide_tvshows)</onclick>
 					<onleft>7000</onleft>
-					<onup>7100</onup>
-					<ondown>7102</ondown>
-								</control>
-
+				</control>
 				<control type="radiobutton" id="7102">
 					<width>900</width>
 					<height>60</height>
@@ -254,10 +262,7 @@
 					<selected>!Skin.HasSetting(hide_music)</selected>
 					<onclick>Skin.ToggleSetting(hide_music)</onclick>
 					<onleft>7000</onleft>
-					<onup>7101</onup>
-					<ondown>7103</ondown>
-								</control>
-
+				</control>
 				<control type="radiobutton" id="7103">
 					<width>900</width>
 					<height>60</height>
@@ -278,10 +283,7 @@
 					<selected>!Skin.HasSetting(hide_pictures)</selected>
 					<onclick>Skin.ToggleSetting(hide_pictures)</onclick>
 					<onleft>7000</onleft>
-					<onup>7102</onup>
-					<ondown>7121</ondown>
 				</control>
-
 				<!-- Weather menu button (in the main menu row), opt-in;
 				     requires a Weather provider addon under Settings → Services. -->
 				<control type="radiobutton" id="7121">
@@ -304,35 +306,7 @@
 					<selected>Skin.HasSetting(show_weather)</selected>
 					<onclick>Skin.ToggleSetting(show_weather)</onclick>
 					<onleft>7000</onleft>
-					<onup>7103</onup>
-					<ondown>7122</ondown>
 				</control>
-
-				<!-- Weather widget on home (temp + conditions beside the clock). -->
-				<control type="radiobutton" id="7122">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31246</label>
-					<selected>Skin.HasSetting(show_weather_widget)</selected>
-					<onclick>Skin.ToggleSetting(show_weather_widget)</onclick>
-					<onleft>7000</onleft>
-					<onup>7121</onup>
-					<ondown>7127</ondown>
-				</control>
-
 				<control type="radiobutton" id="7127">
 					<width>900</width>
 					<height>60</height>
@@ -353,208 +327,7 @@
 					<selected>!Skin.HasSetting(hide_lists)</selected>
 					<onclick>Skin.ToggleSetting(hide_lists)</onclick>
 					<onleft>7000</onleft>
-					<onup>7122</onup>
-					<ondown>7136</ondown>
 				</control>
-
-				<!-- Lists as a round corner icon beside Favourites, independent
-				     of the menu entry above. -->
-				<control type="radiobutton" id="7136">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31393</label>
-					<selected>Skin.HasSetting(show_lists_icon)</selected>
-					<onclick>Skin.ToggleSetting(show_lists_icon)</onclick>
-					<onleft>7000</onleft>
-					<onup>7127</onup>
-					<ondown>7104</ondown>
-				</control>
-
-				<control type="radiobutton" id="7104">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31248</label>
-					<selected>!Skin.HasSetting(hide_logo)</selected>
-					<onclick>Skin.ToggleSetting(hide_logo)</onclick>
-					<onleft>7000</onleft>
-					<onup>7136</onup>
-					<ondown>7105</ondown>
-				</control>
-
-				<control type="radiobutton" id="7105">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31249</label>
-					<selected>!Skin.HasSetting(hide_version)</selected>
-					<onclick>Skin.ToggleSetting(hide_version)</onclick>
-					<onleft>7000</onleft>
-					<onup>7104</onup>
-					<ondown>7115</ondown>
-				</control>
-
-				<control type="radiobutton" id="7115">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31250</label>
-					<selected>!Skin.HasSetting(hide_loading)</selected>
-					<onclick>Skin.ToggleSetting(hide_loading)</onclick>
-					<onleft>7000</onleft>
-					<onup>7105</onup>
-					<ondown>7106</ondown>
-				</control>
-
-				<control type="radiobutton" id="7106">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31251</label>
-					<selected>!Skin.HasSetting(hide_datetime)</selected>
-					<onclick>Skin.ToggleSetting(hide_datetime)</onclick>
-					<onleft>7000</onleft>
-					<onup>7115</onup>
-					<ondown>7107</ondown>
-				</control>
-
-				<control type="radiobutton" id="7107">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31252</label>
-					<selected>!Skin.HasSetting(hide_movies_count)</selected>
-					<onclick>Skin.ToggleSetting(hide_movies_count)</onclick>
-					<onleft>7000</onleft>
-					<onup>7106</onup>
-					<ondown>7108</ondown>
-				</control>
-
-				<control type="radiobutton" id="7108">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31253</label>
-					<selected>!Skin.HasSetting(hide_tvshows_count)</selected>
-					<onclick>Skin.ToggleSetting(hide_tvshows_count)</onclick>
-					<onleft>7000</onleft>
-					<onup>7107</onup>
-					<ondown>7137</ondown>
-				</control>
-
-				<!-- JellyStat figures under the TV stats. Only offered with
-				     script.jellystat installed; nothing here ever suggests
-				     installing it. -->
-				<control type="radiobutton" id="7137">
-					<visible>System.HasAddon(script.jellystat)</visible>
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31404</label>
-					<selected>!Skin.HasSetting(hide_jellystat)</selected>
-					<onclick>Skin.ToggleSetting(hide_jellystat)</onclick>
-					<onleft>7000</onleft>
-					<onup>7108</onup>
-					<ondown>7138</ondown>
-				</control>
-
 				<!-- Stats page (custom window 1153) entry in the main menu. Only
 				     offered with JellyStat installed, never as a prompt to install it. -->
 				<control type="radiobutton" id="7138">
@@ -578,10 +351,146 @@
 					<selected>!Skin.HasSetting(hide_stats_menu)</selected>
 					<onclick>Skin.ToggleSetting(hide_stats_menu)</onclick>
 					<onleft>7000</onleft>
-					<onup>7137</onup>
-					<ondown>7139</ondown>
+				</control>
+				<control type="button" id="7113">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31257] $VAR[MainMenuPositionLabel]</label>
+					<onleft>7000</onleft>
+					<!-- Cycle: centre → top → bottom → centre -->
+					<onclick condition="String.IsEmpty(Skin.String(menu_position)) | String.IsEqual(Skin.String(menu_position),centre)">Skin.SetString(menu_position,top)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(menu_position),top)">Skin.SetString(menu_position,bottom)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(menu_position),bottom)">Skin.SetString(menu_position,centre)</onclick>
 				</control>
 
+				<control type="label" id="7061">
+					<width>900</width>
+					<height>64</height>
+					<textoffsety>24</textoffsety>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>31433</label>
+				</control>
+				<!-- Which corner or edge centre the row of round icons, the
+				     now playing banner and the queue button sit in. Cycle:
+				     bottom right (where it has always been) then anticlockwise
+				     round the bottom, then the top. -->
+				<control type="button" id="7140">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31430] $VAR[CornerBarPositionLabel]</label>
+					<onleft>7000</onleft>
+					<onclick condition="String.IsEmpty(Skin.String(corner_bar_position)) | String.IsEqual(Skin.String(corner_bar_position),br)">Skin.SetString(corner_bar_position,bl)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),bl)">Skin.SetString(corner_bar_position,bc)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),bc)">Skin.SetString(corner_bar_position,tl)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),tl)">Skin.SetString(corner_bar_position,tc)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),tc)">Skin.SetString(corner_bar_position,tr)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),tr)">Skin.SetString(corner_bar_position,br)</onclick>
+				</control>
+				<control type="radiobutton" id="7123">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31255</label>
+					<selected>!Skin.HasSetting(hide_favourites)</selected>
+					<onclick>Skin.ToggleSetting(hide_favourites)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<control type="radiobutton" id="7109">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31254</label>
+					<selected>!Skin.HasSetting(hide_addons)</selected>
+					<onclick>Skin.ToggleSetting(hide_addons)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<control type="radiobutton" id="7112">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31256</label>
+					<selected>!Skin.HasSetting(hide_power)</selected>
+					<onclick>Skin.ToggleSetting(hide_power)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<!-- Lists as a round corner icon beside Favourites, independent
+				     of the menu entry above. -->
+				<control type="radiobutton" id="7136">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31393</label>
+					<selected>Skin.HasSetting(show_lists_icon)</selected>
+					<onclick>Skin.ToggleSetting(show_lists_icon)</onclick>
+					<onleft>7000</onleft>
+				</control>
 				<!-- Stats page as a round corner icon, independent of the menu entry. -->
 				<control type="radiobutton" id="7139">
 					<visible>System.HasAddon(script.jellystat)</visible>
@@ -604,154 +513,7 @@
 					<selected>Skin.HasSetting(show_stats_icon)</selected>
 					<onclick>Skin.ToggleSetting(show_stats_icon)</onclick>
 					<onleft>7000</onleft>
-					<onup>7138</onup>
-					<ondown>7128</ondown>
 				</control>
-
-				<!-- Continue Watching row on Home (service.py:update_continue_watching).
-				     Shown by default; the service stops querying while hidden. -->
-				<control type="radiobutton" id="7128">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31386</label>
-					<selected>!Skin.HasSetting(hide_continue)</selected>
-					<onclick>Skin.ToggleSetting(hide_continue)</onclick>
-					<onleft>7000</onleft>
-					<onup>7139</onup>
-					<ondown>7129</ondown>
-				</control>
-
-				<!-- Which screen edge carries the Continue Watching tab. -->
-				<control type="button" id="7129">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>$LOCALIZE[31387] $VAR[ContinueTabLabel]</label>
-					<enable>!Skin.HasSetting(hide_continue)</enable>
-					<onleft>7000</onleft>
-					<onup>7128</onup>
-					<ondown>7109</ondown>
-					<!-- Toggle: bottom, top. A left or right value saved by 0.11.1
-					     reads as bottom everywhere and is normalised on the next click. -->
-					<onclick condition="String.IsEmpty(Skin.String(continue_tab)) | String.IsEqual(Skin.String(continue_tab),bottom)">Skin.SetString(continue_tab,top)</onclick>
-					<onclick condition="!String.IsEmpty(Skin.String(continue_tab)) + !String.IsEqual(Skin.String(continue_tab),bottom)">Skin.SetString(continue_tab,bottom)</onclick>
-				</control>
-
-				<control type="radiobutton" id="7109">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31254</label>
-					<selected>!Skin.HasSetting(hide_addons)</selected>
-					<onclick>Skin.ToggleSetting(hide_addons)</onclick>
-					<onleft>7000</onleft>
-					<onup>7129</onup>
-					<ondown>7123</ondown>
-				</control>
-
-				<control type="radiobutton" id="7123">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31255</label>
-					<selected>!Skin.HasSetting(hide_favourites)</selected>
-					<onclick>Skin.ToggleSetting(hide_favourites)</onclick>
-					<onleft>7000</onleft>
-					<onup>7109</onup>
-					<ondown>7112</ondown>
-				</control>
-
-				<control type="radiobutton" id="7112">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31256</label>
-					<selected>!Skin.HasSetting(hide_power)</selected>
-					<onclick>Skin.ToggleSetting(hide_power)</onclick>
-					<onleft>7000</onleft>
-					<onup>7123</onup>
-					<ondown>7113</ondown>
-				</control>
-
-				<control type="button" id="7113">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>$LOCALIZE[31257] $VAR[MainMenuPositionLabel]</label>
-					<onleft>7000</onleft>
-					<onup>7112</onup>
-					<ondown>7119</ondown>
-					<!-- Cycle: centre → top → bottom → centre -->
-					<onclick condition="String.IsEmpty(Skin.String(menu_position)) | String.IsEqual(Skin.String(menu_position),centre)">Skin.SetString(menu_position,top)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(menu_position),top)">Skin.SetString(menu_position,bottom)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(menu_position),bottom)">Skin.SetString(menu_position,centre)</onclick>
-				</control>
-
 				<!-- Invisible-until-focus mode for the Add-ons / Settings / Power
 				     round buttons. The buttons still occupy the same space and
 				     respond to clicks; they just don't draw a background ring
@@ -776,14 +538,17 @@
 					<selected>Skin.HasSetting(hide_round_buttons)</selected>
 					<onclick>Skin.ToggleSetting(hide_round_buttons)</onclick>
 					<onleft>7000</onleft>
-					<onup>7113</onup>
-					<ondown>7124</ondown>
 				</control>
 
-				<!-- Default filter the Favourites screen opens on. Remembers the
-				     last-used filter for the session; this sets what it starts
-				     from. Cycle: All -> Movies -> TV -> Music -> Apps -> Other. -->
-				<control type="button" id="7124">
+				<control type="label" id="7062">
+					<width>900</width>
+					<height>64</height>
+					<textoffsety>24</textoffsety>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>31434</label>
+				</control>
+				<control type="radiobutton" id="7107">
 					<width>900</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -795,23 +560,16 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>$LOCALIZE[31259] $VAR[FavDefaultCategoryLabel]</label>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31252</label>
+					<selected>!Skin.HasSetting(hide_movies_count)</selected>
+					<onclick>Skin.ToggleSetting(hide_movies_count)</onclick>
 					<onleft>7000</onleft>
-					<onup>7119</onup>
-					<ondown>7140</ondown>
-					<onclick condition="String.IsEmpty(Skin.String(fav_default_category)) | String.IsEqual(Skin.String(fav_default_category),all)">Skin.SetString(fav_default_category,movies)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(fav_default_category),movies)">Skin.SetString(fav_default_category,tvshows)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(fav_default_category),tvshows)">Skin.SetString(fav_default_category,music)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(fav_default_category),music)">Skin.SetString(fav_default_category,apps)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(fav_default_category),apps)">Skin.SetString(fav_default_category,other)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(fav_default_category),other)">Skin.SetString(fav_default_category,all)</onclick>
 				</control>
-
-				<!-- Which corner or edge centre the row of round icons, the
-				     now playing banner and the queue button sit in. Cycle:
-				     bottom right (where it has always been) then anticlockwise
-				     round the bottom, then the top. -->
-				<control type="button" id="7140">
+				<control type="radiobutton" id="7108">
 					<width>900</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -823,18 +581,208 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>$LOCALIZE[31430] $VAR[CornerBarPositionLabel]</label>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31253</label>
+					<selected>!Skin.HasSetting(hide_tvshows_count)</selected>
+					<onclick>Skin.ToggleSetting(hide_tvshows_count)</onclick>
 					<onleft>7000</onleft>
-					<onup>7124</onup>
-					<ondown>7141</ondown>
-					<onclick condition="String.IsEmpty(Skin.String(corner_bar_position)) | String.IsEqual(Skin.String(corner_bar_position),br)">Skin.SetString(corner_bar_position,bl)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),bl)">Skin.SetString(corner_bar_position,bc)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),bc)">Skin.SetString(corner_bar_position,tl)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),tl)">Skin.SetString(corner_bar_position,tc)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),tc)">Skin.SetString(corner_bar_position,tr)</onclick>
-					<onclick condition="String.IsEqual(Skin.String(corner_bar_position),tr)">Skin.SetString(corner_bar_position,br)</onclick>
+				</control>
+				<!-- JellyStat figures under the TV stats. Only offered with
+				     script.jellystat installed; nothing here ever suggests
+				     installing it. -->
+				<control type="radiobutton" id="7137">
+					<visible>System.HasAddon(script.jellystat)</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31404</label>
+					<selected>!Skin.HasSetting(hide_jellystat)</selected>
+					<onclick>Skin.ToggleSetting(hide_jellystat)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<!-- Continue Watching row on Home (service.py:update_continue_watching).
+				     Shown by default; the service stops querying while hidden. -->
+				<control type="radiobutton" id="7128">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31386</label>
+					<selected>!Skin.HasSetting(hide_continue)</selected>
+					<onclick>Skin.ToggleSetting(hide_continue)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<!-- Which screen edge carries the Continue Watching tab. -->
+				<control type="button" id="7129">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31387] $VAR[ContinueTabLabel]</label>
+					<enable>!Skin.HasSetting(hide_continue)</enable>
+					<onleft>7000</onleft>
+					<!-- Toggle: bottom, top. A left or right value saved by 0.11.1
+					     reads as bottom everywhere and is normalised on the next click. -->
+					<onclick condition="String.IsEmpty(Skin.String(continue_tab)) | String.IsEqual(Skin.String(continue_tab),bottom)">Skin.SetString(continue_tab,top)</onclick>
+					<onclick condition="!String.IsEmpty(Skin.String(continue_tab)) + !String.IsEqual(Skin.String(continue_tab),bottom)">Skin.SetString(continue_tab,bottom)</onclick>
 				</control>
 
+				<control type="label" id="7063">
+					<width>900</width>
+					<height>64</height>
+					<textoffsety>24</textoffsety>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>31435</label>
+				</control>
+				<control type="radiobutton" id="7104">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31248</label>
+					<selected>!Skin.HasSetting(hide_logo)</selected>
+					<onclick>Skin.ToggleSetting(hide_logo)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<control type="radiobutton" id="7106">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31251</label>
+					<selected>!Skin.HasSetting(hide_datetime)</selected>
+					<onclick>Skin.ToggleSetting(hide_datetime)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<!-- Weather widget on home (temp + conditions beside the clock). -->
+				<control type="radiobutton" id="7122">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31246</label>
+					<selected>Skin.HasSetting(show_weather_widget)</selected>
+					<onclick>Skin.ToggleSetting(show_weather_widget)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<control type="radiobutton" id="7105">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31249</label>
+					<selected>!Skin.HasSetting(hide_version)</selected>
+					<onclick>Skin.ToggleSetting(hide_version)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<control type="radiobutton" id="7115">
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31250</label>
+					<selected>!Skin.HasSetting(hide_loading)</selected>
+					<onclick>Skin.ToggleSetting(hide_loading)</onclick>
+					<onleft>7000</onleft>
+				</control>
+
+				<control type="label" id="7064">
+					<width>900</width>
+					<height>64</height>
+					<textoffsety>24</textoffsety>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>31436</label>
+				</control>
 				<!-- The two sleep timer switches are deliberately separate:
 				     the timer can be armed from a menu row that is on screen
 				     with no countdown showing, or the countdown can be left on
@@ -860,10 +808,7 @@
 					<selected>!Skin.HasSetting(hide_sleep_timer)</selected>
 					<onclick>Skin.ToggleSetting(hide_sleep_timer)</onclick>
 					<onleft>7000</onleft>
-					<onup>7140</onup>
-					<ondown>7142</ondown>
 				</control>
-
 				<control type="radiobutton" id="7142">
 					<width>900</width>
 					<height>60</height>
@@ -884,11 +829,26 @@
 					<selected>!Skin.HasSetting(hide_sleep_countdown)</selected>
 					<onclick>Skin.ToggleSetting(hide_sleep_countdown)</onclick>
 					<onleft>7000</onleft>
-					<onup>7141</onup>
-					<ondown>7100</ondown>
 				</control>
+
 			</control>
 
+			<!-- Scrollbar for the list above. showonepage=false hides it
+			     while everything fits; it only appears once there is
+			     something below the fold, which is the whole point. -->
+			<control type="scrollbar" id="7050">
+				<left>1352</left>
+				<top>190</top>
+				<width>8</width>
+				<height>840</height>
+				<orientation>vertical</orientation>
+				<showonepage>false</showonepage>
+				<onleft>7020</onleft>
+				<onright>7020</onright>
+				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			</control>
 		</control>
 
 		<!-- ========== OVERALL CATEGORY ========== -->
@@ -940,7 +900,7 @@
 				<label>$LOCALIZE[31261] $VAR[AccentColorLabel]</label>
 				<onleft>7000</onleft>
 				<onright>7310</onright>
-				<onup>7316</onup>
+				<onup>7301</onup>
 				<ondown>7301</ondown>
 				<onclick condition="String.IsEmpty(Skin.String(accent_color)) | String.IsEqual(Skin.String(accent_color),blue)">Skin.SetString(accent_color,red)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(accent_color),red)">Skin.SetString(accent_color,green)</onclick>
@@ -987,7 +947,7 @@
 				<label>$LOCALIZE[31263] $VAR[NotificationPositionLabel]</label>
 				<onleft>7000</onleft>
 				<onup>7300</onup>
-				<ondown>7316</ondown>
+				<ondown>7300</ondown>
 				<!-- Cycle: br → bc → bl → tl → tc → tr → br -->
 				<onclick condition="String.IsEmpty(Skin.String(notification_position)) | String.IsEqual(Skin.String(notification_position),br)">Skin.SetString(notification_position,bc)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(notification_position),bc)">Skin.SetString(notification_position,bl)</onclick>
@@ -998,53 +958,10 @@
 				<onright>7310</onright>
 			</control>
 
-			<!-- Sub-header: info screens -->
-			<control type="label">
-				<left>440</left>
-				<top>510</top>
-				<width>900</width>
-				<height>40</height>
-				<font>font_small</font>
-				<textcolor>text_dim</textcolor>
-				<label>31384</label>
-			</control>
-
-			<!-- Age on the video info dialog and the full-screen info card.
-			     service.py:update_media_age reads this setting and publishes
-			     an empty label when it is on, so the switch lives in one
-			     place rather than being repeated as a <visible> on each row.
-			     Anything under a year old shows nothing either way. -->
-			<control type="radiobutton" id="7316">
-				<left>440</left>
-				<top>550</top>
-				<width>900</width>
-				<height>70</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>left</align>
-				<aligny>center</aligny>
-				<textoffsetx>20</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-				<label>31383</label>
-				<selected>!Skin.HasSetting(hide_media_age)</selected>
-				<onclick>Skin.ToggleSetting(hide_media_age)</onclick>
-				<onleft>7000</onleft>
-				<onright>7310</onright>
-				<onup>7301</onup>
-				<ondown>7300</ondown>
-			</control>
-
 			<!-- ===== Right column: DIAGNOSTICS ===== -->
 			<control type="label">
 				<left>1380</left>
-				<top>360</top>
+				<top>190</top>
 				<width>460</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -1054,7 +971,7 @@
 
 			<control type="radiobutton" id="7310">
 				<left>1380</left>
-				<top>400</top>
+				<top>230</top>
 				<width>460</width>
 				<height>70</height>
 				<font>font_reg</font>
@@ -1080,7 +997,7 @@
 
 			<control type="button" id="7311">
 				<left>1380</left>
-				<top>480</top>
+				<top>310</top>
 				<width>460</width>
 				<height>70</height>
 				<font>font_reg</font>
@@ -1101,7 +1018,7 @@
 
 			<control type="button" id="7312">
 				<left>1380</left>
-				<top>560</top>
+				<top>390</top>
 				<width>460</width>
 				<height>70</height>
 				<font>font_reg</font>
@@ -1117,15 +1034,44 @@
 				<onclick>Skin.Reset(debug_log_path)</onclick>
 				<onleft>7301</onleft>
 				<onup>7311</onup>
-				<ondown>7314</ondown>
+				<ondown>7208</ondown>
 				<!-- no enable gate: resetting an already-default path is a
 				     no-op, and the disabled render made the button look blank -->
+			</control>
+
+			<!-- Draws the active library filter state over the list views.
+			     A troubleshooting aid, so it lives here with the log switches
+			     rather than among the info bar fields where it started. -->
+			<control type="radiobutton" id="7208">
+				<left>1380</left>
+				<top>470</top>
+				<width>460</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31298</label>
+				<selected>Skin.HasSetting(filter_debug)</selected>
+				<onclick>Skin.ToggleSetting(filter_debug)</onclick>
+				<onleft>7301</onleft>
+				<onup>7312</onup>
+				<ondown>7314</ondown>
 			</control>
 
 			<!-- Current log location hint -->
 			<control type="label">
 				<left>1380</left>
-				<top>640</top>
+				<top>550</top>
 				<width>460</width>
 				<height>120</height>
 				<font>font_small</font>
@@ -1147,7 +1093,7 @@
 			     re-applied, then the skin reloads. -->
 			<control type="label">
 				<left>1380</left>
-				<top>770</top>
+				<top>680</top>
 				<width>460</width>
 				<height>30</height>
 				<font>font_small</font>
@@ -1157,7 +1103,7 @@
 
 			<control type="button" id="7314">
 				<left>1380</left>
-				<top>805</top>
+				<top>715</top>
 				<width>460</width>
 				<height>60</height>
 				<font>font_reg</font>
@@ -1172,13 +1118,13 @@
 				<label>31271</label>
 				<onclick>Skin.SetString(settings_command,backup)</onclick>
 				<onleft>7301</onleft>
-				<onup>7312</onup>
+				<onup>7208</onup>
 				<ondown>7315</ondown>
 			</control>
 
 			<control type="button" id="7315">
 				<left>1380</left>
-				<top>872</top>
+				<top>782</top>
 				<width>460</width>
 				<height>60</height>
 				<font>font_reg</font>
@@ -1333,7 +1279,7 @@
 
 			<control type="label">
 				<left>1380</left>
-				<top>938</top>
+				<top>848</top>
 				<width>460</width>
 				<height>60</height>
 				<font>font_small</font>
@@ -1414,7 +1360,7 @@
 				<left>1380</left>
 				<top>300</top>
 				<width>460</width>
-				<height>60</height>
+				<height>40</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
 				<wrapmultiline>true</wrapmultiline>
@@ -1432,7 +1378,7 @@
 			     skin behaved before. -->
 			<control type="label">
 				<left>1380</left>
-				<top>390</top>
+				<top>350</top>
 				<width>460</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -1442,7 +1388,7 @@
 
 			<control type="button" id="7230">
 				<left>1380</left>
-				<top>430</top>
+				<top>390</top>
 				<width>460</width>
 				<height>60</height>
 				<font>font_small</font>
@@ -1469,7 +1415,7 @@
 
 			<control type="button" id="7231">
 				<left>1380</left>
-				<top>495</top>
+				<top>455</top>
 				<width>460</width>
 				<height>50</height>
 				<font>font_small</font>
@@ -1493,7 +1439,7 @@
 
 			<control type="button" id="7232">
 				<left>1380</left>
-				<top>560</top>
+				<top>520</top>
 				<width>460</width>
 				<height>60</height>
 				<font>font_small</font>
@@ -1520,7 +1466,7 @@
 
 			<control type="button" id="7233">
 				<left>1380</left>
-				<top>625</top>
+				<top>585</top>
 				<width>460</width>
 				<height>50</height>
 				<font>font_small</font>
@@ -1544,23 +1490,23 @@
 
 			<control type="label">
 				<left>1380</left>
-				<top>690</top>
+				<top>645</top>
 				<width>460</width>
-				<height>140</height>
+				<height>115</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
 				<wrapmultiline>true</wrapmultiline>
 				<label>31280</label>
 			</control>
 
-			<!-- ===== Right column: LISTS =====
+			<!-- ===== Right column: LISTS AND FAVOURITES =====
 			     What porting a list does to whatever is already queued.
 			     Unset means the port asks (Clear / Keep / Cancel); a fixed
 			     answer here skips the question. Read by
 			     service.py:_lists_port. -->
 			<control type="label">
 				<left>1380</left>
-				<top>840</top>
+				<top>765</top>
 				<width>460</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -1570,7 +1516,7 @@
 
 			<control type="button" id="7234">
 				<left>1380</left>
-				<top>880</top>
+				<top>805</top>
 				<width>460</width>
 				<height>60</height>
 				<font>font_small</font>
@@ -1586,17 +1532,47 @@
 				<onleft>7220</onleft>
 				<onright>7234</onright>
 				<onup>7233</onup>
-				<ondown>7234</ondown>
+				<ondown>7124</ondown>
 				<onclick condition="String.IsEmpty(Skin.String(list_port_clear))">Skin.SetString(list_port_clear,clear)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(list_port_clear),clear)">Skin.SetString(list_port_clear,keep)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(list_port_clear),keep)">Skin.Reset(list_port_clear)</onclick>
 			</control>
 
+			<!-- Default filter the Favourites screen opens on. Remembers the
+			     last-used filter for the session; this sets what it starts
+			     from. Cycle: All, Movies, TV, Music, Apps, Other. -->
+			<control type="button" id="7124">
+				<left>1380</left>
+				<top>870</top>
+				<width>460</width>
+				<height>60</height>
+				<font>font_small</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[31259] $VAR[FavDefaultCategoryLabel]</label>
+				<onleft>7220</onleft>
+				<onright>7124</onright>
+				<onup>7234</onup>
+				<ondown>7124</ondown>
+				<onclick condition="String.IsEmpty(Skin.String(fav_default_category)) | String.IsEqual(Skin.String(fav_default_category),all)">Skin.SetString(fav_default_category,movies)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(fav_default_category),movies)">Skin.SetString(fav_default_category,tvshows)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(fav_default_category),tvshows)">Skin.SetString(fav_default_category,music)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(fav_default_category),music)">Skin.SetString(fav_default_category,apps)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(fav_default_category),apps)">Skin.SetString(fav_default_category,other)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(fav_default_category),other)">Skin.SetString(fav_default_category,all)</onclick>
+			</control>
+
 			<control type="label">
 				<left>1380</left>
-				<top>950</top>
+				<top>940</top>
 				<width>460</width>
-				<height>100</height>
+				<height>60</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
 				<wrapmultiline>true</wrapmultiline>
@@ -1620,7 +1596,7 @@
 				<label>$LOCALIZE[31284] $VAR[GallerySizeLabel]</label>
 				<onleft>7000</onleft>
 				<onright>7223</onright>
-				<onup>7208</onup>
+				<onup>7021</onup>
 				<ondown>7221</ondown>
 				<!-- Cycle: medium → small → large → xlarge → medium -->
 				<onclick condition="String.IsEmpty(Skin.String(gallery_size))">Skin.SetString(gallery_size,small)</onclick>
@@ -1679,13 +1655,56 @@
 				<onleft>7000</onleft>
 				<onright>7223</onright>
 				<onup>7221</onup>
+				<ondown>7316</ondown>
+			</control>
+
+			<!-- Sub-header: info screens -->
+			<control type="label">
+				<left>440</left>
+				<top>400</top>
+				<width>900</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>31384</label>
+			</control>
+
+			<!-- Age on the video info dialog and the full-screen info card.
+			     service.py:update_media_age reads this setting and publishes
+			     an empty label when it is on, so the switch lives in one
+			     place rather than being repeated as a <visible> on each row.
+			     Anything under a year old shows nothing either way. -->
+			<control type="radiobutton" id="7316">
+				<left>440</left>
+				<top>440</top>
+				<width>900</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31383</label>
+				<selected>!Skin.HasSetting(hide_media_age)</selected>
+				<onclick>Skin.ToggleSetting(hide_media_age)</onclick>
+				<onleft>7000</onleft>
+				<onright>7223</onright>
+				<onup>7222</onup>
 				<ondown>7200</ondown>
 			</control>
 
 			<!-- Sub-header: info bar position -->
 			<control type="label">
 				<left>440</left>
-				<top>400</top>
+				<top>520</top>
 				<width>900</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -1695,7 +1714,7 @@
 
 			<control type="radiobutton" id="7200">
 				<left>440</left>
-				<top>440</top>
+				<top>560</top>
 				<width>900</width>
 				<height>60</height>
 				<font>font_reg</font>
@@ -1715,14 +1734,14 @@
 				<selected>Skin.HasSetting(infobar_top)</selected>
 				<onclick>Skin.ToggleSetting(infobar_top)</onclick>
 				<onleft>7000</onleft>
-				<onup>7222</onup>
+				<onup>7316</onup>
 				<ondown>7201</ondown>
 			</control>
 
 			<!-- Sub-header: visible fields -->
 			<control type="label">
 				<left>440</left>
-				<top>530</top>
+				<top>640</top>
 				<width>900</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -1730,13 +1749,14 @@
 				<label>31290</label>
 			</control>
 
-			<control type="grouplist">
+			<control type="grouplist" id="7021">
 				<left>440</left>
-				<top>570</top>
+				<top>680</top>
 				<width>900</width>
-				<height>360</height>
+				<height>350</height>
 				<itemgap>10</itemgap>
 				<orientation>vertical</orientation>
+				<pagecontrol>7051</pagecontrol>
 				<onleft>7000</onleft>
 
 				<control type="radiobutton" id="7201">
@@ -1759,8 +1779,6 @@
 					<selected>!Skin.HasSetting(hide_genre)</selected>
 					<onclick>Skin.ToggleSetting(hide_genre)</onclick>
 					<onleft>7000</onleft>
-					<onup>7200</onup>
-					<ondown>7202</ondown>
 				</control>
 
 				<control type="radiobutton" id="7202">
@@ -1783,8 +1801,6 @@
 					<selected>!Skin.HasSetting(hide_duration)</selected>
 					<onclick>Skin.ToggleSetting(hide_duration)</onclick>
 					<onleft>7000</onleft>
-					<onup>7201</onup>
-					<ondown>7203</ondown>
 				</control>
 
 				<control type="radiobutton" id="7203">
@@ -1807,8 +1823,6 @@
 					<selected>!Skin.HasSetting(hide_rating)</selected>
 					<onclick>Skin.ToggleSetting(hide_rating)</onclick>
 					<onleft>7000</onleft>
-					<onup>7202</onup>
-					<ondown>7204</ondown>
 				</control>
 
 				<control type="radiobutton" id="7204">
@@ -1831,8 +1845,6 @@
 					<selected>!Skin.HasSetting(hide_mpaa)</selected>
 					<onclick>Skin.ToggleSetting(hide_mpaa)</onclick>
 					<onleft>7000</onleft>
-					<onup>7203</onup>
-					<ondown>7205</ondown>
 				</control>
 
 				<control type="radiobutton" id="7205">
@@ -1855,8 +1867,6 @@
 					<selected>!Skin.HasSetting(hide_resolution)</selected>
 					<onclick>Skin.ToggleSetting(hide_resolution)</onclick>
 					<onleft>7000</onleft>
-					<onup>7204</onup>
-					<ondown>7206</ondown>
 				</control>
 
 				<!-- 7206 was File Size (removed; see PROJECT_NOTES "Focused-item
@@ -1882,8 +1892,6 @@
 					<selected>Skin.HasSetting(show_age)</selected>
 					<onclick>Skin.ToggleSetting(show_age)</onclick>
 					<onleft>7000</onleft>
-					<onup>7205</onup>
-					<ondown>7207</ondown>
 				</control>
 
 				<control type="radiobutton" id="7207">
@@ -1906,8 +1914,6 @@
 					<selected>Skin.HasSetting(show_lastplayed)</selected>
 					<onclick>Skin.ToggleSetting(show_lastplayed)</onclick>
 					<onleft>7000</onleft>
-					<onup>7206</onup>
-					<ondown>7209</ondown>
 				</control>
 
 				<control type="radiobutton" id="7209">
@@ -1930,34 +1936,24 @@
 					<selected>!Skin.HasSetting(hide_endsat)</selected>
 					<onclick>Skin.ToggleSetting(hide_endsat)</onclick>
 					<onleft>7000</onleft>
-					<onup>7207</onup>
-					<ondown>7208</ondown>
 				</control>
+			</control>
 
-				<control type="radiobutton" id="7208">
-					<width>900</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31298</label>
-					<selected>Skin.HasSetting(filter_debug)</selected>
-					<onclick>Skin.ToggleSetting(filter_debug)</onclick>
-					<onleft>7000</onleft>
-					<onup>7209</onup>
-					<ondown>7200</ondown>
-				</control>
-
+			<!-- Scrollbar for the list above. showonepage=false hides it
+			     while everything fits; it only appears once there is
+			     something below the fold, which is the whole point. -->
+			<control type="scrollbar" id="7051">
+				<left>1352</left>
+				<top>680</top>
+				<width>8</width>
+				<height>350</height>
+				<orientation>vertical</orientation>
+				<showonepage>false</showonepage>
+				<onleft>7021</onleft>
+				<onright>7021</onright>
+				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
 			</control>
 		</control>
 
