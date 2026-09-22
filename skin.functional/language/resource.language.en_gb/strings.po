@@ -1789,3 +1789,84 @@ msgstr ""
 msgctxt "#31444"
 msgid "Action buttons at the top of the Lists screen"
 msgstr ""
+
+# Service readouts and item kinds that used to be hard coded in service.py. 22/09/2026.
+msgctxt "#31445"
+msgid "Network shares + internet (Kodi default)"
+msgstr ""
+
+msgctxt "#31446"
+msgid "True internet streams only"
+msgstr ""
+
+msgctxt "#31447"
+msgid "All internet filesystems"
+msgstr ""
+
+msgctxt "#31448"
+msgid "Everything (incl. local files)"
+msgstr ""
+
+msgctxt "#31449"
+msgid "Nothing (buffer off)"
+msgstr ""
+
+msgctxt "#31450"
+msgid "Mode {0}"
+msgstr ""
+
+msgctxt "#31451"
+msgid "Entire file on disk"
+msgstr ""
+
+msgctxt "#31452"
+msgid "{0} GB"
+msgstr ""
+
+msgctxt "#31453"
+msgid "{0} MB"
+msgstr ""
+
+msgctxt "#31454"
+msgid "{0} (Kodi default)"
+msgstr ""
+
+msgctxt "#31455"
+msgid "Adaptive"
+msgstr ""
+
+msgctxt "#31456"
+msgid "{0}x"
+msgstr ""
+
+msgctxt "#31457"
+msgid "~{0} ahead"
+msgstr ""
+
+msgctxt "#31458"
+msgid "Untitled"
+msgstr ""
+
+msgctxt "#31459"
+msgid "Episode"
+msgstr ""
+
+msgctxt "#31460"
+msgid "Song"
+msgstr ""
+
+msgctxt "#31461"
+msgid "Music video"
+msgstr ""
+
+msgctxt "#31462"
+msgid "Movie"
+msgstr ""
+
+msgctxt "#31463"
+msgid "Video"
+msgstr ""
+
+msgctxt "#31464"
+msgid "New list"
+msgstr ""

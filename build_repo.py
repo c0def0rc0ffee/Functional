@@ -139,13 +139,17 @@ def main():
                                            os.path.basename(skin_zip)))
     print(f"Copied skin zip: {os.path.basename(skin_zip)}")
 
-    # Older skin zips are cleared from the dist folder so it always holds
-    # exactly the version the feed ships, the same policy as Builds/.
+    # Older skin zips are moved out of the dist folder so it holds exactly
+    # the version the feed ships. Moved, never deleted: build_zip.py's
+    # "already released with different content" guard compares against the
+    # zip on disk, and a superseded release is still a release.
+    old_dir = os.path.join(DIST, "old")
     for old in os.listdir(DIST):
         if (old.startswith("skin.functional-") and old.endswith(".zip")
                 and old != os.path.basename(skin_zip)):
-            os.remove(os.path.join(DIST, old))
-            print(f"Cleared old skin zip: {old}")
+            os.makedirs(old_dir, exist_ok=True)
+            shutil.move(os.path.join(DIST, old), os.path.join(old_dir, old))
+            print(f"Moved old skin zip to old/: {old}")
 
     # --- manifest and checksum ---
     manifest = "\n".join((
