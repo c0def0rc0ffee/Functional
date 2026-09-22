@@ -219,6 +219,93 @@ def read_version():
     return m.group(1)
 
 
+CHANGELOG = os.path.join(REPO, "CHANGELOG.md")
+NEWS_MAX_LINES = 20
+
+
+def changelog_section(version):
+    """
+    <summary>
+    The bullet lines of one version's section in CHANGELOG.md, as plain
+    text lines ready for the addon.xml news element.
+    </summary>
+    <param name="version">Version string exactly as in addon.xml.</param>
+    <returns>List of lines, empty when the file or the section is missing.</returns>
+    <remarks>
+    A section starts at a heading whose text contains the version and runs
+    to the next heading, the same rule publish-github.sh uses to pick the
+    release notes, so the news and the notes can never disagree. Bullet
+    markers are dropped and wrapped bullet lines rejoined; anything else in
+    the section is kept as it is. Capped at NEWS_MAX_LINES, since Kodi's
+    add-on info screen is not the place for a long read.
+    </remarks>
+    """
+    if not os.path.isfile(CHANGELOG):
+        return []
+    lines, seen = [], False
+    with open(CHANGELOG, encoding="utf-8") as handle:
+        for raw in handle:
+            line = raw.rstrip("\n")
+            if re.match(r"^#{1,3} ", line):
+                if seen:
+                    break
+                seen = version in line
+                continue
+            if not seen:
+                continue
+            if re.match(r"^\s*[-*] ", line):
+                lines.append(re.sub(r"^\s*[-*] ", "", line).strip())
+            elif line.startswith("  ") and lines:
+                lines[-1] += " " + line.strip()
+            elif line.strip():
+                lines.append(line.strip())
+    return lines[:NEWS_MAX_LINES]
+
+
+def sync_news(version, write):
+    """
+    <summary>
+    Keep addon.xml's news element equal to the changelog section for the
+    version being built.
+    </summary>
+    <param name="version">Version string from addon.xml.</param>
+    <param name="write">True rewrites addon.xml; False only compares.</param>
+    <returns>True when addon.xml already matched, or was just rewritten.</returns>
+    <exception cref="SystemExit">In check mode, when the two disagree: run
+    the news flag and commit addon.xml. A version with no changelog section
+    is allowed and carries no news.</exception>
+    <remarks>
+    The element lives inside the metadata extension, before assets, and is
+    replaced in place when present. Written into the tracked addon.xml
+    rather than only into the zip so that what ships is what git holds.
+    </remarks>
+    """
+    addon_xml = os.path.join(SRC, "addon.xml")
+    with open(addon_xml, encoding="utf-8-sig") as handle:
+        text = handle.read()
+    lines = changelog_section(version)
+    escaped = "\n".join(l.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                        for l in lines)
+    block = ("\t\t<news>" + escaped + "</news>\n") if lines else ""
+    current = re.search(r"\t\t<news>.*?</news>\n", text, re.S)
+    if current:
+        wanted = text.replace(current.group(0), block)
+    elif block:
+        wanted = text.replace("\t\t<assets>", block + "\t\t<assets>", 1)
+    else:
+        wanted = text
+    if wanted == text:
+        return True
+    if not write:
+        sys.exit("ABORTED: addon.xml's <news> does not match the CHANGELOG.md "
+                 f"section for {version}. Run: python3 build_zip.py --news, "
+                 "then commit addon.xml.")
+    with open(addon_xml, "w", encoding="utf-8") as handle:
+        handle.write(wanted)
+    print(f"addon.xml <news> set from CHANGELOG.md ({len(lines)} line(s))")
+    return True
+
+
 def is_junk_file(name):
     """
     <summary>
@@ -478,13 +565,16 @@ def main():
     Build the Dist and source zips for the current version, verify both and mirror them.
     </summary>
     <exception cref="SystemExit">
-    On an unknown argument, a missing source folder, a static check finding,
+    On an unknown argument, a missing source folder, a news element that
+    does not match the changelog, a static check finding,
     an unreachable mirror,
     a changed rebuild of a released version without --force, or any
     verification failure.
     </exception>
     <remarks>
-    Only --force is accepted. An already built version is repacked to a
+    --force and --news are accepted. --news only rewrites addon.xml's news
+    element from CHANGELOG.md and stops; a normal build refuses to run while
+    the two disagree. An already built version is repacked to a
     temporary zip and compared by member set and CRC; a differing rebuild
     aborts unless --force is given, so two archives can never share one
     version number. The source zip's exclusions are read from the ignore
@@ -493,13 +583,20 @@ def main():
     """
     args = sys.argv[1:]
     force = "--force" in args
-    unknown = [a for a in args if a != "--force"]
+    news_only = "--news" in args
+    unknown = [a for a in args if a not in ("--force", "--news")]
     if unknown:
         sys.exit(f"Unknown argument(s): {' '.join(unknown)} "
-                 "(only --force is accepted)")
+                 "(--force and --news are accepted)")
 
     if not os.path.isdir(SRC):
         sys.exit(f"Source folder missing: {SRC}")
+    if news_only:
+        # After a version bump: copy the changelog section into addon.xml
+        # and stop, so the bump commit carries the news with it.
+        sync_news(read_version(), write=True)
+        return
+    sync_news(read_version(), write=False)
     run_checks()
     os.makedirs(DIST, exist_ok=True)
     os.makedirs(GIT, exist_ok=True)

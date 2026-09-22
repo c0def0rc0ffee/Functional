@@ -27,6 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
+		<news>Lists export and import on the Lists and Favourites settings page. Export copies the lists file to any folder Kodi can write to; import merges a lists file in by list name without removing anything, so it can be run twice safely.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
