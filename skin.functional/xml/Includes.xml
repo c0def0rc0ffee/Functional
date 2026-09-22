@@ -52,6 +52,14 @@
 	     bottom-left corner, which is nudged up out of the way. -->
 	<expression name="corner_bar_bottom_left">String.IsEqual(Skin.String(corner_bar_position),bl)</expression>
 
+	<!-- The other two things that take a screen edge on Home. Named here so the
+	     menu, the corner bar and the Continue tab read one definition each, and
+	     the collision rules on Home (menu vs bar, menu vs tab) are written
+	     against these rather than against the raw setting values. -->
+	<expression name="menu_top">String.IsEqual(Skin.String(menu_position),top)</expression>
+	<expression name="menu_bottom">String.IsEqual(Skin.String(menu_position),bottom)</expression>
+	<expression name="continue_tab_top">String.IsEqual(Skin.String(continue_tab),top)</expression>
+
 	<!-- A sleep timer is running. service.py republishes the countdown every
 	     tick and clears the property when the timer is cancelled or fires, so
 	     an empty property is the single source of truth for "not armed" and

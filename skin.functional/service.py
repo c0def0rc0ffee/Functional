@@ -1301,10 +1301,9 @@ class FunctionalHelper(xbmc.Monitor):
         happens here.
         </remarks>
         """
-        run = xbmc.getInfoLabel("Skin.String(cast_run)")
+        run = self._take_command("cast_run")
         if not run:
             return
-        xbmc.executebuiltin("Skin.Reset(cast_run)")
         try:
             idx = int(run) - 1
         except ValueError:
@@ -1641,11 +1640,9 @@ class FunctionalHelper(xbmc.Monitor):
                 self._reset_buffering_to_defaults(
                     "Full buffer button hidden, buffering back to defaults")
 
-        cmd = xbmc.getInfoLabel("Skin.String(cache_command)")
+        cmd = self._take_command("cache_command")
         if not cmd:
             return
-        # Clear immediately so we don't re-trigger
-        xbmc.executebuiltin("Skin.Reset(cache_command)")
 
         if cmd in ("fullfile", "normalbuffer"):
             # Per-movie unlimited buffering, on and off again (OSD "BUFFER
@@ -2228,9 +2225,8 @@ class FunctionalHelper(xbmc.Monitor):
         """
         # Run a chosen favourite (set by the UI as a 1-based index into the
         # currently-shown, filtered list) then clear the request.
-        run = xbmc.getInfoLabel("Skin.String(fav_run)")
+        run = self._take_command("fav_run")
         if run:
-            xbmc.executebuiltin("Skin.Reset(fav_run)")
             try:
                 idx = int(run) - 1
             except ValueError:
@@ -2293,9 +2289,8 @@ class FunctionalHelper(xbmc.Monitor):
         still running is dropped and logged rather than queued.
         </remarks>
         """
-        cmd = xbmc.getInfoLabel("Skin.String(continue_command)").strip()
+        cmd = self._take_command("continue_command")
         if cmd:
-            xbmc.executebuiltin("Skin.Reset(continue_command)")
             dbtype, dbid = self._continue_focus_key or ("", 0)
             # Dropped here, on the loop, so the next tick re-reads the
             # resume time of whatever row is focused now.
@@ -2756,9 +2751,8 @@ class FunctionalHelper(xbmc.Monitor):
         list); save_queue (the open queue window becomes a new list).
         A command arriving while another dialog is up is dropped, as with
         bg_command, rather than queued behind a picker nobody can see.</remarks>"""
-        cmd = xbmc.getInfoLabel("Skin.String(list_command)")
+        cmd = self._take_command("list_command")
         if cmd:
-            xbmc.executebuiltin("Skin.Reset(list_command)")
             _dlog("list command: %s" % cmd)
             self._spawn_dialog(lambda: self._lists_worker(cmd))
             return
@@ -3427,10 +3421,9 @@ class FunctionalHelper(xbmc.Monitor):
         and a blocking dialog must never sit on the polling loop.
         </remarks>
         """
-        cmd = xbmc.getInfoLabel("Skin.String(settings_command)").strip().lower()
+        cmd = self._take_command("settings_command", lower=True)
         if not cmd:
             return
-        xbmc.executebuiltin("Skin.Reset(settings_command)")
         if cmd == "backup":
             self._backup_mtime = -1.0  # force the next auto-check to re-copy too
             self._start_backup(announce=True)
@@ -3710,11 +3703,9 @@ class FunctionalHelper(xbmc.Monitor):
         flagged via Skin.String(layout_command). Clamped to 0..LAYOUT_MAX_PX.
         </summary>
         """
-        cmd = xbmc.getInfoLabel("Skin.String(layout_command)")
+        cmd = self._take_command("layout_command")
         if not cmd:
             return
-        # Clear immediately so we don't re-trigger
-        xbmc.executebuiltin("Skin.Reset(layout_command)")
 
         if cmd not in self._LAYOUT_COMMAND_KEY:
             return
@@ -3773,10 +3764,8 @@ class FunctionalHelper(xbmc.Monitor):
         stale, so no lock is warranted.
         </remarks>
         """
-        cmd = self._get_skin("sleep_command")
+        cmd = self._take_command("sleep_command")
         if cmd:
-            # Clear immediately so we don't re-trigger
-            xbmc.executebuiltin("Skin.Reset(sleep_command)")
             if cmd == "set":
                 self._spawn_dialog(self._sleep_pick)
             elif cmd == "cancel":
@@ -3927,11 +3916,9 @@ class FunctionalHelper(xbmc.Monitor):
         schedule slot's start time).
         </summary>
         """
-        cmd = xbmc.getInfoLabel("Skin.String(bg_command)")
+        cmd = self._take_command("bg_command")
         if not cmd:
             return
-        # Clear immediately so we don't re-trigger
-        xbmc.executebuiltin("Skin.Reset(bg_command)")
 
         worker = {"pick_genre": self._pick_genre,
                   "pick_time": self._pick_time}.get(cmd)
@@ -3962,11 +3949,9 @@ class FunctionalHelper(xbmc.Monitor):
         because a sleeping database must not stall the loop.
         </remarks>
         """
-        cmd = xbmc.getInfoLabel("Skin.String(random_command)").strip().lower()
+        cmd = self._take_command("random_command", lower=True)
         if not cmd:
             return
-        # Clear immediately so we don't re-trigger
-        xbmc.executebuiltin("Skin.Reset(random_command)")
         if cmd not in ("play", "play_movies", "play_tvshows"):
             return
         path = (xbmc.getInfoLabel("Container.FolderPath") or "").strip()
@@ -4111,9 +4096,8 @@ class FunctionalHelper(xbmc.Monitor):
         differs, so a normal tick costs one infolabel read.
         </remarks>
         """
-        cmd = xbmc.getInfoLabel("Skin.String(age_command)").strip().lower()
+        cmd = self._take_command("age_command", lower=True)
         if cmd:
-            xbmc.executebuiltin("Skin.Reset(age_command)")
             if cmd not in ("apply_movies", "apply_tvshows"):
                 return
             kind = cmd[6:]
@@ -4289,6 +4273,30 @@ class FunctionalHelper(xbmc.Monitor):
     BG_SCHED_MAX_SLOTS = 4
     # Start times seeded when a slot first comes into existence.
     BG_SCHED_DEFAULT_STARTS = ("06:00", "18:00", "22:00", "00:00")
+
+    @staticmethod
+    def _take_command(key, lower=False):
+        """
+        <summary>
+        Read and clear one command channel: a skin string the XML sets and
+        this service consumes exactly once.
+        </summary>
+        <param name="key">Skin string name, such as bg_command or fav_run.</param>
+        <param name="lower">Lower case the value before returning it.</param>
+        <returns>The stripped value, or "" when the channel was empty.</returns>
+        <remarks>
+        The string is cleared before the value is handed back, so a command
+        can never fire twice however long the handler takes and whatever it
+        does with the value. Every channel ends in _command or _run, which
+        BACKUP_SKIP_SUFFIXES relies on to keep them out of a restore. This
+        used to be written out at every site; one helper means one place to
+        log or validate when the next channel arrives.
+        </remarks>
+        """
+        value = xbmc.getInfoLabel("Skin.String({0})".format(key)).strip()
+        if value:
+            xbmc.executebuiltin("Skin.Reset({0})".format(key))
+        return value.lower() if lower else value
 
     @staticmethod
     def _get_skin(key):
