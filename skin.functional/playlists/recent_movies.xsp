@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!--
+  <summary>
+  Smart playlist: the newest movies by the date they entered the library.
+  Feeds the Recently Added page of the Home pop-up as a live library
+  container, so each row carries its database id and Kodi's own click and
+  context menu apply. No rule on purpose: everything qualifies, the order
+  and the limit do the work.
+  </summary>
+-->
+<smartplaylist type="movies">
+    <name>Recently Added Movies</name>
+    <match>all</match>
+    <order direction="descending">dateadded</order>
+    <limit>12</limit>
+</smartplaylist>

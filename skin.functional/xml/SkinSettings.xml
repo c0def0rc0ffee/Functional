@@ -384,6 +384,31 @@
 					<onleft>7000</onleft>
 					<onright>7022</onright>
 				</control>
+				<!-- Recently Added page of the same pop-up, behind its own tab
+				     beside Continue Watching. Two smart playlists, no service. -->
+				<control type="radiobutton" id="7144">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31469</label>
+					<enable>!Skin.HasSetting(hide_continue)</enable>
+					<selected>!Skin.HasSetting(hide_recent)</selected>
+					<onclick>Skin.ToggleSetting(hide_recent)</onclick>
+					<onleft>7000</onleft>
+					<onright>7022</onright>
+				</control>
 
 				<control type="label" id="7064">
 					<width>680</width>

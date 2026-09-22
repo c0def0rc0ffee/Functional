@@ -25,6 +25,13 @@
 	<!-- The Next Up row of that pop-up has something to show: not switched
 	     off, and service.py:update_next_up has published at least one slot. -->
 	<expression name="nextup_shown">!Skin.HasSetting(hide_nextup) + Integer.IsGreater(Window(home).Property(NextUp.Count),0)</expression>
+	<!-- The pop-up's second page, Recently Added (Skin.String(home_panel) is
+	     "recent"; empty or anything else is the Continue page). Its tab shows
+	     once either of its playlist rows holds something, and the band only
+	     keeps its lower part while the Continue page is up with Next Up on. -->
+	<expression name="recent_page">String.IsEqual(Skin.String(home_panel),recent)</expression>
+	<expression name="recent_tab_shown">!Skin.HasSetting(hide_continue) + !Skin.HasSetting(hide_recent) + [Integer.IsGreater(Container(9221).NumItems,0) | Integer.IsGreater(Container(9223).NumItems,0)]</expression>
+	<expression name="panel_tall">!Skin.HasSetting(hide_nextup) + !$EXP[recent_page]</expression>
 
 	<!-- The press-and-hold menu was opened on one of the Continue Watching
 	     lists on Home, so DialogContextMenu shows the skin's own three rows
@@ -2530,9 +2537,11 @@
 				     bar-at-the-top cases come first and the long-standing
 				     bottom-edge targets stay as the fallback. -->
 				<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9211)">9211</onup>
+				<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9213)">9213</onup>
 				<onup>9000</onup>
 				<ondown condition="$EXP[corner_bar_top]">9000</ondown>
 				<ondown condition="Control.IsVisible(9210)">9210</ondown>
+				<ondown condition="Control.IsVisible(9212)">9212</ondown>
 
 				<!-- Sleep countdown: a round power chip and the time left,
 				     riding at the head of the row so they follow the bar to

@@ -2482,8 +2482,8 @@ class FunctionalHelper(xbmc.Monitor):
         most recently played show first, as NextUp.N.* Home properties.
         </summary>
         <remarks>
-        Slow ticker. A lookup runs on a daemon thread every
-        NEXTUP_REFRESH_SECS, and sooner after a library event or a stopped
+        Fast ticker, cheap when nothing is due. A lookup runs on a daemon
+        thread every NEXTUP_REFRESH_SECS, and sooner after a library event or a stopped
         playback because onNotification zeroes the timer: finishing an
         episode is exactly what moves a show along. Hidden by hide_continue
         or hide_nextup, in which case the slots are cleared once and nothing
@@ -4886,13 +4886,15 @@ def run():
             # power menu's command must be picked up while the menu is still
             # in front of the user.
             helper.update_sleep_timer()
+            # Fast as well: it only compares a timestamp unless a refresh is
+            # due, and a toggled hide_nextup should refill the row at once.
+            helper.update_next_up()
             if tick == 0:
                 helper.update_queue_eta()
                 helper.update_settings_backup()
                 helper.update_buffer_stats()
                 helper.update_bg_schedule()
                 helper.update_home_bg()
-                helper.update_next_up()
                 helper.maybe_refresh_stats()
                 helper.normalize_clearance()
         except Exception:  # noqa: BLE001
