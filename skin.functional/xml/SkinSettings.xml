@@ -2159,13 +2159,58 @@
 				<onclick>Skin.ToggleSetting(lists_actions_top)</onclick>
 				<onleft>7000</onleft>
 				<onup>7234</onup>
+				<ondown>7236</ondown>
+			</control>
+			<!-- Lists on another box: export copies lists.json to a folder Kodi
+			     can write to, import merges one back by list name
+			     (service.py:_lists_export, _lists_import). -->
+			<control type="button" id="7236">
+				<left>440</left>
+				<top>440</top>
+				<width>440</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>31481</label>
+				<onclick>Skin.SetString(list_command,export)</onclick>
+				<onleft>7000</onleft>
+				<onright>7237</onright>
+				<onup>7235</onup>
+				<ondown>7124</ondown>
+			</control>
+			<control type="button" id="7237">
+				<left>900</left>
+				<top>440</top>
+				<width>440</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>31482</label>
+				<onclick>Skin.SetString(list_command,import)</onclick>
+				<onleft>7236</onleft>
+				<onright>7237</onright>
+				<onup>7235</onup>
 				<ondown>7124</ondown>
 			</control>
 
 			<!-- ===== FAVOURITES ===== -->
 			<control type="label">
 				<left>440</left>
-				<top>450</top>
+				<top>520</top>
 				<width>900</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -2177,7 +2222,7 @@
 			     from. Cycle: All, Movies, TV, Music, Apps, Other. -->
 			<control type="button" id="7124">
 				<left>440</left>
-				<top>490</top>
+				<top>560</top>
 				<width>900</width>
 				<height>60</height>
 				<font>font_reg</font>
@@ -2191,7 +2236,7 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[31259] $VAR[FavDefaultCategoryLabel]</label>
 				<onleft>7000</onleft>
-				<onup>7235</onup>
+				<onup>7236</onup>
 				<ondown>7234</ondown>
 				<onclick condition="String.IsEmpty(Skin.String(fav_default_category)) | String.IsEqual(Skin.String(fav_default_category),all)">Skin.SetString(fav_default_category,movies)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(fav_default_category),movies)">Skin.SetString(fav_default_category,tvshows)</onclick>
@@ -2203,7 +2248,7 @@
 
 			<control type="label">
 				<left>440</left>
-				<top>560</top>
+				<top>630</top>
 				<width>900</width>
 				<height>60</height>
 				<font>font_small</font>
