@@ -104,6 +104,7 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 - **Port to Queue** copies a list into Kodi's queue and starts it playing; **Port Shuffled** jumbles the order first, so a box set plays in a fresh order every time
 - Video and music can share a list: each goes to its own queue
 - **Save as List** on the queue screen keeps the current queue for later
+- The Lists screen's action buttons sit along the bottom, or along the top under the header (Lists and Favourites settings)
 - Porting asks whether to clear the current queue first, or set a standing answer under Lists and Favourites
 
 ### Other Windows
@@ -140,7 +141,7 @@ All settings live in **Settings > Skin Settings**, organised into seven categori
 - **Main Menu**: show/hide each menu item (incl. Weather, Lists and Stats) and the main menu position; the corner bar position, its Favourites/Add-ons/Power buttons and Lists/Stats icons, and invisible round buttons
 - **Home Screen**: the stats panels and Continue Watching; logo, date/time, weather widget, footer and loading splash; the sleep timer and its countdown
 - **Library**: gallery thumbnail size, small-grid column count, poster shape, context menu position (centre or left edge), default sort order and direction for Movies and TV Shows, info bar position and toggles for every metadata field, and title age on the info screens
-- **Lists and Favourites**: what porting a list does to the current queue, and the default Favourites filter
+- **Lists and Favourites**: where the Lists screen keeps its action buttons, what porting a list does to the current queue, and the default Favourites filter
 - **Playback**: OSD position, OSD thumbnail, the video dim level, and the Playback Buffer section (buffer level on the OSD, the Full Buffer button, reset to Kodi defaults)
 
 Toggle settings show an accent **dot** when on. Most changes apply immediately; a few service-backed ones take effect on the next launch.

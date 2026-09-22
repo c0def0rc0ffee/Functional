@@ -19,6 +19,15 @@
   selected list through Skin.String(list_command): new, rename, delete,
   port, port_shuffle, port_time.
 
+  The action row sits on a 120px band at the foot of the screen, or at the
+  top just under the header when Skin.HasSetting(lists_actions_top) is on
+  (Lists and Favourites settings). Nothing is laid out twice: the band, its
+  divider and the button grouplist slide up on a time="0" conditional
+  animation, and both columns slide down 120px to make room. Navigation
+  needs no second wiring because up and down out of either list already
+  land on the grouplist, and the grouplist returns to the list, whichever
+  side of the columns it is on.
+
   Porting copies the list into Kodi's video and/or music queue and starts it
   playing. Shuffled means the order is randomised before queueing, so the
   queue itself holds the jumbled order and Kodi's own shuffle stays off.
@@ -53,6 +62,7 @@
 
 		<!-- ===== Left column: the lists ===== -->
 		<control type="label">
+			<animation effect="slide" end="0,120" time="0" condition="Skin.HasSetting(lists_actions_top)">Conditional</animation>
 			<left>60</left>
 			<top>110</top>
 			<width>560</width>
@@ -63,6 +73,7 @@
 		</control>
 
 		<control type="list" id="50">
+			<animation effect="slide" end="0,120" time="0" condition="Skin.HasSetting(lists_actions_top)">Conditional</animation>
 			<left>60</left>
 			<top>150</top>
 			<width>560</width>
@@ -148,6 +159,7 @@
 
 		<!-- ===== Right column: items of the selected list ===== -->
 		<control type="group">
+			<animation effect="slide" end="0,120" time="0" condition="Skin.HasSetting(lists_actions_top)">Conditional</animation>
 			<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Idx),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
 
 			<control type="label">
@@ -314,6 +326,7 @@
 
 		<!-- No lists at all -->
 		<control type="label">
+			<animation effect="slide" end="0,120" time="0" condition="Skin.HasSetting(lists_actions_top)">Conditional</animation>
 			<visible>String.IsEmpty(Window(home).Property(Lists.Count)) | String.IsEqual(Window(home).Property(Lists.Count),0)</visible>
 			<left>60</left>
 			<top>460</top>
@@ -325,8 +338,13 @@
 			<label>31018</label>
 		</control>
 
-		<!-- ===== Footer / actions ===== -->
+		<!-- ===== Footer / actions =====
+		     Bottom: band y 960 to 1080, divider at 958, buttons at 990. Top:
+		     the band slides up 860 to y 100 to 220 (just under the 90px
+		     header), the divider 738 to sit on the band's lower edge, the
+		     buttons 860 to y 130 to 190. -->
 		<control type="image">
+			<animation effect="slide" end="0,-860" time="0" condition="Skin.HasSetting(lists_actions_top)">Conditional</animation>
 			<left>0</left>
 			<bottom>0</bottom>
 			<width>1920</width>
@@ -335,6 +353,7 @@
 		</control>
 		<control type="image">
 			<left>0</left>
+			<animation effect="slide" end="0,-738" time="0" condition="Skin.HasSetting(lists_actions_top)">Conditional</animation>
 			<bottom>120</bottom>
 			<width>1920</width>
 			<height>2</height>
@@ -342,6 +361,7 @@
 		</control>
 
 		<control type="grouplist" id="9000">
+			<animation effect="slide" end="0,-860" time="0" condition="Skin.HasSetting(lists_actions_top)">Conditional</animation>
 			<left>40</left>
 			<bottom>30</bottom>
 			<width>1840</width>

@@ -1784,3 +1784,8 @@ msgstr ""
 msgctxt "#31443"
 msgid "Lists file was unreadable and has been set aside, starting with no lists"
 msgstr ""
+
+# Lists and Favourites settings: where the Lists screen keeps its action row. 22/09/2026.
+msgctxt "#31444"
+msgid "Action buttons at the top of the Lists screen"
+msgstr ""

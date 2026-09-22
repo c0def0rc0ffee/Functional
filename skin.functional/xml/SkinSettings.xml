@@ -2065,7 +2065,7 @@
 				<label>$LOCALIZE[31282] $VAR[ListPortClearLabel]</label>
 				<onleft>7000</onleft>
 				<onup>7124</onup>
-				<ondown>7124</ondown>
+				<ondown>7235</ondown>
 				<onclick condition="String.IsEmpty(Skin.String(list_port_clear))">Skin.SetString(list_port_clear,clear)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(list_port_clear),clear)">Skin.SetString(list_port_clear,keep)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(list_port_clear),keep)">Skin.Reset(list_port_clear)</onclick>
@@ -2082,10 +2082,39 @@
 				<label>31283</label>
 			</control>
 
+			<!-- Where the Lists screen keeps its action buttons: the foot of
+			     the screen, or a band under the header. Read by
+			     Custom_1151_Lists.xml as time="0" conditional slides. -->
+			<control type="radiobutton" id="7235">
+				<left>440</left>
+				<top>370</top>
+				<width>900</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31444</label>
+				<selected>Skin.HasSetting(lists_actions_top)</selected>
+				<onclick>Skin.ToggleSetting(lists_actions_top)</onclick>
+				<onleft>7000</onleft>
+				<onup>7234</onup>
+				<ondown>7124</ondown>
+			</control>
+
 			<!-- ===== FAVOURITES ===== -->
 			<control type="label">
 				<left>440</left>
-				<top>380</top>
+				<top>450</top>
 				<width>900</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -2097,7 +2126,7 @@
 			     from. Cycle: All, Movies, TV, Music, Apps, Other. -->
 			<control type="button" id="7124">
 				<left>440</left>
-				<top>420</top>
+				<top>490</top>
 				<width>900</width>
 				<height>60</height>
 				<font>font_reg</font>
@@ -2111,7 +2140,7 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[31259] $VAR[FavDefaultCategoryLabel]</label>
 				<onleft>7000</onleft>
-				<onup>7234</onup>
+				<onup>7235</onup>
 				<ondown>7234</ondown>
 				<onclick condition="String.IsEmpty(Skin.String(fav_default_category)) | String.IsEqual(Skin.String(fav_default_category),all)">Skin.SetString(fav_default_category,movies)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(fav_default_category),movies)">Skin.SetString(fav_default_category,tvshows)</onclick>
@@ -2123,7 +2152,7 @@
 
 			<control type="label">
 				<left>440</left>
-				<top>490</top>
+				<top>560</top>
 				<width>900</width>
 				<height>60</height>
 				<font>font_small</font>
