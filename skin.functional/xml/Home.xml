@@ -24,6 +24,12 @@
 
 		<!-- Right-side fixed stats panel (always visible) -->
 		<control type="group">
+			<!-- The corner bar on the top edge occupies y 170 to 240, which is
+			     where this panel's first heading normally sits. Drop the whole
+			     column by the bar's height plus its gap so the two never
+			     overlap; there is room below, the panel ends well clear of the
+			     bottom edge. -->
+			<animation effect="slide" end="0,80" time="0" condition="$EXP[corner_bar_top]">Conditional</animation>
 			<right>60</right>
 			<top>180</top>
 			<width>310</width>
@@ -356,8 +362,21 @@
 			     edge chosen in Skin Settings; Up reaches the top one. Kodi takes
 			     the first condition that holds, so the tab entry comes first and
 			     the old target stays as the fallback. -->
+			<!-- With the corner bar moved to the top edge it is the nearest
+			     thing above the menu, so it is tried before the tab and the
+			     weather widget. Only one of the three instances is ever
+			     visible, hence the three conditions. -->
+			<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+			<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+			<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
 			<onup condition="Control.IsVisible(9211)">9211</onup>
 			<onup condition="Control.IsVisible(9006)">9006</onup>
+			<!-- Down reaches the corner bar only while it is at the bottom;
+			     with it at the top, the Continue tab is what lies below. -->
+			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9210)">9210</ondown>
+			<ondown condition="$EXP[corner_bar_top]">9000</ondown>
+			<ondown condition="Control.IsVisible(9110)">9110</ondown>
+			<ondown condition="Control.IsVisible(9120)">9120</ondown>
 			<ondown>9100</ondown>
 
 			<control type="button" id="9001">
@@ -486,134 +505,64 @@
 
 		</control>
 
-		<!-- Bottom-right corner icons -->
-		<control type="grouplist" id="9100">
-			<right>40</right>
-			<bottom>40</bottom>
-			<!-- Must hold Back-to (520) + Queue (140) + six 70px icons + gaps
-			     = 1150px: when a grouplist overflows, Kodi drops the right
-			     alignment and scrolls, clipping the Power icon off-screen. -->
-			<width>1160</width>
-			<height>70</height>
-			<itemgap>10</itemgap>
-			<orientation>horizontal</orientation>
-			<align>right</align>
-			<onup>9000</onup>
-			<ondown condition="Control.IsVisible(9210)">9210</ondown>
+		<!-- CORNER-BAR-INSTANCES: the corner bar (sleep countdown, now
+		     playing banner, queue and the round icons), instantiated once per
+		     horizontal alignment. Skin.String(corner_bar_position) picks the
+		     corner or edge centre: tl, tc, tr, bl, bc, br, with empty and
+		     anything unrecognised reading as br, where the bar has always sat.
+		     Only one instance is visible at a time. See the HomeCornerBar
+		     include in Includes.xml for why the alignment cannot be a
+		     condition and the vertical offset can. -->
+		<include content="HomeCornerBar">
+			<param name="id_bar" value="9100"/>
+			<param name="id_sleep" value="9097"/>
+			<param name="id_sleep_btn" value="9096"/>
+			<param name="id_resume" value="9099"/>
+			<param name="id_queue" value="9098"/>
+			<param name="id_stats" value="9106"/>
+			<param name="id_lists" value="9105"/>
+			<param name="id_fav" value="9104"/>
+			<param name="id_addons" value="9101"/>
+			<param name="id_settings" value="9102"/>
+			<param name="id_power" value="9103"/>
+			<param name="align" value="right"/>
+			<param name="left" value="480"/>
+			<param name="visible" value="$EXP[corner_bar_right]"/>
+		</include>
 
-			<!-- Resume / now-playing button (only visible when media is playing) -->
-			<control type="button" id="9099">
-				<visible>Player.HasMedia</visible>
-				<width>520</width>
-				<height>70</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>left</align>
-				<aligny>center</aligny>
-				<textoffsetx>20</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-				<texturenofocus colordiffuse="accent_hi">white.png</texturenofocus>
-				<label>$LOCALIZE[31096] $INFO[VideoPlayer.Title]$INFO[MusicPlayer.Title]</label>
-				<onclick condition="Player.HasVideo">ActivateWindow(fullscreenvideo)</onclick>
-				<onclick condition="Player.HasAudio + !Player.HasVideo">ActivateWindow(visualisation)</onclick>
-				<animation effect="fade" time="200">VisibleChange</animation>
-			</control>
+		<include content="HomeCornerBar">
+			<param name="id_bar" value="9110"/>
+			<param name="id_sleep" value="9111"/>
+			<param name="id_sleep_btn" value="9131"/>
+			<param name="id_resume" value="9112"/>
+			<param name="id_queue" value="9113"/>
+			<param name="id_stats" value="9114"/>
+			<param name="id_lists" value="9115"/>
+			<param name="id_fav" value="9116"/>
+			<param name="id_addons" value="9117"/>
+			<param name="id_settings" value="9118"/>
+			<param name="id_power" value="9119"/>
+			<param name="align" value="left"/>
+			<param name="left" value="40"/>
+			<param name="visible" value="$EXP[corner_bar_left]"/>
+		</include>
 
-			<!-- Queue (only visible when there's something queued) -->
-			<control type="button" id="9098">
-				<visible>Integer.IsGreater(Playlist.Length(video),0) | Integer.IsGreater(Playlist.Length(music),0)</visible>
-				<width>140</width>
-				<height>70</height>
-				<font>font_small</font>
-				<textcolor>text</textcolor>
-				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-				<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
-				<label>$VAR[QueueCountLabel]</label>
-				<onclick condition="Integer.IsGreater(Playlist.Length(video),0)">ActivateWindow(VideoPlaylist)</onclick>
-				<onclick condition="!Integer.IsGreater(Playlist.Length(video),0) + Integer.IsGreater(Playlist.Length(music),0)">ActivateWindow(MusicPlaylist)</onclick>
-				<animation effect="fade" time="200">VisibleChange</animation>
-			</control>
-
-			<!-- Round icon buttons (Stats / Lists / Favourites / Add-ons / Settings / Power).
-			     Each icon PNG is a single texture combining a semi-transparent
-			     disc with an opaque glyph, so a colordiffuse renders the disc
-			     at half strength and the glyph at full, readable contrast on
-			     both focused (accent) and unfocused (bg_panel) buttons. Plain
-			     <button> so the parent grouplist's left/right arrow nav reaches
-			     them. -->
-
-			<!-- Lists, as a corner icon. Off by default and independent of the
-			     Lists entry in the main menu (hide_lists), so either, both or
-			     neither can show. -->
-			<!-- Stats page as a corner icon: off by default, only with
-			     script.jellystat installed, independent of the menu entry. -->
-			<control type="button" id="9106">
-				<visible>System.HasAddon(script.jellystat) + Skin.HasSetting(show_stats_icon)</visible>
-				<width>70</width>
-				<height>70</height>
-				<disabledcolor>disabled</disabledcolor>
-				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_stats.png</texturefocus>
-				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_stats.png</texturenofocus>
-				<onclick>ActivateWindow(1153)</onclick>
-			</control>
-
-			<control type="button" id="9105">
-				<visible>Skin.HasSetting(show_lists_icon)</visible>
-				<width>70</width>
-				<height>70</height>
-				<disabledcolor>disabled</disabledcolor>
-				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_lists.png</texturefocus>
-				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_lists.png</texturenofocus>
-				<onclick>ActivateWindow(1151)</onclick>
-			</control>
-
-			<control type="button" id="9104">
-				<visible>!Skin.HasSetting(hide_favourites)</visible>
-				<width>70</width>
-				<height>70</height>
-				<disabledcolor>disabled</disabledcolor>
-				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_favourites.png</texturefocus>
-				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_favourites.png</texturenofocus>
-				<onclick>ActivateWindow(1150)</onclick>
-			</control>
-
-			<control type="button" id="9101">
-				<visible>!Skin.HasSetting(hide_addons)</visible>
-				<width>70</width>
-				<height>70</height>
-				<disabledcolor>disabled</disabledcolor>
-				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_addons.png</texturefocus>
-				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_addons.png</texturenofocus>
-				<onclick>ActivateWindow(AddonBrowser)</onclick>
-			</control>
-
-			<control type="button" id="9102">
-				<width>70</width>
-				<height>70</height>
-				<disabledcolor>disabled</disabledcolor>
-				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_settings.png</texturefocus>
-				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_settings.png</texturenofocus>
-				<onclick>ActivateWindow(Settings)</onclick>
-			</control>
-
-			<control type="button" id="9103">
-				<visible>!Skin.HasSetting(hide_power)</visible>
-				<width>70</width>
-				<height>70</height>
-				<disabledcolor>disabled</disabledcolor>
-				<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_power.png</texturefocus>
-				<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_power.png</texturenofocus>
-				<onclick>ActivateWindow(ShutdownMenu)</onclick>
-			</control>
-
-		</control>
+		<include content="HomeCornerBar">
+			<param name="id_bar" value="9120"/>
+			<param name="id_sleep" value="9121"/>
+			<param name="id_sleep_btn" value="9132"/>
+			<param name="id_resume" value="9122"/>
+			<param name="id_queue" value="9123"/>
+			<param name="id_stats" value="9124"/>
+			<param name="id_lists" value="9125"/>
+			<param name="id_fav" value="9126"/>
+			<param name="id_addons" value="9127"/>
+			<param name="id_settings" value="9128"/>
+			<param name="id_power" value="9129"/>
+			<param name="align" value="center"/>
+			<param name="left" value="260"/>
+			<param name="visible" value="$EXP[corner_bar_centre]"/>
+		</include>
 
 		<!-- Footer hint -->
 		<control type="label">
@@ -625,6 +574,10 @@
 			<textcolor>text_dim</textcolor>
 			<label>$LOCALIZE[31097]$INFO[System.AddonVersion(skin.functional)]</label>
 			<visible>!Skin.HasSetting(hide_version)</visible>
+			<!-- Bottom left is the one corner placement that lands on this
+			     label. Lift it clear rather than hide it: the user asked for
+			     the version line, and it reads fine one row up. -->
+			<animation effect="slide" end="0,-80" time="0" condition="$EXP[corner_bar_bottom_left]">Conditional</animation>
 		</control>
 
 		<!-- Continue Watching: in-progress movies and episodes, newest played
@@ -974,6 +927,12 @@
 			<onclick>Skin.ToggleSetting(continue_open)</onclick>
 			<onclick condition="!Skin.HasSetting(continue_open)">SetFocus(9201)</onclick>
 			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
+			<!-- Up from the bottom tab reaches the corner bar when it is on
+			     this edge too, otherwise the menu, which is then the nearest
+			     thing above. -->
+			<onup condition="$EXP[corner_bar_top]">9000</onup>
+			<onup condition="Control.IsVisible(9110)">9110</onup>
+			<onup condition="Control.IsVisible(9120)">9120</onup>
 			<onup>9100</onup>
 		</control>
 
@@ -1000,6 +959,11 @@
 			<onclick>Skin.ToggleSetting(continue_open)</onclick>
 			<onclick condition="!Skin.HasSetting(continue_open)">SetFocus(9201)</onclick>
 			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
+			<!-- Down from the top tab lands on the corner bar when that is
+			     also on the top edge, since it sits between tab and menu. -->
+			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</ondown>
+			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</ondown>
+			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</ondown>
 			<ondown>9000</ondown>
 		</control>
 

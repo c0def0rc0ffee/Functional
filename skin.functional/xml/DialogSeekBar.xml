@@ -112,6 +112,17 @@
 			<visible>!String.IsEmpty(Player.ChapterName)</visible>
 		</control>
 
+		<!-- Sleep countdown, on the left of the row the buffer readout owns
+		     the right of, so the two can both show without meeting. -->
+		<control type="group">
+			<visible>$EXP[sleep_countdown_shown]</visible>
+			<left>260</left>
+			<bottom>96</bottom>
+			<width>200</width>
+			<height>30</height>
+			<include content="SleepCountdownReadout"/>
+		</control>
+
 		<!-- Position percentage, right aligned under the end of the bar.
 		     Same infolabel the bar itself is driven by, so the number can
 		     never disagree with what the bar is showing. Hidden without a
@@ -242,6 +253,16 @@
 			<textcolor>text_dim</textcolor>
 			<label>$INFO[Player.ChapterName]</label>
 			<visible>!String.IsEmpty(Player.ChapterName)</visible>
+		</control>
+
+		<!-- Sleep countdown (see the bottom bar's twin) -->
+		<control type="group">
+			<visible>$EXP[sleep_countdown_shown]</visible>
+			<left>260</left>
+			<top>18</top>
+			<width>200</width>
+			<height>30</height>
+			<include content="SleepCountdownReadout"/>
 		</control>
 
 		<!-- Position percentage (see the bottom bar's twin) -->
