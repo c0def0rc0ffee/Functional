@@ -1926,3 +1926,16 @@ msgstr ""
 msgctxt "#31477"
 msgid "No bookmarks yet"
 msgstr ""
+
+# Library search in the filter menu. 22/09/2026.
+msgctxt "#31478"
+msgid "Search"
+msgstr ""
+
+msgctxt "#31479"
+msgid "Titles containing"
+msgstr ""
+
+msgctxt "#31480"
+msgid "Clear search"
+msgstr ""

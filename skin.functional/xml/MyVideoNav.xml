@@ -1071,6 +1071,58 @@
 					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
 					<onright>51</onright>
 					<onup>8006</onup>
+					<ondown>8010</ondown>
+				</control>
+
+				<!-- Search. A keyboard prompt from service.py:update_search_command,
+				     whose text becomes a "title contains" rule on the node on
+				     screen, stacked on the genre and age rules (movies and TV
+				     shows) or appended to an episode list's own path. The row
+				     reads Skin.String(search_active), which the service keeps
+				     equal to the text the node on screen is filtered by, so it
+				     never claims a search that Back has already undone. The
+				     Clear row shows only while one is in force and falls through
+				     to the queue row otherwise. -->
+				<control type="button" id="8010">
+					<visible>Skin.HasSetting(filter_menu_open) + [Container.Content(movies) | Container.Content(tvshows) | Container.Content(episodes)] + String.StartsWith(Container.FolderPath,videodb://)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31478]$INFO[Skin.String(search_active),: ,]</label>
+					<onclick>Skin.SetString(search_command,prompt)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8007</onup>
+					<ondown>8011</ondown>
+				</control>
+				<control type="button" id="8011">
+					<visible>Skin.HasSetting(filter_menu_open) + !String.IsEmpty(Skin.String(search_active)) + String.StartsWith(Container.FolderPath,videodb://)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>31480</label>
+					<onclick>Skin.SetString(search_command,clear)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8010</onup>
 					<ondown>8009</ondown>
 				</control>
 
@@ -1092,7 +1144,7 @@
 					<onclick>ActivateWindow(VideoPlaylist)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
-					<onup>8007</onup>
+					<onup>8011</onup>
 					<ondown>8499</ondown>
 				</control>
 

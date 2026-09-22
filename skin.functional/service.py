@@ -4390,9 +4390,10 @@ class FunctionalHelper(xbmc.Monitor):
             years = self._safe_int(xbmc.getInfoLabel("Skin.String(age_filter)"), 0)
             path = (xbmc.getInfoLabel("Container.FolderPath") or "").strip()
             genre = self._genre_for_path(path)
-            target = self._age_node(kind, years, genre)
-            _dlog("age filter: {0} older than {1}y genre {2!r} -> {3}".format(
-                kind, years, genre, target[:80]))
+            text = self._age_rule_from_path(path, "title")
+            target = self._age_node(kind, years, genre, text)
+            _dlog("age filter: {0} older than {1}y genre {2!r} search {3!r} -> {4}".format(
+                kind, years, genre, text, target[:80]))
             # Container.Update rather than ActivateWindow: the video window is
             # already open, so this swaps its directory in place, which keeps
             # the filter section open with the button focused and, unlike
@@ -4414,22 +4415,101 @@ class FunctionalHelper(xbmc.Monitor):
         want = str(time.localtime().tm_year - cutoff) if cutoff else ""
         if xbmc.getInfoLabel("Skin.String(age_filter)").strip() != want:
             _set_skin_string("age_filter", want)
+        # Same idea for the search text: the menu row shows what the node on
+        # screen is actually filtered by, not what was last typed.
+        text = self._age_rule_from_path(path, "title")
+        if xbmc.getInfoLabel("Skin.String(search_active)").strip() != text:
+            _set_skin_string("search_active", text)
 
-    def _age_node(self, kind, years, genre):
+    def update_search_command(self):
         """
         <summary>
-        Build the node to open for an age threshold and optional genre.
+        Watch Skin.String(search_command): "prompt" asks for text and
+        reloads the node on screen filtered to titles containing it,
+        "clear" reloads it without that rule. Cheap enough to call every tick.
+        </summary>
+        <remarks>
+        The prompt is a blocking keyboard dialog, so it runs through
+        _spawn_dialog. Movies and TV show nodes go through _age_node, so the
+        search stacks on the genre and age the screen already shows; an
+        episode list keeps its own path and gains an episodes playlist with
+        the title rule appended as a further query parameter, which is the
+        form Kodi honours on a path that already carries tvshowid. Kodi's
+        own Filter action was tried first and rejected: on library nodes it
+        opens the advanced media filter dialog rather than a keyboard.
+        </remarks>
+        """
+        cmd = self._take_command("search_command", lower=True)
+        if cmd == "prompt":
+            self._spawn_dialog(self._search_prompt)
+        elif cmd == "clear":
+            self._search_apply("")
+
+    def _search_prompt(self):
+        """
+        <summary>
+        Dialog thread: ask for the search text, seeded with the text in
+        force, and apply it. An empty answer clears the search.
+        </summary>
+        """
+        current = xbmc.getInfoLabel("Skin.String(search_active)").strip()
+        text = xbmcgui.Dialog().input(_L(31479), current)
+        self._search_apply((text or "").strip())
+
+    def _search_apply(self, text):
+        """
+        <summary>
+        Reload the node on screen with a title rule for text, or without
+        one when text is empty.
+        </summary>
+        <param name="text">Text the title must contain, "" to clear.</param>
+        <remarks>
+        Container.Update rather than ActivateWindow for the reason given in
+        update_age_command: it swaps the directory in place and reloads the
+        plain node even when the screen shows that node's filtered form.
+        </remarks>
+        """
+        path = (xbmc.getInfoLabel("Container.FolderPath") or "").strip()
+        if not path.startswith("videodb://"):
+            _dlog("search: not a library node, ignored: {0}".format(path[:80]))
+            return
+        if xbmc.getCondVisibility("Container.Content(episodes)"):
+            parts = urllib.parse.urlsplit(path)
+            query = [(k, v) for k, v in urllib.parse.parse_qsl(parts.query, keep_blank_values=True)
+                     if k != "xsp"]
+            if text:
+                xsp = {"name": "search", "type": "episodes", "rules": {"and": [
+                    {"field": "title", "operator": "contains", "value": [text]}]}}
+                query.append(("xsp", json.dumps(xsp, separators=(",", ":"))))
+            target = urllib.parse.urlunsplit(
+                (parts.scheme, parts.netloc, parts.path, urllib.parse.urlencode(query), ""))
+        else:
+            kind = "tvshows" if xbmc.getCondVisibility("Container.Content(tvshows)") else "movies"
+            years = self._safe_int(xbmc.getInfoLabel("Skin.String(age_filter)"), 0)
+            target = self._age_node(kind, years, self._genre_for_path(path), text)
+        _dlog("search: {0!r} -> {1}".format(text, target[:100]))
+        xbmc.executebuiltin("Container.Update({0})".format(target))
+        self._age_last_path = None
+
+    def _age_node(self, kind, years, genre, text=""):
+        """
+        <summary>
+        Build the node to open for an age threshold, an optional genre and
+        an optional search text.
         </summary>
         <param name="kind">"movies" or "tvshows".</param>
         <param name="years">Threshold in years, 0 for none.</param>
         <param name="genre">Genre name to keep, "" for none.</param>
-        <returns>A videodb smart playlist URL; with no threshold, the plain titles node, or the genre's own node when the genre is known so the normal Genre controls take over again.</returns>
+        <param name="text">Text the title must contain, "" for none.</param>
+        <returns>A videodb smart playlist URL; with no rule at all, the plain titles node, or the genre's own node when only the genre is known so the normal Genre controls take over again.</returns>
         <remarks>
         "Older than N years" is a year strictly below the current year
-        minus N, so on 2026 a threshold of 20 shows titles up to 2005.
+        minus N, so on 2026 a threshold of 20 shows titles up to 2005. The
+        three rules stack, which is what lets a search stay inside the genre
+        and age the screen already shows.
         </remarks>
         """
-        if years <= 0 and genre:
+        if years <= 0 and genre and not text:
             dbtype = "movie" if kind == "movies" else "tvshow"
             for (gtype, gid), name in self._genre_names.items():
                 if gtype == dbtype and name == genre:
@@ -4440,6 +4520,8 @@ class FunctionalHelper(xbmc.Monitor):
             rules.append({"field": "year", "operator": "lessthan", "value": [str(cutoff)]})
         if genre:
             rules.append({"field": "genre", "operator": "is", "value": [genre]})
+        if text:
+            rules.append({"field": "title", "operator": "contains", "value": [text]})
         if not rules:
             return self.AGE_NODES[kind]
         xsp = {"name": "age", "type": kind, "rules": {"and": rules}}
@@ -4984,6 +5066,7 @@ def run():
             helper.update_bg_command()
             helper.update_random_command()
             helper.update_age_command()
+            helper.update_search_command()
             helper.update_favourites()
             helper.update_continue_watching()
             helper.update_lists()

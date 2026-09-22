@@ -72,6 +72,7 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 - **Scroll badge**: while you scroll, a badge shows the sort key of the item under the cursor (year, rating, date added, last played, or the initial letter), so you always know where you are in a long list
 - **Filter**: the native watched-status toggle (All Videos / Unwatched / Watched), which filters shows, seasons and episodes correctly and updates the menu label to match
 - **Genre**: a genre picker narrows the library to one genre, with an All Genres reset; the menu label always shows the genre actually in force on screen
+- **Search**: a keyboard prompt narrows the list to titles containing the text, stacking with the genre and age filters on movies and TV shows and working inside a show's episode list too; the row shows the text in force and a Clear row undoes it
 - Quick access to your queue
 - Layout adjust controls (gallery size, info-bar position, poster shape, clearance) right in the menu
 
