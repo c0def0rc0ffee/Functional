@@ -1892,3 +1892,32 @@ msgstr ""
 msgctxt "#31469"
 msgid "Recently Added tab beside Continue Watching: the newest movies and episodes"
 msgstr ""
+
+# Sleep timer by episode. 22/09/2026.
+msgctxt "#31470"
+msgid "Sleep when this finishes"
+msgstr ""
+
+msgctxt "#31471"
+msgid "Sleep after several episodes..."
+msgstr ""
+
+msgctxt "#31472"
+msgid "How many episodes, counting this one?"
+msgstr ""
+
+msgctxt "#31473"
+msgid "Powering down when this finishes"
+msgstr ""
+
+msgctxt "#31474"
+msgid "Powering down after {0} episodes"
+msgstr ""
+
+msgctxt "#31475"
+msgid "{0} ep"
+msgstr ""
+
+msgctxt "#31476"
+msgid "{0} eps"
+msgstr ""

@@ -558,6 +558,8 @@ class FunctionalHelper(xbmc.Monitor):
         # a timer has nothing to say once the box it was going to switch off
         # has been switched off.
         self._sleep_deadline = None   # epoch seconds, None = not armed
+        self._sleep_episodes = 0      # natural playback ends still to wait for, 0 = not in that mode
+        self._sleep_fire_pending = False  # the last end arrived on the notification thread
         self._sleep_warned = False    # the one-minute toast has been shown
         self._sleep_published = ""    # countdown label currently on screen
         self._list_item_slots_used = 0  # LI.N.* slots written last publish
@@ -617,12 +619,13 @@ class FunctionalHelper(xbmc.Monitor):
             self._stats_last_refresh = 0.0
             self._bg_last_fetch = 0.0
             self._nextup_last = 0.0
-        if method == "Player.OnStop":
-            # Finishing an episode is exactly what moves a show along.
-            self._nextup_last = 0.0
             # A scan can add or rename genres; let the next genre lookup
             # re-pull the list rather than label a node from a stale cache.
             self._genre_fetched = set()
+        if method == "Player.OnStop":
+            # Finishing an episode is exactly what moves a show along.
+            self._nextup_last = 0.0
+            self._sleep_on_stop(data)
 
     # -- Handlers -----------------------------------------------------------
 
@@ -3906,6 +3909,7 @@ class FunctionalHelper(xbmc.Monitor):
 
     # Seeded into the hours-and-minutes prompt until the user has set one.
     SLEEP_DEFAULT_HHMM = "01:00"
+    SLEEP_EPISODES_DEFAULT = 2
     # How long before power off the one warning toast appears.
     SLEEP_WARN_SECS = 60
 
@@ -3916,11 +3920,21 @@ class FunctionalHelper(xbmc.Monitor):
         countdown, and power the box down when it reaches zero.
         </summary>
         <remarks>
-        Skin.String(sleep_command) is the channel, "set" or "cancel", cleared
-        the moment it is read so a command cannot fire twice. "set" opens a
-        blocking hours-and-minutes prompt, which must go through
-        _spawn_dialog or it stalls every other handler for as long as it is
-        open.
+        Skin.String(sleep_command) is the channel, cleared the moment it is
+        read so a command cannot fire twice: "set" (hours and minutes
+        prompt), "cancel", "episode" (power down when whatever is playing
+        finishes), "episodes" (prompt for how many, counting the current
+        one) or "episodes:N" with the count baked in. The prompts are
+        blocking Python dialogs and go through _spawn_dialog, or they would
+        stall every other handler for as long as they are open.
+
+        Two modes, never both: a clock deadline, or a count of natural
+        playback ends. The count is driven by Player.OnStop with "end" true
+        (Kodi's own flag for "reached the end", a manual stop leaves the
+        count alone), decremented on the notification thread and acted on
+        here, on the loop, through _sleep_fire_pending. In episode mode the
+        countdown label is "1 ep" or "N eps", and the one minute warning
+        comes from Player.TimeRemaining of the last episode.
 
         The deadline lives in memory, not in a skin string, on purpose. A
         sleep timer means "power this box down in a while", so it has nothing
@@ -3947,6 +3961,30 @@ class FunctionalHelper(xbmc.Monitor):
                 self._spawn_dialog(self._sleep_pick)
             elif cmd == "cancel":
                 self._sleep_disarm(announce=True)
+            elif cmd == "episode":
+                self._sleep_arm_episodes(1)
+            elif cmd == "episodes":
+                self._spawn_dialog(self._sleep_pick_episodes)
+            elif cmd.startswith("episodes:"):
+                self._sleep_arm_episodes(self._safe_int(cmd[9:], 0))
+
+        if self._sleep_fire_pending:
+            self._sleep_fire_pending = False
+            self._sleep_fire()
+            return
+
+        if self._sleep_episodes > 0:
+            count = self._sleep_episodes
+            label = (_L(31475) if count == 1 else _L(31476)).format(count)
+            if label != self._sleep_published:
+                self._sleep_published = label
+                _set_home_property("sleep_remaining", label)
+            if count == 1 and not self._sleep_warned and xbmc.getCondVisibility("Player.HasMedia"):
+                left = _parse_duration_to_seconds(xbmc.getInfoLabel("Player.TimeRemaining"))
+                if 0 < left <= self.SLEEP_WARN_SECS:
+                    self._sleep_warned = True
+                    self._sleep_notify(_L(31429))
+            return
 
         if self._sleep_deadline is None:
             return
@@ -4023,16 +4061,86 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("sleep timer: armed for {0}".format(self._fmt_hhmm(minutes)))
         self._sleep_notify(_L(31427).format(self._fmt_hhmm(minutes)))
 
+    def _sleep_on_stop(self, data):
+        """
+        <summary>
+        Player.OnStop handler for episode mode: count a natural end, and ask
+        the loop to fire when the count reaches zero.
+        </summary>
+        <param name="data">The event's JSON payload; "end" is Kodi's flag for playback having reached the end.</param>
+        <remarks>
+        Runs on Kodi's notification thread, so it only moves a counter and
+        sets a flag; the loop republishes the label and does the powering
+        down. A stop the viewer made is not an end: the count waits for the
+        next episode to finish instead.
+        </remarks>
+        """
+        if self._sleep_episodes <= 0:
+            return
+        try:
+            ended = bool((json.loads(data or "{}") or {}).get("end"))
+        except (TypeError, ValueError):
+            ended = False
+        if not ended:
+            return
+        self._sleep_episodes -= 1
+        _dlog("sleep timer: playback ended, {0} to go".format(self._sleep_episodes))
+        if self._sleep_episodes <= 0:
+            self._sleep_fire_pending = True
+
+    def _sleep_arm_episodes(self, count):
+        """
+        <summary>
+        Arm the timer to power down after the given number of playbacks
+        have finished, counting the one playing now.
+        </summary>
+        <param name="count">Episodes to wait for; anything below one cancels instead.</param>
+        """
+        if count <= 0:
+            self._sleep_disarm(announce=True)
+            return
+        self._sleep_disarm()
+        self._sleep_episodes = count
+        self._sleep_published = (_L(31475) if count == 1 else _L(31476)).format(count)
+        _set_home_property("sleep_remaining", self._sleep_published)
+        _dlog("sleep timer: armed for {0} episode(s)".format(count))
+        self._sleep_notify(_L(31473) if count == 1 else _L(31474).format(count))
+
+    def _sleep_pick_episodes(self):
+        """
+        <summary>
+        Ask how many episodes to sit through, seeded with the last answer,
+        and arm the timer.
+        </summary>
+        <remarks>
+        Dialog thread. The answer is remembered in Skin.String(
+        sleep_episodes_default) so the prompt opens on it next time. Zero
+        cancels, for the same reason 00:00 cancels the clock prompt.
+        </remarks>
+        """
+        current = self._safe_int(self._get_skin("sleep_episodes_default"), 0)
+        if current <= 0:
+            current = self.SLEEP_EPISODES_DEFAULT
+        result = xbmcgui.Dialog().numeric(0, _L(31472), str(current))
+        if result is None or result == "":
+            return  # cancelled: leave any running timer alone
+        count = self._safe_int(result, 0)
+        if count > 0:
+            _set_skin_string("sleep_episodes_default", str(count))
+        self._sleep_arm_episodes(count)
+
     def _sleep_disarm(self, announce=False):
         """
         <summary>
-        Stop any running timer and clear the countdown.
+        Stop any running timer, in either mode, and clear the countdown.
         </summary>
         <param name="announce">True to toast, but only if a timer was actually
         running, so "cancel" on an idle skin stays silent.</param>
         """
-        was_armed = self._sleep_deadline is not None
+        was_armed = self._sleep_deadline is not None or self._sleep_episodes > 0
         self._sleep_deadline = None
+        self._sleep_episodes = 0
+        self._sleep_fire_pending = False
         self._sleep_warned = False
         self._sleep_published = ""
         _set_home_property("sleep_remaining", "")
@@ -4044,7 +4152,8 @@ class FunctionalHelper(xbmc.Monitor):
     def _sleep_fire(self):
         """
         <summary>
-        The timer has run out: stop playback, then power the box down.
+        The timer has run out, or the last episode has ended: stop
+        playback, then power the box down.
         </summary>
         <remarks>
         Disarmed first, so a Powerdown that the platform refuses (no

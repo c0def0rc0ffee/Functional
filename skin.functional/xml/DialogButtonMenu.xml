@@ -132,6 +132,21 @@
 					<onclick>Skin.SetString(sleep_command,set)</onclick>
 					<visible>!Skin.HasSetting(hide_sleep_timer)</visible>
 				</item>
+				<!-- The two episode counted forms, only while something plays:
+				     they count natural playback ends, so with nothing playing
+				     there is nothing to count. -->
+				<item>
+					<label>31470</label>
+					<onclick>Dialog.Close(shutdownmenu)</onclick>
+					<onclick>Skin.SetString(sleep_command,episode)</onclick>
+					<visible>!Skin.HasSetting(hide_sleep_timer) + Player.HasMedia</visible>
+				</item>
+				<item>
+					<label>31471</label>
+					<onclick>Dialog.Close(shutdownmenu)</onclick>
+					<onclick>Skin.SetString(sleep_command,episodes)</onclick>
+					<visible>!Skin.HasSetting(hide_sleep_timer) + Player.HasMedia</visible>
+				</item>
 				<item>
 					<label>31425</label>
 					<onclick>Dialog.Close(shutdownmenu)</onclick>
