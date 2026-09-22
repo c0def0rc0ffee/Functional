@@ -87,7 +87,7 @@
 				<width>540</width>
 				<height>40</height>
 				<font>font_med</font>
-				<textcolor>accent_hi</textcolor>
+				<textcolor>$VAR[AccentHiColor]</textcolor>
 				<aligny>center</aligny>
 				<label>31047</label>
 			</control>

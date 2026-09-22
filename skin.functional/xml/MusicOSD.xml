@@ -55,7 +55,7 @@
 			<width>900</width>
 			<height>30</height>
 			<font>font_reg</font>
-			<textcolor>accent_hi</textcolor>
+			<textcolor>$VAR[AccentHiColor]</textcolor>
 			<scroll>true</scroll>
 			<label>$INFO[MusicPlayer.Artist]$INFO[MusicPlayer.Album, · ,]</label>
 		</control>
@@ -84,7 +84,7 @@
 			<height>6</height>
 			<info>Player.Progress</info>
 			<texturebg>-</texturebg>
-			<midtexture colordiffuse="accent_hi">white.png</midtexture>
+			<midtexture colordiffuse="$VAR[AccentHiColor]">white.png</midtexture>
 			<overlaytexture>-</overlaytexture>
 		</control>
 		<control type="label">

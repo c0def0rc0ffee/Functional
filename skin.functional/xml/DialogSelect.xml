@@ -100,7 +100,7 @@
 					<width>22</width>
 					<height>22</height>
 					<aspectratio>keep</aspectratio>
-					<texture colordiffuse="accent_hi">tick.png</texture>
+					<texture colordiffuse="$VAR[AccentHiColor]">tick.png</texture>
 					<visible>ListItem.IsSelected</visible>
 				</control>
 				<control type="label">
@@ -110,7 +110,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -123,7 +123,7 @@
 					<align>right</align>
 					<aligny>center</aligny>
 					<textcolor>text_dim</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<label>$INFO[ListItem.Label2]</label>
 				</control>
 			</itemlayout>
@@ -143,7 +143,7 @@
 					<width>22</width>
 					<height>22</height>
 					<aspectratio>keep</aspectratio>
-					<texture colordiffuse="accent_hi">tick.png</texture>
+					<texture colordiffuse="$VAR[AccentHiColor]">tick.png</texture>
 					<visible>ListItem.IsSelected</visible>
 				</control>
 				<control type="label">
@@ -191,7 +191,7 @@
 					<width>22</width>
 					<height>22</height>
 					<aspectratio>keep</aspectratio>
-					<texture colordiffuse="accent_hi">tick.png</texture>
+					<texture colordiffuse="$VAR[AccentHiColor]">tick.png</texture>
 					<visible>ListItem.IsSelected</visible>
 				</control>
 				<control type="label">
@@ -201,7 +201,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -221,7 +221,7 @@
 					<width>22</width>
 					<height>22</height>
 					<aspectratio>keep</aspectratio>
-					<texture colordiffuse="accent_hi">tick.png</texture>
+					<texture colordiffuse="$VAR[AccentHiColor]">tick.png</texture>
 					<visible>ListItem.IsSelected</visible>
 				</control>
 				<control type="label">
@@ -250,7 +250,7 @@
 			<onright>9001</onright>
 			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 		</control>
 
 		<!-- Action buttons grouplist (id 9001), right column -->

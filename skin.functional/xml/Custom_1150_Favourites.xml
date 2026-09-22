@@ -85,7 +85,7 @@
 					<height>70</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -96,7 +96,7 @@
 					<height>70</height>
 					<font>font_small</font>
 					<textcolor>text_dim</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Property(favcat)]</label>
@@ -319,7 +319,7 @@
 			<onright>50</onright>
 			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 		</control>
 
 		<!-- Empty-state hint -->

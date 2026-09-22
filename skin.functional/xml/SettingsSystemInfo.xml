@@ -308,7 +308,7 @@
 			<showonepage>false</showonepage>
 			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 			<visible>ControlGroup(9000).HasFocus(100)</visible>
 		</control>
 
@@ -334,7 +334,7 @@
 				<width>1400</width>
 				<height>50</height>
 				<font>font_med</font>
-				<textcolor>accent_hi</textcolor>
+				<textcolor>$VAR[AccentHiColor]</textcolor>
 				<label>$LOCALIZE[12398]</label>
 			</control>
 		</control>

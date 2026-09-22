@@ -97,7 +97,7 @@
 			<right>620</right>
 			<height>26</height>
 			<font>font_reg</font>
-			<textcolor>accent_hi</textcolor>
+			<textcolor>$VAR[AccentHiColor]</textcolor>
 			<label>$INFO[VideoPlayer.Season,S,]$INFO[VideoPlayer.Episode,E, · ]$INFO[VideoPlayer.Title]</label>
 			<visible>!String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
 		</control>

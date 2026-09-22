@@ -302,7 +302,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -313,7 +313,7 @@
 					<height>60</height>
 					<font>font_small</font>
 					<textcolor>text_dim</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label2]</label>
@@ -379,7 +379,7 @@
 			<onright>50</onright>
 			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 		</control>
 
 		<!-- ========== FAST-SCROLL SORT BADGE ==========
@@ -506,7 +506,7 @@
 				<width>340</width>
 				<height>40</height>
 				<font>font_med</font>
-				<textcolor>accent_hi</textcolor>
+				<textcolor>$VAR[AccentHiColor]</textcolor>
 				<align>right</align>
 				<label>$INFO[Container.CurrentItem] / $INFO[Container.NumItems] $LOCALIZE[31016]</label>
 			</control>
@@ -584,7 +584,7 @@
 				<width>340</width>
 				<height>40</height>
 				<font>font_med</font>
-				<textcolor>accent_hi</textcolor>
+				<textcolor>$VAR[AccentHiColor]</textcolor>
 				<align>right</align>
 				<label>$INFO[Container.CurrentItem] / $INFO[Container.NumItems] $LOCALIZE[31016]</label>
 			</control>
@@ -635,7 +635,7 @@
 				<width>380</width>
 				<height>50</height>
 				<font>font_med</font>
-				<textcolor>accent_hi</textcolor>
+				<textcolor>$VAR[AccentHiColor]</textcolor>
 				<label>31197</label>
 			</control>
 			<control type="label">
@@ -1440,7 +1440,7 @@
 				<onright>9500</onright>
 				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 			</control>
 
 			<!-- Clear the genre filter: back to the plain titles node. Both

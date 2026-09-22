@@ -111,7 +111,7 @@
 					<height>80</height>
 					<font>font_reg</font>
 					<textcolor>text_dim</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.CurrentItem]</label>
@@ -133,7 +133,7 @@
 					<height>80</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -145,7 +145,7 @@
 					<height>80</height>
 					<font>font_small</font>
 					<textcolor>text_dim</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Duration]</label>
@@ -166,7 +166,7 @@
 					<width>28</width>
 					<height>28</height>
 					<aspectratio>keep</aspectratio>
-					<texture colordiffuse="accent_hi">icons/play.png</texture>
+					<texture colordiffuse="$VAR[AccentHiColor]">icons/play.png</texture>
 					<!-- playlistposition is 0-based and Playlist.Position 1-based, so the old
 					     comparison lit the row AFTER the playing one. -->
 					<visible>ListItem.IsPlaying</visible>
@@ -186,7 +186,7 @@
 			<onright>55</onright>
 			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 		</control>
 
 		<!-- Footer / actions -->

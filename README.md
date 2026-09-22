@@ -140,7 +140,7 @@ A lightweight Python service handles what the skin engine can't do alone, with a
 
 All settings live in **Settings > Skin Settings**, organised into seven categories:
 
-- **Overall**: accent colour (Blue, Red, Green, Orange, Amber, Purple, Teal, Pink), notification position (6 placements), Diagnostics (debug logging + log folder), and Skin Settings Backup (Back Up Now and Restore from Backup, with the age of the snapshot shown)
+- **Overall**: accent colour (Blue, Red, Green, Orange, Amber, Purple, Teal, Pink, or any colour from a picker, with the highlight shade following it), notification position (6 placements), Diagnostics (debug logging + log folder), and Skin Settings Backup (Back Up Now and Restore from Backup, with the age of the snapshot shown)
 - **Background**: the unified background mode, image/folder picker, dim, slideshow interval, caption position, the time-of-day schedule, and whether the background (or live video) shows on every screen
 - **Main Menu**: show/hide each menu item (incl. Weather, Lists and Stats) and the main menu position; the corner bar position, its Favourites/Add-ons/Power buttons and Lists/Stats icons, and invisible round buttons
 - **Home Screen**: the stats panels and Continue Watching; logo, date/time, weather widget, footer and loading splash; the sleep timer and its countdown

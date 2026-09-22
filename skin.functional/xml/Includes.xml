@@ -659,8 +659,12 @@
 		<value></value>
 	</variable>
 
-	<!-- Configurable accent colour (Skin.String(accent_color)) -->
+	<!-- Configurable accent colour (Skin.String(accent_color)). "custom" takes
+	     the value Kodi's colour picker stored in Skin.String(accent_custom)
+	     (Skin.SetColor from the Overall settings page); with nothing picked
+	     yet it falls through to blue like an unset name does. -->
 	<variable name="AccentColor">
+		<value condition="String.IsEqual(Skin.String(accent_color),custom) + !String.IsEmpty(Skin.String(accent_custom))">$INFO[Skin.String(accent_custom)]</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),red)">FFE53935</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),green)">FF43A047</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),orange)">FFFB8C00</value>
@@ -670,6 +674,23 @@
 		<value condition="String.IsEqual(Skin.String(accent_color),amber)">FFFFB300</value>
 		<value>FF1E88E5</value>
 	</variable>
+	<!-- The highlight shade that goes with the accent: selected rows, focus
+	     marks, the OSD figures. One lighter step per preset; for a custom
+	     accent service.py:update_accent blends the picked colour a third of
+	     the way to white into Skin.String(accent_custom_hi). Until 22/09/2026
+	     every use was the fixed colour name accent_hi, so a red accent had
+	     blue highlights. -->
+	<variable name="AccentHiColor">
+		<value condition="String.IsEqual(Skin.String(accent_color),custom) + !String.IsEmpty(Skin.String(accent_custom_hi))">$INFO[Skin.String(accent_custom_hi)]</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),red)">FFEF5350</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),green)">FF66BB6A</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),orange)">FFFFA726</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),purple)">FFAB47BC</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),teal)">FF26A69A</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),pink)">FFF06292</value>
+		<value condition="String.IsEqual(Skin.String(accent_color),amber)">FFFFCA28</value>
+		<value>FF42A5F5</value>
+	</variable>
 	<variable name="QueueCountLabel">
 		<value condition="Integer.IsGreater(Playlist.Length(video),0)">$LOCALIZE[31160]$INFO[Playlist.Length(video)])</value>
 		<value condition="Integer.IsGreater(Playlist.Length(music),0)">$LOCALIZE[31160]$INFO[Playlist.Length(music)])</value>
@@ -677,6 +698,7 @@
 	</variable>
 
 	<variable name="AccentColorLabel">
+		<value condition="String.IsEqual(Skin.String(accent_color),custom) + !String.IsEmpty(Skin.String(accent_custom))">$LOCALIZE[31489]</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),red)">$LOCALIZE[31162]</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),green)">$LOCALIZE[31163]</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),orange)">$LOCALIZE[31164]</value>
@@ -738,7 +760,7 @@
 				<height>180</height>
 				<font>font_small</font>
 				<textcolor>text</textcolor>
-				<selectedcolor>accent_hi</selectedcolor>
+				<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 				<align>center</align>
 				<aligny>top</aligny>
 				<label>$INFO[ListItem.Label]</label>
@@ -781,7 +803,7 @@
 				<top>0</top>
 				<width>$PARAM[tile_w]</width>
 				<height>$PARAM[bg_h]</height>
-				<texture colordiffuse="accent_hi">white.png</texture>
+				<texture colordiffuse="$VAR[AccentHiColor]">white.png</texture>
 			</control>
 			<include content="GalleryTileBody">
 				<param name="poster_w" value="$PARAM[poster_w]"/>
@@ -936,7 +958,7 @@
 					<height>90</height>
 					<font>font_med</font>
 					<textcolor>text</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<label>$PARAM[title]</label>
@@ -948,7 +970,7 @@
 					<height>90</height>
 					<font>font_reg</font>
 					<textcolor>text_dim</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$INFO[System.Time]</label>
@@ -1189,7 +1211,7 @@
 						<height>60</height>
 						<font>font_reg</font>
 						<textcolor>text</textcolor>
-						<selectedcolor>accent_hi</selectedcolor>
+						<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label]</label>
 					</control>
@@ -1200,7 +1222,7 @@
 						<height>60</height>
 						<font>font_small</font>
 						<textcolor>text_dim</textcolor>
-						<selectedcolor>accent_hi</selectedcolor>
+						<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 						<align>right</align>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label2]</label>
@@ -1313,7 +1335,7 @@
 				<showonepage>false</showonepage>
 				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 			</control>
 
 		</definition>
@@ -1943,7 +1965,7 @@
 				<width>990</width>
 				<height>26</height>
 				<font>font_reg</font>
-				<textcolor>accent_hi</textcolor>
+				<textcolor>$VAR[AccentHiColor]</textcolor>
 				<label>$INFO[VideoPlayer.TVShowTitle]$INFO[VideoPlayer.Season, · S,]$INFO[VideoPlayer.Episode,E,]$VAR[FsInfoAiredLabel]</label>
 				<visible>!String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
 			</control>
@@ -2598,7 +2620,7 @@
 					<aligny>center</aligny>
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="accent_hi">white.png</texturenofocus>
+					<texturenofocus colordiffuse="$VAR[AccentHiColor]">white.png</texturenofocus>
 					<label>$LOCALIZE[31096] $INFO[VideoPlayer.Title]$INFO[MusicPlayer.Title]</label>
 					<onclick condition="Player.HasVideo">ActivateWindow(fullscreenvideo)</onclick>
 					<onclick condition="Player.HasAudio + !Player.HasVideo">ActivateWindow(visualisation)</onclick>

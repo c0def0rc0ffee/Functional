@@ -271,6 +271,8 @@ def check_strings():
             used[int(m.group(2))].add(base)
         for m in re.finditer(r'\b(?:label|idloc)="(\d+)"', text):
             used[int(m.group(1))].add(base)
+        for m in re.finditer(r"Skin\.SetColor\([^,)]+,(\d+)", text):
+            used[int(m.group(1))].add(base)
     service = _read(SERVICE)
     for m in re.finditer(r"\b(31\d{3})\b", service):
         used[int(m.group(1))].add("service.py")
@@ -383,7 +385,7 @@ def check_settings_drift():
             findings.append("setting {0} is read in {1} but never set anywhere".format(
                 key, sorted(bool_read[key])))
     str_read = names(r"Skin\.String\(([A-Za-z0-9_]+)\)")
-    str_set = names(r"Skin\.(?:SetString|SetImage|SetPath|SetNumeric|Reset)\(([A-Za-z0-9_]+)")
+    str_set = names(r"Skin\.(?:SetString|SetImage|SetPath|SetNumeric|SetColor|Reset)\(([A-Za-z0-9_]+)")
     for key in sorted(str_read):
         if key not in str_set and not mentioned(key):
             findings.append("skin string {0} is read in {1} but never written anywhere".format(

@@ -741,7 +741,7 @@
 								<height>8</height>
 								<info>ListItem.PercentPlayed</info>
 								<texturebg colordiffuse="80000000">white.png</texturebg>
-								<midtexture colordiffuse="accent_hi">white.png</midtexture>
+								<midtexture colordiffuse="$VAR[AccentHiColor]">white.png</midtexture>
 								<overlaytexture>-</overlaytexture>
 							</control>
 							<control type="label">
@@ -795,7 +795,7 @@
 								<height>8</height>
 								<info>ListItem.PercentPlayed</info>
 								<texturebg colordiffuse="80000000">white.png</texturebg>
-								<midtexture colordiffuse="accent_hi">white.png</midtexture>
+								<midtexture colordiffuse="$VAR[AccentHiColor]">white.png</midtexture>
 								<overlaytexture>-</overlaytexture>
 							</control>
 							<control type="label">
@@ -864,7 +864,7 @@
 								<height>8</height>
 								<info>ListItem.PercentPlayed</info>
 								<texturebg colordiffuse="80000000">white.png</texturebg>
-								<midtexture colordiffuse="accent_hi">white.png</midtexture>
+								<midtexture colordiffuse="$VAR[AccentHiColor]">white.png</midtexture>
 								<overlaytexture>-</overlaytexture>
 							</control>
 							<control type="label">
@@ -918,7 +918,7 @@
 								<height>8</height>
 								<info>ListItem.PercentPlayed</info>
 								<texturebg colordiffuse="80000000">white.png</texturebg>
-								<midtexture colordiffuse="accent_hi">white.png</midtexture>
+								<midtexture colordiffuse="$VAR[AccentHiColor]">white.png</midtexture>
 								<overlaytexture>-</overlaytexture>
 							</control>
 							<control type="label">

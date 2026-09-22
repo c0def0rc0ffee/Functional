@@ -11,6 +11,13 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.12.13 (22/09/2026)
+
+- Any colour as the accent: a Custom accent colour row on the Overall
+  settings page opens Kodi's colour picker, and the highlight shade used
+  for selected rows and figures now follows the accent, preset or custom,
+  instead of staying blue.
+
 ## 0.12.12 (22/09/2026)
 
 - A changelog. This file is the source of what changed, its current section

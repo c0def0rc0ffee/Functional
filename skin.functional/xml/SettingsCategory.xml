@@ -97,7 +97,7 @@
 			<onright>5</onright>
 			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 		</control>
 
 		<!-- ===== TEMPLATES (cloned by Kodi to render each setting) ===== -->
@@ -196,7 +196,7 @@
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<texturesliderbar colordiffuse="40FFFFFF">white.png</texturesliderbar>
 			<textureslidernib colordiffuse="white">slider_nib.png</textureslidernib>
-			<textureslidernibfocus colordiffuse="accent_hi">slider_nib.png</textureslidernibfocus>
+			<textureslidernibfocus colordiffuse="$VAR[AccentHiColor]">slider_nib.png</textureslidernibfocus>
 		</control>
 
 		<!-- Group label inside settings -->
@@ -204,7 +204,7 @@
 			<width>1280</width>
 			<height>50</height>
 			<font>font_med</font>
-			<textcolor>accent_hi</textcolor>
+			<textcolor>$VAR[AccentHiColor]</textcolor>
 			<align>left</align>
 			<aligny>center</aligny>
 			<textoffsetx>20</textoffsetx>
