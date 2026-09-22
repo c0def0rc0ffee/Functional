@@ -1883,3 +1883,12 @@ msgstr ""
 msgctxt "#31467"
 msgid "No show is part way through"
 msgstr ""
+
+# Recently Added page and tab on the Home pop-up. 22/09/2026.
+msgctxt "#31468"
+msgid "RECENTLY ADDED"
+msgstr ""
+
+msgctxt "#31469"
+msgid "Recently Added tab beside Continue Watching: the newest movies and episodes"
+msgstr ""

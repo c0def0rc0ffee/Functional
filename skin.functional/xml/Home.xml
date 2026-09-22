@@ -10,6 +10,7 @@
 	<defaultcontrol always="true">9000</defaultcontrol>
 	<!-- The Continue Watching pop-up never survives a Home visit. -->
 	<onload>Skin.Reset(continue_open)</onload>
+	<onload>Skin.Reset(home_panel)</onload>
 	<controls>
 
 		<include content="WindowBackground"/>
@@ -386,10 +387,12 @@
 			<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
 			<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
 			<onup condition="Control.IsVisible(9211)">9211</onup>
+			<onup condition="Control.IsVisible(9213)">9213</onup>
 			<onup condition="Control.IsVisible(9006)">9006</onup>
 			<!-- Down reaches the corner bar only while it is at the bottom;
 			     with it at the top, the Continue tab is what lies below. -->
 			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9210)">9210</ondown>
+			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9212)">9212</ondown>
 			<ondown condition="$EXP[corner_bar_top]">9000</ondown>
 			<ondown condition="Control.IsVisible(9110)">9110</ondown>
 			<ondown condition="Control.IsVisible(9120)">9120</ondown>
@@ -637,13 +640,13 @@
 
 			<!-- The band: above the bottom tab, or slid up below the top one -->
 			<control type="group">
-				<!-- Four placements, three slides, conditions exclusive: Next Up
-				     shown at the bottom is the laid out position; hidden drops
-				     the band's lower part so the rest sits 320 lower; at the top
-				     the band's upper edge meets the 36px tab either way. -->
-				<animation effect="slide" end="0,320" time="0" condition="Skin.HasSetting(hide_nextup) + !$EXP[continue_tab_top]">Conditional</animation>
-				<animation effect="slide" end="0,-320" time="0" condition="!Skin.HasSetting(hide_nextup) + $EXP[continue_tab_top]">Conditional</animation>
-				<animation effect="slide" end="0,-640" time="0" condition="Skin.HasSetting(hide_nextup) + $EXP[continue_tab_top]">Conditional</animation>
+				<!-- The tall band (Continue page with Next Up on) at the bottom is
+				     the laid out position, upper part y 356 to 724. Without the
+				     lower part the upper part drops 320 to end on the bottom tab.
+				     At the top the upper part's edge meets the 36px tab, which is
+				     the same 320 slide up whether or not the lower part shows. -->
+				<animation effect="slide" end="0,320" time="0" condition="!$EXP[panel_tall] + !$EXP[continue_tab_top]">Conditional</animation>
+				<animation effect="slide" end="0,-320" time="0" condition="$EXP[continue_tab_top]">Conditional</animation>
 				<control type="image">
 					<left>0</left>
 					<top>356</top>
@@ -652,419 +655,658 @@
 					<texture colordiffuse="F4181C22">white.png</texture>
 				</control>
 				<control type="image">
-					<visible>!Skin.HasSetting(hide_nextup)</visible>
+					<visible>$EXP[panel_tall]</visible>
 					<left>0</left>
 					<top>724</top>
 					<width>1920</width>
 					<height>320</height>
 					<texture colordiffuse="F4181C22">white.png</texture>
 				</control>
-				<control type="label">
-					<left>60</left>
-					<top>368</top>
-					<width>600</width>
-					<height>34</height>
-					<font>font_med</font>
-					<textcolor>$VAR[AccentColor]</textcolor>
-					<label>31385</label>
+
+				<!-- Page 1: Continue Watching and Next Up. The two pages share
+				     the band and are parked off screen rather than hidden when
+				     not showing, for the reason given on group 9200: a hidden
+				     container is not processed, a parked one keeps up. -->
+				<control type="group">
+					<animation effect="slide" end="0,3000" time="0" condition="$EXP[recent_page]">Conditional</animation>
+					<control type="label">
+						<left>60</left>
+						<top>368</top>
+						<width>600</width>
+						<height>34</height>
+						<font>font_med</font>
+						<textcolor>$VAR[AccentColor]</textcolor>
+						<label>31385</label>
+					</control>
+					<control type="label">
+						<left>60</left>
+						<top>406</top>
+						<width>500</width>
+						<height>24</height>
+						<font>font_small</font>
+						<textcolor>text_dim</textcolor>
+						<label>31087</label>
+					</control>
+					<control type="label">
+						<left>960</left>
+						<top>406</top>
+						<width>500</width>
+						<height>24</height>
+						<font>font_small</font>
+						<textcolor>text_dim</textcolor>
+						<label>31392</label>
+					</control>
+
+					<control type="list" id="9201">
+						<visible allowhiddenfocus="true">true</visible>
+						<left>60</left>
+						<top>436</top>
+						<width>900</width>
+						<height>270</height>
+						<orientation>horizontal</orientation>
+						<onup>Skin.Reset(continue_open)</onup>
+						<onup condition="$EXP[continue_tab_top]">9211</onup>
+						<onup condition="!$EXP[continue_tab_top]">9210</onup>
+						<ondown condition="!$EXP[nextup_shown]">Skin.Reset(continue_open)</ondown>
+						<ondown condition="$EXP[nextup_shown]">9205</ondown>
+						<ondown condition="$EXP[continue_tab_top]">9211</ondown>
+						<ondown condition="!$EXP[continue_tab_top]">9210</ondown>
+						<onback>Skin.Reset(continue_open)</onback>
+						<onback condition="$EXP[continue_tab_top]">9211</onback>
+						<onback condition="!$EXP[continue_tab_top]">9210</onback>
+						<onleft>9201</onleft>
+						<onright>9203</onright>
+						<scrolltime tween="cubic" easing="out">200</scrolltime>
+
+						<itemlayout height="270" width="150">
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+							</control>
+							<control type="progress">
+								<left>0</left>
+								<top>202</top>
+								<width>140</width>
+								<height>8</height>
+								<info>ListItem.PercentPlayed</info>
+								<texturebg colordiffuse="80000000">white.png</texturebg>
+								<midtexture colordiffuse="accent_hi">white.png</midtexture>
+								<overlaytexture>-</overlaytexture>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>216</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>242</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text_dim</textcolor>
+								<label>$INFO[ListItem.Year]</label>
+							</control>
+						</itemlayout>
+
+						<focusedlayout height="270" width="150">
+							<control type="image">
+								<left>-4</left>
+								<top>-4</top>
+								<width>148</width>
+								<height>218</height>
+								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+								<visible>Control.HasFocus(9201)</visible>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+							</control>
+							<control type="progress">
+								<left>0</left>
+								<top>202</top>
+								<width>140</width>
+								<height>8</height>
+								<info>ListItem.PercentPlayed</info>
+								<texturebg colordiffuse="80000000">white.png</texturebg>
+								<midtexture colordiffuse="accent_hi">white.png</midtexture>
+								<overlaytexture>-</overlaytexture>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>216</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>white</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>242</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.Year]</label>
+							</control>
+						</focusedlayout>
+						<content target="videos" limit="12">special://skin/playlists/continue_movies.xsp</content>
+					</control>
+
+					<control type="list" id="9203">
+						<visible allowhiddenfocus="true">true</visible>
+						<left>960</left>
+						<top>436</top>
+						<width>900</width>
+						<height>270</height>
+						<orientation>horizontal</orientation>
+						<onup>Skin.Reset(continue_open)</onup>
+						<onup condition="$EXP[continue_tab_top]">9211</onup>
+						<onup condition="!$EXP[continue_tab_top]">9210</onup>
+						<ondown condition="!$EXP[nextup_shown]">Skin.Reset(continue_open)</ondown>
+						<ondown condition="$EXP[nextup_shown]">9205</ondown>
+						<ondown condition="$EXP[continue_tab_top]">9211</ondown>
+						<ondown condition="!$EXP[continue_tab_top]">9210</ondown>
+						<onback>Skin.Reset(continue_open)</onback>
+						<onback condition="$EXP[continue_tab_top]">9211</onback>
+						<onback condition="!$EXP[continue_tab_top]">9210</onback>
+						<onleft>9201</onleft>
+						<onright>9203</onright>
+						<scrolltime tween="cubic" easing="out">200</scrolltime>
+
+						<itemlayout height="270" width="150">
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
+							</control>
+							<control type="progress">
+								<left>0</left>
+								<top>202</top>
+								<width>140</width>
+								<height>8</height>
+								<info>ListItem.PercentPlayed</info>
+								<texturebg colordiffuse="80000000">white.png</texturebg>
+								<midtexture colordiffuse="accent_hi">white.png</midtexture>
+								<overlaytexture>-</overlaytexture>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>216</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>242</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text_dim</textcolor>
+								<label>$INFO[ListItem.TVShowTitle] $INFO[ListItem.Season,S]$INFO[ListItem.Episode,E]</label>
+							</control>
+						</itemlayout>
+
+						<focusedlayout height="270" width="150">
+							<control type="image">
+								<left>-4</left>
+								<top>-4</top>
+								<width>148</width>
+								<height>218</height>
+								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+								<visible>Control.HasFocus(9203)</visible>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
+							</control>
+							<control type="progress">
+								<left>0</left>
+								<top>202</top>
+								<width>140</width>
+								<height>8</height>
+								<info>ListItem.PercentPlayed</info>
+								<texturebg colordiffuse="80000000">white.png</texturebg>
+								<midtexture colordiffuse="accent_hi">white.png</midtexture>
+								<overlaytexture>-</overlaytexture>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>216</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>white</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>242</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.TVShowTitle] $INFO[ListItem.Season,S]$INFO[ListItem.Episode,E]</label>
+							</control>
+						</focusedlayout>
+						<content target="videos" limit="12">special://skin/playlists/continue_episodes.xsp</content>
+					</control>
+
+					<!-- Next Up: the next unwatched episode of each show part way
+					     through, as fixed slots (NextUp.N.*, service.py:update_next_up)
+					     because Kodi has no library node for it. Static items, so
+					     the episode id rides on an item property and a click goes
+					     through continue_command like the press and hold menu. -->
+					<control type="label">
+						<visible>!Skin.HasSetting(hide_nextup)</visible>
+						<left>60</left>
+						<top>736</top>
+						<width>600</width>
+						<height>34</height>
+						<font>font_med</font>
+						<textcolor>$VAR[AccentColor]</textcolor>
+						<label>31465</label>
+					</control>
+					<control type="label">
+						<visible>!Skin.HasSetting(hide_nextup) + !$EXP[nextup_shown]</visible>
+						<left>60</left>
+						<top>774</top>
+						<width>1800</width>
+						<height>60</height>
+						<font>font_reg</font>
+						<textcolor>text_dim</textcolor>
+						<aligny>center</aligny>
+						<label>31467</label>
+					</control>
+					<control type="list" id="9205">
+						<visible allowhiddenfocus="true">$EXP[nextup_shown]</visible>
+						<left>60</left>
+						<top>774</top>
+						<width>1800</width>
+						<height>270</height>
+						<orientation>horizontal</orientation>
+						<!-- Up goes to whichever Continue row has something, else
+						     closes like the other rows do. -->
+						<onup condition="Integer.IsGreater(Container(9201).NumItems,0)">9201</onup>
+						<onup condition="Integer.IsGreater(Container(9203).NumItems,0)">9203</onup>
+						<onup condition="Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0)">Skin.Reset(continue_open)</onup>
+						<onup condition="$EXP[continue_tab_top]">9211</onup>
+						<onup condition="!$EXP[continue_tab_top]">9210</onup>
+						<ondown>Skin.Reset(continue_open)</ondown>
+						<ondown condition="$EXP[continue_tab_top]">9211</ondown>
+						<ondown condition="!$EXP[continue_tab_top]">9210</ondown>
+						<onback>Skin.Reset(continue_open)</onback>
+						<onback condition="$EXP[continue_tab_top]">9211</onback>
+						<onback condition="!$EXP[continue_tab_top]">9210</onback>
+						<onleft>9205</onleft>
+						<onright>9205</onright>
+						<scrolltime tween="cubic" easing="out">200</scrolltime>
+
+						<itemlayout height="270" width="150">
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Icon]</texture>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>216</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>242</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text_dim</textcolor>
+								<label>$INFO[ListItem.Label2]</label>
+							</control>
+						</itemlayout>
+
+						<focusedlayout height="270" width="150">
+							<control type="image">
+								<left>-4</left>
+								<top>-4</top>
+								<width>148</width>
+								<height>218</height>
+								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+								<visible>Control.HasFocus(9205)</visible>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Icon]</texture>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>216</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>white</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>242</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.Label2]</label>
+							</control>
+						</focusedlayout>
+						<content>
+							<include content="NextUpRows"/>
+						</content>
+					</control>
 				</control>
-				<control type="label">
-					<left>60</left>
-					<top>406</top>
-					<width>500</width>
-					<height>24</height>
-					<font>font_small</font>
-					<textcolor>text_dim</textcolor>
-					<label>31087</label>
-				</control>
-				<control type="label">
-					<left>960</left>
-					<top>406</top>
-					<width>500</width>
-					<height>24</height>
-					<font>font_small</font>
-					<textcolor>text_dim</textcolor>
-					<label>31392</label>
-				</control>
 
-				<control type="list" id="9201">
-					<visible allowhiddenfocus="true">true</visible>
-					<left>60</left>
-					<top>436</top>
-					<width>900</width>
-					<height>270</height>
-					<orientation>horizontal</orientation>
-					<onup>Skin.Reset(continue_open)</onup>
-					<onup condition="$EXP[continue_tab_top]">9211</onup>
-					<onup condition="!$EXP[continue_tab_top]">9210</onup>
-					<ondown condition="!$EXP[nextup_shown]">Skin.Reset(continue_open)</ondown>
-					<ondown condition="$EXP[nextup_shown]">9205</ondown>
-					<ondown condition="$EXP[continue_tab_top]">9211</ondown>
-					<ondown condition="!$EXP[continue_tab_top]">9210</ondown>
-					<onback>Skin.Reset(continue_open)</onback>
-					<onback condition="$EXP[continue_tab_top]">9211</onback>
-					<onback condition="!$EXP[continue_tab_top]">9210</onback>
-					<onleft>9201</onleft>
-					<onright>9203</onright>
-					<scrolltime tween="cubic" easing="out">200</scrolltime>
-
-					<itemlayout height="270" width="150">
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>140</width>
-							<height>210</height>
-							<texture colordiffuse="grey_mid">white.png</texture>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>140</width>
-							<height>210</height>
-							<aspectratio>scale</aspectratio>
-							<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
-						</control>
-						<control type="progress">
-							<left>0</left>
-							<top>202</top>
-							<width>140</width>
-							<height>8</height>
-							<info>ListItem.PercentPlayed</info>
-							<texturebg colordiffuse="80000000">white.png</texturebg>
-							<midtexture colordiffuse="accent_hi">white.png</midtexture>
-							<overlaytexture>-</overlaytexture>
-						</control>
-						<control type="label">
-							<left>0</left>
-							<top>216</top>
-							<width>140</width>
-							<height>26</height>
-							<font>font_small</font>
-							<textcolor>text</textcolor>
-							<label>$INFO[ListItem.Label]</label>
-						</control>
-						<control type="label">
-							<left>0</left>
-							<top>242</top>
-							<width>140</width>
-							<height>24</height>
-							<font>font_small</font>
-							<textcolor>text_dim</textcolor>
-							<label>$INFO[ListItem.Year]</label>
-						</control>
-					</itemlayout>
-
-					<focusedlayout height="270" width="150">
-						<control type="image">
-							<left>-4</left>
-							<top>-4</top>
-							<width>148</width>
-							<height>218</height>
-							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
-							<visible>Control.HasFocus(9201)</visible>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>140</width>
-							<height>210</height>
-							<texture colordiffuse="grey_mid">white.png</texture>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>140</width>
-							<height>210</height>
-							<aspectratio>scale</aspectratio>
-							<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
-						</control>
-						<control type="progress">
-							<left>0</left>
-							<top>202</top>
-							<width>140</width>
-							<height>8</height>
-							<info>ListItem.PercentPlayed</info>
-							<texturebg colordiffuse="80000000">white.png</texturebg>
-							<midtexture colordiffuse="accent_hi">white.png</midtexture>
-							<overlaytexture>-</overlaytexture>
-						</control>
-						<control type="label">
-							<left>0</left>
-							<top>216</top>
-							<width>140</width>
-							<height>26</height>
-							<font>font_small</font>
-							<textcolor>white</textcolor>
-							<label>$INFO[ListItem.Label]</label>
-						</control>
-						<control type="label">
-							<left>0</left>
-							<top>242</top>
-							<width>140</width>
-							<height>24</height>
-							<font>font_small</font>
-							<textcolor>text</textcolor>
-							<label>$INFO[ListItem.Year]</label>
-						</control>
-					</focusedlayout>
-					<content target="videos" limit="12">special://skin/playlists/continue_movies.xsp</content>
-				</control>
-
-				<control type="list" id="9203">
-					<visible allowhiddenfocus="true">true</visible>
-					<left>960</left>
-					<top>436</top>
-					<width>900</width>
-					<height>270</height>
-					<orientation>horizontal</orientation>
-					<onup>Skin.Reset(continue_open)</onup>
-					<onup condition="$EXP[continue_tab_top]">9211</onup>
-					<onup condition="!$EXP[continue_tab_top]">9210</onup>
-					<ondown condition="!$EXP[nextup_shown]">Skin.Reset(continue_open)</ondown>
-					<ondown condition="$EXP[nextup_shown]">9205</ondown>
-					<ondown condition="$EXP[continue_tab_top]">9211</ondown>
-					<ondown condition="!$EXP[continue_tab_top]">9210</ondown>
-					<onback>Skin.Reset(continue_open)</onback>
-					<onback condition="$EXP[continue_tab_top]">9211</onback>
-					<onback condition="!$EXP[continue_tab_top]">9210</onback>
-					<onleft>9201</onleft>
-					<onright>9203</onright>
-					<scrolltime tween="cubic" easing="out">200</scrolltime>
-
-					<itemlayout height="270" width="150">
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>140</width>
-							<height>210</height>
-							<texture colordiffuse="grey_mid">white.png</texture>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>140</width>
-							<height>210</height>
-							<aspectratio>scale</aspectratio>
-							<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
-						</control>
-						<control type="progress">
-							<left>0</left>
-							<top>202</top>
-							<width>140</width>
-							<height>8</height>
-							<info>ListItem.PercentPlayed</info>
-							<texturebg colordiffuse="80000000">white.png</texturebg>
-							<midtexture colordiffuse="accent_hi">white.png</midtexture>
-							<overlaytexture>-</overlaytexture>
-						</control>
-						<control type="label">
-							<left>0</left>
-							<top>216</top>
-							<width>140</width>
-							<height>26</height>
-							<font>font_small</font>
-							<textcolor>text</textcolor>
-							<label>$INFO[ListItem.Label]</label>
-						</control>
-						<control type="label">
-							<left>0</left>
-							<top>242</top>
-							<width>140</width>
-							<height>24</height>
-							<font>font_small</font>
-							<textcolor>text_dim</textcolor>
-							<label>$INFO[ListItem.TVShowTitle] $INFO[ListItem.Season,S]$INFO[ListItem.Episode,E]</label>
-						</control>
-					</itemlayout>
-
-					<focusedlayout height="270" width="150">
-						<control type="image">
-							<left>-4</left>
-							<top>-4</top>
-							<width>148</width>
-							<height>218</height>
-							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
-							<visible>Control.HasFocus(9203)</visible>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>140</width>
-							<height>210</height>
-							<texture colordiffuse="grey_mid">white.png</texture>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>140</width>
-							<height>210</height>
-							<aspectratio>scale</aspectratio>
-							<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
-						</control>
-						<control type="progress">
-							<left>0</left>
-							<top>202</top>
-							<width>140</width>
-							<height>8</height>
-							<info>ListItem.PercentPlayed</info>
-							<texturebg colordiffuse="80000000">white.png</texturebg>
-							<midtexture colordiffuse="accent_hi">white.png</midtexture>
-							<overlaytexture>-</overlaytexture>
-						</control>
-						<control type="label">
-							<left>0</left>
-							<top>216</top>
-							<width>140</width>
-							<height>26</height>
-							<font>font_small</font>
-							<textcolor>white</textcolor>
-							<label>$INFO[ListItem.Label]</label>
-						</control>
-						<control type="label">
-							<left>0</left>
-							<top>242</top>
-							<width>140</width>
-							<height>24</height>
-							<font>font_small</font>
-							<textcolor>text</textcolor>
-							<label>$INFO[ListItem.TVShowTitle] $INFO[ListItem.Season,S]$INFO[ListItem.Episode,E]</label>
-						</control>
-					</focusedlayout>
-					<content target="videos" limit="12">special://skin/playlists/continue_episodes.xsp</content>
-				</control>
-
-				<!-- Next Up: the next unwatched episode of each show part way
-				     through, as fixed slots (NextUp.N.*, service.py:update_next_up)
-				     because Kodi has no library node for it. Static items, so
-				     the episode id rides on an item property and a click goes
-				     through continue_command like the press and hold menu. -->
-				<control type="label">
-					<visible>!Skin.HasSetting(hide_nextup)</visible>
-					<left>60</left>
-					<top>736</top>
-					<width>600</width>
-					<height>34</height>
-					<font>font_med</font>
-					<textcolor>$VAR[AccentColor]</textcolor>
-					<label>31465</label>
-				</control>
-				<control type="label">
-					<visible>!Skin.HasSetting(hide_nextup) + !$EXP[nextup_shown]</visible>
-					<left>60</left>
-					<top>774</top>
-					<width>1800</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text_dim</textcolor>
-					<aligny>center</aligny>
-					<label>31467</label>
-				</control>
-				<control type="list" id="9205">
-					<visible allowhiddenfocus="true">$EXP[nextup_shown]</visible>
-					<left>60</left>
-					<top>774</top>
-					<width>1800</width>
-					<height>270</height>
-					<orientation>horizontal</orientation>
-					<!-- Up goes to whichever Continue row has something, else
-					     closes like the other rows do. -->
-					<onup condition="Integer.IsGreater(Container(9201).NumItems,0)">9201</onup>
-					<onup condition="Integer.IsGreater(Container(9203).NumItems,0)">9203</onup>
-					<onup condition="Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0)">Skin.Reset(continue_open)</onup>
-					<onup condition="$EXP[continue_tab_top]">9211</onup>
-					<onup condition="!$EXP[continue_tab_top]">9210</onup>
-					<ondown>Skin.Reset(continue_open)</ondown>
-					<ondown condition="$EXP[continue_tab_top]">9211</ondown>
-					<ondown condition="!$EXP[continue_tab_top]">9210</ondown>
-					<onback>Skin.Reset(continue_open)</onback>
-					<onback condition="$EXP[continue_tab_top]">9211</onback>
-					<onback condition="!$EXP[continue_tab_top]">9210</onback>
-					<onleft>9205</onleft>
-					<onright>9205</onright>
-					<scrolltime tween="cubic" easing="out">200</scrolltime>
-
-					<itemlayout height="270" width="150">
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>140</width>
-							<height>210</height>
-							<texture colordiffuse="grey_mid">white.png</texture>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>140</width>
-							<height>210</height>
-							<aspectratio>scale</aspectratio>
-							<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Icon]</texture>
-						</control>
-						<control type="label">
-							<left>0</left>
-							<top>216</top>
-							<width>140</width>
-							<height>26</height>
-							<font>font_small</font>
-							<textcolor>text</textcolor>
-							<label>$INFO[ListItem.Label]</label>
-						</control>
-						<control type="label">
-							<left>0</left>
-							<top>242</top>
-							<width>140</width>
-							<height>24</height>
-							<font>font_small</font>
-							<textcolor>text_dim</textcolor>
-							<label>$INFO[ListItem.Label2]</label>
-						</control>
-					</itemlayout>
-
-					<focusedlayout height="270" width="150">
-						<control type="image">
-							<left>-4</left>
-							<top>-4</top>
-							<width>148</width>
-							<height>218</height>
-							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
-							<visible>Control.HasFocus(9205)</visible>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>140</width>
-							<height>210</height>
-							<texture colordiffuse="grey_mid">white.png</texture>
-						</control>
-						<control type="image">
-							<left>0</left>
-							<top>0</top>
-							<width>140</width>
-							<height>210</height>
-							<aspectratio>scale</aspectratio>
-							<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Icon]</texture>
-						</control>
-						<control type="label">
-							<left>0</left>
-							<top>216</top>
-							<width>140</width>
-							<height>26</height>
-							<font>font_small</font>
-							<textcolor>white</textcolor>
-							<label>$INFO[ListItem.Label]</label>
-						</control>
-						<control type="label">
-							<left>0</left>
-							<top>242</top>
-							<width>140</width>
-							<height>24</height>
-							<font>font_small</font>
-							<textcolor>text</textcolor>
-							<label>$INFO[ListItem.Label2]</label>
-						</control>
-					</focusedlayout>
-					<content>
-						<include content="NextUpRows"/>
-					</content>
+				<!-- Page 2: Recently Added, two live playlist rows. Kodi's own
+				     click and context menu apply, the rows carry database ids. -->
+				<control type="group">
+					<animation effect="slide" end="0,3000" time="0" condition="!$EXP[recent_page]">Conditional</animation>
+					<control type="label">
+						<left>60</left>
+						<top>368</top>
+						<width>600</width>
+						<height>34</height>
+						<font>font_med</font>
+						<textcolor>$VAR[AccentColor]</textcolor>
+						<label>31468</label>
+					</control>
+					<control type="label">
+						<left>60</left>
+						<top>406</top>
+						<width>500</width>
+						<height>24</height>
+						<font>font_small</font>
+						<textcolor>text_dim</textcolor>
+						<label>31087</label>
+					</control>
+					<control type="label">
+						<left>960</left>
+						<top>406</top>
+						<width>500</width>
+						<height>24</height>
+						<font>font_small</font>
+						<textcolor>text_dim</textcolor>
+						<label>31392</label>
+					</control>
+					<control type="list" id="9221">
+						<visible allowhiddenfocus="true">true</visible>
+						<left>60</left>
+						<top>436</top>
+						<width>900</width>
+						<height>270</height>
+						<orientation>horizontal</orientation>
+						<onup>Skin.Reset(continue_open)</onup>
+						<onup condition="$EXP[continue_tab_top]">9213</onup>
+						<onup condition="!$EXP[continue_tab_top]">9212</onup>
+						<ondown>Skin.Reset(continue_open)</ondown>
+						<ondown condition="$EXP[continue_tab_top]">9213</ondown>
+						<ondown condition="!$EXP[continue_tab_top]">9212</ondown>
+						<onback>Skin.Reset(continue_open)</onback>
+						<onback condition="$EXP[continue_tab_top]">9213</onback>
+						<onback condition="!$EXP[continue_tab_top]">9212</onback>
+						<onleft>9221</onleft>
+						<onright>9223</onright>
+						<scrolltime tween="cubic" easing="out">200</scrolltime>
+						<itemlayout height="270" width="150">
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>216</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>242</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text_dim</textcolor>
+								<label>$INFO[ListItem.Year]</label>
+							</control>
+						</itemlayout>
+						<focusedlayout height="270" width="150">
+							<control type="image">
+								<left>-4</left>
+								<top>-4</top>
+								<width>148</width>
+								<height>218</height>
+								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+								<visible>Control.HasFocus(9221)</visible>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>216</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>white</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>242</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.Year]</label>
+							</control>
+						</focusedlayout>
+						<content target="videos" limit="12">special://skin/playlists/recent_movies.xsp</content>
+					</control>
+					<control type="list" id="9223">
+						<visible allowhiddenfocus="true">true</visible>
+						<left>960</left>
+						<top>436</top>
+						<width>900</width>
+						<height>270</height>
+						<orientation>horizontal</orientation>
+						<onup>Skin.Reset(continue_open)</onup>
+						<onup condition="$EXP[continue_tab_top]">9213</onup>
+						<onup condition="!$EXP[continue_tab_top]">9212</onup>
+						<ondown>Skin.Reset(continue_open)</ondown>
+						<ondown condition="$EXP[continue_tab_top]">9213</ondown>
+						<ondown condition="!$EXP[continue_tab_top]">9212</ondown>
+						<onback>Skin.Reset(continue_open)</onback>
+						<onback condition="$EXP[continue_tab_top]">9213</onback>
+						<onback condition="!$EXP[continue_tab_top]">9212</onback>
+						<onleft>9221</onleft>
+						<onright>9223</onright>
+						<scrolltime tween="cubic" easing="out">200</scrolltime>
+						<itemlayout height="270" width="150">
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>216</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>242</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text_dim</textcolor>
+								<label>$INFO[ListItem.TVShowTitle] $INFO[ListItem.Season,S]$INFO[ListItem.Episode,E]</label>
+							</control>
+						</itemlayout>
+						<focusedlayout height="270" width="150">
+							<control type="image">
+								<left>-4</left>
+								<top>-4</top>
+								<width>148</width>
+								<height>218</height>
+								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+								<visible>Control.HasFocus(9223)</visible>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>216</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>white</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>0</left>
+								<top>242</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.TVShowTitle] $INFO[ListItem.Season,S]$INFO[ListItem.Episode,E]</label>
+							</control>
+						</focusedlayout>
+						<content target="videos" limit="12">special://skin/playlists/recent_episodes.xsp</content>
+					</control>
 				</control>
 			</control>
 		</control>
@@ -1077,6 +1319,8 @@
 			     0.11.1 still shows a tab. -->
 			<visible>$EXP[continue_tab_shown] + !$EXP[continue_tab_top]</visible>
 			<animation effect="fade" time="200">VisibleChange</animation>
+			<!-- Makes room for the Recently Added tab on the same edge. -->
+			<animation effect="slide" end="-160,0" time="0" condition="$EXP[recent_tab_shown]">Conditional</animation>
 			<left>810</left>
 			<top>1044</top>
 			<width>300</width>
@@ -1090,13 +1334,17 @@
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
 			<label>31385</label>
-			<!-- Both onclicks see the state before the toggle (Kodi snapshots
-			     the conditions at click time), so the focus hop only fires on
-			     the click that opens the panel. -->
-			<onclick>Skin.ToggleSetting(continue_open)</onclick>
-			<onclick condition="!Skin.HasSetting(continue_open)">SetFocus(9201)</onclick>
-			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
-			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0) + $EXP[nextup_shown]">SetFocus(9205)</onclick>
+			<!-- Every condition here is read before any line runs (Kodi
+			     snapshots them at click time). Open on the Recently Added
+			     page: switch page and stay open. Open on this page: close.
+			     Closed: open on this page. The focus hops fire whenever the
+			     panel is about to show this page. -->
+			<onclick condition="Skin.HasSetting(continue_open) + !$EXP[recent_page]">Skin.Reset(continue_open)</onclick>
+			<onclick condition="!Skin.HasSetting(continue_open)">Skin.SetBool(continue_open)</onclick>
+			<onclick>Skin.Reset(home_panel)</onclick>
+			<onclick condition="!Skin.HasSetting(continue_open) | $EXP[recent_page]">SetFocus(9201)</onclick>
+			<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page]] + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
+			<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page]] + Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0) + $EXP[nextup_shown]">SetFocus(9205)</onclick>
 			<!-- Up from the bottom tab reaches the corner bar when it is on
 			     this edge too, otherwise the menu, which is then the nearest
 			     thing above. -->
@@ -1104,12 +1352,15 @@
 			<onup condition="Control.IsVisible(9110)">9110</onup>
 			<onup condition="Control.IsVisible(9120)">9120</onup>
 			<onup>9100</onup>
+			<onright condition="$EXP[recent_tab_shown]">9212</onright>
 		</control>
 
 		<!-- Top edge -->
 		<control type="button" id="9211">
 			<visible>$EXP[continue_tab_shown] + $EXP[continue_tab_top]</visible>
 			<animation effect="fade" time="200">VisibleChange</animation>
+			<!-- Makes room for the Recently Added tab on the same edge. -->
+			<animation effect="slide" end="-160,0" time="0" condition="$EXP[recent_tab_shown]">Conditional</animation>
 			<left>810</left>
 			<top>0</top>
 			<width>300</width>
@@ -1123,15 +1374,82 @@
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
 			<label>31385</label>
-			<!-- Both onclicks see the state before the toggle (Kodi snapshots
-			     the conditions at click time), so the focus hop only fires on
-			     the click that opens the panel. -->
-			<onclick>Skin.ToggleSetting(continue_open)</onclick>
-			<onclick condition="!Skin.HasSetting(continue_open)">SetFocus(9201)</onclick>
-			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
-			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0) + $EXP[nextup_shown]">SetFocus(9205)</onclick>
+			<!-- Every condition here is read before any line runs (Kodi
+			     snapshots them at click time). Open on the Recently Added
+			     page: switch page and stay open. Open on this page: close.
+			     Closed: open on this page. The focus hops fire whenever the
+			     panel is about to show this page. -->
+			<onclick condition="Skin.HasSetting(continue_open) + !$EXP[recent_page]">Skin.Reset(continue_open)</onclick>
+			<onclick condition="!Skin.HasSetting(continue_open)">Skin.SetBool(continue_open)</onclick>
+			<onclick>Skin.Reset(home_panel)</onclick>
+			<onclick condition="!Skin.HasSetting(continue_open) | $EXP[recent_page]">SetFocus(9201)</onclick>
+			<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page]] + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
+			<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page]] + Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0) + $EXP[nextup_shown]">SetFocus(9205)</onclick>
 			<!-- Down from the top tab lands on the corner bar when that is
 			     also on the top edge, since it sits between tab and menu. -->
+			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</ondown>
+			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</ondown>
+			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</ondown>
+			<ondown>9000</ondown>
+			<onright condition="$EXP[recent_tab_shown]">9213</onright>
+		</control>
+
+		<control type="button" id="9212">
+			<visible>$EXP[recent_tab_shown] + !$EXP[continue_tab_top]</visible>
+			<animation effect="fade" time="200">VisibleChange</animation>
+			<!-- Alone on the edge (nothing to continue) it takes the centre. -->
+			<animation effect="slide" end="-160,0" time="0" condition="!$EXP[continue_tab_shown]">Conditional</animation>
+			<left>970</left>
+			<top>1044</top>
+			<width>300</width>
+			<height>36</height>
+			<font>font_small</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<disabledcolor>disabled</disabledcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
+			<label>31468</label>
+			<!-- Mirror of the Continue tab's click logic for the other page. -->
+			<onclick condition="Skin.HasSetting(continue_open) + $EXP[recent_page]">Skin.Reset(continue_open)</onclick>
+			<onclick condition="!Skin.HasSetting(continue_open)">Skin.SetBool(continue_open)</onclick>
+			<onclick>Skin.SetString(home_panel,recent)</onclick>
+			<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsGreater(Container(9221).NumItems,0)">SetFocus(9221)</onclick>
+			<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsEqual(Container(9221).NumItems,0)">SetFocus(9223)</onclick>
+			<onleft condition="$EXP[continue_tab_shown]">9210</onleft>
+			<onup condition="$EXP[corner_bar_top]">9000</onup>
+			<onup condition="Control.IsVisible(9110)">9110</onup>
+			<onup condition="Control.IsVisible(9120)">9120</onup>
+			<onup>9100</onup>
+		</control>
+
+		<control type="button" id="9213">
+			<visible>$EXP[recent_tab_shown] + $EXP[continue_tab_top]</visible>
+			<animation effect="fade" time="200">VisibleChange</animation>
+			<!-- Alone on the edge (nothing to continue) it takes the centre. -->
+			<animation effect="slide" end="-160,0" time="0" condition="!$EXP[continue_tab_shown]">Conditional</animation>
+			<left>970</left>
+			<top>0</top>
+			<width>300</width>
+			<height>36</height>
+			<font>font_small</font>
+			<textcolor>text</textcolor>
+			<focusedcolor>white</focusedcolor>
+			<disabledcolor>disabled</disabledcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
+			<label>31468</label>
+			<!-- Mirror of the Continue tab's click logic for the other page. -->
+			<onclick condition="Skin.HasSetting(continue_open) + $EXP[recent_page]">Skin.Reset(continue_open)</onclick>
+			<onclick condition="!Skin.HasSetting(continue_open)">Skin.SetBool(continue_open)</onclick>
+			<onclick>Skin.SetString(home_panel,recent)</onclick>
+			<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsGreater(Container(9221).NumItems,0)">SetFocus(9221)</onclick>
+			<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsEqual(Container(9221).NumItems,0)">SetFocus(9223)</onclick>
+			<onleft condition="$EXP[continue_tab_shown]">9211</onleft>
 			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</ondown>
 			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</ondown>
 			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</ondown>
