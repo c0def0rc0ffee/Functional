@@ -21,7 +21,10 @@
 	     expression, so the block renders exactly once either way. -->
 	<!-- The Continue Watching tab on Home shows only once the feature is
 	     on and one of the pop-up's library containers holds a row. -->
-	<expression name="continue_tab_shown">!Skin.HasSetting(hide_continue) + [Integer.IsGreater(Container(9201).NumItems,0) | Integer.IsGreater(Container(9203).NumItems,0)]</expression>
+	<expression name="continue_tab_shown">!Skin.HasSetting(hide_continue) + [Integer.IsGreater(Container(9201).NumItems,0) | Integer.IsGreater(Container(9203).NumItems,0) | $EXP[nextup_shown]]</expression>
+	<!-- The Next Up row of that pop-up has something to show: not switched
+	     off, and service.py:update_next_up has published at least one slot. -->
+	<expression name="nextup_shown">!Skin.HasSetting(hide_nextup) + Integer.IsGreater(Window(home).Property(NextUp.Count),0)</expression>
 
 	<!-- The press-and-hold menu was opened on one of the Continue Watching
 	     lists on Home, so DialogContextMenu shows the skin's own three rows
@@ -1351,6 +1354,42 @@
 				<onclick>Skin.SetString(list_command,item:$PARAM[n])</onclick>
 				<visible>!String.IsEmpty(Window(home).Property(LI.$PARAM[n].Label))</visible>
 			</item>
+		</definition>
+	</include>
+	<!-- <summary>One Next Up slot: a static row bound to the NextUp.N.*
+	     properties service.py:update_next_up publishes. The episode id rides
+	     on an item property because a static item has no ListItem.DBID; a
+	     click names the slot on the continue_command channel and the service
+	     resolves it to the episode it published there.</summary>
+	     <param name="n">1-based slot number.</param> -->
+	<include name="NextUpRow">
+		<param name="n" />
+		<definition>
+			<item>
+				<label>$INFO[Window(home).Property(NextUp.$PARAM[n].Label)]</label>
+				<label2>$INFO[Window(home).Property(NextUp.$PARAM[n].Sub)]</label2>
+				<icon>$INFO[Window(home).Property(NextUp.$PARAM[n].Thumb)]</icon>
+				<property name="dbid">$INFO[Window(home).Property(NextUp.$PARAM[n].DBID)]</property>
+				<onclick>Skin.SetString(continue_command,nextup:$PARAM[n])</onclick>
+				<visible>!String.IsEmpty(Window(home).Property(NextUp.$PARAM[n].Label))</visible>
+			</item>
+		</definition>
+	</include>
+	<!-- <summary>The twelve Next Up slots, NEXTUP_MAX in service.py.</summary> -->
+	<include name="NextUpRows">
+		<definition>
+			<include content="NextUpRow"><param name="n" value="1" /></include>
+			<include content="NextUpRow"><param name="n" value="2" /></include>
+			<include content="NextUpRow"><param name="n" value="3" /></include>
+			<include content="NextUpRow"><param name="n" value="4" /></include>
+			<include content="NextUpRow"><param name="n" value="5" /></include>
+			<include content="NextUpRow"><param name="n" value="6" /></include>
+			<include content="NextUpRow"><param name="n" value="7" /></include>
+			<include content="NextUpRow"><param name="n" value="8" /></include>
+			<include content="NextUpRow"><param name="n" value="9" /></include>
+			<include content="NextUpRow"><param name="n" value="10" /></include>
+			<include content="NextUpRow"><param name="n" value="11" /></include>
+			<include content="NextUpRow"><param name="n" value="12" /></include>
 		</definition>
 	</include>
 	<!-- <summary>The 60 left-column and 200 right-column slots of the Lists

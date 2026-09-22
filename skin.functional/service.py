@@ -411,7 +411,10 @@ class FunctionalHelper(xbmc.Monitor):
     FAV_MAX = 150  # how many favourites the custom favourites screen can show
 
     # Continue Watching pop-up on Home (see update_continue_watching)
-    CONTINUE_LISTS = ("9201", "9203")  # Home.xml container ids: movies, episodes
+    CONTINUE_LISTS = ("9201", "9203", "9205")  # Home.xml container ids: movies, episodes, next up
+    NEXTUP_LIST = "9205"           # the Next Up row, static slots (see update_next_up)
+    NEXTUP_MAX = 12                # slots the NextUpRows include provides
+    NEXTUP_REFRESH_SECS = 300      # safety net; library events and a stop force it sooner
 
     CAST_MAX = 8  # portraits the full-screen info card has room for
 
@@ -495,6 +498,12 @@ class FunctionalHelper(xbmc.Monitor):
         self._continue_focus_key = None  # (dbtype, dbid) of the row described
         self._continue_focused = False   # continue_focus property is "1"
         self._continue_action_thread = None  # press and hold action worker
+        # Next Up row in the Continue Watching pop-up (see update_next_up).
+        self._nextup_lock = threading.Lock()
+        self._nextup_last = 0.0          # when the last lookup started, 0 forces one
+        self._nextup_thread = None
+        self._nextup_items = []          # [{dbid, label, sub, thumb}] as published
+        self._nextup_slots_used = 0
         # Age filter (see update_age_command)
         self._age_last_path = None       # Container.FolderPath last derived from
         # Cast strip on the full-screen info card (see update_playing_cast)
@@ -607,6 +616,10 @@ class FunctionalHelper(xbmc.Monitor):
             # could block it). Just flag a refresh for the loop to pick up.
             self._stats_last_refresh = 0.0
             self._bg_last_fetch = 0.0
+            self._nextup_last = 0.0
+        if method == "Player.OnStop":
+            # Finishing an episode is exactly what moves a show along.
+            self._nextup_last = 0.0
             # A scan can add or rename genres; let the next genre lookup
             # re-pull the list rather than label a node from a stale cache.
             self._genre_fetched = set()
@@ -2327,6 +2340,11 @@ class FunctionalHelper(xbmc.Monitor):
 
         dbtype = xbmc.getInfoLabel("ListItem.DBTYPE").strip().lower()
         dbid = self._safe_int(xbmc.getInfoLabel("ListItem.DBID"), 0)
+        if xbmc.getInfoLabel("System.CurrentControlId") == self.NEXTUP_LIST:
+            # The Next Up rows are static items, so the library id rides on
+            # an item property rather than ListItem.DBID (see NextUpRow).
+            dbtype = "episode"
+            dbid = self._safe_int(xbmc.getInfoLabel("ListItem.Property(dbid)"), 0)
         key = (dbtype, dbid)
         if key == self._continue_focus_key:
             return
@@ -2391,11 +2409,13 @@ class FunctionalHelper(xbmc.Monitor):
         Run one entry of the pop-up's press-and-hold menu. Called on the
         action thread, never on the loop.
         </summary>
-        <param name="cmd">continue_command value: resume, watched or unwatched.</param>
+        <param name="cmd">continue_command value: resume, watched, unwatched, play, or nextup:N for a click on Next Up slot N.</param>
         <param name="dbtype">"movie" or "episode" of the row the menu was opened on.</param>
         <param name="dbid">Library id of that row.</param>
         <remarks>
-        "watched" bumps the play count and clears the resume point, which is
+        A nextup:N click resolves the slot to the episode the service last
+        published there and plays it from the start; the row is static, so
+        the id cannot come from ListItem.DBID. "watched" bumps the play count and clears the resume point, which is
         what Kodi's own "Mark as watched" does; "unwatched" zeroes both.
         The row leaves the pop-up through Kodi's own VideoLibrary.OnUpdate
         handling, which its directory provider honours within a second for
@@ -2407,6 +2427,14 @@ class FunctionalHelper(xbmc.Monitor):
         tick re-reads the resume time of whatever row is focused now.
         </remarks>
         """
+        if cmd.startswith("nextup:"):
+            with self._nextup_lock:
+                items = list(self._nextup_items)
+            slot = self._safe_int(cmd[7:], 0) - 1
+            if not 0 <= slot < len(items):
+                _dlog("next up: slot %r is empty, ignored" % cmd)
+                return
+            dbtype, dbid, cmd = "episode", items[slot]["dbid"], "play"
         if dbtype not in ("movie", "episode") or dbid <= 0:
             _dlog("continue watching: %s ignored, no item captured" % cmd)
             return
@@ -2415,6 +2443,8 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("continue watching: %s %s %d" % (cmd, dbtype, dbid))
         if cmd == "resume":
             _jsonrpc("Player.Open", {"item": {idkey: dbid}, "options": {"resume": True}})
+        elif cmd == "play":
+            _jsonrpc("Player.Open", {"item": {idkey: dbid}})
         elif cmd in ("watched", "unwatched"):
             resp = _jsonrpc("VideoLibrary.Get%sDetails" % kind,
                             {idkey: dbid, "properties": ["playcount"]})
@@ -2441,6 +2471,153 @@ class FunctionalHelper(xbmc.Monitor):
                 _jsonrpc("VideoLibrary.Set%sDetails" % kind, {idkey: dbid, "playcount": 0})
         else:
             _dlog("continue command ignored: %r" % cmd)
+
+    # ---- Next Up (the next unwatched episode per show in progress) --------
+
+    def update_next_up(self):
+        """
+        <summary>
+        Keep the Next Up row of the Continue Watching pop-up current: the
+        next unwatched episode of each show the viewer is part way through,
+        most recently played show first, as NextUp.N.* Home properties.
+        </summary>
+        <remarks>
+        Slow ticker. A lookup runs on a daemon thread every
+        NEXTUP_REFRESH_SECS, and sooner after a library event or a stopped
+        playback because onNotification zeroes the timer: finishing an
+        episode is exactly what moves a show along. Hidden by hide_continue
+        or hide_nextup, in which case the slots are cleared once and nothing
+        is queried until the row is shown again. Kodi has no library node for
+        "next unwatched per show", so this is the one Continue row served as
+        fixed slots rather than as a smart playlist container; a click and
+        the press and hold menu go through continue_command like the other
+        two rows. NextUp.Count follows the convention _publish_cast documents:
+        cleared means not looked up, "0" means looked up and empty.
+        </remarks>
+        """
+        hidden = (xbmc.getCondVisibility("Skin.HasSetting(hide_continue)")
+                  or xbmc.getCondVisibility("Skin.HasSetting(hide_nextup)"))
+        if hidden:
+            if self._nextup_slots_used or self._nextup_items:
+                self._nextup_publish([], looked_up=False)
+            self._nextup_last = 0.0
+            return
+        if time.time() - self._nextup_last < self.NEXTUP_REFRESH_SECS:
+            return
+        if self._nextup_thread is not None and self._nextup_thread.is_alive():
+            return
+        self._nextup_last = time.time()
+        self._nextup_thread = threading.Thread(
+            target=self._nextup_worker, name="functional-nextup", daemon=True)
+        self._nextup_thread.start()
+
+    def _nextup_worker(self):
+        """
+        <summary>
+        Daemon thread body: find the next unwatched episode of each show in
+        progress and publish the slots.
+        </summary>
+        <remarks>
+        One query for the shows (Kodi's own "inprogress" filter: some
+        episodes watched, some not, newest played first) and one per show for
+        its first unwatched episode, so at most NEXTUP_MAX * 2 + 1 calls. A
+        show whose first unwatched episode carries a resume point is skipped:
+        that episode already sits in the Continue episodes row, and "next up"
+        for it would be the very same episode. Specials never count as next.
+        A failed lookup is logged and retried half a minute later rather than
+        on the next tick, so a sleeping database is not hammered.
+        </remarks>
+        """
+        try:
+            resp = _jsonrpc("VideoLibrary.GetTVShows", {
+                "filter": {"field": "inprogress", "operator": "true", "value": ""},
+                "sort": {"method": "lastplayed", "order": "descending"},
+                "limits": {"start": 0, "end": self.NEXTUP_MAX * 2},
+                "properties": ["title", "art"]})
+            shows = (resp.get("result") or {}).get("tvshows") or []
+            items = []
+            for show in shows:
+                if len(items) >= self.NEXTUP_MAX:
+                    break
+                episode = self._nextup_episode(show.get("tvshowid"))
+                if episode is None:
+                    continue
+                art = episode.get("art") or {}
+                items.append({
+                    "dbid": self._safe_int(episode.get("episodeid"), 0),
+                    "label": episode.get("title") or "",
+                    "sub": "{0} S{1}E{2}".format(
+                        show.get("title") or episode.get("showtitle") or "",
+                        self._safe_int(episode.get("season"), 0),
+                        self._safe_int(episode.get("episode"), 0)),
+                    "thumb": (art.get("tvshow.poster") or art.get("season.poster")
+                              or (show.get("art") or {}).get("poster")
+                              or art.get("thumb") or ""),
+                })
+            self._nextup_publish(items)
+            _dlog("next up: {0} row(s) from {1} show(s) in progress".format(
+                len(items), len(shows)))
+        except Exception:  # noqa: BLE001
+            _dlog("next up lookup failed:\n" + traceback.format_exc(), xbmc.LOGERROR)
+            self._nextup_last = time.time() - self.NEXTUP_REFRESH_SECS + 30
+
+    def _nextup_episode(self, tvshowid):
+        """
+        <summary>
+        The first unwatched regular episode of one show, or None.
+        </summary>
+        <param name="tvshowid">Library id of the show.</param>
+        <returns>The episode record, or None when the show has no unwatched
+        regular episode or its first one is already part way through.</returns>
+        """
+        if not tvshowid:
+            return None
+        resp = _jsonrpc("VideoLibrary.GetEpisodes", {
+            "tvshowid": tvshowid,
+            "filter": {"and": [
+                {"field": "playcount", "operator": "is", "value": "0"},
+                {"field": "season", "operator": "greaterthan", "value": "0"}]},
+            "sort": {"method": "episode", "order": "ascending"},
+            "limits": {"start": 0, "end": 1},
+            "properties": ["title", "season", "episode", "showtitle", "art", "resume"]})
+        episodes = (resp.get("result") or {}).get("episodes") or []
+        if not episodes:
+            return None
+        try:
+            position = float((episodes[0].get("resume") or {}).get("position") or 0)
+        except (TypeError, ValueError):
+            position = 0.0
+        return None if position > 0 else episodes[0]
+
+    def _nextup_publish(self, items, looked_up=True):
+        """
+        <summary>
+        Write the NextUp.N.* slots and NextUp.Count, clearing slots that
+        were used last time and are empty now.
+        </summary>
+        <param name="items">Records from _nextup_worker, in row order.</param>
+        <param name="looked_up">False clears NextUp.Count (row hidden, nothing known) instead of writing "0".</param>
+        """
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        with self._nextup_lock:
+            self._nextup_items = list(items)
+            used_before = self._nextup_slots_used
+            for i in range(max(len(items), used_before)):
+                n = i + 1
+                if i < len(items):
+                    it = items[i]
+                    win.setProperty("NextUp.%d.Label" % n, it["label"])
+                    win.setProperty("NextUp.%d.Sub" % n, it["sub"])
+                    win.setProperty("NextUp.%d.Thumb" % n, it["thumb"])
+                    win.setProperty("NextUp.%d.DBID" % n, str(it["dbid"]))
+                else:
+                    for key in ("Label", "Sub", "Thumb", "DBID"):
+                        win.clearProperty("NextUp.%d.%s" % (n, key))
+            self._nextup_slots_used = len(items)
+            if looked_up:
+                win.setProperty("NextUp.Count", str(len(items)))
+            else:
+                win.clearProperty("NextUp.Count")
 
     # ---- Lists (named media lists, ported into the queue) -----------------
     # <summary>
@@ -4715,6 +4892,7 @@ def run():
                 helper.update_buffer_stats()
                 helper.update_bg_schedule()
                 helper.update_home_bg()
+                helper.update_next_up()
                 helper.maybe_refresh_stats()
                 helper.normalize_clearance()
         except Exception:  # noqa: BLE001

@@ -1870,3 +1870,16 @@ msgstr ""
 msgctxt "#31464"
 msgid "New list"
 msgstr ""
+
+# Next Up row in the Continue Watching pop-up. 22/09/2026.
+msgctxt "#31465"
+msgid "NEXT UP"
+msgstr ""
+
+msgctxt "#31466"
+msgid "Next Up row: the next unwatched episode of each show you are part way through"
+msgstr ""
+
+msgctxt "#31467"
+msgid "No show is part way through"
+msgstr ""

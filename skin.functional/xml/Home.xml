@@ -604,7 +604,10 @@
 		     list, closes the panel again, and the window's onload resets it
 		     so Home never reopens with the panel up. The panel is a band
 		     holding two horizontal rows side by side (9201 movies, 9203
-		     episodes), above a bottom tab or below a top one.
+		     episodes) with a full width Next Up row (9205) beneath them,
+		     above a bottom tab or below a top one. The band is laid out with
+		     Next Up shown (688 tall, y 356 to 1044); hide_nextup drops the
+		     lower 320 and slides everything down by that much.
 
 		     The lists are live library containers fed by the skin's
 		     continue_movies.xsp and continue_episodes.xsp (a "mixed" smart
@@ -634,17 +637,31 @@
 
 			<!-- The band: above the bottom tab, or slid up below the top one -->
 			<control type="group">
-				<animation effect="slide" end="0,-640" time="0" condition="$EXP[continue_tab_top]">Conditional</animation>
+				<!-- Four placements, three slides, conditions exclusive: Next Up
+				     shown at the bottom is the laid out position; hidden drops
+				     the band's lower part so the rest sits 320 lower; at the top
+				     the band's upper edge meets the 36px tab either way. -->
+				<animation effect="slide" end="0,320" time="0" condition="Skin.HasSetting(hide_nextup) + !$EXP[continue_tab_top]">Conditional</animation>
+				<animation effect="slide" end="0,-320" time="0" condition="!Skin.HasSetting(hide_nextup) + $EXP[continue_tab_top]">Conditional</animation>
+				<animation effect="slide" end="0,-640" time="0" condition="Skin.HasSetting(hide_nextup) + $EXP[continue_tab_top]">Conditional</animation>
 				<control type="image">
 					<left>0</left>
-					<top>676</top>
+					<top>356</top>
 					<width>1920</width>
 					<height>368</height>
 					<texture colordiffuse="F4181C22">white.png</texture>
 				</control>
+				<control type="image">
+					<visible>!Skin.HasSetting(hide_nextup)</visible>
+					<left>0</left>
+					<top>724</top>
+					<width>1920</width>
+					<height>320</height>
+					<texture colordiffuse="F4181C22">white.png</texture>
+				</control>
 				<control type="label">
 					<left>60</left>
-					<top>688</top>
+					<top>368</top>
 					<width>600</width>
 					<height>34</height>
 					<font>font_med</font>
@@ -653,7 +670,7 @@
 				</control>
 				<control type="label">
 					<left>60</left>
-					<top>726</top>
+					<top>406</top>
 					<width>500</width>
 					<height>24</height>
 					<font>font_small</font>
@@ -662,7 +679,7 @@
 				</control>
 				<control type="label">
 					<left>960</left>
-					<top>726</top>
+					<top>406</top>
 					<width>500</width>
 					<height>24</height>
 					<font>font_small</font>
@@ -673,14 +690,15 @@
 				<control type="list" id="9201">
 					<visible allowhiddenfocus="true">true</visible>
 					<left>60</left>
-					<top>756</top>
+					<top>436</top>
 					<width>900</width>
 					<height>270</height>
 					<orientation>horizontal</orientation>
 					<onup>Skin.Reset(continue_open)</onup>
 					<onup condition="$EXP[continue_tab_top]">9211</onup>
 					<onup condition="!$EXP[continue_tab_top]">9210</onup>
-					<ondown>Skin.Reset(continue_open)</ondown>
+					<ondown condition="!$EXP[nextup_shown]">Skin.Reset(continue_open)</ondown>
+					<ondown condition="$EXP[nextup_shown]">9205</ondown>
 					<ondown condition="$EXP[continue_tab_top]">9211</ondown>
 					<ondown condition="!$EXP[continue_tab_top]">9210</ondown>
 					<onback>Skin.Reset(continue_open)</onback>
@@ -795,14 +813,15 @@
 				<control type="list" id="9203">
 					<visible allowhiddenfocus="true">true</visible>
 					<left>960</left>
-					<top>756</top>
+					<top>436</top>
 					<width>900</width>
 					<height>270</height>
 					<orientation>horizontal</orientation>
 					<onup>Skin.Reset(continue_open)</onup>
 					<onup condition="$EXP[continue_tab_top]">9211</onup>
 					<onup condition="!$EXP[continue_tab_top]">9210</onup>
-					<ondown>Skin.Reset(continue_open)</ondown>
+					<ondown condition="!$EXP[nextup_shown]">Skin.Reset(continue_open)</ondown>
+					<ondown condition="$EXP[nextup_shown]">9205</ondown>
 					<ondown condition="$EXP[continue_tab_top]">9211</ondown>
 					<ondown condition="!$EXP[continue_tab_top]">9210</ondown>
 					<onback>Skin.Reset(continue_open)</onback>
@@ -913,6 +932,140 @@
 					</focusedlayout>
 					<content target="videos" limit="12">special://skin/playlists/continue_episodes.xsp</content>
 				</control>
+
+				<!-- Next Up: the next unwatched episode of each show part way
+				     through, as fixed slots (NextUp.N.*, service.py:update_next_up)
+				     because Kodi has no library node for it. Static items, so
+				     the episode id rides on an item property and a click goes
+				     through continue_command like the press and hold menu. -->
+				<control type="label">
+					<visible>!Skin.HasSetting(hide_nextup)</visible>
+					<left>60</left>
+					<top>736</top>
+					<width>600</width>
+					<height>34</height>
+					<font>font_med</font>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>31465</label>
+				</control>
+				<control type="label">
+					<visible>!Skin.HasSetting(hide_nextup) + !$EXP[nextup_shown]</visible>
+					<left>60</left>
+					<top>774</top>
+					<width>1800</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<aligny>center</aligny>
+					<label>31467</label>
+				</control>
+				<control type="list" id="9205">
+					<visible allowhiddenfocus="true">$EXP[nextup_shown]</visible>
+					<left>60</left>
+					<top>774</top>
+					<width>1800</width>
+					<height>270</height>
+					<orientation>horizontal</orientation>
+					<!-- Up goes to whichever Continue row has something, else
+					     closes like the other rows do. -->
+					<onup condition="Integer.IsGreater(Container(9201).NumItems,0)">9201</onup>
+					<onup condition="Integer.IsGreater(Container(9203).NumItems,0)">9203</onup>
+					<onup condition="Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0)">Skin.Reset(continue_open)</onup>
+					<onup condition="$EXP[continue_tab_top]">9211</onup>
+					<onup condition="!$EXP[continue_tab_top]">9210</onup>
+					<ondown>Skin.Reset(continue_open)</ondown>
+					<ondown condition="$EXP[continue_tab_top]">9211</ondown>
+					<ondown condition="!$EXP[continue_tab_top]">9210</ondown>
+					<onback>Skin.Reset(continue_open)</onback>
+					<onback condition="$EXP[continue_tab_top]">9211</onback>
+					<onback condition="!$EXP[continue_tab_top]">9210</onback>
+					<onleft>9205</onleft>
+					<onright>9205</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+
+					<itemlayout height="270" width="150">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>140</width>
+							<height>210</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>140</width>
+							<height>210</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Icon]</texture>
+						</control>
+						<control type="label">
+							<left>0</left>
+							<top>216</top>
+							<width>140</width>
+							<height>26</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+						<control type="label">
+							<left>0</left>
+							<top>242</top>
+							<width>140</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text_dim</textcolor>
+							<label>$INFO[ListItem.Label2]</label>
+						</control>
+					</itemlayout>
+
+					<focusedlayout height="270" width="150">
+						<control type="image">
+							<left>-4</left>
+							<top>-4</top>
+							<width>148</width>
+							<height>218</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9205)</visible>
+						</control>
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>140</width>
+							<height>210</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>140</width>
+							<height>210</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Icon]</texture>
+						</control>
+						<control type="label">
+							<left>0</left>
+							<top>216</top>
+							<width>140</width>
+							<height>26</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+						<control type="label">
+							<left>0</left>
+							<top>242</top>
+							<width>140</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label2]</label>
+						</control>
+					</focusedlayout>
+					<content>
+						<include content="NextUpRows"/>
+					</content>
+				</control>
 			</control>
 		</control>
 
@@ -943,6 +1096,7 @@
 			<onclick>Skin.ToggleSetting(continue_open)</onclick>
 			<onclick condition="!Skin.HasSetting(continue_open)">SetFocus(9201)</onclick>
 			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
+			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0) + $EXP[nextup_shown]">SetFocus(9205)</onclick>
 			<!-- Up from the bottom tab reaches the corner bar when it is on
 			     this edge too, otherwise the menu, which is then the nearest
 			     thing above. -->
@@ -975,6 +1129,7 @@
 			<onclick>Skin.ToggleSetting(continue_open)</onclick>
 			<onclick condition="!Skin.HasSetting(continue_open)">SetFocus(9201)</onclick>
 			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
+			<onclick condition="!Skin.HasSetting(continue_open) + Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0) + $EXP[nextup_shown]">SetFocus(9205)</onclick>
 			<!-- Down from the top tab lands on the corner bar when that is
 			     also on the top edge, since it sits between tab and menu. -->
 			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</ondown>
