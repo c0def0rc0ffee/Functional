@@ -504,8 +504,10 @@ class FunctionalHelper(xbmc.Monitor):
         self._cast_lock = threading.Lock()
         self._cast_key = None       # identity of the item we last published cast for
         self._cast_thread = None
+        self._cast_owed = False       # a lookup for _cast_key has not started yet
         self._info_cast_key = None  # same, for the video info dialog
         self._info_cast_thread = None
+        self._info_cast_owed = False  # same, for the info dialog's item
         self._info_cast_names = []  # slot order, for cast_run clicks
         self._info_cast_dbtype = ""  # media type behind those slots, ditto
         # Playback-buffer labels: re-read once per skin-settings open
@@ -738,7 +740,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._last_eta = value
         _set_home_property("focused_finish_time", value)
         if value:
-            _dlog("eta set: ends at {0}".format(value))
+            _dlog("eta set: ends at {0}".format(value), xbmc.LOGDEBUG)
 
     # ---- Media age --------------------------------------------------------
     # "31 years old" alongside the release year on the two info screens.
@@ -812,7 +814,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._age_last[key] = value
         _set_home_property(key, value)
         if value:
-            _dlog("age: {0} = {1}".format(key, value))
+            _dlog("age: {0} = {1}".format(key, value), xbmc.LOGDEBUG)
 
     @classmethod
     def _age_label(cls, *sources):
@@ -946,15 +948,13 @@ class FunctionalHelper(xbmc.Monitor):
         <summary>
         Seconds of playback left in the whole queue, 0 if that's unknowable.
         </summary>
+        <param name="kind">"video" or "music", picking the playlist and the length field (video items carry runtime, music items duration).</param>
         <remarks>
         What's left of the item playing now plus the full length of every
         item after it. With nothing playing the queue hasn't started, so the
         whole list counts. Items with no known length (a stream, an unscraped
         file) contribute nothing rather than blocking the total: an end time
         that is slightly early beats no end time at all.
-
-        :param kind: "video" or "music", picking the playlist and the length
-                     field (video items carry runtime, music items duration).
         </remarks>
         """
         playlist_id = self.QUEUE_IDS[kind]
@@ -1028,23 +1028,31 @@ class FunctionalHelper(xbmc.Monitor):
             if self._cast_key is not None:
                 with self._cast_lock:
                     self._cast_key = None
+                    self._cast_owed = False
                     self._publish_cast([])
-            return
-
-        if self._cast_thread is not None and self._cast_thread.is_alive():
             return
 
         # Path alone isn't enough: a stacked/playlist item can keep the same
         # path across parts, and PVR channels reuse one path for every show.
         key = "{0}|{1}".format(xbmc.getInfoLabel("Player.FilenameAndPath"),
                                xbmc.getInfoLabel("VideoPlayer.Title"))
-        if key == self._cast_key:
+        if key != self._cast_key:
+            with self._cast_lock:
+                self._cast_key = key
+                # Blank the strip immediately so the previous item's actors
+                # don't linger on the info card while the new lookup runs.
+                self._publish_cast([])
+            self._cast_owed = True
+        if not self._cast_owed:
             return
-        with self._cast_lock:
-            self._cast_key = key
-            # Blank the strip immediately so the previous item's actors don't
-            # linger on the info card while the new lookup runs.
-            self._publish_cast([])
+        # The key is advanced BEFORE this check, not after it. A worker still
+        # blocked on the previous item then fails its own staleness check
+        # and drops its late result instead of painting the old actors over
+        # the new title; the lookup this item is owed starts on the first
+        # tick after that worker has finished.
+        if self._cast_thread is not None and self._cast_thread.is_alive():
+            return
+        self._cast_owed = False
         self._cast_thread = threading.Thread(
             target=self._cast_worker, args=(key,),
             name="functional-cast", daemon=True)
@@ -1160,22 +1168,27 @@ class FunctionalHelper(xbmc.Monitor):
             if self._info_cast_key is not None:
                 with self._cast_lock:
                     self._info_cast_key = None
+                    self._info_cast_owed = False
                     self._info_cast_names = []
                     self._info_cast_dbtype = ""
                     self._publish_cast([], prefix="InfoCast", reset=True)
             return
 
-        if self._info_cast_thread is not None and self._info_cast_thread.is_alive():
-            return
-
         dbtype = xbmc.getInfoLabel("ListItem.DBType")
         dbid = xbmc.getInfoLabel("ListItem.DBID")
         key = "{0}|{1}|{2}".format(dbtype, dbid, xbmc.getInfoLabel("ListItem.Title"))
-        if key == self._info_cast_key:
+        if key != self._info_cast_key:
+            with self._cast_lock:
+                self._info_cast_key = key
+                self._publish_cast([], prefix="InfoCast", reset=True)
+            self._info_cast_owed = True
+        if not self._info_cast_owed:
             return
-        with self._cast_lock:
-            self._info_cast_key = key
-            self._publish_cast([], prefix="InfoCast", reset=True)
+        # Key first, busy check second, for the reason given in
+        # update_playing_cast: a late worker must lose its staleness check.
+        if self._info_cast_thread is not None and self._info_cast_thread.is_alive():
+            return
+        self._info_cast_owed = False
         cast_and_role = xbmc.getInfoLabel("ListItem.CastAndRole")
         self._info_cast_thread = threading.Thread(
             target=self._info_cast_worker, args=(key, dbtype, dbid, cast_and_role),
@@ -1334,13 +1347,9 @@ class FunctionalHelper(xbmc.Monitor):
     CACHE_DEFAULTS = {"filecache.buffermode": 4,
                       "filecache.memorysize": 20,
                       "filecache.readfactor": 400}
-    CACHE_MODE_LABELS = {
-        4: "Network shares + internet (Kodi default)",
-        2: "True internet streams only",
-        0: "All internet filesystems",
-        1: "Everything (incl. local files)",
-        3: "Nothing (buffer off)",
-    }
+    # filecache.buffermode value to its strings.po id; resolved at use, not
+    # here, because strings are only readable once the skin is loaded.
+    CACHE_MODE_LABELS = {4: 31445, 2: 31446, 0: 31447, 1: 31448, 3: 31449}
 
     @staticmethod
     def _get_setting(setting_id):
@@ -1376,12 +1385,12 @@ class FunctionalHelper(xbmc.Monitor):
         <returns>Text such as 20 MB (Kodi default) or 1 GB.</returns>
         """
         if value == 0:
-            return "Entire file on disk"
+            return _L(31451)
         if value >= 1024 and value % 1024 == 0:
-            text = "{0} GB".format(value // 1024)
+            text = _L(31452).format(value // 1024)
         else:
-            text = "{0} MB".format(value)
-        return text + " (Kodi default)" if value == 20 else text
+            text = _L(31453).format(value)
+        return _L(31454).format(text) if value == 20 else text
 
     @staticmethod
     def _cache_rf_label(value):
@@ -1393,9 +1402,9 @@ class FunctionalHelper(xbmc.Monitor):
         <returns>Text such as 4x (Kodi default).</returns>
         """
         if value == 0:
-            return "Adaptive"
-        text = "{0:g}x".format(value / 100.0)
-        return text + " (Kodi default)" if value == 400 else text
+            return _L(31455)
+        text = _L(31456).format("{0:g}".format(value / 100.0))
+        return _L(31454).format(text) if value == 400 else text
 
     def _refresh_cache_labels(self):
         """
@@ -1413,7 +1422,8 @@ class FunctionalHelper(xbmc.Monitor):
         _set_skin_string("cache_mem_label", self._cache_mem_label(mem))
         _set_skin_string("cache_rf_label", self._cache_rf_label(rf))
         _set_skin_string("cache_mode_label",
-                         self.CACHE_MODE_LABELS.get(mode, "Mode {0}".format(mode)))
+                         _L(self.CACHE_MODE_LABELS[mode]) if mode in self.CACHE_MODE_LABELS
+                         else _L(31450).format(mode))
 
     @staticmethod
     def _fmt_secs(secs):
@@ -1588,7 +1598,7 @@ class FunctionalHelper(xbmc.Monitor):
         elif mb > 0:
             parts.append("{0:.1f} MB".format(mb))
         if ahead:
-            parts.append("~{0} ahead".format(self._fmt_secs(ahead)))
+            parts.append(_L(31457).format(self._fmt_secs(ahead)))
 
         detail = ", ".join(parts)
         if detail != self._buffer_last:
@@ -1672,13 +1682,11 @@ class FunctionalHelper(xbmc.Monitor):
         <summary>
         Put all three filecache settings back to Kodi's defaults.
         </summary>
+        <param name="message">optional notification text, for resets the user did not ask for directly (hiding the OSD button).</param>
         <remarks>
         Also drops the full-buffer restore strings: leaving them behind would
         have _maybe_restore_cache quietly undo this reset the moment playback
         ended.
-
-        :param message: optional notification text, for resets the user did
-                        not ask for directly (hiding the OSD button).
         </remarks>
         """
         for _sid, skin_key in self.FULLFILE_RESTORE_KEYS:
@@ -1690,7 +1698,7 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("cache: reset to Kodi defaults")
         if message:
             xbmcgui.Dialog().notification(
-                "Functional", message, xbmcgui.NOTIFICATION_INFO, 4000)
+                _L(31000), message, xbmcgui.NOTIFICATION_INFO, 4000)
 
     # ---- Per-movie "buffer entire file" (OSD BUFFER ALL button) -----------
     # Kodi builds the cache when a stream opens, so changing memorysize does
@@ -1765,9 +1773,8 @@ class FunctionalHelper(xbmc.Monitor):
         <summary>
         Thread body for both directions of the switch.
         </summary>
+        <param name="mode">"fullfile" to turn unlimited buffering on, "normalbuffer" to go back to the remembered buffer size.</param>
         <remarks>
-        :param mode: "fullfile" to turn unlimited buffering on, "normalbuffer"
-                     to go back to the remembered buffer size.
         </remarks>
         """
         try:
@@ -1785,14 +1792,11 @@ class FunctionalHelper(xbmc.Monitor):
         Set filecache.memorysize for this playback and reopen the stream at
         the same position, in whichever direction `mode` asks for.
         </summary>
+        <param name="mode">"fullfile" (memorysize 0 = uncapped disk cache) or "normalbuffer" (back to Skin.String(cache_mem_restore), falling back to Kodi's default size if that is gone).</param>
         <remarks>
         Both directions are the same dance because Kodi sizes the cache when
         the stream opens: changing the setting alone does nothing until the
         file is reopened.
-
-        :param mode: "fullfile" (memorysize 0 = uncapped disk cache) or
-                     "normalbuffer" (back to Skin.String(cache_mem_restore),
-                     falling back to Kodi's default size if that is gone).
         </remarks>
         """
         current = self._get_setting("filecache.memorysize")
@@ -1802,13 +1806,13 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("fullfile: could not read filecache.memorysize, not switching",
                   xbmc.LOGWARNING)
             xbmcgui.Dialog().notification(
-                "Functional", _L(31328),
+                _L(31000), _L(31328),
                 xbmcgui.NOTIFICATION_WARNING, 4000)
             return
         if mode == "fullfile":
             if current == 0:
                 xbmcgui.Dialog().notification(
-                    "Functional", _L(31331),
+                    _L(31000), _L(31331),
                     xbmcgui.NOTIFICATION_INFO, 4000)
                 return
             target_size = 0
@@ -1816,7 +1820,7 @@ class FunctionalHelper(xbmc.Monitor):
         else:
             if current != 0:
                 xbmcgui.Dialog().notification(
-                    "Functional", _L(31332),
+                    _L(31000), _L(31332),
                     xbmcgui.NOTIFICATION_INFO, 4000)
                 return
             # Nothing remembered means the uncapped size was set somewhere
@@ -1897,7 +1901,7 @@ class FunctionalHelper(xbmc.Monitor):
         # memorysize; make update_buffer_stats() re-read it.
         self._buffer_memsize = None
         xbmcgui.Dialog().notification(
-            "Functional", message, xbmcgui.NOTIFICATION_INFO, 5000)
+            _L(31000), message, xbmcgui.NOTIFICATION_INFO, 5000)
         _dlog("fullfile: reopening {0} at {1}s (memorysize {2} -> {3})".format(
             target, secs, current, target_size))
         _jsonrpc("Player.Stop", {"playerid": pid})
@@ -2036,7 +2040,7 @@ class FunctionalHelper(xbmc.Monitor):
             self._bg_last_change = now
             url, label = self._bg_items[self._bg_idx]
             self._set_bg_props(url, label)
-            _dlog("bg rotate -> {0} | {1}".format(label, url[:120]))
+            _dlog("bg rotate -> {0} | {1}".format(label, url[:120]), xbmc.LOGDEBUG)
 
     @staticmethod
     def _set_bg_props(fanart, label):
@@ -2635,7 +2639,7 @@ class FunctionalHelper(xbmc.Monitor):
         if not it["file"] and not it["dbid"]:
             return None
         if not it["label"]:
-            it["label"] = _basename_no_ext(it["file"]) or "Untitled"
+            it["label"] = _basename_no_ext(it["file"]) or _L(31458)
         return it
 
     @staticmethod
@@ -2660,14 +2664,14 @@ class FunctionalHelper(xbmc.Monitor):
                     tag = "S%02dE%02d" % (int(it["season"]), int(it["episode"]))
                 except ValueError:
                     tag = ""
-            bits.append((it["show"] + " " + tag).strip() or "Episode")
+            bits.append((it["show"] + " " + tag).strip() or _L(31459))
         elif it["kind"] == "music":
-            bits.append(it["artist"] or "Song")
+            bits.append(it["artist"] or _L(31460))
         elif it["dbtype"] == "musicvideo":
-            bits.append(it["artist"] or "Music video")
+            bits.append(it["artist"] or _L(31461))
         else:
-            bits.append("Movie" + (" (%s)" % it["year"] if it["year"] else "")
-                        if it["dbtype"] == "movie" else "Video")
+            bits.append(_L(31462) + (" (%s)" % it["year"] if it["year"] else "")
+                        if it["dbtype"] == "movie" else _L(31463))
         if it["duration"]:
             bits.append(cls._fmt_secs(it["duration"]))
         return " · ".join(bits)
@@ -2877,7 +2881,7 @@ class FunctionalHelper(xbmc.Monitor):
         if not pick and last:
             target = next((l for l in lists if l["name"] == last), None)
         if target is None:
-            names = [l["name"] for l in lists] + ["New list"]
+            names = [l["name"] for l in lists] + [_L(31464)]
             choice = xbmcgui.Dialog().select(_L(31050), names)
             if choice < 0:
                 return
@@ -3438,8 +3442,8 @@ class FunctionalHelper(xbmc.Monitor):
         <summary>
         Copy settings.xml to the backup folder, off the main loop.
         </summary>
+        <param name="announce">show a notification when done (the manual button).</param>
         <remarks>
-        :param announce: show a notification when done (the manual button).
         </remarks>
         """
         if self._backup_thread is not None and self._backup_thread.is_alive():
@@ -3496,14 +3500,14 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("backup: snapshot written, {0} bytes".format(len(data)))
             if announce:
                 xbmcgui.Dialog().notification(
-                    "Functional", _L(31366),
+                    _L(31000), _L(31366),
                     xbmcgui.NOTIFICATION_INFO, 3000)
         except Exception:  # noqa: BLE001
             _dlog("backup failed:\n{0}".format(traceback.format_exc()),
                   xbmc.LOGERROR)
             if announce:
                 xbmcgui.Dialog().notification(
-                    "Functional", _L(31367),
+                    _L(31000), _L(31367),
                     xbmcgui.NOTIFICATION_WARNING, 4000)
 
     # Below this many stored settings there is nothing worth protecting, and
@@ -3515,11 +3519,10 @@ class FunctionalHelper(xbmc.Monitor):
         <summary>
         True if *data* has lost most of the settings the snapshot holds.
         </summary>
+        <param name="data">the raw bytes just read from settings.xml.</param>
         <remarks>
         A crude count of <setting entries, which is all this needs to be: the
         signature of a reset is "was 60, is now 2", not "was 60, is now 58".
-
-        :param data: the raw bytes just read from settings.xml.
         </remarks>
         """
         try:
@@ -3579,7 +3582,7 @@ class FunctionalHelper(xbmc.Monitor):
         """
         path = self._backup_path()
         if not os.path.isfile(path):
-            xbmcgui.Dialog().ok("Functional",
+            xbmcgui.Dialog().ok(_L(31000),
                                 _L(31368))
             return
         try:
@@ -3587,11 +3590,11 @@ class FunctionalHelper(xbmc.Monitor):
         except Exception:  # noqa: BLE001
             _dlog("restore: unreadable backup:\n{0}".format(
                 traceback.format_exc()), xbmc.LOGERROR)
-            xbmcgui.Dialog().ok("Functional",
+            xbmcgui.Dialog().ok(_L(31000),
                                 _L(31369))
             return
         if not entries:
-            xbmcgui.Dialog().ok("Functional",
+            xbmcgui.Dialog().ok(_L(31000),
                                 _L(31370))
             return
         when = xbmc.getInfoLabel("Skin.String(settings_backup_when)")
@@ -3614,7 +3617,7 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("restore: re-applied {0} settings from {1}".format(
             len(entries), path))
         xbmcgui.Dialog().notification(
-            "Functional", _L(31374).format(len(entries)),
+            _L(31000), _L(31374).format(len(entries)),
             xbmcgui.NOTIFICATION_INFO, 3000)
         # The reload is what makes load-time includes (OSD position, colours)
         # pick the restored values up.
@@ -4251,7 +4254,7 @@ class FunctionalHelper(xbmc.Monitor):
         if not genres:
             _dlog("genre picker: no genres for type {0!r}".format(gtype))
             xbmcgui.Dialog().notification(
-                "Functional", _L(31375),
+                _L(31000), _L(31375),
                 xbmcgui.NOTIFICATION_INFO, 4000)
             return
 

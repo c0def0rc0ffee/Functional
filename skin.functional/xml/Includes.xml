@@ -252,7 +252,7 @@
 		<value></value>
 	</variable>
 	<variable name="ItemStarRatingLabel">
-		<value condition="!Skin.HasSetting(hide_rating) + !String.IsEmpty(ListItem.Rating) + String.IsEmpty(ListItem.Duration) + String.IsEmpty(Window(home).Property(focused_finish_time))">★ $INFO[ListItem.Rating]</value>
+		<value condition="!Skin.HasSetting(hide_rating) + !String.IsEmpty(ListItem.Rating) + String.IsEmpty(ListItem.Duration) + [Skin.HasSetting(hide_endsat) | String.IsEmpty(Window(home).Property(focused_finish_time))]">★ $INFO[ListItem.Rating]</value>
 		<value condition="!Skin.HasSetting(hide_rating) + !String.IsEmpty(ListItem.Rating)"> · ★ $INFO[ListItem.Rating]</value>
 		<value></value>
 	</variable>
@@ -1887,7 +1887,7 @@
 				<height>26</height>
 				<font>font_reg</font>
 				<textcolor>accent_hi</textcolor>
-				<label>$INFO[VideoPlayer.TVShowTitle] · $INFO[VideoPlayer.Season,S,]$INFO[VideoPlayer.Episode,E,]$VAR[FsInfoAiredLabel]</label>
+				<label>$INFO[VideoPlayer.TVShowTitle]$INFO[VideoPlayer.Season, · S,]$INFO[VideoPlayer.Episode,E,]$VAR[FsInfoAiredLabel]</label>
 				<visible>!String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
 			</control>
 
@@ -2445,10 +2445,10 @@
 	  80px while the bar is at the top, for the same reason.
 
 	  Box width must hold every item it can ever show at once:
-	  200 + 520 + 140 + six 70s + eight 10px gaps = 1360. When a grouplist
+	  200 + 520 + 140 + six 70s + nine 10px gaps = 1370. When a grouplist
 	  overflows its width Kodi drops the alignment and starts scrolling,
 	  which silently clipped the Power icon off-screen once already, so the
-	  40px of slack here is deliberate. Resize nothing without redoing that sum.
+	  30px of slack here is deliberate. Resize nothing without redoing that sum.
 	  </remarks>
 	-->
 	<include name="HomeCornerBar">
@@ -2469,7 +2469,9 @@
 		<definition>
 			<control type="grouplist" id="$PARAM[id_bar]">
 				<visible>$PARAM[visible]</visible>
-				<animation effect="slide" end="0,-800" time="0" condition="$EXP[corner_bar_top]">Conditional</animation>
+				<!-- 790, not 800: y 180 to 250, ten pixels below the main menu's
+				     top position (y 40 to 180). The stats column drops 80 to y 260. -->
+				<animation effect="slide" end="0,-790" time="0" condition="$EXP[corner_bar_top]">Conditional</animation>
 				<left>$PARAM[left]</left>
 				<bottom>40</bottom>
 				<width>1400</width>

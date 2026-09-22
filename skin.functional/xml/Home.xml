@@ -112,9 +112,14 @@
 			</control>
 			</control>
 
-			<!-- TV SHOWS section -->
+			<!-- TV SHOWS section. Packs up into the movie block's place when that
+			     is hidden, so the column never starts with a hole. The JellyStat
+			     block below is a sibling, not a child: until 22/09/2026 it sat
+			     inside this group by accident, so it inherited this slide and
+			     vanished with hide_tvshows_count. -->
 			<control type="group">
 				<visible>!Skin.HasSetting(hide_tvshows_count)</visible>
+				<animation effect="slide" end="0,-220" time="0" condition="Skin.HasSetting(hide_movies_count)">Conditional</animation>
 			<control type="label">
 				<left>0</left>
 				<top>220</top>
@@ -188,6 +193,7 @@
 				<textcolor>$VAR[AccentColor]</textcolor>
 				<label>$INFO[Skin.String(stat_tvshows_unwatched)]</label>
 			</control>
+			</control>
 
 			<!-- JELLYSTAT section: the headline figures the JellyStat add-on
 			     (script.jellystat, 0.26.4 or later) publishes as
@@ -199,6 +205,10 @@
 			     by hide_jellystat (Home Screen). -->
 			<control type="group">
 				<visible>!Skin.HasSetting(hide_jellystat) + System.HasAddon(script.jellystat) + !String.IsEmpty(Window(home).Property(JellyStat.AllTime.Hours))</visible>
+				<!-- Packs up by one block for each of the two library blocks above
+				     it that is hidden. The two conditions are exclusive. -->
+				<animation effect="slide" end="0,-220" time="0" condition="[Skin.HasSetting(hide_movies_count) + !Skin.HasSetting(hide_tvshows_count)] | [!Skin.HasSetting(hide_movies_count) + Skin.HasSetting(hide_tvshows_count)]">Conditional</animation>
+				<animation effect="slide" end="0,-440" time="0" condition="Skin.HasSetting(hide_movies_count) + Skin.HasSetting(hide_tvshows_count)">Conditional</animation>
 				<control type="label">
 					<left>0</left>
 					<top>440</top>
@@ -272,7 +282,6 @@
 					<align>right</align>
 					<label>$INFO[Window(home).Property(JellyStat.AllTime.Hours)]</label>
 				</control>
-			</control>
 			</control>
 
 		</control>
@@ -349,8 +358,15 @@
 
 		<!-- Main menu, vertical position via Skin.String(menu_position) -->
 		<control type="grouplist" id="9000">
-			<animation effect="slide" end="0,-460" time="0" condition="String.IsEqual(Skin.String(menu_position),top)">Conditional</animation>
-			<animation effect="slide" end="0,440" time="0" condition="String.IsEqual(Skin.String(menu_position),bottom)">Conditional</animation>
+			<!-- Top: y 40 to 180, clear of the 36px Continue tab on the top edge
+			     and of the corner bar when that is at the top (y 180 to 250).
+			     Bottom: y 820 to 960 while the corner bar holds the bottom edge
+			     (y 970 to 1040), the full 440 only once the bar has moved to the
+			     top. With all seven entries on and the menu at the top the row
+			     is 1800 wide and runs under the logo; six or fewer clear it. -->
+			<animation effect="slide" end="0,-440" time="0" condition="String.IsEqual(Skin.String(menu_position),top)">Conditional</animation>
+			<animation effect="slide" end="0,440" time="0" condition="String.IsEqual(Skin.String(menu_position),bottom) + $EXP[corner_bar_top]">Conditional</animation>
+			<animation effect="slide" end="0,340" time="0" condition="String.IsEqual(Skin.String(menu_position),bottom) + !$EXP[corner_bar_top]">Conditional</animation>
 			<left>0</left>
 			<top>480</top>
 			<width>1920</width>

@@ -1319,6 +1319,7 @@
 				<width>460</width>
 				<height>40</height>
 				<label></label>
+				<disabledcolor>disabled</disabledcolor>
 				<onleft>7301</onleft>
 				<onup>7315</onup>
 				<ondown>7900</ondown>

@@ -22,6 +22,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 DROP_DIR="${SKIN_DROP_DIR:-$HERE}"
 LOG="$HERE/skin-autoupdate.log"
 
+# <summary>Append one timestamped line to the update log.</summary>
 log() { printf '%s  %s\n' "$(date '+%F %T')" "$*" >> "$LOG"; }
 
 # --- required tools, checked up front ---
@@ -39,13 +40,13 @@ if [ -n "$missing" ]; then
     exit 1
 fi
 
-# Print the <addon> tag's version from an addon.xml ($1 may be /dev/stdin).
+# <summary>Print the <addon> tag's version from an addon.xml ($1 may be /dev/stdin).</summary>
 ver() {
     grep -m1 "id=\"$ADDON_ID\"" "$1" 2>/dev/null \
         | sed -n 's/.*version="\([^"]*\)".*/\1/p'
 }
 
-# ver_gt A B  -> success (0) if A is strictly greater than B (version sort).
+# <summary>ver_gt A B: succeed (0) if A is strictly greater than B by version sort.</summary>
 ver_gt() {
     [ "$1" != "$2" ] && \
     [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -1)" = "$1" ]

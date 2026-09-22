@@ -98,7 +98,7 @@
 			<height>26</height>
 			<font>font_reg</font>
 			<textcolor>accent_hi</textcolor>
-			<label>$INFO[VideoPlayer.Season,S,]$INFO[VideoPlayer.Episode,E,] · $INFO[VideoPlayer.Title]</label>
+			<label>$INFO[VideoPlayer.Season,S,]$INFO[VideoPlayer.Episode,E, · ]$INFO[VideoPlayer.Title]</label>
 			<visible>!String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
 		</control>
 
