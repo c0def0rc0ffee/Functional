@@ -150,6 +150,10 @@ All settings live in **Settings > Skin Settings**, organised into seven categori
 
 Toggle settings show an accent **dot** when on. Most changes apply immediately; a few service-backed ones take effect on the next launch.
 
+## What changed
+
+Each release is described in [CHANGELOG.md](CHANGELOG.md). The current version's section also ships inside the skin as its add-on news, so the add-on information screen on the TV shows it after an update.
+
 ## Installation
 
 1. Download the latest release ZIP from the [Releases](../../releases) page.
