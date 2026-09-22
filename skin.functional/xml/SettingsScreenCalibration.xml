@@ -155,7 +155,7 @@
 			<height>40</height>
 			<align>center</align>
 			<font>font_med</font>
-			<textcolor>accent_hi</textcolor>
+			<textcolor>$VAR[AccentHiColor]</textcolor>
 			<shadowcolor>FF000000</shadowcolor>
 			<label></label>
 		</control>

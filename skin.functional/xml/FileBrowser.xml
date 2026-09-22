@@ -80,7 +80,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -147,7 +147,7 @@
 					<height>50</height>
 					<font>font_small</font>
 					<textcolor>text</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<align>center</align>
 					<aligny>top</aligny>
 					<wrapmultiline>true</wrapmultiline>
@@ -199,7 +199,7 @@
 			<onright>9000</onright>
 			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 		</control>
 
 		<!-- Action buttons grouplist (right side) -->

@@ -78,7 +78,7 @@
 					<width>820</width>
 					<height>40</height>
 					<font>font_med</font>
-					<textcolor>accent_hi</textcolor>
+					<textcolor>$VAR[AccentHiColor]</textcolor>
 					<label>$LOCALIZE[31409]  $INFO[Window(home).Property(JellyStat.Month),,]</label>
 				</control>
 				<control type="label">
@@ -190,7 +190,7 @@
 					<width>820</width>
 					<height>40</height>
 					<font>font_med</font>
-					<textcolor>accent_hi</textcolor>
+					<textcolor>$VAR[AccentHiColor]</textcolor>
 					<label>$LOCALIZE[31410]</label>
 				</control>
 				<control type="label">
@@ -340,7 +340,7 @@
 					<width>800</width>
 					<height>40</height>
 					<font>font_med</font>
-					<textcolor>accent_hi</textcolor>
+					<textcolor>$VAR[AccentHiColor]</textcolor>
 					<label>$LOCALIZE[31411]</label>
 				</control>
 				<control type="label">

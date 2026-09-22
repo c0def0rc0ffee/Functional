@@ -111,7 +111,7 @@
 		<orientation>horizontal</orientation>
 		<texturesliderbar colordiffuse="grey_mid">white.png</texturesliderbar>
 		<textureslidernib colordiffuse="white">slider_nib.png</textureslidernib>
-		<textureslidernibfocus colordiffuse="accent_hi">slider_nib.png</textureslidernibfocus>
+		<textureslidernibfocus colordiffuse="$VAR[AccentHiColor]">slider_nib.png</textureslidernibfocus>
 	</default>
 
 	<default type="sliderex">
@@ -129,7 +129,7 @@
 		<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 		<texturesliderbar colordiffuse="40FFFFFF">white.png</texturesliderbar>
 		<textureslidernib colordiffuse="white">slider_nib.png</textureslidernib>
-		<textureslidernibfocus colordiffuse="accent_hi">slider_nib.png</textureslidernibfocus>
+		<textureslidernibfocus colordiffuse="$VAR[AccentHiColor]">slider_nib.png</textureslidernibfocus>
 	</default>
 
 	<default type="progress">

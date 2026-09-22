@@ -26,7 +26,7 @@
 					<height>80</height>
 					<font>font_med</font>
 					<textcolor>text</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>

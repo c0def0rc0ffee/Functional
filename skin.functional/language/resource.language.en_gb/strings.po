@@ -1972,3 +1972,16 @@ msgstr ""
 msgctxt "#31488"
 msgid "That is not a lists file this skin can read"
 msgstr ""
+
+# Custom accent colour. 22/09/2026.
+msgctxt "#31489"
+msgid "Custom"
+msgstr ""
+
+msgctxt "#31490"
+msgid "Custom accent colour..."
+msgstr ""
+
+msgctxt "#31491"
+msgid "Pick the accent colour"
+msgstr ""

@@ -112,7 +112,7 @@
 			<onright>9001</onright>
 			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 		</control>
 
 		<control type="label">

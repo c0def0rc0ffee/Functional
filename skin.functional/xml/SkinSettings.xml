@@ -479,7 +479,7 @@
 				<onright>7020</onright>
 				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 			</control>
 
 			<control type="grouplist" id="7022">
@@ -617,7 +617,7 @@
 				<onright>7022</onright>
 				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 			</control>
 
 		</control>
@@ -856,7 +856,7 @@
 				<onright>7023</onright>
 				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 			</control>
 
 			<control type="grouplist" id="7024">
@@ -1047,7 +1047,7 @@
 				<onright>7024</onright>
 				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 			</control>
 
 		</control>
@@ -1102,7 +1102,7 @@
 				<onleft>7000</onleft>
 				<onright>7310</onright>
 				<onup>7301</onup>
-				<ondown>7301</ondown>
+				<ondown>7320</ondown>
 				<onclick condition="String.IsEmpty(Skin.String(accent_color)) | String.IsEqual(Skin.String(accent_color),blue)">Skin.SetString(accent_color,red)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(accent_color),red)">Skin.SetString(accent_color,green)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(accent_color),green)">Skin.SetString(accent_color,orange)</onclick>
@@ -1110,11 +1110,41 @@
 				<onclick condition="String.IsEqual(Skin.String(accent_color),amber)">Skin.SetString(accent_color,purple)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(accent_color),purple)">Skin.SetString(accent_color,teal)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(accent_color),teal)">Skin.SetString(accent_color,pink)</onclick>
-				<onclick condition="String.IsEqual(Skin.String(accent_color),pink)">Skin.SetString(accent_color,blue)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(accent_color),pink) + !String.IsEmpty(Skin.String(accent_custom))">Skin.SetString(accent_color,custom)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(accent_color),pink) + String.IsEmpty(Skin.String(accent_custom))">Skin.SetString(accent_color,blue)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(accent_color),custom)">Skin.SetString(accent_color,blue)</onclick>
+			</control>
+			<!-- Any colour at all: Kodi's colour picker (Skin.SetColor takes the
+			     setting, a heading string id and the current value to land on)
+			     writes the hex into accent_custom, then the accent switches to
+			     it. The picker is modal, so the second line runs after it has
+			     closed; cancelling leaves the old custom value, or none, and
+			     AccentColor falls back to blue for none. -->
+			<control type="button" id="7320">
+				<left>440</left>
+				<top>310</top>
+				<width>900</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>31490</label>
+				<onclick>Skin.SetColor(accent_custom,31491,$INFO[Skin.String(accent_custom)])</onclick>
+				<onclick>Skin.SetString(accent_color,custom)</onclick>
+				<onleft>7000</onleft>
+				<onright>7310</onright>
+				<onup>7300</onup>
+				<ondown>7301</ondown>
 			</control>
 			<control type="image">
 				<left>440</left>
-				<top>310</top>
+				<top>380</top>
 				<width>900</width>
 				<height>10</height>
 				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
@@ -1123,7 +1153,7 @@
 			<!-- Sub-header: notifications -->
 			<control type="label">
 				<left>440</left>
-				<top>360</top>
+				<top>430</top>
 				<width>900</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -1133,7 +1163,7 @@
 
 			<control type="button" id="7301">
 				<left>440</left>
-				<top>400</top>
+				<top>470</top>
 				<width>900</width>
 				<height>70</height>
 				<font>font_reg</font>
@@ -1147,7 +1177,7 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[31263] $VAR[NotificationPositionLabel]</label>
 				<onleft>7000</onleft>
-				<onup>7300</onup>
+				<onup>7320</onup>
 				<ondown>7300</ondown>
 				<!-- Cycle: br → bc → bl → tl → tc → tr → br -->
 				<onclick condition="String.IsEmpty(Skin.String(notification_position)) | String.IsEqual(Skin.String(notification_position),br)">Skin.SetString(notification_position,bc)</onclick>
@@ -2019,7 +2049,7 @@
 				<onright>7021</onright>
 				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-				<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 			</control>
 
 			<!-- ===== Right column: INFO SCREENS ===== -->

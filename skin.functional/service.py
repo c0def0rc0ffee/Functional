@@ -505,6 +505,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._nextup_items = []          # [{dbid, label, sub, thumb}] as published
         self._nextup_slots_used = 0
         # Age filter (see update_age_command)
+        self._accent_custom_seen = None  # last accent_custom value turned into a highlight
         self._age_last_path = None       # Container.FolderPath last derived from
         # Cast strip on the full-screen info card (see update_playing_cast)
         # The lock makes "is this key still current?" + publish atomic, so a
@@ -4518,6 +4519,33 @@ class FunctionalHelper(xbmc.Monitor):
         if xbmc.getInfoLabel("Skin.String(search_active)").strip() != text:
             _set_skin_string("search_active", text)
 
+    def update_accent(self):
+        """
+        <summary>
+        Keep Skin.String(accent_custom_hi) as a lighter shade of the custom
+        accent the colour picker stored in Skin.String(accent_custom).
+        </summary>
+        <remarks>
+        Fast ticker, one infolabel read a tick, a write only when the picked
+        value changes. The shade is the accent blended a third of the way to
+        white, channel by channel, alpha kept, which is roughly the step
+        between the preset accents and their preset highlights in
+        Includes.xml. A value that is not eight hex digits leaves the
+        highlight alone rather than publishing rubbish.
+        </remarks>
+        """
+        value = xbmc.getInfoLabel("Skin.String(accent_custom)").strip().upper()
+        if value == self._accent_custom_seen:
+            return
+        self._accent_custom_seen = value
+        if not re.fullmatch(r"[0-9A-F]{8}", value):
+            _set_skin_string("accent_custom_hi", "")
+            return
+        channels = [int(value[i:i + 2], 16) for i in (2, 4, 6)]
+        lighter = "".join("{0:02X}".format(c + (255 - c) // 3) for c in channels)
+        _set_skin_string("accent_custom_hi", value[:2] + lighter)
+        _dlog("accent: custom {0} -> highlight {1}".format(value, value[:2] + lighter))
+
     def update_search_command(self):
         """
         <summary>
@@ -5164,6 +5192,7 @@ def run():
             helper.update_random_command()
             helper.update_age_command()
             helper.update_search_command()
+            helper.update_accent()
             helper.update_favourites()
             helper.update_continue_watching()
             helper.update_lists()

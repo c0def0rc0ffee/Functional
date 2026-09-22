@@ -73,7 +73,7 @@
 			<height>6</height>
 			<info>Player.Progress</info>
 			<texturebg colordiffuse="00FFFFFF">white.png</texturebg>
-			<midtexture colordiffuse="accent_hi">white.png</midtexture>
+			<midtexture colordiffuse="$VAR[AccentHiColor]">white.png</midtexture>
 			<overlaytexture>-</overlaytexture>
 		</control>
 
@@ -216,7 +216,7 @@
 			<height>6</height>
 			<info>Player.Progress</info>
 			<texturebg colordiffuse="00FFFFFF">white.png</texturebg>
-			<midtexture colordiffuse="accent_hi">white.png</midtexture>
+			<midtexture colordiffuse="$VAR[AccentHiColor]">white.png</midtexture>
 			<overlaytexture>-</overlaytexture>
 		</control>
 

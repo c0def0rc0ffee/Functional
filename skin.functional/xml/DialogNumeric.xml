@@ -79,7 +79,7 @@
 			<align>center</align>
 			<aligny>center</aligny>
 			<textcolor>text</textcolor>
-			<selectedcolor>accent_hi</selectedcolor>
+			<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 			<!-- Kodi renders the fields that are NOT being edited in
 			     disabledcolor; unset it defaults to transparent and only the
 			     active field shows. -->

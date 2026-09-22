@@ -208,7 +208,7 @@
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<selectedcolor>accent_hi</selectedcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -248,7 +248,7 @@
 			<onright>500</onright>
 			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 		</control>
 
 		<!-- Action buttons: 20 = OK, 21 = cancel -->

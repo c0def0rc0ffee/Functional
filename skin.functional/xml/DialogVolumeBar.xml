@@ -68,7 +68,7 @@
 			<info>Player.Volume</info>
 			<texturesliderbar colordiffuse="grey_mid">white.png</texturesliderbar>
 			<textureslidernib colordiffuse="white">slider_nib.png</textureslidernib>
-			<textureslidernibfocus colordiffuse="accent_hi">slider_nib.png</textureslidernibfocus>
+			<textureslidernibfocus colordiffuse="$VAR[AccentHiColor]">slider_nib.png</textureslidernibfocus>
 		</control>
 
 		<!-- Numeric readout (Kodi reports Player.Volume as dB, e.g. "-6.0 dB") -->

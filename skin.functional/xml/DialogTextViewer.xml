@@ -67,7 +67,7 @@
 			<ondown>60</ondown>
 			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
-			<texturesliderbarfocus colordiffuse="accent_hi">white.png</texturesliderbarfocus>
+			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 		</control>
 
 		<!-- Hidden focus holder: a textbox cannot take focus, so this button
