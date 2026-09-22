@@ -541,6 +541,12 @@ class FunctionalHelper(xbmc.Monitor):
         self._lists_sel = 1          # 1-based list the Lists screen has selected
         self._lists_sel_pub = None   # selection the right column currently shows
         self._lists_slots_used = 0   # Lists.N.* slots written last publish
+        # Sleep timer (see update_sleep_timer). Deliberately not persisted:
+        # a timer has nothing to say once the box it was going to switch off
+        # has been switched off.
+        self._sleep_deadline = None   # epoch seconds, None = not armed
+        self._sleep_warned = False    # the one-minute toast has been shown
+        self._sleep_published = ""    # countdown label currently on screen
         self._list_item_slots_used = 0  # LI.N.* slots written last publish
         self._bootstrap_layout_defaults()
         self._migrate_bg_mode()
@@ -3626,6 +3632,181 @@ class FunctionalHelper(xbmc.Monitor):
             # one conditional slide animation per discrete value activates
             # as soon as String.IsEqual matches. No window reload needed.
 
+    # ---- Sleep timer ----------------------------------------------------
+
+    # Seeded into the hours-and-minutes prompt until the user has set one.
+    SLEEP_DEFAULT_HHMM = "01:00"
+    # How long before power off the one warning toast appears.
+    SLEEP_WARN_SECS = 60
+
+    def update_sleep_timer(self):
+        """
+        <summary>
+        Run the sleep timer: take commands from the power menu, republish the
+        countdown, and power the box down when it reaches zero.
+        </summary>
+        <remarks>
+        Skin.String(sleep_command) is the channel, "set" or "cancel", cleared
+        the moment it is read so a command cannot fire twice. "set" opens a
+        blocking hours-and-minutes prompt, which must go through
+        _spawn_dialog or it stalls every other handler for as long as it is
+        open.
+
+        The deadline lives in memory, not in a skin string, on purpose. A
+        sleep timer means "power this box down in a while", so it has nothing
+        to say once the box is off or Kodi has been restarted, and persisting
+        it would resurrect a timer the user has long forgotten. The countdown
+        goes out as a Home window property rather than a skin string for the
+        same reason plus one more: properties are in-memory, so a value that
+        changes every second never touches Kodi's settings store. A ReloadSkin
+        drops the property and the next tick puts it straight back.
+
+        Window(home).Property(sleep_remaining) being non-empty is what every
+        visibility condition in the XML reads as "a timer is armed", so the
+        property and the deadline are cleared together and never separately.
+
+        _sleep_deadline is written by the dialog thread and read here. A bare
+        float assignment is atomic under the GIL, and a tick that reads the
+        old value simply publishes one countdown that is a quarter-second
+        stale, so no lock is warranted.
+        </remarks>
+        """
+        cmd = self._get_skin("sleep_command")
+        if cmd:
+            # Clear immediately so we don't re-trigger
+            xbmc.executebuiltin("Skin.Reset(sleep_command)")
+            if cmd == "set":
+                self._spawn_dialog(self._sleep_pick)
+            elif cmd == "cancel":
+                self._sleep_disarm(announce=True)
+
+        if self._sleep_deadline is None:
+            return
+
+        remaining = int(round(self._sleep_deadline - time.time()))
+        if remaining <= 0:
+            self._sleep_fire()
+            return
+        if remaining <= self.SLEEP_WARN_SECS and not self._sleep_warned:
+            self._sleep_warned = True
+            self._sleep_notify(_L(31429))
+        label = self._fmt_countdown(remaining)
+        # Four ticks a second, one new label a second: only write on change.
+        if label != self._sleep_published:
+            self._sleep_published = label
+            _set_home_property("sleep_remaining", label)
+
+    @staticmethod
+    def _fmt_countdown(secs):
+        """
+        <summary>
+        Seconds remaining as "1:29:58", or "29:58" once under the hour.
+        </summary>
+        <remarks>
+        Hours are unpadded and minutes are padded, so the field neither
+        jitters in width within an hour nor reads as a clock time. Seconds
+        are always shown: a sleep timer that ticks is a sleep timer the
+        viewer can see is alive.
+        </remarks>
+        """
+        secs = max(0, int(secs))
+        hours, rest = divmod(secs, 3600)
+        minutes, seconds = divmod(rest, 60)
+        if hours:
+            return "{0}:{1:02d}:{2:02d}".format(hours, minutes, seconds)
+        return "{0}:{1:02d}".format(minutes, seconds)
+
+    def _sleep_pick(self):
+        """
+        <summary>
+        Ask for hours and minutes, seeded with the last value used, and arm
+        the timer.
+        </summary>
+        <remarks>
+        Kodi's numeric time dialog silently ignores a default it cannot parse
+        and seeds itself from the clock instead, so the stored value is
+        validated and re-padded before it goes in: "1:30" would otherwise turn
+        a remembered hour and a half into whatever the time happened to be.
+        The value is stored back on every accepted prompt, which is what makes
+        the dialog come up on the last duration next time.
+
+        00:00 is treated as "cancel" rather than "power down now", because
+        clearing the field is the obvious way to try to call a timer off and
+        an immediate shutdown would be a nasty answer to it.
+        </remarks>
+        """
+        current = self._get_skin("sleep_default")
+        if self._parse_hhmm(current) is None:
+            current = self.SLEEP_DEFAULT_HHMM
+        else:
+            current = self._fmt_hhmm(self._parse_hhmm(current))
+        result = xbmcgui.Dialog().numeric(2, _L(31426), current)
+        minutes = self._parse_hhmm(result)
+        if minutes is None:
+            return  # cancelled or garbage: leave any running timer alone
+        if minutes <= 0:
+            self._sleep_disarm(announce=True)
+            return
+        _set_skin_string("sleep_default", self._fmt_hhmm(minutes))
+        self._sleep_warned = minutes * 60 <= self.SLEEP_WARN_SECS
+        self._sleep_published = self._fmt_countdown(minutes * 60)
+        _set_home_property("sleep_remaining", self._sleep_published)
+        self._sleep_deadline = time.time() + minutes * 60
+        _dlog("sleep timer: armed for {0}".format(self._fmt_hhmm(minutes)))
+        self._sleep_notify(_L(31427).format(self._fmt_hhmm(minutes)))
+
+    def _sleep_disarm(self, announce=False):
+        """
+        <summary>
+        Stop any running timer and clear the countdown.
+        </summary>
+        <param name="announce">True to toast, but only if a timer was actually
+        running, so "cancel" on an idle skin stays silent.</param>
+        """
+        was_armed = self._sleep_deadline is not None
+        self._sleep_deadline = None
+        self._sleep_warned = False
+        self._sleep_published = ""
+        _set_home_property("sleep_remaining", "")
+        if was_armed:
+            _dlog("sleep timer: cancelled")
+            if announce:
+                self._sleep_notify(_L(31428))
+
+    def _sleep_fire(self):
+        """
+        <summary>
+        The timer has run out: stop playback, then power the box down.
+        </summary>
+        <remarks>
+        Disarmed first, so a Powerdown that the platform refuses (no
+        permission, an inhibitor holding it off) leaves a stopped player and
+        an idle skin rather than a handler that tries again every quarter
+        second. Playback is stopped before the shutdown builtin so the
+        resume point is written while Kodi is still up.
+        </remarks>
+        """
+        self._sleep_disarm()
+        _dlog("sleep timer: elapsed, stopping playback and powering down")
+        try:
+            player = xbmc.Player()
+            if player.isPlaying():
+                player.stop()
+        except Exception:  # noqa: BLE001
+            _dlog("sleep timer: stopping playback failed:\n{0}".format(
+                traceback.format_exc()), xbmc.LOGERROR)
+        xbmc.executebuiltin("Powerdown")
+
+    @staticmethod
+    def _sleep_notify(text):
+        """
+        <summary>
+        Short toast from the sleep timer, under the timer's own heading.
+        </summary>
+        """
+        xbmcgui.Dialog().notification(_L(31424), text,
+                                      xbmcgui.NOTIFICATION_INFO, 3500)
+
     # ---- Background command handler -------------------------------------
 
     # bg_genre_type → the media types VideoLibrary.GetGenres understands
@@ -4414,6 +4595,10 @@ def run():
             helper.update_info_cast()
             helper.update_cast_command()
             helper.update_cache_command()
+            # Fast ticker: the countdown has to move once a second, and the
+            # power menu's command must be picked up while the menu is still
+            # in front of the user.
+            helper.update_sleep_timer()
             if tick == 0:
                 helper.update_queue_eta()
                 helper.update_settings_backup()

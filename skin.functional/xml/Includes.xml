@@ -33,6 +33,32 @@
 
 	<expression name="bg_windows_active">Skin.HasSetting(bg_all_windows) | [Skin.HasSetting(bg_video_behind) + Player.HasVideo + !Slideshow.IsActive]</expression>
 
+	<!-- Which corner or edge centre the Home corner bar (now playing banner,
+	     queue button and the round icons) sits in. Skin.String(corner_bar_position)
+	     takes the same six values as notification_position: tl, tc, tr, bl, bc, br.
+	     Empty, or anything unrecognised, reads as br so an upgrade lands where the
+	     bar has always been.
+
+	     Horizontal placement cannot be an animation: a grouplist packs its items
+	     against the edge named by <align>, and that tag takes no condition and no
+	     variable. The bar is therefore instantiated three times from one include,
+	     once per alignment, and these expressions pick the instance. Vertical
+	     placement IS an animation, because top and bottom differ only by an offset. -->
+	<expression name="corner_bar_left">String.IsEqual(Skin.String(corner_bar_position),tl) | String.IsEqual(Skin.String(corner_bar_position),bl)</expression>
+	<expression name="corner_bar_centre">String.IsEqual(Skin.String(corner_bar_position),tc) | String.IsEqual(Skin.String(corner_bar_position),bc)</expression>
+	<expression name="corner_bar_right">!$EXP[corner_bar_left] + !$EXP[corner_bar_centre]</expression>
+	<expression name="corner_bar_top">String.IsEqual(Skin.String(corner_bar_position),tl) | String.IsEqual(Skin.String(corner_bar_position),tc) | String.IsEqual(Skin.String(corner_bar_position),tr)</expression>
+	<!-- The one placement that lands on top of the version label in the
+	     bottom-left corner, which is nudged up out of the way. -->
+	<expression name="corner_bar_bottom_left">String.IsEqual(Skin.String(corner_bar_position),bl)</expression>
+
+	<!-- A sleep timer is running. service.py republishes the countdown every
+	     tick and clears the property when the timer is cancelled or fires, so
+	     an empty property is the single source of truth for "not armed" and
+	     survives a ReloadSkin (the property is rebuilt within a second). -->
+	<expression name="sleep_armed">!String.IsEmpty(Window(home).Property(sleep_remaining))</expression>
+	<expression name="sleep_countdown_shown">$EXP[sleep_armed] + !Skin.HasSetting(hide_sleep_countdown)</expression>
+
 	<!-- Deliberately NOT pulling in Defaults.xml, see the note at the top of
 	     that file: every control in this skin styles itself explicitly. -->
 
@@ -559,6 +585,28 @@
 	<variable name="ContinueTabLabel">
 		<value condition="String.IsEqual(Skin.String(continue_tab),top)">$LOCALIZE[31135]</value>
 		<value>$LOCALIZE[31136]</value>
+	</variable>
+
+	<!-- <summary>Corner or edge the Home corner bar sits in, for the Skin
+	     Settings button. Shares the six position strings with the notification
+	     picker. Empty reads as bottom right, which is where the bar has always
+	     been.</summary> -->
+	<variable name="CornerBarPositionLabel">
+		<value condition="String.IsEqual(Skin.String(corner_bar_position),tl)">$LOCALIZE[31106]</value>
+		<value condition="String.IsEqual(Skin.String(corner_bar_position),tc)">$LOCALIZE[31158]</value>
+		<value condition="String.IsEqual(Skin.String(corner_bar_position),tr)">$LOCALIZE[31107]</value>
+		<value condition="String.IsEqual(Skin.String(corner_bar_position),bl)">$LOCALIZE[31108]</value>
+		<value condition="String.IsEqual(Skin.String(corner_bar_position),bc)">$LOCALIZE[31110]</value>
+		<value>$LOCALIZE[31109]</value>
+	</variable>
+
+	<!-- <summary>Label for the power menu's sleep timer row: the bare
+	     "Sleep timer" when nothing is armed, and the remaining time appended
+	     once one is, so the menu itself reports what is running.</summary>
+	     <remarks>service.py owns the property; see update_sleep_timer.</remarks> -->
+	<variable name="SleepTimerMenuLabel">
+		<value condition="$EXP[sleep_armed]">$LOCALIZE[31424]  $INFO[Window(home).Property(sleep_remaining)]</value>
+		<value>$LOCALIZE[31424]</value>
 	</variable>
 
 	<variable name="NotificationPositionLabel">
@@ -2356,6 +2404,277 @@
 					<aligny>center</aligny>
 					<label>$PARAM[value]</label>
 				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!--
+	  <summary>
+	  The Home corner bar: sleep countdown chip, now playing banner, queue
+	  button and the six round icons, as one horizontal row.
+	  </summary>
+	  <param name="id_bar">Grouplist id.</param>
+	  <param name="id_sleep">Countdown label id.</param>
+	  <param name="id_sleep_btn">Round power chip button id, the row's first focus stop when a timer is armed.</param>
+	  <param name="id_resume">Now playing banner button id.</param>
+	  <param name="id_queue">Queue button id.</param>
+	  <param name="id_stats">Stats icon id.</param>
+	  <param name="id_lists">Lists icon id.</param>
+	  <param name="id_fav">Favourites icon id.</param>
+	  <param name="id_addons">Add-ons icon id.</param>
+	  <param name="id_settings">Settings icon id.</param>
+	  <param name="id_power">Power icon id.</param>
+	  <param name="align">left, center or right: which edge of the box the row packs against.</param>
+	  <param name="left">x of the box, chosen so the packed edge lands on a 40px margin.</param>
+	  <param name="visible">Condition selecting this alignment's instance.</param>
+	  <remarks>
+	  Instantiated three times by Home.xml, once per horizontal alignment,
+	  because a grouplist's <align> takes neither a condition nor a variable
+	  and horizontal placement is exactly a change of alignment. Only one
+	  instance is ever visible, so the duplicated ids never compete for
+	  focus, but every id must still be unique within the window and the
+	  caller passes all ten in full rather than building them by
+	  concatenation.
+
+	  Vertical placement is a conditional slide instead, since top and bottom
+	  differ only by an offset: the box is 70 tall at bottom=40, so its top
+	  edge sits at y=970, and -800 lifts it to y=170. That is not flush with
+	  the top of the screen on purpose: the logo (y 30 to 150), the clock and
+	  date (40 to 116) and the weather line (118 to 150) all live in the band
+	  above it. Home.xml nudges the right-hand stats panel down by the same
+	  80px while the bar is at the top, for the same reason.
+
+	  Box width must hold every item it can ever show at once:
+	  200 + 520 + 140 + six 70s + eight 10px gaps = 1360. When a grouplist
+	  overflows its width Kodi drops the alignment and starts scrolling,
+	  which silently clipped the Power icon off-screen once already, so the
+	  40px of slack here is deliberate. Resize nothing without redoing that sum.
+	  </remarks>
+	-->
+	<include name="HomeCornerBar">
+		<param name="id_bar" />
+		<param name="id_sleep" />
+		<param name="id_sleep_btn" />
+		<param name="id_resume" />
+		<param name="id_queue" />
+		<param name="id_stats" />
+		<param name="id_lists" />
+		<param name="id_fav" />
+		<param name="id_addons" />
+		<param name="id_settings" />
+		<param name="id_power" />
+		<param name="align" default="right" />
+		<param name="left" default="480" />
+		<param name="visible" default="true" />
+		<definition>
+			<control type="grouplist" id="$PARAM[id_bar]">
+				<visible>$PARAM[visible]</visible>
+				<animation effect="slide" end="0,-800" time="0" condition="$EXP[corner_bar_top]">Conditional</animation>
+				<left>$PARAM[left]</left>
+				<bottom>40</bottom>
+				<width>1400</width>
+				<height>70</height>
+				<itemgap>10</itemgap>
+				<orientation>horizontal</orientation>
+				<align>$PARAM[align]</align>
+				<!-- Kodi takes the first condition that holds, so the
+				     bar-at-the-top cases come first and the long-standing
+				     bottom-edge targets stay as the fallback. -->
+				<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9211)">9211</onup>
+				<onup>9000</onup>
+				<ondown condition="$EXP[corner_bar_top]">9000</ondown>
+				<ondown condition="Control.IsVisible(9210)">9210</ondown>
+
+				<!-- Sleep countdown: a round power chip and the time left,
+				     riding at the head of the row so they follow the bar to
+				     whichever corner is chosen and sit beside the now playing
+				     banner while one is showing. Clicking the chip opens the power
+				     menu, which is where the timer is cancelled.
+
+				     Both are DIRECT children of the grouplist, and the focusable
+				     one comes first. Keep it that way. A grouplist hands out its
+				     left and right nav to direct children only, so a control
+				     nested a level deeper inside a wrapper group gets no arrow
+				     nav of its own, and an earlier draft that wrapped glyph and
+				     label in one group behaved exactly like that. The first
+				     draft put a bare image at the head of the row, which is
+				     worse: nothing else in the row is a non-focusable first
+				     item, and there is no reason to find out what a grouplist
+				     does with one. A plain button and a plain label, flat, is
+				     what every other item here already is. -->
+				<control type="button" id="$PARAM[id_sleep_btn]">
+					<visible>$EXP[sleep_countdown_shown]</visible>
+					<width>70</width>
+					<height>70</height>
+					<disabledcolor>disabled</disabledcolor>
+					<texturefocus colordiffuse="white">icons/home_power.png</texturefocus>
+					<texturenofocus colordiffuse="$VAR[AccentColor]">icons/home_power.png</texturenofocus>
+					<onclick>ActivateWindow(ShutdownMenu)</onclick>
+					<animation effect="fade" time="200">VisibleChange</animation>
+				</control>
+
+				<control type="label" id="$PARAM[id_sleep]">
+					<visible>$EXP[sleep_countdown_shown]</visible>
+					<width>130</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<aligny>center</aligny>
+					<label>$INFO[Window(home).Property(sleep_remaining)]</label>
+					<animation effect="fade" time="200">VisibleChange</animation>
+				</control>
+
+				<!-- Resume / now playing button (only visible when media is playing) -->
+				<control type="button" id="$PARAM[id_resume]">
+					<visible>Player.HasMedia</visible>
+					<width>520</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="accent_hi">white.png</texturenofocus>
+					<label>$LOCALIZE[31096] $INFO[VideoPlayer.Title]$INFO[MusicPlayer.Title]</label>
+					<onclick condition="Player.HasVideo">ActivateWindow(fullscreenvideo)</onclick>
+					<onclick condition="Player.HasAudio + !Player.HasVideo">ActivateWindow(visualisation)</onclick>
+					<animation effect="fade" time="200">VisibleChange</animation>
+				</control>
+
+				<!-- Queue (only visible when there's something queued) -->
+				<control type="button" id="$PARAM[id_queue]">
+					<visible>Integer.IsGreater(Playlist.Length(video),0) | Integer.IsGreater(Playlist.Length(music),0)</visible>
+					<width>140</width>
+					<height>70</height>
+					<font>font_small</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<textoffsetx>0</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
+					<label>$VAR[QueueCountLabel]</label>
+					<onclick condition="Integer.IsGreater(Playlist.Length(video),0)">ActivateWindow(VideoPlaylist)</onclick>
+					<onclick condition="!Integer.IsGreater(Playlist.Length(video),0) + Integer.IsGreater(Playlist.Length(music),0)">ActivateWindow(MusicPlaylist)</onclick>
+					<animation effect="fade" time="200">VisibleChange</animation>
+				</control>
+
+				<!-- Round icon buttons (Stats / Lists / Favourites / Add-ons / Settings / Power).
+				     Each icon PNG is a single texture combining a semi-transparent
+				     disc with an opaque glyph, so a colordiffuse renders the disc
+				     at half strength and the glyph at full, readable contrast on
+				     both focused (accent) and unfocused (bg_panel) buttons. Plain
+				     <button> so the parent grouplist's left/right arrow nav reaches
+				     them. -->
+
+				<!-- Stats page as a corner icon: off by default, only with
+				     script.jellystat installed, independent of the menu entry. -->
+				<control type="button" id="$PARAM[id_stats]">
+					<visible>System.HasAddon(script.jellystat) + Skin.HasSetting(show_stats_icon)</visible>
+					<width>70</width>
+					<height>70</height>
+					<disabledcolor>disabled</disabledcolor>
+					<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_stats.png</texturefocus>
+					<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_stats.png</texturenofocus>
+					<onclick>ActivateWindow(1153)</onclick>
+				</control>
+
+				<!-- Lists, as a corner icon. Off by default and independent of the
+				     Lists entry in the main menu (hide_lists), so either, both or
+				     neither can show. -->
+				<control type="button" id="$PARAM[id_lists]">
+					<visible>Skin.HasSetting(show_lists_icon)</visible>
+					<width>70</width>
+					<height>70</height>
+					<disabledcolor>disabled</disabledcolor>
+					<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_lists.png</texturefocus>
+					<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_lists.png</texturenofocus>
+					<onclick>ActivateWindow(1151)</onclick>
+				</control>
+
+				<control type="button" id="$PARAM[id_fav]">
+					<visible>!Skin.HasSetting(hide_favourites)</visible>
+					<width>70</width>
+					<height>70</height>
+					<disabledcolor>disabled</disabledcolor>
+					<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_favourites.png</texturefocus>
+					<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_favourites.png</texturenofocus>
+					<onclick>ActivateWindow(1150)</onclick>
+				</control>
+
+				<control type="button" id="$PARAM[id_addons]">
+					<visible>!Skin.HasSetting(hide_addons)</visible>
+					<width>70</width>
+					<height>70</height>
+					<disabledcolor>disabled</disabledcolor>
+					<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_addons.png</texturefocus>
+					<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_addons.png</texturenofocus>
+					<onclick>ActivateWindow(AddonBrowser)</onclick>
+				</control>
+
+				<control type="button" id="$PARAM[id_settings]">
+					<width>70</width>
+					<height>70</height>
+					<disabledcolor>disabled</disabledcolor>
+					<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_settings.png</texturefocus>
+					<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_settings.png</texturenofocus>
+					<onclick>ActivateWindow(Settings)</onclick>
+				</control>
+
+				<control type="button" id="$PARAM[id_power]">
+					<visible>!Skin.HasSetting(hide_power)</visible>
+					<width>70</width>
+					<height>70</height>
+					<disabledcolor>disabled</disabledcolor>
+					<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_power.png</texturefocus>
+					<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_power.png</texturenofocus>
+					<onclick>ActivateWindow(ShutdownMenu)</onclick>
+				</control>
+
+			</control>
+		</definition>
+	</include>
+
+	<!--
+	  <summary>
+	  Sleep countdown readout for the playback screens: power glyph plus the
+	  time left, right aligned so it grows leftwards away from whatever sits
+	  to its right.
+	  </summary>
+	  <remarks>
+	  Takes no coordinates: the caller wraps it in a positioned 200x30 group,
+	  because the three playback bars that use it anchor from different edges
+	  and a right-only or left-only parameter set would not serve all of them.
+	  The caller's group owns the visibility condition too.
+
+	  Home does not use this. Its copy lives inside the HomeCornerBar include,
+	  because there the readout has to travel with the bar.
+	  </remarks>
+	-->
+	<include name="SleepCountdownReadout">
+		<definition>
+			<control type="image">
+				<left>0</left>
+				<top>3</top>
+				<width>24</width>
+				<height>24</height>
+				<aspectratio>keep</aspectratio>
+				<texture colordiffuse="$VAR[AccentColor]">icons/home_power.png</texture>
+			</control>
+			<control type="label">
+				<left>34</left>
+				<top>0</top>
+				<width>166</width>
+				<height>30</height>
+				<font>font_small</font>
+				<aligny>center</aligny>
+				<textcolor>text_dim</textcolor>
+				<label>$INFO[Window(home).Property(sleep_remaining)]</label>
 			</control>
 		</definition>
 	</include>

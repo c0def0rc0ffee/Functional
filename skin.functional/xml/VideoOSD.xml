@@ -125,6 +125,18 @@
 			<align>right</align>
 			<label>$INFO[System.Time]</label>
 		</control>
+
+		<!-- Sleep countdown, left of the clock on the same row. The clock is
+		     right aligned and never wider than about 130px, so a block ending
+		     180 from the edge clears it. -->
+		<control type="group">
+			<visible>$EXP[sleep_countdown_shown]</visible>
+			<right>180</right>
+			<bottom>150</bottom>
+			<width>200</width>
+			<height>30</height>
+			<include content="SleepCountdownReadout"/>
+		</control>
 		<control type="label">
 			<right>40</right>
 			<bottom>118</bottom>

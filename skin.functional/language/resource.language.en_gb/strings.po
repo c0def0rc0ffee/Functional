@@ -1703,3 +1703,39 @@ msgstr ""
 msgctxt "#31423"
 msgid "Measured from the play log on this box"
 msgstr ""
+
+msgctxt "#31424"
+msgid "Sleep timer"
+msgstr ""
+
+msgctxt "#31425"
+msgid "Cancel sleep timer"
+msgstr ""
+
+msgctxt "#31426"
+msgid "Hours and minutes until power off"
+msgstr ""
+
+msgctxt "#31427"
+msgid "Powering down in {0}"
+msgstr ""
+
+msgctxt "#31428"
+msgid "Sleep timer cancelled"
+msgstr ""
+
+msgctxt "#31429"
+msgid "Powering down in one minute"
+msgstr ""
+
+msgctxt "#31430"
+msgid "Corner bar position:"
+msgstr ""
+
+msgctxt "#31431"
+msgid "Sleep timer in the power menu"
+msgstr ""
+
+msgctxt "#31432"
+msgid "Show the sleep countdown on screen"
+msgstr ""
