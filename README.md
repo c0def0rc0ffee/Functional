@@ -109,6 +109,7 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 - **Save as List** on the queue screen keeps the current queue for later
 - The Lists screen's action buttons sit along the bottom, or along the top under the header (Lists and Favourites settings)
 - Porting asks whether to clear the current queue first, or set a standing answer under Lists and Favourites
+- **Export** and **Import** (Lists and Favourites settings) carry lists between boxes: export copies the lists file to any folder Kodi can write to, import merges one in by list name without dropping anything
 
 ### Other Windows
 

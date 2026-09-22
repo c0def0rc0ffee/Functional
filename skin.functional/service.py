@@ -2683,25 +2683,7 @@ class FunctionalHelper(xbmc.Monitor):
             if xbmcvfs.exists(path):
                 try:
                     with xbmcvfs.File(path) as fh:
-                        data = json.loads(fh.read() or "{}")
-                    for entry in data.get("lists", []) or []:
-                        name = str(entry.get("name", "")).strip()
-                        if not name:
-                            continue
-                        items = [self._list_item_clean(it)
-                                 for it in entry.get("items", []) or []]
-                        # "fill" is the Port by Time length in minutes,
-                        # remembered per list. 0 means never set, so the
-                        # dialog opens on LIST_FILL_DEFAULT. Clamped
-                        # because _parse_hhmm tops out at 23:59.
-                        try:
-                            fill = int(entry.get("fill") or 0)
-                        except (TypeError, ValueError):
-                            fill = 0
-                        lists.append({"name": name,
-                                      "items": [it for it in items if it],
-                                      "fill": min(max(fill, 0), 23 * 60 + 59)})
-                    last = str(data.get("last", "") or "")
+                        lists, last = self._lists_parse(fh.read())
                 except Exception:  # noqa: BLE001
                     _dlog("lists.json unreadable:\n" + traceback.format_exc(),
                           xbmc.LOGWARNING)
@@ -2719,6 +2701,113 @@ class FunctionalHelper(xbmc.Monitor):
         self._lists_publish()
         _dlog("lists loaded: %d lists" % len(lists))
         return lists
+
+    def _lists_parse(self, text):
+        """
+        <summary>
+        Parse the text of a lists.json into clean list records.
+        </summary>
+        <param name="text">The file's contents.</param>
+        <returns>(lists, last): the list dicts and the remembered last list name.</returns>
+        <exception cref="ValueError">On anything that is not the expected JSON shape; callers decide what an unreadable file means.</exception>
+        <remarks>
+        Shared by the loader and the importer, so a file exported from
+        another box is read exactly as this box's own. "fill" is the Port by
+        Time length in minutes, remembered per list; 0 means never set, so
+        the dialog opens on LIST_FILL_DEFAULT, and it is clamped because
+        _parse_hhmm tops out at 23:59.
+        </remarks>
+        """
+        data = json.loads(text or "{}")
+        if not isinstance(data, dict):
+            raise ValueError("lists.json is not an object")
+        lists = []
+        for entry in data.get("lists", []) or []:
+            if not isinstance(entry, dict):
+                continue
+            name = str(entry.get("name", "")).strip()
+            if not name:
+                continue
+            items = [self._list_item_clean(it) for it in entry.get("items", []) or []]
+            try:
+                fill = int(entry.get("fill") or 0)
+            except (TypeError, ValueError):
+                fill = 0
+            lists.append({"name": name,
+                          "items": [it for it in items if it],
+                          "fill": min(max(fill, 0), 23 * 60 + 59)})
+        return lists, str(data.get("last", "") or "")
+
+    def _lists_export(self, folder=""):
+        """
+        <summary>
+        Copy lists.json to a folder of the user's choosing, so another box
+        can import it.
+        </summary>
+        <param name="folder">Destination folder; empty asks with Kodi's folder browser.</param>
+        <remarks>Dialog thread. The file is saved first so the copy carries
+        the in-memory state, then copied with xbmcvfs so any share Kodi can
+        write to is a valid destination.</remarks>
+        """
+        if not folder:
+            folder = xbmcgui.Dialog().browse(3, _L(31483), "files")
+        if not folder:
+            return
+        if not folder.endswith(("/", "\\")):
+            folder += "/"
+        self._lists_save()
+        dest = folder + "lists.json"
+        if xbmcvfs.copy(self._lists_path(), dest):
+            _dlog("lists exported to %s" % dest)
+            self._lists_notify(_L(31485) % folder)
+        else:
+            _dlog("lists export to %s failed" % dest, xbmc.LOGERROR)
+            self._lists_notify(_L(31487), True)
+
+    def _lists_import(self, path=""):
+        """
+        <summary>
+        Merge another box's lists.json into this one: lists are matched by
+        name, new lists are added, and items already in a list are skipped.
+        </summary>
+        <param name="path">The file to read; empty asks with Kodi's file browser.</param>
+        <remarks>Dialog thread. Nothing here is ever removed, so importing
+        twice is harmless, and the caps LISTS_MAX and LIST_ITEMS_MAX hold.</remarks>
+        """
+        if not path:
+            path = xbmcgui.Dialog().browse(1, _L(31484), "files", ".json")
+        if not path:
+            return
+        try:
+            with xbmcvfs.File(path) as fh:
+                incoming, _last = self._lists_parse(fh.read())
+        except Exception:  # noqa: BLE001
+            _dlog("lists import of %s failed:\n%s" % (path, traceback.format_exc()),
+                  xbmc.LOGWARNING)
+            self._lists_notify(_L(31488), True)
+            return
+        new_lists = new_items = 0
+        with self._lists_lock:
+            lists = self._lists if self._lists is not None else []
+            for entry in incoming:
+                target = next((l for l in lists if l["name"] == entry["name"]), None)
+                if target is None:
+                    if len(lists) >= self.LISTS_MAX:
+                        continue
+                    target = {"name": entry["name"], "items": [], "fill": entry["fill"]}
+                    lists.append(target)
+                    new_lists += 1
+                for item in entry["items"]:
+                    if len(target["items"]) >= self.LIST_ITEMS_MAX:
+                        break
+                    if any(self._list_item_same(item, it) for it in target["items"]):
+                        continue
+                    target["items"].append(item)
+                    new_items += 1
+            self._lists = lists
+        self._lists_save()
+        _dlog("lists imported from %s: %d new list(s), %d new item(s)" % (path, new_lists, new_items))
+        self._lists_notify(_L(31486) % (new_lists, new_items))
 
     def _lists_set_aside(self, path):
         """
@@ -2974,6 +3063,14 @@ class FunctionalHelper(xbmc.Monitor):
             self._lists_item_menu(cmd[5:])
         elif cmd == "save_queue":
             self._lists_save_queue()
+        elif cmd == "export":
+            self._lists_export()
+        elif cmd.startswith("export:"):
+            self._lists_export(cmd[7:])
+        elif cmd == "import":
+            self._lists_import()
+        elif cmd.startswith("import:"):
+            self._lists_import(cmd[7:])
         else:
             _dlog("list command ignored: %r" % cmd)
 

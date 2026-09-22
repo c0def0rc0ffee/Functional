@@ -1939,3 +1939,36 @@ msgstr ""
 msgctxt "#31480"
 msgid "Clear search"
 msgstr ""
+
+# Lists export and import. 22/09/2026.
+msgctxt "#31481"
+msgid "Export lists..."
+msgstr ""
+
+msgctxt "#31482"
+msgid "Import lists..."
+msgstr ""
+
+msgctxt "#31483"
+msgid "Folder to copy the lists file to"
+msgstr ""
+
+msgctxt "#31484"
+msgid "Lists file to merge in"
+msgstr ""
+
+msgctxt "#31485"
+msgid "Lists exported to %s"
+msgstr ""
+
+msgctxt "#31486"
+msgid "Imported %d new list(s) and %d new item(s)"
+msgstr ""
+
+msgctxt "#31487"
+msgid "Could not write the lists file there"
+msgstr ""
+
+msgctxt "#31488"
+msgid "That is not a lists file this skin can read"
+msgstr ""
