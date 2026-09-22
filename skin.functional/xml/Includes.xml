@@ -8,6 +8,9 @@
   </summary>
 -->
 <includes>
+	<!-- The game dialogs' controls live in their own file. -->
+	<include file="Includes_Games.xml" />
+
 	<!-- Live video is showing through the GUI: the option is on, something is
 	     playing, and we're not in the picture slideshow (which owns the
 	     screen). Everything in SkinBackground that would paint over the video

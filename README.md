@@ -111,7 +111,7 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 
 ### Other Windows
 
-Custom-styled to match the skin: File Manager, Event Log, System Info, Add-on Info, the on-screen keyboard, and compact, correctly-positioned toast notifications.
+Custom-styled to match the skin: File Manager, Event Log, System Info, Add-on Info, the on-screen keyboard, playback bookmarks and chapters, Kodi 21's Manage versions and Manage extras, the colour picker, the controller configuration dialogs, and compact, correctly-positioned toast notifications.
 
 > **Not skinned**: PVR/Live TV and Games. Enabling those features under this skin will leave their windows unable to open. Switch to Estuary if you need them.
 
