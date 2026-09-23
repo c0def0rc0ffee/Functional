@@ -980,32 +980,8 @@ msgctxt "#31240"
 msgid "MAIN MENU"
 msgstr ""
 
-msgctxt "#31241"
-msgid "Show Movies"
-msgstr ""
-
-msgctxt "#31242"
-msgid "Show TV Shows"
-msgstr ""
-
-msgctxt "#31243"
-msgid "Show Music"
-msgstr ""
-
-msgctxt "#31244"
-msgid "Show Pictures"
-msgstr ""
-
-msgctxt "#31245"
-msgid "Show Weather Menu Button"
-msgstr ""
-
 msgctxt "#31246"
 msgid "Show Weather Widget (beside the clock)"
-msgstr ""
-
-msgctxt "#31247"
-msgid "Show Lists Menu Button"
 msgstr ""
 
 msgctxt "#31248"
@@ -1636,10 +1612,6 @@ msgctxt "#31406"
 msgid "Stats"
 msgstr ""
 
-msgctxt "#31407"
-msgid "Show Stats Menu Button"
-msgstr ""
-
 msgctxt "#31408"
 msgid "Show Stats Corner Icon"
 msgstr ""
@@ -1984,4 +1956,41 @@ msgstr ""
 
 msgctxt "#31491"
 msgid "Pick the accent colour"
+msgstr ""
+
+# Custom Home tiles. 23/09/2026.
+msgctxt "#31493"
+msgid "Tile"
+msgstr ""
+
+msgctxt "#31494"
+msgid "Off"
+msgstr ""
+
+msgctxt "#31495"
+msgid "Favourite"
+msgstr ""
+
+msgctxt "#31496"
+msgid "Label"
+msgstr ""
+
+msgctxt "#31497"
+msgid "Each tile opens one of the skin's screens or any favourite. Off hides it, and an empty label keeps the name shown here."
+msgstr ""
+
+msgctxt "#31498"
+msgid "Favourite for tile {0}"
+msgstr ""
+
+msgctxt "#31499"
+msgid "No favourites to choose from yet"
+msgstr ""
+
+msgctxt "#31500"
+msgid "(default)"
+msgstr ""
+
+msgctxt "#31501"
+msgid "Not chosen yet"
 msgstr ""

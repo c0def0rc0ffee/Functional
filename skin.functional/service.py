@@ -506,6 +506,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._nextup_slots_used = 0
         # Age filter (see update_age_command)
         self._accent_custom_seen = None  # last accent_custom value turned into a highlight
+        self._tiles_seen = None          # last (toggles, addon, slots) the tiles were published from
         self._age_last_path = None       # Container.FolderPath last derived from
         # Cast strip on the full-screen info card (see update_playing_cast)
         # The lock makes "is this key still current?" + publish atomic, so a
@@ -4519,6 +4520,138 @@ class FunctionalHelper(xbmc.Monitor):
         if xbmc.getInfoLabel("Skin.String(search_active)").strip() != text:
             _set_skin_string("search_active", text)
 
+    # ---- Home tiles (the main menu, eight configurable slots) --------------
+    TILE_SLOTS = 8
+    TILE_DEFAULTS = ("movies", "tvshows", "music", "pictures", "weather", "lists", "stats", "none")
+    TILE_NAMES = {"movies": 31009, "tvshows": 31093, "music": 31011, "pictures": 31094, "weather": 31095, "lists": 31024, "stats": 31406, "favourites": 31007, "addons": 31005, "settings": 31218}
+    TILE_LEGACY_HIDE = {"movies": "hide_movies", "tvshows": "hide_tvshows", "music": "hide_music",
+                        "pictures": "hide_pictures", "lists": "hide_lists", "stats": "hide_stats_menu"}
+
+    def update_tiles(self):
+        """
+        <summary>
+        Resolve the eight main menu slots and publish Tile.N.Kind, Label
+        and KindLabel Home properties for Home.xml and the settings page.
+        </summary>
+        <remarks>
+        Fast ticker: some thirty cheap infolabel reads, and a write only
+        when any of them changed. A slot's kind is Skin.String(tileN); empty
+        means the slot's built in default (the menu as it was before tiles),
+        which still honours the old show and hide toggles so nobody's setup
+        changes on upgrade. An explicit kind ignores those toggles. Kind is
+        published empty when the slot is hidden: Off, Stats without
+        JellyStat, or a favourite slot with no favourite chosen yet. The
+        label is the user's own text if set, else the favourite's name, else
+        the kind's name.
+        </remarks>
+        """
+        toggles = tuple(xbmc.getCondVisibility("Skin.HasSetting({0})".format(k))
+                        for k in ("hide_movies", "hide_tvshows", "hide_music", "hide_pictures",
+                                  "show_weather", "hide_lists", "hide_stats_menu"))
+        has_stats = xbmc.getCondVisibility("System.HasAddon(script.jellystat)")
+        raw = []
+        for n in range(1, self.TILE_SLOTS + 1):
+            raw.append((xbmc.getInfoLabel("Skin.String(tile{0})".format(n)).strip().lower(),
+                        xbmc.getInfoLabel("Skin.String(tile{0}_label)".format(n)).strip(),
+                        xbmc.getInfoLabel("Skin.String(tile{0}_fav)".format(n)).strip()))
+        signature = (toggles, has_stats, tuple(raw))
+        if signature == self._tiles_seen:
+            return
+        self._tiles_seen = signature
+        hide_movies, hide_tv, hide_music, hide_pics, show_weather, hide_lists, hide_stats = toggles
+        legacy_hidden = {"movies": hide_movies, "tvshows": hide_tv, "music": hide_music,
+                         "pictures": hide_pics, "weather": not show_weather, "lists": hide_lists,
+                         "stats": hide_stats or not has_stats, "none": True}
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        for n, (kind, label, fav) in enumerate(raw, 1):
+            default = self.TILE_DEFAULTS[n - 1]
+            using_default = kind not in self.TILE_NAMES and kind not in ("fav", "none")
+            effective = default if using_default else kind
+            if using_default:
+                hidden = legacy_hidden.get(default, True)
+            else:
+                hidden = (kind == "none" or (kind == "stats" and not has_stats)
+                          or (kind == "fav" and not fav))
+            if effective == "fav":
+                kind_label = "{0}: {1}".format(_L(31495), fav or _L(31501))
+                name = fav or _L(31501)
+            elif effective == "none":
+                kind_label = _L(31494)
+                name = ""
+            else:
+                name = _L(self.TILE_NAMES[effective])
+                kind_label = name + (" " + _L(31500) if using_default else "")
+            win.setProperty("Tile.%d.Kind" % n, "" if hidden else effective)
+            win.setProperty("Tile.%d.Label" % n, label or name)
+            win.setProperty("Tile.%d.KindLabel" % n, kind_label)
+        _dlog("tiles: " + ", ".join(
+            "{0}={1}".format(n, win.getProperty("Tile.%d.Kind" % n) or "off")
+            for n in range(1, self.TILE_SLOTS + 1)))
+
+    def update_tile_command(self):
+        """
+        <summary>
+        Watch Skin.String(tile_command): run:N opens the favourite behind
+        tile N, pick:N asks which favourite that tile should hold.
+        </summary>
+        <remarks>Cheap enough to call every tick. The pick is a blocking
+        select dialog, so it goes through _spawn_dialog.</remarks>
+        """
+        cmd = self._take_command("tile_command", lower=True)
+        if not cmd or ":" not in cmd:
+            return
+        verb, _sep, number = cmd.partition(":")
+        n = self._safe_int(number, 0)
+        if not 1 <= n <= self.TILE_SLOTS:
+            return
+        if verb == "run":
+            self._tile_run(n)
+        elif verb == "pick":
+            self._spawn_dialog(lambda: self._tile_pick(n))
+
+    def _tile_run(self, n):
+        """
+        <summary>
+        Execute the favourite named in Skin.String(tileN_fav).
+        </summary>
+        <param name="n">1-based slot number.</param>
+        <remarks>Favourites are matched by name against the parsed
+        favourites.xml, which is reloaded when it changed on disk, so a
+        favourite renamed in Kodi simply stops matching until the tile is
+        picked again.</remarks>
+        """
+        name = xbmc.getInfoLabel("Skin.String(tile{0}_fav)".format(n)).strip()
+        self._read_favourites()
+        for item in self._fav_all:
+            if item["name"] == name:
+                _dlog("tile %d runs favourite %r: %s" % (n, name, item["action"]))
+                xbmc.executebuiltin(item["action"])
+                return
+        _dlog("tile %d: favourite %r not found" % (n, name), xbmc.LOGWARNING)
+        xbmcgui.Dialog().notification(_L(31000), _L(31501), xbmcgui.NOTIFICATION_INFO, 3000)
+
+    def _tile_pick(self, n):
+        """
+        <summary>
+        Dialog thread: choose a favourite for tile N from Kodi's list and
+        make the tile a favourite tile.
+        </summary>
+        <param name="n">1-based slot number.</param>
+        """
+        self._read_favourites()
+        names = [item["name"] for item in self._fav_all if item["name"]]
+        if not names:
+            xbmcgui.Dialog().notification(_L(31000), _L(31499), xbmcgui.NOTIFICATION_INFO, 3500)
+            return
+        current = xbmc.getInfoLabel("Skin.String(tile{0}_fav)".format(n)).strip()
+        preselect = names.index(current) if current in names else -1
+        choice = xbmcgui.Dialog().select(_L(31498).format(n), names, preselect=preselect)
+        if choice < 0:
+            return
+        _set_skin_string("tile{0}_fav".format(n), names[choice])
+        _set_skin_string("tile{0}".format(n), "fav")
+        _dlog("tile %d set to favourite %r" % (n, names[choice]))
+
     def update_accent(self):
         """
         <summary>
@@ -5193,6 +5326,8 @@ def run():
             helper.update_age_command()
             helper.update_search_command()
             helper.update_accent()
+            helper.update_tiles()
+            helper.update_tile_command()
             helper.update_favourites()
             helper.update_continue_watching()
             helper.update_lists()

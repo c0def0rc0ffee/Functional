@@ -1414,6 +1414,45 @@
 			</item>
 		</definition>
 	</include>
+	<!-- <summary>One main menu tile. service.py:update_tiles resolves the
+	     slot's kind (Skin.String(tileN), or the slot's built in default) and
+	     publishes Tile.N.Kind, empty when the tile is hidden, and Tile.N.Label.
+	     A favourite tile hands its click to the service, which runs the
+	     favourite's stored action by name.</summary>
+	     <param name="n">1-based slot number.</param>
+	     <param name="id">Button id, one of the menu's fixed ids.</param> -->
+	<include name="HomeTile">
+		<param name="n" />
+		<param name="id" />
+		<definition>
+			<control type="button" id="$PARAM[id]">
+				<visible>!String.IsEmpty(Window(home).Property(Tile.$PARAM[n].Kind))</visible>
+				<width>220</width>
+				<height>120</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<label>$INFO[Window(home).Property(Tile.$PARAM[n].Label)]</label>
+				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),movies)">ActivateWindow(Videos,MovieTitles,return)</onclick>
+				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),tvshows)">ActivateWindow(Videos,TvShowTitles,return)</onclick>
+				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),music)">ActivateWindow(Music,root,return)</onclick>
+				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),pictures)">ActivateWindow(Pictures)</onclick>
+				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),weather)">ActivateWindow(Weather)</onclick>
+				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),lists)">ActivateWindow(1151)</onclick>
+				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),stats)">ActivateWindow(1153)</onclick>
+				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),favourites)">ActivateWindow(1150)</onclick>
+				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),addons)">ActivateWindow(AddonBrowser)</onclick>
+				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),settings)">ActivateWindow(Settings)</onclick>
+				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),fav)">Skin.SetString(tile_command,run:$PARAM[n])</onclick>
+			</control>
+		</definition>
+	</include>
 	<!-- <summary>One Next Up slot: a static row bound to the NextUp.N.*
 	     properties service.py:update_next_up publishes. The episode id rides
 	     on an item property because a static item has no ListItem.DBID; a
