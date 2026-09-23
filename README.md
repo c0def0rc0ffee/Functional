@@ -55,7 +55,7 @@ The background is not limited to the home screen:
 
 - **Gallery view**: poster grid with four sizes (Small, Medium, Large, Extra Large), plus a small-grid column count toggle (11/12) for TVs with overscan, and a Tall/Compact poster-shape option
 - **List view**: traditional file list alternative
-- Watched badges (accent-coloured corner triangle with a tick) on completed items
+- Watched marks in both views: an accent corner badge with a tick on completed movies, episodes and fully watched shows in the gallery, a tick and a dimmed title in the list view, and a watched-of-total episode count on shows and seasons that are part way through
 - Info bar with the focused item's metadata, every field individually toggleable:
   - Genre, duration, star rating, age rating (PG/12/15/etc.), resolution (4K/1080p/720p/480p), last played date
   - **"Ends at" time**: a background service works out when the focused movie or episode would finish if started now (e.g. "Ends at 22:47")

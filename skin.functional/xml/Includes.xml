@@ -788,6 +788,32 @@
 				<texture colordiffuse="white">tick.png</texture>
 				<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
 			</control>
+			<!-- A show or season part way through: watched of total episodes
+			     on a strip along the poster's foot. Kodi gives a show a play
+			     count only once every episode is played, so until then this
+			     is the only sign of progress; every layout is poster_h + 8
+			     tall, which is what lets the strip hang from the bottom. -->
+			<control type="group">
+				<visible>!String.IsEmpty(ListItem.Property(TotalEpisodes)) + Integer.IsGreater(ListItem.Property(WatchedEpisodes),0) + Integer.IsEqual(ListItem.PlayCount,0)</visible>
+				<control type="image">
+					<left>4</left>
+					<bottom>4</bottom>
+					<width>$PARAM[poster_w]</width>
+					<height>30</height>
+					<texture colordiffuse="C0000000">white.png</texture>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<bottom>4</bottom>
+					<width>$PARAM[poster_w]</width>
+					<height>30</height>
+					<font>font_small</font>
+					<textcolor>$VAR[AccentHiColor]</textcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Property(WatchedEpisodes)]$INFO[ListItem.Property(TotalEpisodes), / ,]</label>
+				</control>
+			</control>
 		</definition>
 	</include>
 

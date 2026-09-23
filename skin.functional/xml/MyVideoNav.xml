@@ -287,6 +287,11 @@
 			<pagecontrol>60</pagecontrol>
 			<viewtype label="31014">list</viewtype>
 
+			<!-- Watched state in the list view: a played row is dimmed and
+			     carries a tick before the right hand field; a show or season
+			     part way through carries its watched of total count there
+			     instead. Two title labels rather than one, since a colour
+			     cannot depend on the row. -->
 			<itemlayout height="60" width="1860">
 				<control type="image">
 					<left>10</left>
@@ -298,13 +303,47 @@
 				<control type="label">
 					<left>80</left>
 					<top>0</top>
-					<width>1500</width>
+					<width>1340</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
+					<visible>Integer.IsEqual(ListItem.PlayCount,0)</visible>
+				</control>
+				<control type="label">
+					<left>80</left>
+					<top>0</top>
+					<width>1340</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text_dim</textcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+					<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
+				</control>
+				<control type="image">
+					<right>280</right>
+					<top>18</top>
+					<width>24</width>
+					<height>24</height>
+					<aspectratio>keep</aspectratio>
+					<texture colordiffuse="$VAR[AccentHiColor]">tick.png</texture>
+					<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
+				</control>
+				<control type="label">
+					<right>280</right>
+					<top>0</top>
+					<width>140</width>
+					<height>60</height>
+					<font>font_small</font>
+					<textcolor>$VAR[AccentHiColor]</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Property(WatchedEpisodes)]$INFO[ListItem.Property(TotalEpisodes), / ,]</label>
+					<visible>!String.IsEmpty(ListItem.Property(TotalEpisodes)) + Integer.IsGreater(ListItem.Property(WatchedEpisodes),0) + Integer.IsEqual(ListItem.PlayCount,0)</visible>
 				</control>
 				<control type="label">
 					<right>20</right>
@@ -338,13 +377,34 @@
 				<control type="label">
 					<left>80</left>
 					<top>0</top>
-					<width>1500</width>
+					<width>1340</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>white</textcolor>
 					<selectedcolor>white</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="image">
+					<right>280</right>
+					<top>18</top>
+					<width>24</width>
+					<height>24</height>
+					<aspectratio>keep</aspectratio>
+					<texture colordiffuse="white">tick.png</texture>
+					<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
+				</control>
+				<control type="label">
+					<right>280</right>
+					<top>0</top>
+					<width>140</width>
+					<height>60</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Property(WatchedEpisodes)]$INFO[ListItem.Property(TotalEpisodes), / ,]</label>
+					<visible>!String.IsEmpty(ListItem.Property(TotalEpisodes)) + Integer.IsGreater(ListItem.Property(WatchedEpisodes),0) + Integer.IsEqual(ListItem.PlayCount,0)</visible>
 				</control>
 				<control type="label">
 					<right>20</right>
