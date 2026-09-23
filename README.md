@@ -23,7 +23,7 @@ Home: library stats, clock, and a rotating fanart background.
 
 ### Home Screen
 
-- Main menu items (Movies, TV Shows, Music, Pictures, and **Weather**), each shown or hidden individually
+- **Main menu tiles you own**: eight ordered slots, each one of the skin's screens (Movies, TV Shows, Music, Pictures, Weather, Lists, Stats, Favourites, Add-ons, Settings) or any Favourite from Kodi's list, with a label of your choosing; untouched, the menu is the familiar one
 - Menu position configurable: top, centre, or bottom of the screen
 - Round icon buttons for **Favourites, Add-ons, Settings, and Power**, with an optional "invisible until focused" mode for a minimal look
 - Real-time date and time, with an optional **weather widget** (temperature + conditions) beside the clock

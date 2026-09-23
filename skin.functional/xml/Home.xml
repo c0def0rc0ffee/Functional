@@ -363,8 +363,9 @@
 			     and of the corner bar when that is at the top (y 180 to 250).
 			     Bottom: y 820 to 960 while the corner bar holds the bottom edge
 			     (y 970 to 1040), the full 440 only once the bar has moved to the
-			     top. With all seven entries on and the menu at the top the row
-			     is 1800 wide and runs under the logo; six or fewer clear it. -->
+			     top. Tiles are 220 wide with a 20 gap, so all eight fit in 1900; at
+			     the top, seven or more run under the logo, six or fewer clear
+			     it. Each tile is the HomeTile include below. -->
 			<animation effect="slide" end="0,-440" time="0" condition="$EXP[menu_top]">Conditional</animation>
 			<animation effect="slide" end="0,440" time="0" condition="$EXP[menu_bottom] + $EXP[corner_bar_top]">Conditional</animation>
 			<animation effect="slide" end="0,340" time="0" condition="$EXP[menu_bottom] + !$EXP[corner_bar_top]">Conditional</animation>
@@ -398,129 +399,18 @@
 			<ondown condition="Control.IsVisible(9120)">9120</ondown>
 			<ondown>9100</ondown>
 
-			<control type="button" id="9001">
-				<visible>!Skin.HasSetting(hide_movies)</visible>
-				<width>240</width>
-				<height>120</height>
-				<font>font_med</font>
-				<textcolor>text</textcolor>
-				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
-				<texturenofocus>-</texturenofocus>
-				<label>31009</label>
-				<onclick>ActivateWindow(Videos,MovieTitles,return)</onclick>
-			</control>
-
-			<control type="button" id="9002">
-				<visible>!Skin.HasSetting(hide_tvshows)</visible>
-				<width>240</width>
-				<height>120</height>
-				<font>font_med</font>
-				<textcolor>text</textcolor>
-				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
-				<texturenofocus>-</texturenofocus>
-				<label>31093</label>
-				<onclick>ActivateWindow(Videos,TvShowTitles,return)</onclick>
-			</control>
-
-			<control type="button" id="9003">
-				<visible>!Skin.HasSetting(hide_music)</visible>
-				<width>240</width>
-				<height>120</height>
-				<font>font_med</font>
-				<textcolor>text</textcolor>
-				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
-				<texturenofocus>-</texturenofocus>
-				<label>31011</label>
-				<onclick>ActivateWindow(Music,root,return)</onclick>
-			</control>
-
-			<control type="button" id="9004">
-				<visible>!Skin.HasSetting(hide_pictures)</visible>
-				<width>240</width>
-				<height>120</height>
-				<font>font_med</font>
-				<textcolor>text</textcolor>
-				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
-				<texturenofocus>-</texturenofocus>
-				<label>31094</label>
-				<onclick>ActivateWindow(Pictures)</onclick>
-			</control>
-
-			<control type="button" id="9005">
-				<visible>Skin.HasSetting(show_weather)</visible>
-				<width>240</width>
-				<height>120</height>
-				<font>font_med</font>
-				<textcolor>text</textcolor>
-				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
-				<texturenofocus>-</texturenofocus>
-				<label>31095</label>
-				<onclick>ActivateWindow(Weather)</onclick>
-			</control>
-
-			<!-- Lists (skin feature, custom window 1151): named media lists
-			     that port into the queue. Hidden by hide_lists (Home Screen). -->
-			<control type="button" id="9007">
-				<visible>!Skin.HasSetting(hide_lists)</visible>
-				<width>240</width>
-				<height>120</height>
-				<font>font_med</font>
-				<textcolor>text</textcolor>
-				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
-				<texturenofocus>-</texturenofocus>
-				<label>31024</label>
-				<onclick>ActivateWindow(1151)</onclick>
-			</control>
-
-			<!-- Stats (custom window 1153): JellyStat's figures as a page.
-			     Only with script.jellystat installed, and never a prompt to
-			     install it. Hidden by hide_stats_menu (Home Screen). -->
-			<control type="button" id="9008">
-				<visible>System.HasAddon(script.jellystat) + !Skin.HasSetting(hide_stats_menu)</visible>
-				<width>240</width>
-				<height>120</height>
-				<font>font_med</font>
-				<textcolor>text</textcolor>
-				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]" border="4">border.png</texturefocus>
-				<texturenofocus>-</texturenofocus>
-				<label>31406</label>
-				<onclick>ActivateWindow(1153)</onclick>
-			</control>
+			<!-- Eight tiles, each a built in screen or any favourite, set on the
+			     Main Menu settings page; with nothing set they are the menu as it
+			     always was. Ids keep the old numbers (9006 belongs to the weather
+			     widget), so nothing that navigates here changes. -->
+			<include content="HomeTile"><param name="n" value="1" /><param name="id" value="9001" /></include>
+			<include content="HomeTile"><param name="n" value="2" /><param name="id" value="9002" /></include>
+			<include content="HomeTile"><param name="n" value="3" /><param name="id" value="9003" /></include>
+			<include content="HomeTile"><param name="n" value="4" /><param name="id" value="9004" /></include>
+			<include content="HomeTile"><param name="n" value="5" /><param name="id" value="9005" /></include>
+			<include content="HomeTile"><param name="n" value="6" /><param name="id" value="9007" /></include>
+			<include content="HomeTile"><param name="n" value="7" /><param name="id" value="9008" /></include>
+			<include content="HomeTile"><param name="n" value="8" /><param name="id" value="9009" /></include>
 
 		</control>
 

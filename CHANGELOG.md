@@ -11,6 +11,13 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.12.15 (23/09/2026)
+
+- Main menu tiles you own. The Main Menu settings page now has eight
+  ordered slots; each can be one of the skin's screens or any favourite
+  from Kodi's list (an add-on, a playlist, a library node, a file), with
+  its own label. Untouched, the menu is exactly what it was.
+
 ## 0.12.14 (23/09/2026)
 
 - Watched marks in the list view at last: a tick and a dimmed title on

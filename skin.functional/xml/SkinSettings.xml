@@ -94,7 +94,7 @@
 				<onfocus condition="!Skin.HasSetting(settings_reload)">Skin.SetString(settings_category,mainmenu)</onfocus>
 				<onclick>Skin.Reset(settings_reload)</onclick>
 				<onclick>Skin.SetString(settings_category,mainmenu)</onclick>
-				<onright>7100</onright>
+				<onright>7151</onright>
 			</control>
 
 			<control type="button" id="7001">
@@ -665,7 +665,19 @@
 					<textcolor>text_dim</textcolor>
 					<label>31240</label>
 				</control>
-				<control type="radiobutton" id="7100">
+				<!-- TILES: the eight main menu slots. A cycle row per slot, a
+				     label row while the tile is on, and a favourite row while it is
+				     a favourite tile. The kind strings and the resolved names come
+				     from service.py:update_tiles. -->
+				<control type="label" id="7066">
+					<width>680</width>
+					<height>60</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<wrapmultiline>true</wrapmultiline>
+					<label>31497</label>
+				</control>
+				<control type="button" id="7151">
 					<width>680</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -677,18 +689,26 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31241</label>
-					<selected>!Skin.HasSetting(hide_movies)</selected>
-					<onclick>Skin.ToggleSetting(hide_movies)</onclick>
+					<label>$LOCALIZE[31493] 1: $INFO[Window(home).Property(Tile.1.KindLabel)]</label>
+					<onclick condition="String.IsEmpty(Skin.String(tile1))">Skin.SetString(tile1,tvshows)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile1),movies)">Skin.SetString(tile1,tvshows)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile1),tvshows)">Skin.SetString(tile1,music)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile1),music)">Skin.SetString(tile1,pictures)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile1),pictures)">Skin.SetString(tile1,weather)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile1),weather)">Skin.SetString(tile1,lists)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile1),lists)">Skin.SetString(tile1,stats)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile1),stats)">Skin.SetString(tile1,favourites)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile1),favourites)">Skin.SetString(tile1,addons)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile1),addons)">Skin.SetString(tile1,settings)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile1),settings)">Skin.SetString(tile1,fav)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile1),fav)">Skin.SetString(tile1,none)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile1),none)">Skin.SetString(tile1,movies)</onclick>
 					<onleft>7000</onleft>
 					<onright>7024</onright>
 				</control>
-				<control type="radiobutton" id="7101">
-					<width>680</width>
+				<control type="button" id="7161">
+					<visible>!String.IsEqual(Skin.String(tile1),none)</visible>
+					<width>640</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
@@ -696,21 +716,17 @@
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
+					<textoffsetx>60</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31242</label>
-					<selected>!Skin.HasSetting(hide_tvshows)</selected>
-					<onclick>Skin.ToggleSetting(hide_tvshows)</onclick>
+					<label>$LOCALIZE[31496]: $INFO[Window(home).Property(Tile.1.Label)]</label>
+					<onclick>Skin.SetString(tile1_label)</onclick>
 					<onleft>7000</onleft>
 					<onright>7024</onright>
 				</control>
-				<control type="radiobutton" id="7102">
-					<width>680</width>
+				<control type="button" id="7171">
+					<visible>String.IsEqual(Skin.String(tile1),fav)</visible>
+					<width>640</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
@@ -718,20 +734,15 @@
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
+					<textoffsetx>60</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31243</label>
-					<selected>!Skin.HasSetting(hide_music)</selected>
-					<onclick>Skin.ToggleSetting(hide_music)</onclick>
+					<label>$LOCALIZE[31495]: $INFO[Skin.String(tile1_fav)]</label>
+					<onclick>Skin.SetString(tile_command,pick:1)</onclick>
 					<onleft>7000</onleft>
 					<onright>7024</onright>
 				</control>
-				<control type="radiobutton" id="7103">
+				<control type="button" id="7152">
 					<width>680</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -743,20 +754,26 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31244</label>
-					<selected>!Skin.HasSetting(hide_pictures)</selected>
-					<onclick>Skin.ToggleSetting(hide_pictures)</onclick>
+					<label>$LOCALIZE[31493] 2: $INFO[Window(home).Property(Tile.2.KindLabel)]</label>
+					<onclick condition="String.IsEmpty(Skin.String(tile2))">Skin.SetString(tile2,music)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile2),movies)">Skin.SetString(tile2,tvshows)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile2),tvshows)">Skin.SetString(tile2,music)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile2),music)">Skin.SetString(tile2,pictures)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile2),pictures)">Skin.SetString(tile2,weather)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile2),weather)">Skin.SetString(tile2,lists)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile2),lists)">Skin.SetString(tile2,stats)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile2),stats)">Skin.SetString(tile2,favourites)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile2),favourites)">Skin.SetString(tile2,addons)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile2),addons)">Skin.SetString(tile2,settings)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile2),settings)">Skin.SetString(tile2,fav)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile2),fav)">Skin.SetString(tile2,none)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile2),none)">Skin.SetString(tile2,movies)</onclick>
 					<onleft>7000</onleft>
 					<onright>7024</onright>
 				</control>
-				<!-- Weather menu button (in the main menu row), opt-in;
-				     requires a Weather provider addon under Settings → Services. -->
-				<control type="radiobutton" id="7121">
-					<width>680</width>
+				<control type="button" id="7162">
+					<visible>!String.IsEqual(Skin.String(tile2),none)</visible>
+					<width>640</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
@@ -764,21 +781,17 @@
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
+					<textoffsetx>60</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31245</label>
-					<selected>Skin.HasSetting(show_weather)</selected>
-					<onclick>Skin.ToggleSetting(show_weather)</onclick>
+					<label>$LOCALIZE[31496]: $INFO[Window(home).Property(Tile.2.Label)]</label>
+					<onclick>Skin.SetString(tile2_label)</onclick>
 					<onleft>7000</onleft>
 					<onright>7024</onright>
 				</control>
-				<control type="radiobutton" id="7127">
-					<width>680</width>
+				<control type="button" id="7172">
+					<visible>String.IsEqual(Skin.String(tile2),fav)</visible>
+					<width>640</width>
 					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
@@ -786,23 +799,15 @@
 					<focusedcolor>white</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
+					<textoffsetx>60</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31247</label>
-					<selected>!Skin.HasSetting(hide_lists)</selected>
-					<onclick>Skin.ToggleSetting(hide_lists)</onclick>
+					<label>$LOCALIZE[31495]: $INFO[Skin.String(tile2_fav)]</label>
+					<onclick>Skin.SetString(tile_command,pick:2)</onclick>
 					<onleft>7000</onleft>
 					<onright>7024</onright>
 				</control>
-				<!-- Stats page (custom window 1153) entry in the main menu. Only
-				     offered with JellyStat installed, never as a prompt to install it. -->
-				<control type="radiobutton" id="7138">
-					<visible>System.HasAddon(script.jellystat)</visible>
+				<control type="button" id="7153">
 					<width>680</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -814,13 +819,381 @@
 					<textoffsetx>20</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31407</label>
-					<selected>!Skin.HasSetting(hide_stats_menu)</selected>
-					<onclick>Skin.ToggleSetting(hide_stats_menu)</onclick>
+					<label>$LOCALIZE[31493] 3: $INFO[Window(home).Property(Tile.3.KindLabel)]</label>
+					<onclick condition="String.IsEmpty(Skin.String(tile3))">Skin.SetString(tile3,pictures)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile3),movies)">Skin.SetString(tile3,tvshows)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile3),tvshows)">Skin.SetString(tile3,music)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile3),music)">Skin.SetString(tile3,pictures)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile3),pictures)">Skin.SetString(tile3,weather)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile3),weather)">Skin.SetString(tile3,lists)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile3),lists)">Skin.SetString(tile3,stats)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile3),stats)">Skin.SetString(tile3,favourites)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile3),favourites)">Skin.SetString(tile3,addons)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile3),addons)">Skin.SetString(tile3,settings)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile3),settings)">Skin.SetString(tile3,fav)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile3),fav)">Skin.SetString(tile3,none)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile3),none)">Skin.SetString(tile3,movies)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7163">
+					<visible>!String.IsEqual(Skin.String(tile3),none)</visible>
+					<width>640</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>60</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31496]: $INFO[Window(home).Property(Tile.3.Label)]</label>
+					<onclick>Skin.SetString(tile3_label)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7173">
+					<visible>String.IsEqual(Skin.String(tile3),fav)</visible>
+					<width>640</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>60</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31495]: $INFO[Skin.String(tile3_fav)]</label>
+					<onclick>Skin.SetString(tile_command,pick:3)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7154">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31493] 4: $INFO[Window(home).Property(Tile.4.KindLabel)]</label>
+					<onclick condition="String.IsEmpty(Skin.String(tile4))">Skin.SetString(tile4,weather)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile4),movies)">Skin.SetString(tile4,tvshows)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile4),tvshows)">Skin.SetString(tile4,music)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile4),music)">Skin.SetString(tile4,pictures)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile4),pictures)">Skin.SetString(tile4,weather)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile4),weather)">Skin.SetString(tile4,lists)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile4),lists)">Skin.SetString(tile4,stats)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile4),stats)">Skin.SetString(tile4,favourites)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile4),favourites)">Skin.SetString(tile4,addons)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile4),addons)">Skin.SetString(tile4,settings)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile4),settings)">Skin.SetString(tile4,fav)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile4),fav)">Skin.SetString(tile4,none)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile4),none)">Skin.SetString(tile4,movies)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7164">
+					<visible>!String.IsEqual(Skin.String(tile4),none)</visible>
+					<width>640</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>60</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31496]: $INFO[Window(home).Property(Tile.4.Label)]</label>
+					<onclick>Skin.SetString(tile4_label)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7174">
+					<visible>String.IsEqual(Skin.String(tile4),fav)</visible>
+					<width>640</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>60</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31495]: $INFO[Skin.String(tile4_fav)]</label>
+					<onclick>Skin.SetString(tile_command,pick:4)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7155">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31493] 5: $INFO[Window(home).Property(Tile.5.KindLabel)]</label>
+					<onclick condition="String.IsEmpty(Skin.String(tile5))">Skin.SetString(tile5,lists)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile5),movies)">Skin.SetString(tile5,tvshows)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile5),tvshows)">Skin.SetString(tile5,music)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile5),music)">Skin.SetString(tile5,pictures)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile5),pictures)">Skin.SetString(tile5,weather)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile5),weather)">Skin.SetString(tile5,lists)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile5),lists)">Skin.SetString(tile5,stats)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile5),stats)">Skin.SetString(tile5,favourites)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile5),favourites)">Skin.SetString(tile5,addons)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile5),addons)">Skin.SetString(tile5,settings)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile5),settings)">Skin.SetString(tile5,fav)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile5),fav)">Skin.SetString(tile5,none)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile5),none)">Skin.SetString(tile5,movies)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7165">
+					<visible>!String.IsEqual(Skin.String(tile5),none)</visible>
+					<width>640</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>60</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31496]: $INFO[Window(home).Property(Tile.5.Label)]</label>
+					<onclick>Skin.SetString(tile5_label)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7175">
+					<visible>String.IsEqual(Skin.String(tile5),fav)</visible>
+					<width>640</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>60</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31495]: $INFO[Skin.String(tile5_fav)]</label>
+					<onclick>Skin.SetString(tile_command,pick:5)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7156">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31493] 6: $INFO[Window(home).Property(Tile.6.KindLabel)]</label>
+					<onclick condition="String.IsEmpty(Skin.String(tile6))">Skin.SetString(tile6,stats)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile6),movies)">Skin.SetString(tile6,tvshows)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile6),tvshows)">Skin.SetString(tile6,music)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile6),music)">Skin.SetString(tile6,pictures)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile6),pictures)">Skin.SetString(tile6,weather)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile6),weather)">Skin.SetString(tile6,lists)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile6),lists)">Skin.SetString(tile6,stats)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile6),stats)">Skin.SetString(tile6,favourites)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile6),favourites)">Skin.SetString(tile6,addons)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile6),addons)">Skin.SetString(tile6,settings)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile6),settings)">Skin.SetString(tile6,fav)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile6),fav)">Skin.SetString(tile6,none)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile6),none)">Skin.SetString(tile6,movies)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7166">
+					<visible>!String.IsEqual(Skin.String(tile6),none)</visible>
+					<width>640</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>60</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31496]: $INFO[Window(home).Property(Tile.6.Label)]</label>
+					<onclick>Skin.SetString(tile6_label)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7176">
+					<visible>String.IsEqual(Skin.String(tile6),fav)</visible>
+					<width>640</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>60</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31495]: $INFO[Skin.String(tile6_fav)]</label>
+					<onclick>Skin.SetString(tile_command,pick:6)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7157">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31493] 7: $INFO[Window(home).Property(Tile.7.KindLabel)]</label>
+					<onclick condition="String.IsEmpty(Skin.String(tile7))">Skin.SetString(tile7,favourites)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile7),movies)">Skin.SetString(tile7,tvshows)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile7),tvshows)">Skin.SetString(tile7,music)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile7),music)">Skin.SetString(tile7,pictures)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile7),pictures)">Skin.SetString(tile7,weather)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile7),weather)">Skin.SetString(tile7,lists)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile7),lists)">Skin.SetString(tile7,stats)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile7),stats)">Skin.SetString(tile7,favourites)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile7),favourites)">Skin.SetString(tile7,addons)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile7),addons)">Skin.SetString(tile7,settings)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile7),settings)">Skin.SetString(tile7,fav)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile7),fav)">Skin.SetString(tile7,none)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile7),none)">Skin.SetString(tile7,movies)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7167">
+					<visible>!String.IsEqual(Skin.String(tile7),none)</visible>
+					<width>640</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>60</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31496]: $INFO[Window(home).Property(Tile.7.Label)]</label>
+					<onclick>Skin.SetString(tile7_label)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7177">
+					<visible>String.IsEqual(Skin.String(tile7),fav)</visible>
+					<width>640</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>60</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31495]: $INFO[Skin.String(tile7_fav)]</label>
+					<onclick>Skin.SetString(tile_command,pick:7)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7158">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31493] 8: $INFO[Window(home).Property(Tile.8.KindLabel)]</label>
+					<onclick condition="String.IsEmpty(Skin.String(tile8))">Skin.SetString(tile8,movies)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile8),movies)">Skin.SetString(tile8,tvshows)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile8),tvshows)">Skin.SetString(tile8,music)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile8),music)">Skin.SetString(tile8,pictures)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile8),pictures)">Skin.SetString(tile8,weather)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile8),weather)">Skin.SetString(tile8,lists)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile8),lists)">Skin.SetString(tile8,stats)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile8),stats)">Skin.SetString(tile8,favourites)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile8),favourites)">Skin.SetString(tile8,addons)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile8),addons)">Skin.SetString(tile8,settings)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile8),settings)">Skin.SetString(tile8,fav)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile8),fav)">Skin.SetString(tile8,none)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(tile8),none)">Skin.SetString(tile8,movies)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7168">
+					<visible>!String.IsEqual(Skin.String(tile8),none)</visible>
+					<width>640</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>60</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31496]: $INFO[Window(home).Property(Tile.8.Label)]</label>
+					<onclick>Skin.SetString(tile8_label)</onclick>
+					<onleft>7000</onleft>
+					<onright>7024</onright>
+				</control>
+				<control type="button" id="7178">
+					<visible>String.IsEqual(Skin.String(tile8),fav)</visible>
+					<width>640</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>60</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31495]: $INFO[Skin.String(tile8_fav)]</label>
+					<onclick>Skin.SetString(tile_command,pick:8)</onclick>
 					<onleft>7000</onleft>
 					<onright>7024</onright>
 				</control>
