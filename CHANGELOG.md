@@ -11,6 +11,13 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.12.14 (23/09/2026)
+
+- Watched marks in the list view at last: a tick and a dimmed title on
+  played rows. Shows and seasons that are part way through show their
+  watched of total episode count, in the list and on the gallery poster;
+  before, a show was marked only once every episode had been played.
+
 ## 0.12.13 (22/09/2026)
 
 - Any colour as the accent: a Custom accent colour row on the Overall

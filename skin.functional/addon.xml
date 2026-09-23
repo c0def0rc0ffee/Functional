@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.12.13" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.12.14" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>Any colour as the accent: a Custom accent colour row on the Overall settings page opens Kodi's colour picker, and the highlight shade used for selected rows and figures now follows the accent, preset or custom, instead of staying blue.</news>
+		<news>Watched marks in the list view at last: a tick and a dimmed title on played rows. Shows and seasons that are part way through show their watched of total episode count, in the list and on the gallery poster; before, a show was marked only once every episode had been played.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
