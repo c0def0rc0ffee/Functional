@@ -11,6 +11,14 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.12.16 (27/09/2026)
+
+- Remove Watched, a switch each list has on the Lists screen. Turned on,
+  anything on that list that gets watched leaves it, with a notification
+  saying which list it left. Finishing a film or episode counts, as does
+  marking it watched by hand; a stream or file counts once it has played
+  past nine tenths. Other lists holding the same item keep it.
+
 ## 0.12.15 (23/09/2026)
 
 - Main menu tiles you own. The Main Menu settings page now has eight
