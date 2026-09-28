@@ -160,6 +160,7 @@ Future handlers
 """
 
 import json
+from collections import deque
 import os
 import urllib.parse
 import random
@@ -556,6 +557,11 @@ class FunctionalHelper(xbmc.Monitor):
         self._lists_frozen = False   # saving refused, see _lists_set_aside
         self._lists_sel_pub = None   # selection the right column currently shows
         self._lists_slots_used = 0   # Lists.N.* slots written last publish
+        # Remove Watched (see _lists_track_playback, _lists_drain_watched)
+        self._lists_autoremove_any = False  # some list has the switch on
+        self._lists_watched_q = deque()  # records seen watched, drained by the loop
+        self._lists_playing = None   # what the tracker saw playing last tick
+        self._lists_watch_ignore = {}  # (dbtype, dbid) -> expiry, service's own writes
         # Sleep timer (see update_sleep_timer). Deliberately not persisted:
         # a timer has nothing to say once the box it was going to switch off
         # has been switched off.
@@ -624,6 +630,8 @@ class FunctionalHelper(xbmc.Monitor):
             # A scan can add or rename genres; let the next genre lookup
             # re-pull the list rather than label a node from a stale cache.
             self._genre_fetched = set()
+        if method == "VideoLibrary.OnUpdate" and self._lists_autoremove_any:
+            self._lists_on_update(data)
         if method == "Player.OnStop":
             # Finishing an episode is exactly what moves a show along.
             self._nextup_last = 0.0
@@ -2471,6 +2479,9 @@ class FunctionalHelper(xbmc.Monitor):
                 # in the same write that clears the bookmark (the row goes),
                 # then back to zero (announced too, but the row no longer
                 # holds the item, so Kodi ignores it). Verified on 21.3.
+                # That count of one is not a watch, so Remove Watched lists
+                # are told to let its announcement pass.
+                self._lists_watch_ignore[(dbtype, dbid)] = time.time() + 10
                 params["playcount"] = 1
                 _jsonrpc("VideoLibrary.Set%sDetails" % kind, params)
                 _jsonrpc("VideoLibrary.Set%sDetails" % kind, {idkey: dbid, "playcount": 0})
@@ -2717,7 +2728,8 @@ class FunctionalHelper(xbmc.Monitor):
         another box is read exactly as this box's own. "fill" is the Port by
         Time length in minutes, remembered per list; 0 means never set, so
         the dialog opens on LIST_FILL_DEFAULT, and it is clamped because
-        _parse_hhmm tops out at 23:59.
+        _parse_hhmm tops out at 23:59. "autoremove" is the per list Remove
+        Watched switch; a file written before it existed reads as off.
         </remarks>
         """
         data = json.loads(text or "{}")
@@ -2737,7 +2749,8 @@ class FunctionalHelper(xbmc.Monitor):
                 fill = 0
             lists.append({"name": name,
                           "items": [it for it in items if it],
-                          "fill": min(max(fill, 0), 23 * 60 + 59)})
+                          "fill": min(max(fill, 0), 23 * 60 + 59),
+                          "autoremove": bool(entry.get("autoremove"))})
         return lists, str(data.get("last", "") or "")
 
     def _lists_export(self, folder=""):
@@ -2796,7 +2809,8 @@ class FunctionalHelper(xbmc.Monitor):
                 if target is None:
                     if len(lists) >= self.LISTS_MAX:
                         continue
-                    target = {"name": entry["name"], "items": [], "fill": entry["fill"]}
+                    target = {"name": entry["name"], "items": [], "fill": entry["fill"],
+                              "autoremove": entry["autoremove"]}
                     lists.append(target)
                     new_lists += 1
                 for item in entry["items"]:
@@ -2960,12 +2974,17 @@ class FunctionalHelper(xbmc.Monitor):
                        else _L(31335)) % len(lst["items"])
                 if total:
                     sub += " · " + self._fmt_secs(total)
+                if lst.get("autoremove"):
+                    sub += " · " + _L(31505)
                 win.setProperty("Lists.%d.Name" % n, lst["name"])
                 win.setProperty("Lists.%d.Sub" % n, sub)
             else:
                 win.clearProperty("Lists.%d.Name" % n)
                 win.clearProperty("Lists.%d.Sub" % n)
         self._lists_slots_used = len(shown)
+        # Every change to the lists ends up here, so this is where the
+        # playback tracker learns whether it has anything to watch for.
+        self._lists_autoremove_any = any(l.get("autoremove") for l in lists)
         # The selection may now point past the end (a delete) or at a
         # different list (an insert), so redo the right column regardless.
         self._lists_sel_pub = None
@@ -2996,6 +3015,10 @@ class FunctionalHelper(xbmc.Monitor):
                         self._fmt_hhmm(int((lst or {}).get("fill") or
                                            self.LIST_FILL_DEFAULT))
                         if lst else "")
+        # On / Off for the Remove Watched button's label.
+        win.setProperty("Lists.Sel.AutoRemove",
+                        (_L(31503) if lst.get("autoremove") else _L(31504))
+                        if lst else "")
         used_before = self._list_item_slots_used
         for i in range(max(len(items), used_before)):
             n = i + 1
@@ -3017,9 +3040,11 @@ class FunctionalHelper(xbmc.Monitor):
         screen's right column following the focused list.</summary>
         <remarks>Commands: add_last, add_pick (item in list_item_* Home
         properties); new, rename, delete, port, port_shuffle, port_time
-        (act on the selected list); item:N (action menu for row N of the
-        selected
-        list); save_queue (the open queue window becomes a new list).
+        (act on the selected list); autoremove (flip the selected list's
+        Remove Watched switch); item:N (action menu for row N of the
+        selected list); save_queue (the open queue window becomes a new
+        list). Each tick also runs the Remove Watched tracker, whatever
+        window is up, because watching happens away from this screen.
         A command arriving while another dialog is up is dropped, as with
         bg_command, rather than queued behind a picker nobody can see.</remarks>"""
         cmd = self._take_command("list_command")
@@ -3032,6 +3057,8 @@ class FunctionalHelper(xbmc.Monitor):
         # until the properties exist, and the home menu opens it cold.
         if self._lists is None:
             self._lists_load()
+        self._lists_track_playback()
+        self._lists_drain_watched()
         if not xbmc.getCondVisibility(
                 "Window.IsActive(%d)" % self.LISTS_WINDOW_ID):
             return
@@ -3061,6 +3088,8 @@ class FunctionalHelper(xbmc.Monitor):
             self._lists_port(shuffle=(cmd == "port_shuffle"))
         elif cmd == "port_time":
             self._lists_port_time()
+        elif cmd == "autoremove":
+            self._lists_toggle_autoremove()
         elif cmd.startswith("item:"):
             self._lists_item_menu(cmd[5:])
         elif cmd == "save_queue":
@@ -3133,7 +3162,7 @@ class FunctionalHelper(xbmc.Monitor):
         <returns>The new list's 1-based index.</returns>"""
         with self._lists_lock:
             self._lists.append({"name": name, "items": list(items or []),
-                                "fill": 0})
+                                "fill": 0, "autoremove": False})
             idx = len(self._lists)
             self._lists_last = name
         self._lists_save()
@@ -3403,6 +3432,10 @@ class FunctionalHelper(xbmc.Monitor):
             return
         with self._lists_lock:
             items = lst["items"]
+            # Remove Watched can take a row out while this menu is open,
+            # which would leave pos pointing at a neighbour.
+            if pos >= len(items) or items[pos] is not it:
+                return
             if choice == 1 and pos > 0:
                 items[pos - 1], items[pos] = items[pos], items[pos - 1]
             elif choice == 2 and pos < len(items) - 1:
@@ -3465,6 +3498,149 @@ class FunctionalHelper(xbmc.Monitor):
         self._lists_create(name, items[:self.LIST_ITEMS_MAX])
         self._lists_notify((_L(31364) if len(items) == 1 else _L(31365)) % (
             len(items), name))
+
+    # ---- Lists: Remove Watched ---------------------------------------------
+    #
+    # <summary>
+    # A per list switch ("autoremove" in lists.json): once an item on such a
+    # list has been watched it leaves the list, with a toast naming it.
+    # </summary>
+    # <remarks>
+    # Two detectors feed one queue, because no single signal covers every
+    # kind of item a list can hold. Library items (movie, episode, music
+    # video) come from VideoLibrary.OnUpdate carrying a play count above
+    # zero, which Kodi announces when a play finishes and also when the
+    # item is marked watched by hand; both count. Plugin streams and loose
+    # files have no play count, so the loop also follows what is playing
+    # and counts anything that got to LIST_WATCHED_PCT before it stopped or
+    # the queue moved on, matched by path. An item seen by both is simply
+    # found gone the second time. Nothing runs on the notification thread
+    # beyond parsing the payload; the loop does the removing and saving.
+    # </remarks>
+    LIST_WATCHED_PCT = 90
+    LIST_WATCH_TYPES = ("movie", "episode", "musicvideo")
+
+    def _lists_toggle_autoremove(self):
+        """<summary>Flip Remove Watched on the selected list and say which
+        way it went.</summary>"""
+        idx, lst = self._lists_selected()
+        if not lst:
+            return
+        with self._lists_lock:
+            lst["autoremove"] = not lst.get("autoremove")
+            on = lst["autoremove"]
+        self._lists_save()
+        _dlog("list %s: remove watched %s" % (lst["name"], "on" if on else "off"))
+        self._lists_notify((_L(31506) if on else _L(31507)) % lst["name"])
+
+    def _lists_on_update(self, data):
+        """
+        <summary>
+        VideoLibrary.OnUpdate handler: queue a library item whose play count
+        went above zero.
+        </summary>
+        <param name="data">The event's JSON payload, {"item": {"id", "type"}, "playcount"}.</param>
+        <remarks>
+        Notification thread, so it only parses and appends; deque appends
+        are safe against the loop's pops. An update with no play count in
+        it (a resume point, an artwork change) is not a watch, and nor is a
+        count going back to zero. The service's own write that clears a
+        resume point through a count of one is skipped via
+        _lists_watch_ignore, see _continue_action.
+        </remarks>
+        """
+        try:
+            payload = json.loads(data or "{}") or {}
+        except (TypeError, ValueError):
+            return
+        item = payload.get("item") or payload
+        dbtype = str(item.get("type") or "")
+        dbid = self._safe_int(item.get("id"), 0)
+        if (dbtype not in self.LIST_WATCH_TYPES or dbid <= 0
+                or self._safe_int(payload.get("playcount"), 0) <= 0):
+            return
+        if self._lists_watch_ignore.get((dbtype, dbid), 0) > time.time():
+            return
+        self._lists_watched_q.append({"dbtype": dbtype, "dbid": dbid, "file": ""})
+
+    def _lists_track_playback(self):
+        """
+        <summary>
+        Follow what is playing and queue it as watched once it stops, or the
+        queue moves on, past LIST_WATCHED_PCT.
+        </summary>
+        <remarks>
+        Only runs while some list has Remove Watched on. The percentage is
+        the last one seen before the change, so a quarter second tick loses
+        nothing that matters at the end of a film. Anything with no length
+        (a live stream) never gets past zero and is never counted.
+        </remarks>
+        """
+        if not self._lists_autoremove_any:
+            self._lists_playing = None
+            return
+        now = None
+        if xbmc.getCondVisibility("Player.HasMedia"):
+            path = xbmc.getInfoLabel("Player.Filenameandpath")
+            if path:
+                now = {"file": path,
+                       "pct": self._safe_int(xbmc.getInfoLabel("Player.Progress"), 0)}
+        last = self._lists_playing
+        if last and (now is None or now["file"] != last["file"]):
+            if last["pct"] >= self.LIST_WATCHED_PCT:
+                _dlog("lists: %s ended at %d%%" % (last["file"], last["pct"]))
+                self._lists_watched_q.append({"dbtype": "", "dbid": 0,
+                                              "file": last["file"]})
+        self._lists_playing = now
+
+    def _lists_drain_watched(self):
+        """
+        <summary>
+        Take everything the detectors queued out of every Remove Watched
+        list, save once, and toast each item that went.
+        </summary>
+        <remarks>
+        A library record matches by type and id, a played path matches an
+        item stored with that path. Lists without the switch are left
+        alone even when they hold the same item.
+        </remarks>
+        """
+        if not self._lists_watched_q:
+            return
+        seen = []
+        while self._lists_watched_q:
+            seen.append(self._lists_watched_q.popleft())
+        now = time.time()
+        self._lists_watch_ignore = {k: v for k, v in
+                                    self._lists_watch_ignore.items() if v > now}
+        removed = []  # (label, list name)
+        with self._lists_lock:
+            for lst in self._lists or []:
+                if not lst.get("autoremove"):
+                    continue
+                keep = []
+                for it in lst["items"]:
+                    if any(self._list_item_watched(it, rec) for rec in seen):
+                        removed.append((it["label"], lst["name"]))
+                    else:
+                        keep.append(it)
+                lst["items"] = keep
+        if not removed:
+            return
+        self._lists_save()
+        for label, name in removed:
+            _dlog("lists: removed watched %s from %s" % (label, name))
+            xbmcgui.Dialog().notification(label, _L(31508) % name,
+                                          xbmcgui.NOTIFICATION_INFO, 5000)
+
+    @staticmethod
+    def _list_item_watched(it, rec):
+        """<summary>True when a watched record names this list item.</summary>
+        <param name="it">A stored list item.</param>
+        <param name="rec">A queued record: dbtype and dbid, or file.</param>"""
+        if rec["dbid"]:
+            return it["dbtype"] == rec["dbtype"] and it["dbid"] == rec["dbid"]
+        return bool(it["file"]) and it["file"] == rec["file"]
 
     # ---- Video nav: genre label + per-content default sort ----------------
     #

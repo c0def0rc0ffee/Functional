@@ -17,7 +17,7 @@
   jumps into its items. Clicking an item asks the service for its action
   menu (play now, move up, move down, remove). The footer buttons act on the
   selected list through Skin.String(list_command): new, rename, delete,
-  port, port_shuffle, port_time.
+  port, port_shuffle, port_time, autoremove (the Remove Watched switch).
 
   The action row sits on a 120px band at the foot of the screen, or at the
   top just under the header when Skin.HasSetting(lists_actions_top) is on
@@ -374,7 +374,7 @@
 			<ondown>50</ondown>
 
 			<control type="button" id="9001">
-				<width>240</width>
+				<width>200</width>
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -391,7 +391,7 @@
 
 			<control type="button" id="9002">
 				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Idx),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
-				<width>240</width>
+				<width>200</width>
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -408,7 +408,7 @@
 
 			<control type="button" id="9003">
 				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Idx),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
-				<width>240</width>
+				<width>200</width>
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -425,7 +425,7 @@
 
 			<control type="button" id="9004">
 				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Count),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
-				<width>300</width>
+				<width>240</width>
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -442,7 +442,7 @@
 
 			<control type="button" id="9005">
 				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Count),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
-				<width>300</width>
+				<width>240</width>
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -463,7 +463,7 @@
 			     the dialog. -->
 			<control type="button" id="9006">
 				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Count),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
-				<width>320</width>
+				<width>300</width>
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -476,6 +476,25 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[31378]  $INFO[Window(home).Property(Lists.Sel.Fill)]</label>
 				<onclick>Skin.SetString(list_command,port_time)</onclick>
+			</control>
+
+			<!-- Remove Watched: the selected list's own switch. On, anything
+			     on it that gets watched leaves the list with a toast. -->
+			<control type="button" id="9007">
+				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Idx),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
+				<width>300</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[31502]  $INFO[Window(home).Property(Lists.Sel.AutoRemove)]</label>
+				<onclick>Skin.SetString(list_command,autoremove)</onclick>
 			</control>
 
 		</control>
