@@ -2,7 +2,8 @@
 <!--
   <summary>
   Generic selection dialog: heading, list 3 for single or multiple
-  choice, and the OK and Cancel buttons on Kodi's fixed ids.
+  choice, list 6 for the detailed mode (icon and two lines a row), and
+  the OK and Cancel buttons on Kodi's fixed ids.
   </summary>
 -->
 <window type="dialog">
@@ -43,7 +44,9 @@
 		<!-- Coloured border so the panel is clearly distinguishable from the parent dialog -->
 		<control type="image">
 			<left>0</left>
-			<bottom>0</bottom>
+			<!-- 746 = 750 panel height less this 4 px line. Not <bottom>: at root
+			     level that is measured from the 1080 canvas, off the screen here. -->
+			<top>746</top>
 			<width>1200</width>
 			<height>4</height>
 			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
@@ -65,9 +68,9 @@
 		     mode Kodi populates list 6 and leaves list 3 empty -->
 		<control type="label">
 			<left>20</left>
-			<top>90</top>
+			<top>80</top>
 			<width>880</width>
-			<height>640</height>
+			<height>660</height>
 			<font>font_med</font>
 			<align>center</align>
 			<aligny>center</aligny>
@@ -76,12 +79,12 @@
 			<visible>Integer.IsEqual(Container(3).NumItems,0) + Integer.IsEqual(Container(6).NumItems,0)</visible>
 		</control>
 
-		<!-- Main list (id 3) -->
+		<!-- Main list (id 3): 660 = eleven 60 px rows, so no part row shows -->
 		<control type="list" id="3">
 			<left>20</left>
-			<top>90</top>
+			<top>80</top>
 			<width>880</width>
-			<height>640</height>
+			<height>660</height>
 			<onleft>9001</onleft>
 			<onright>9001</onright>
 			<onup>3</onup>
@@ -172,68 +175,112 @@
 			</focusedlayout>
 		</control>
 
-		<!-- Alternate list view (id 6) -->
+		<!-- Detailed list (id 6). Kodi fills this one instead of list 3 when the
+		     caller asks for details (add-on versions, add-on pickers, the art
+		     type chooser). Each row then carries an icon and a second line in
+		     Label2, which the old single 60 px line dropped: two repositories
+		     offering the same version read as identical rows. 660 = six 110 px
+		     rows. ListItem.Icon is the thumb when there is one, else the icon. -->
 		<control type="list" id="6">
 			<left>20</left>
-			<top>90</top>
+			<top>80</top>
 			<width>880</width>
-			<height>640</height>
+			<height>660</height>
 			<onleft>9001</onleft>
 			<onright>9001</onright>
 			<onup>6</onup>
 			<ondown>6</ondown>
 			<pagecontrol>61</pagecontrol>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
 
-			<itemlayout height="60" width="880">
+			<itemlayout height="110" width="880">
 				<control type="image">
-					<left>34</left>
-					<top>19</top>
+					<left>14</left>
+					<top>44</top>
 					<width>22</width>
 					<height>22</height>
 					<aspectratio>keep</aspectratio>
 					<texture colordiffuse="$VAR[AccentHiColor]">tick.png</texture>
 					<visible>ListItem.IsSelected</visible>
 				</control>
+				<control type="image">
+					<left>50</left>
+					<top>10</top>
+					<width>90</width>
+					<height>90</height>
+					<aspectratio>keep</aspectratio>
+					<texture>$INFO[ListItem.Icon]</texture>
+				</control>
 				<control type="label">
-					<left>70</left>
-					<top>0</top>
-					<width>780</width>
-					<height>60</height>
+					<left>160</left>
+					<top>12</top>
+					<width>700</width>
+					<height>44</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
+				<control type="label">
+					<left>160</left>
+					<top>58</top>
+					<width>700</width>
+					<height>36</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label2]</label>
+				</control>
 			</itemlayout>
-			<focusedlayout height="60" width="880">
+			<focusedlayout height="110" width="880">
 				<control type="image">
 					<left>0</left>
 					<top>0</top>
 					<width>880</width>
-					<height>60</height>
+					<height>110</height>
 					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 					<visible>Control.HasFocus(6)</visible>
 				</control>
 				<control type="image">
-					<left>34</left>
-					<top>19</top>
+					<left>14</left>
+					<top>44</top>
 					<width>22</width>
 					<height>22</height>
 					<aspectratio>keep</aspectratio>
 					<texture colordiffuse="$VAR[AccentHiColor]">tick.png</texture>
 					<visible>ListItem.IsSelected</visible>
 				</control>
+				<control type="image">
+					<left>50</left>
+					<top>10</top>
+					<width>90</width>
+					<height>90</height>
+					<aspectratio>keep</aspectratio>
+					<texture>$INFO[ListItem.Icon]</texture>
+				</control>
 				<control type="label">
-					<left>70</left>
-					<top>0</top>
-					<width>780</width>
-					<height>60</height>
+					<left>160</left>
+					<top>12</top>
+					<width>700</width>
+					<height>44</height>
 					<font>font_reg</font>
 					<textcolor>white</textcolor>
 					<selectedcolor>white</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<left>160</left>
+					<top>58</top>
+					<width>700</width>
+					<height>36</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label2]</label>
 				</control>
 			</focusedlayout>
 		</control>
@@ -241,9 +288,9 @@
 		<!-- Scrollbar (id 61) -->
 		<control type="scrollbar" id="61">
 			<left>912</left>
-			<top>90</top>
+			<top>80</top>
 			<width>16</width>
-			<height>640</height>
+			<height>660</height>
 			<orientation>vertical</orientation>
 			<showonepage>false</showonepage>
 			<onleft>3</onleft>
@@ -256,9 +303,9 @@
 		<!-- Action buttons grouplist (id 9001), right column -->
 		<control type="grouplist" id="9001">
 			<left>950</left>
-			<top>90</top>
+			<top>80</top>
 			<width>230</width>
-			<height>640</height>
+			<height>660</height>
 			<orientation>vertical</orientation>
 			<itemgap>10</itemgap>
 			<onleft>61</onleft>

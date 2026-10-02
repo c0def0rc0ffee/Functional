@@ -22,7 +22,7 @@
 *.log
 *.tmp
 
-# Windows recycle bin (project lives on a network share)
+# Windows recycle bin (left over from when the project sat on a Windows share)
 $RECYCLE.BIN/
 
 # Python

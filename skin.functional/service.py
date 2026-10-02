@@ -6,9 +6,9 @@ Functional skin, helper service.
 Single long-running service that does jobs the skin XML can't do on its own:
 arithmetic on infolabels, async DB queries, time formatting, etc.
 
-Architecture rule (see PROJECT_NOTES.md): keep this as ONE service that handles
-multiple concerns rather than spawning a new add-on per feature. New helpers go
-in as methods on FunctionalHelper.
+Architecture rule: keep this as ONE service that handles multiple concerns
+rather than spawning a new add-on per feature. New helpers go in as methods on
+FunctionalHelper.
 
 Current handlers
 ----------------
@@ -21,11 +21,13 @@ update_library_stats()
         stat_tvshows_total
         stat_tvshows_unwatched
         stat_episodes_total
-    Re-runs on VideoLibrary.OnUpdate, OnScanFinished, OnRemove.
+    Re-runs after VideoLibrary.OnUpdate, OnScanFinished, OnRemove and
+    OnCleanFinished (a burst of events is answered once, see
+    apply_library_events) and on a thirty second timer.
 
 update_focused_eta()
-    Polls the currently focused video-library list item every ~1s while a video
-    window is active. Reads its duration, adds it to "now", and writes the
+    Polls the currently focused video-library list item on the fast tick (four
+    times a second) while a video window is active. Reads its duration, adds it to "now", and writes the
     formatted finish time as a window property on Home (id 10000):
         focused_finish_time   e.g. "22:47"
     Skin reads it via $INFO[Window(home).Property(focused_finish_time)].
@@ -153,7 +155,8 @@ update_lists()
 
 Future handlers
 ---------------
-- update_focused_filesize() , see PROJECT_NOTES "Focused-item file size"
+- update_focused_filesize(), tried twice and withdrawn: nothing inside Kodi
+  can stat a plugin path, and the values for local files were unreliable.
 - anything else that needs Python; add a method here and trigger it from
   onNotification or the polling loop in run().
 </remarks>
@@ -247,11 +250,23 @@ def _dlog(msg, level=xbmc.LOGINFO):
         xbmc.log("[functional/helper] debug-log write failed: {0}".format(exc),
                  xbmc.LOGWARNING)
 
+# Last value this service sent for each skin string, see _set_skin_string.
+_SKIN_STRING_SENT = {}
+
+# Command channel -> (value, time taken) for the value most recently handed
+# out and not yet seen cleared, see FunctionalHelper._take_command.
+_COMMANDS_TAKEN = {}
+COMMAND_REPEAT_SECS = 1.0
+
+
 def _set_skin_string(key, value):
     """
     <summary>
-    Write a string into the active skin's persistent string store.
+    Write a string into the active skin's persistent string store, unless
+    it already holds that value.
     </summary>
+    <param name="key">Skin string name.</param>
+    <param name="value">New value; anything is turned into text.</param>
     <remarks>
     The value is double-quoted because Kodi splits builtin arguments on
     commas: an unquoted value containing one (a genre like "Sci-Fi, Fantasy",
@@ -259,10 +274,44 @@ def _set_skin_string(key, value):
     Kodi strips the surrounding quotes. Embedded double quotes are dropped:
     Kodi's escape convention for them is murky and no genre/path/stat value
     legitimately contains one.
+
+    Kodi rewrites the skin's settings.xml on every Skin.SetString, even one
+    that changes nothing. The thirty second stats refresh and the settings
+    snapshot both used to trigger that rewrite for ever on an idle box, so an
+    unchanged value is now skipped. Skipping needs two things to agree: the
+    store reads back the value, and the last value this service sent (if it
+    ever sent one) is the same. The second test matters because the builtin
+    is posted, not applied at once: straight after sending A the store can
+    still read the older B, and a request to go back to B must not be
+    mistaken for "already there".
     </remarks>
     """
-    xbmc.executebuiltin('Skin.SetString({0},"{1}")'.format(
-        key, str(value).replace('"', '')))
+    text = str(value).replace('"', '')
+    current = xbmc.getInfoLabel("Skin.String({0})".format(key))
+    if current == text and _SKIN_STRING_SENT.get(key, text) == text:
+        return
+    _SKIN_STRING_SENT[key] = text
+    xbmc.executebuiltin('Skin.SetString({0},"{1}")'.format(key, text))
+
+
+def _reset_skin_string(key):
+    """
+    <summary>
+    Clear a skin string with Skin.Reset, and remember having done so.
+    </summary>
+    <param name="key">Skin string name.</param>
+    <remarks>
+    Every reset in this service goes through here, never straight to the
+    builtin. The reset is posted, not applied at once, so for a moment the
+    store still reads the old value. _set_skin_string skips a write when the
+    store already reads the wanted value and nothing else has been sent
+    since; recording the reset as "sent empty" is what stops a write of that
+    same old value, made in that moment, from being skipped and then wiped
+    out by the reset landing after it.
+    </remarks>
+    """
+    _SKIN_STRING_SENT[key] = ""
+    xbmc.executebuiltin("Skin.Reset({0})".format(key))
 
 
 def _set_home_property(key, value):
@@ -326,11 +375,41 @@ def _jsonrpc(method, params=None):
         return {}
 
 
+def _result_rows(resp, key):
+    """
+    <summary>
+    The list stored under *key* in a JSON-RPC reply's result.
+    </summary>
+    <param name="resp">The decoded reply from _jsonrpc.</param>
+    <param name="key">Name of the list inside result, such as "movies".</param>
+    <returns>The rows; an empty list when the query ran and matched nothing.</returns>
+    <exception cref="LookupError">
+    The reply carries no result at all, which is what a failed call or an
+    error reply looks like. Kodi leaves the key out of a successful but
+    empty answer, so without this test "the database did not answer" and
+    "nothing matched" were the same empty list, and callers replaced good
+    rows on screen with nothing.
+    </exception>
+    """
+    result = (resp or {}).get("result")
+    if not isinstance(result, dict):
+        raise LookupError("no result for {0}".format(key))
+    return result.get(key) or []
+
+
 def _count(method, extra_params=None):
     """
     <summary>
     Return the total row count for a VideoLibrary.GetXxx query, ignoring rows.
     </summary>
+    <param name="method">The VideoLibrary.GetXxx method to call.</param>
+    <param name="extra_params">Extra parameters such as a filter, merged over the one row limit.</param>
+    <returns>
+    The total, or None when the call failed or the reply carried no usable
+    total. None and 0 are different answers: an empty library is 0, a
+    database hiccup is None, and the caller must not show the second as the
+    first.
+    </returns>
     """
     params = {"limits": {"start": 0, "end": 1}}
     if extra_params:
@@ -338,11 +417,14 @@ def _count(method, extra_params=None):
     resp = _jsonrpc(method, params)
     # `or {}` at each level: a JSON-RPC error reply carries "result": null,
     # and .get() on None would raise.
-    limits = ((resp or {}).get("result") or {}).get("limits") or {}
+    result = (resp or {}).get("result")
+    if not isinstance(result, dict):
+        return None
+    limits = result.get("limits") or {}
     try:
-        return int(limits.get("total", 0))
-    except (TypeError, ValueError):
-        return 0
+        return int(limits["total"])
+    except (KeyError, TypeError, ValueError):
+        return None
 
 
 def _parse_duration_to_seconds(text):
@@ -405,7 +487,12 @@ class FunctionalHelper(xbmc.Monitor):
     BG_COUNT = 30  # how many recent movies to cycle through
 
     # Live-tunable info-bar clearance via +/− buttons in MyVideoNav's side menu
-    LAYOUT_MAX_PX = 250
+    # 140 is the most the library views have room for: the list groups are
+    # 940 tall on a 1080 canvas, so a slide of 140 puts their foot exactly
+    # on the bottom edge. The limit used to be 250, and anything above 140
+    # pushed the last rows off the screen. Stored values above the limit are
+    # brought back by normalize_clearance.
+    LAYOUT_MAX_PX = 140
     LAYOUT_DEFAULT_PX = 140
     LAYOUT_STEP_PX = 10
 
@@ -480,11 +567,16 @@ class FunctionalHelper(xbmc.Monitor):
         self._bg_thread = None     # library fetches, off the main loop
         self._stats_last_refresh = 0.0   # 0 => loop refreshes on first tick
         self._stats_thread = None
+        # Library event debounce (see apply_library_events). Written on Kodi's
+        # notification thread, read on the loop; plain floats, no lock needed.
+        self._lib_event_first = 0.0  # first event of the burst, 0 = none pending
+        self._lib_event_last = 0.0   # most recent event of the burst
         self._dialog_thread = None  # blocking pickers (genre/time), off the main loop
         # Scheduled-background state (see update_bg_schedule)
         self._sched_applied = 0      # slot currently copied into the live keys (0 = none)
         self._sched_edit_last = None  # bg_edit_slot value we last synced with
         self._sched_settings_open = False
+        self._bg_pending = {}        # skin string -> (value, expiry), see _bg_get
         # Favourites (categorised, filterable) state
         self._fav_all = []          # [{name, thumb, action, cat}, ...]
         self._fav_current = []      # currently-filtered slice shown in the UI
@@ -508,6 +600,9 @@ class FunctionalHelper(xbmc.Monitor):
         # Age filter (see update_age_command)
         self._accent_custom_seen = None  # last accent_custom value turned into a highlight
         self._tiles_seen = None          # last (toggles, addon, slots) the tiles were published from
+        self._tiles_shown = 0            # tiles Home is showing, from the last publish
+        self._home_focus_checks = 0      # ticks update_home_focus still has to look
+        self._startup_watch = self.STARTUP_WATCH_TICKS  # ticks update_startup_fallback still watches
         self._age_last_path = None       # Container.FolderPath last derived from
         # Cast strip on the full-screen info card (see update_playing_cast)
         # The lock makes "is this key still current?" + publish atomic, so a
@@ -534,23 +629,32 @@ class FunctionalHelper(xbmc.Monitor):
         # Per-movie "buffer entire file" switch (see _fullfile_worker)
         self._fullfile_thread = None
         self._fullfile_busy = False   # suppresses restore during the restart gap
+        self._restore_tries = {}      # restore skin key -> failed attempts so far
         self._fullbuffer_ui_last = None  # last seen state of the OSD button setting
         # Video-nav state (see update_video_nav_state)
         self._nav_path = None        # last Container.FolderPath we acted on
         self._nav_genre = None       # last genre name published
         self._nav_sort_due = 0.0     # when to force the default sort (0 = idle)
+        self._sort_want_ticks = 0    # ticks update_sort_direction has waited for a new method
         self._genre_names = {}       # (dbtype, genreid) -> genre label
         self._genre_fetched = set()  # dbtypes whose genre list we already pulled
         self._genre_thread = None
+        self._genre_retry_at = 0.0   # no genre fetch before this time, set after a failure
         self._random_thread = None   # random pick worker (see update_random_command)
         # Queue end time (see update_queue_eta)
         self._queue_last = None      # last (finish, remaining) pair published
         # Settings backup (see update_settings_backup)
         self._backup_last_check = 0.0
         self._backup_mtime = -1.0    # settings.xml mtime at the last snapshot
+        self._backup_age_published = False  # snapshot age shown since this start
         self._backup_thread = None
         # Lists (see update_lists): lists.json is read on first use
         self._lists_lock = threading.Lock()
+        self._lists_io_lock = threading.Lock()   # one writer of lists.json at a time
+        # The Lists screen's properties are written from the loop and from
+        # the dialog thread; re-entrant because publishing the lists also
+        # publishes the selected list's items.
+        self._lists_pub_lock = threading.RLock()
         self._lists = None           # [{name, items:[record]}], None = not loaded
         self._lists_last = ""        # name of the list an item last went into
         self._lists_sel = 1          # 1-based list the Lists screen has selected
@@ -565,7 +669,11 @@ class FunctionalHelper(xbmc.Monitor):
         # Sleep timer (see update_sleep_timer). Deliberately not persisted:
         # a timer has nothing to say once the box it was going to switch off
         # has been switched off.
-        self._sleep_deadline = None   # epoch seconds, None = not armed
+        # time.monotonic() seconds, None = not armed. Monotonic because a box
+        # with no clock battery steps its wall clock when the network time
+        # arrives, and a deadline in wall clock time then fired at once or
+        # ran late by the size of the step.
+        self._sleep_deadline = None
         self._sleep_episodes = 0      # natural playback ends still to wait for, 0 = not in that mode
         self._sleep_fire_pending = False  # the last end arrived on the notification thread
         self._sleep_warned = False    # the one-minute toast has been shown
@@ -623,13 +731,15 @@ class FunctionalHelper(xbmc.Monitor):
         """
         if method in self.LIB_EVENTS:
             # Don't query here (this runs on Kodi's notification thread and
-            # could block it). Just flag a refresh for the loop to pick up.
-            self._stats_last_refresh = 0.0
-            self._bg_last_fetch = 0.0
-            self._nextup_last = 0.0
-            # A scan can add or rename genres; let the next genre lookup
-            # re-pull the list rather than label a node from a stale cache.
-            self._genre_fetched = set()
+            # could block it), and don't even reset the timers here: a scan
+            # announces one event per item, and acting on each one restarted
+            # five stats queries, a background refetch and a next up lookup
+            # per item. Note the time and let apply_library_events() act once
+            # the burst has gone quiet.
+            now = time.time()
+            if not self._lib_event_first:
+                self._lib_event_first = now
+            self._lib_event_last = now
         if method == "VideoLibrary.OnUpdate" and self._lists_autoremove_any:
             self._lists_on_update(data)
         if method == "Player.OnStop":
@@ -638,6 +748,38 @@ class FunctionalHelper(xbmc.Monitor):
             self._sleep_on_stop(data)
 
     # -- Handlers -----------------------------------------------------------
+
+    LIB_EVENT_QUIET_SECS = 2.0   # act this long after the last library event
+    LIB_EVENT_MAX_HOLD = 15.0    # but never hold a burst back longer than this
+
+    def apply_library_events(self):
+        """
+        <summary>
+        Turn a burst of library events into one refresh of everything that
+        is derived from the library.
+        </summary>
+        <remarks>
+        Fast tick, and a no-op unless onNotification has noted an event. The
+        refresh happens once the events have been quiet for
+        LIB_EVENT_QUIET_SECS, or LIB_EVENT_MAX_HOLD after the first one, so a
+        long scan still moves the figures along instead of freezing them
+        until it ends. Must run before the handlers whose timers it resets.
+        </remarks>
+        """
+        first = self._lib_event_first
+        if not first:
+            return
+        now = time.time()
+        if ((now - self._lib_event_last) < self.LIB_EVENT_QUIET_SECS
+                and (now - first) < self.LIB_EVENT_MAX_HOLD):
+            return
+        self._lib_event_first = 0.0
+        self._stats_last_refresh = 0.0
+        self._bg_last_fetch = 0.0
+        self._nextup_last = 0.0
+        # A scan can add or rename genres; let the next genre lookup re-pull
+        # the list rather than label a node from a stale cache.
+        self._genre_fetched = set()
 
     def maybe_refresh_stats(self):
         """
@@ -692,7 +834,7 @@ class FunctionalHelper(xbmc.Monitor):
 
         movies_total = _count("VideoLibrary.GetMovies")
         movies_unwatched = _count("VideoLibrary.GetMovies", unwatched_filter)
-        movies_watched = max(0, movies_total - movies_unwatched)
+        movies_watched = max(0, (movies_total or 0) - (movies_unwatched or 0))
 
         tvshows_total = _count("VideoLibrary.GetTVShows")
         # tvshows have no per-show playcount filter semantics worth using:
@@ -701,6 +843,14 @@ class FunctionalHelper(xbmc.Monitor):
             "filter": {"field": "numwatched", "operator": "is", "value": "0"}
         })
         episodes_total = _count("VideoLibrary.GetEpisodes")
+
+        if None in (movies_total, movies_unwatched, tvshows_total,
+                    tvshows_unwatched, episodes_total):
+            # A failed query must not put zeros on Home. Keep what is shown
+            # and let the thirty second timer try again.
+            _dlog("stats: a library query failed, keeping the last figures",
+                  xbmc.LOGWARNING)
+            return
 
         _set_skin_string("stat_movies_total", str(movies_total))
         _set_skin_string("stat_movies_watched", str(movies_watched))
@@ -995,9 +1145,13 @@ class FunctionalHelper(xbmc.Monitor):
 
         # Where we are, and how much of the current item is left.
         position, current_left = -1, 0
+        # Kodi reports the music player's type as "audio", not "music". The
+        # old test compared against "music", never matched, and counted the
+        # whole queue from the top however far through it playback was.
+        player_type = "audio" if kind == "music" else kind
         players = (_jsonrpc("Player.GetActivePlayers").get("result") or [])
         pid = next((p.get("playerid") for p in players
-                    if p.get("type") == kind), None)
+                    if p.get("type") == player_type), None)
         if pid is not None:
             props = ((_jsonrpc("Player.GetProperties", {
                 "playerid": pid,
@@ -1349,10 +1503,13 @@ class FunctionalHelper(xbmc.Monitor):
         rule = {"type": rule_type,
                 "rules": {"and": [{"field": "actor", "operator": "is",
                                    "value": [name]}]}}
-        url = base + "?xsp=" + json.dumps(rule, separators=(",", ":"))
-        # Quote the whole path and backslash-escape the JSON's own quotes;
-        # that is what Kodi's argument splitter understands.
-        command = 'ActivateWindow(Videos,"{0}",return)'.format(url.replace('"', '\\"'))
+        # Percent encoded, as the age and search filters do: a raw JSON
+        # value containing an ampersand ("Ant & Dec") cut the URL's options
+        # short and opened the unfiltered library, and a name with a double
+        # quote in it broke the builtin's own quoting.
+        url = base + "?xsp=" + urllib.parse.quote(
+            json.dumps(rule, separators=(",", ":")))
+        command = 'ActivateWindow(Videos,"{0}",return)'.format(url)
         _dlog("cast: opening {0} with {1} -> {2}".format(rule_type, name, command))
         xbmc.executebuiltin("Dialog.Close({0},true)".format(self.INFO_DIALOG))
         xbmc.executebuiltin(command)
@@ -1396,9 +1553,20 @@ class FunctionalHelper(xbmc.Monitor):
         </summary>
         <param name="setting_id">Kodi setting id.</param>
         <param name="value">New value, in the type the setting expects.</param>
+        <returns>
+        True when Kodi accepted the value. A value outside the setting's own
+        options list is refused, and callers that remember "the old value"
+        somewhere must not forget it on a refusal.
+        </returns>
         """
-        _jsonrpc("Settings.SetSettingValue",
-                 {"setting": setting_id, "value": value})
+        resp = _jsonrpc("Settings.SetSettingValue",
+                        {"setting": setting_id, "value": value})
+        ok = (resp or {}).get("result") is True
+        if not ok:
+            _dlog("setting {0} = {1!r} was not accepted: {2}".format(
+                setting_id, value, (resp or {}).get("error")),
+                xbmc.LOGWARNING)
+        return ok
 
     @staticmethod
     def _cache_mem_label(value):
@@ -1456,12 +1624,14 @@ class FunctionalHelper(xbmc.Monitor):
         <summary>
         45 -> '45s', 130 -> '2m 10s', 3900 -> '1h 5m'.
         </summary>
+        <param name="secs">Whole seconds, zero or more.</param>
+        <returns>The duration in its two largest units, from strings.po so the unit letters can be translated.</returns>
         """
         if secs >= 3600:
-            return "{0}h {1}m".format(secs // 3600, (secs % 3600) // 60)
+            return _L(31571).format(secs // 3600, (secs % 3600) // 60)
         if secs >= 60:
-            return "{0}m {1}s".format(secs // 60, secs % 60)
-        return "{0}s".format(secs)
+            return _L(31572).format(secs // 60, secs % 60)
+        return _L(31573).format(secs)
 
     @staticmethod
     def _fetch_buffer_ahead():
@@ -1566,12 +1736,31 @@ class FunctionalHelper(xbmc.Monitor):
                 return
             self._buffer_memsize = int(mem)
 
+        # One read for the rest of this call: the full file worker sets the
+        # attribute back to None from its own thread, and reading it twice
+        # in one expression further down could multiply by None.
+        memsize = self._buffer_memsize
+        if memsize is None:
+            return
+
         # Tells the OSD its "BUFFER ALL" button is already satisfied
         # (memorysize 0 = Kodi's uncapped disk cache).
-        fullfile = "1" if self._buffer_memsize == 0 else ""
+        fullfile = "1" if memsize == 0 else ""
         if fullfile != self._buffer_fullfile_last:
             self._buffer_fullfile_last = fullfile
             _set_home_property("buffer_fullfile", fullfile)
+
+        if xbmc.getCondVisibility("Skin.HasSetting(hide_osd_buffer)"):
+            # Every readout this feeds is switched off (Show Buffer Level on
+            # OSD), so the two player queries a second below would be work
+            # for nothing. The BUFFER ALL flag above needs no query.
+            if self._buffer_last:
+                self._buffer_last = ""
+                _set_home_property("buffer_detail", "")
+            if self._buffer_pct_last:
+                self._buffer_pct_last = ""
+                _set_home_property("buffer_pct_label", "")
+            return
 
         # File size, fetched once per playing path (worker thread). The path
         # check both triggers the first fetch and discards a stale size after
@@ -1614,14 +1803,14 @@ class FunctionalHelper(xbmc.Monitor):
                 level = int(xbmc.getInfoLabel("Player.CacheLevel") or "0")
             except ValueError:
                 level = 0
-            if self._buffer_memsize and level > 0:
-                mb = level * self._buffer_memsize / 100.0
+            if memsize and level > 0:
+                mb = level * memsize / 100.0
         if mb >= 1000:
-            parts.append("{0:.1f} GB".format(mb / 1024.0))
+            parts.append(_L(31452).format("{0:.1f}".format(mb / 1024.0)))
         elif mb >= 10:
-            parts.append("{0:.0f} MB".format(mb))
+            parts.append(_L(31453).format("{0:.0f}".format(mb)))
         elif mb > 0:
-            parts.append("{0:.1f} MB".format(mb))
+            parts.append(_L(31453).format("{0:.1f}".format(mb)))
         if ahead:
             parts.append(_L(31457).format(self._fmt_secs(ahead)))
 
@@ -1663,8 +1852,7 @@ class FunctionalHelper(xbmc.Monitor):
         elif ui_off != self._fullbuffer_ui_last:
             self._fullbuffer_ui_last = ui_off
             if ui_off:
-                self._reset_buffering_to_defaults(
-                    "Full buffer button hidden, buffering back to defaults")
+                self._reset_buffering_to_defaults(_L(31570))
 
         cmd = self._take_command("cache_command")
         if not cmd:
@@ -1692,8 +1880,15 @@ class FunctionalHelper(xbmc.Monitor):
             except ValueError:
                 # Off-list value (set in Kodi's GUI): restart the cycle.
                 nxt = presets[0]
-            self._set_setting(sid, nxt)
-            _dlog("cache: {0} {1} -> {2}".format(sid, current, nxt))
+            if self._set_setting(sid, nxt):
+                _dlog("cache: {0} {1} -> {2}".format(sid, current, nxt))
+                # A choice made here during a BUFFER ALL session is the
+                # user's newest word on this setting. Drop the remembered
+                # value for it, or the end of playback would quietly put the
+                # older one back over the top.
+                for restore_sid, skin_key in self.FULLFILE_RESTORE_KEYS:
+                    if restore_sid == sid:
+                        _reset_skin_string(skin_key)
         else:
             return
         self._refresh_cache_labels()
@@ -1713,7 +1908,7 @@ class FunctionalHelper(xbmc.Monitor):
         </remarks>
         """
         for _sid, skin_key in self.FULLFILE_RESTORE_KEYS:
-            xbmc.executebuiltin("Skin.Reset({0})".format(skin_key))
+            _reset_skin_string(skin_key)
         for sid, value in self.CACHE_DEFAULTS.items():
             self._set_setting(sid, value)
         self._refresh_cache_labels()
@@ -1760,6 +1955,9 @@ class FunctionalHelper(xbmc.Monitor):
         ("filecache.buffermode", "cache_mode_restore"),
         ("filecache.readfactor", "cache_rf_restore"),
     )
+    # Attempts at putting a remembered value back before falling back to
+    # Kodi's default for that setting, see _maybe_restore_cache.
+    RESTORE_MAX_TRIES = 3
 
     def _maybe_restore_cache(self):
         """
@@ -1779,11 +1977,29 @@ class FunctionalHelper(xbmc.Monitor):
             prior = xbmc.getInfoLabel("Skin.String({0})".format(skin_key))
             if not prior:
                 continue
-            xbmc.executebuiltin("Skin.Reset({0})".format(skin_key))
             value = self._safe_int(prior, None)
             if value is None:
+                _reset_skin_string(skin_key)
                 continue
-            self._set_setting(setting_id, value)
+            if not self._set_setting(setting_id, value):
+                # Refused or failed: keep the remembered value so the next
+                # idle tick tries again, rather than leaving the uncapped
+                # cache on for good with nothing left to restore from. Only
+                # a few times, though: a value Kodi will never accept (one
+                # that fell off its options list) would otherwise be retried
+                # and logged once a second for as long as nothing played.
+                tries = self._restore_tries.get(skin_key, 0) + 1
+                self._restore_tries[skin_key] = tries
+                if tries >= self.RESTORE_MAX_TRIES:
+                    _reset_skin_string(skin_key)
+                    self._restore_tries.pop(skin_key, None)
+                    default = self.CACHE_DEFAULTS.get(setting_id)
+                    if default is not None:
+                        self._set_setting(setting_id, default)
+                        restored[setting_id] = default
+                continue
+            self._restore_tries.pop(skin_key, None)
+            _reset_skin_string(skin_key)
             restored[setting_id] = value
         if not restored:
             return
@@ -1798,6 +2014,9 @@ class FunctionalHelper(xbmc.Monitor):
         </summary>
         <param name="mode">"fullfile" to turn unlimited buffering on, "normalbuffer" to go back to the remembered buffer size.</param>
         <remarks>
+        Sets _fullfile_busy for the duration, which is what stops
+        _maybe_restore_cache undoing the switch during the moment the player
+        is stopped, and always clears it, even when the switch raises.
         </remarks>
         """
         try:
@@ -1865,12 +2084,21 @@ class FunctionalHelper(xbmc.Monitor):
         item = ((_jsonrpc("Player.GetItem",
                           {"playerid": pid, "properties": ["file"]})
                  .get("result") or {}).get("item")) or {}
-        t = ((_jsonrpc("Player.GetProperties",
-                       {"playerid": pid, "properties": ["time"]})
-              .get("result") or {}).get("time")) or {}
+        props = (_jsonrpc("Player.GetProperties",
+                          {"playerid": pid,
+                           "properties": ["time", "playlistid", "position"]})
+                 .get("result") or {})
+        t = props.get("time") or {}
         secs = (t.get("hours", 0) * 3600 + t.get("minutes", 0) * 60
                 + t.get("seconds", 0))
         secs = max(0, secs - self.FULLFILE_SEEK_BACK)
+        # Where in the queue this is playing from, if it is. Reopening the
+        # item on its own (the old behaviour) took it out of the queue, so
+        # nothing followed it: episode two of a queued run was the last.
+        playlist_id = props.get("playlistid")
+        position = props.get("position")
+        if not isinstance(position, int) or position < 0:
+            playlist_id = None
 
         # Prefer the library id (survives path quirks); fall back to the file.
         if item.get("id") and item.get("type") in ("movie", "episode",
@@ -1916,8 +2144,8 @@ class FunctionalHelper(xbmc.Monitor):
                     xbmc.getInfoLabel("Skin.String({0})".format(skin_key)), None)
                 if prior is not None:
                     self._set_setting(setting_id, prior)
-                xbmc.executebuiltin("Skin.Reset({0})".format(skin_key))
-            xbmc.executebuiltin("Skin.Reset(cache_mem_restore)")
+                _reset_skin_string(skin_key)
+            _reset_skin_string("cache_mem_restore")
         self._set_setting("filecache.memorysize", target_size)
         self._refresh_cache_labels()
         # The OSD's MB estimate and its buffer_fullfile flag both derive from
@@ -1928,17 +2156,38 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("fullfile: reopening {0} at {1}s (memorysize {2} -> {3})".format(
             target, secs, current, target_size))
         _jsonrpc("Player.Stop", {"playerid": pid})
-        xbmc.sleep(1500)
+        # waitForAbort rather than xbmc.sleep for every wait below: this
+        # thread used to carry on for half a minute after Kodi was told to
+        # quit, and could issue Player.Open into a shutdown.
+        if self.waitForAbort(1.5):
+            return
+        if playlist_id is not None:
+            # Still the same item at that position? Then open it through the
+            # queue so playback runs on into the next one. Anything else
+            # (the queue was cleared, or changed under us) falls back to the
+            # item on its own.
+            queued = ((_jsonrpc("Playlist.GetItems", {
+                "playlistid": playlist_id, "properties": ["file"],
+                "limits": {"start": position, "end": position + 1}})
+                .get("result") or {}).get("items") or [])
+            same = bool(queued) and (
+                (item.get("id") and queued[0].get("id") == item.get("id")
+                 and queued[0].get("type") == item.get("type"))
+                or (item.get("file") and queued[0].get("file") == item.get("file")))
+            if same:
+                target = {"playlistid": playlist_id, "position": position}
         _jsonrpc("Player.Open", {"item": target})
         for _ in range(self.FULLFILE_REOPEN_WAIT * 2):
             if xbmc.getCondVisibility("Player.HasVideo"):
                 break
-            xbmc.sleep(500)
+            if self.waitForAbort(0.5):
+                return
         else:
             _dlog("fullfile: stream did not come back within {0}s".format(
                 self.FULLFILE_REOPEN_WAIT), xbmc.LOGWARNING)
             return
-        xbmc.sleep(2000)  # let the demuxer settle before seeking
+        if self.waitForAbort(2.0):  # let the demuxer settle before seeking
+            return
         if secs > 10:
             players = (_jsonrpc("Player.GetActivePlayers").get("result") or [])
             pid = next((p.get("playerid") for p in players
@@ -2034,7 +2283,11 @@ class FunctionalHelper(xbmc.Monitor):
         # slow/unreachable video DB blocks, and blocking here stalls ETA,
         # every command channel and the rest of the loop (the same failure
         # the stats and cast lookups were moved off-loop for).
-        refresh_after = self.BG_LIST_REFRESH if self._bg_items else self.BG_EMPTY_RETRY
+        # One read of the list for this call: the fetch worker swaps it from
+        # its own thread, and indexing a list that had just been replaced by
+        # a shorter one raised IndexError, which cost the rest of the tick.
+        bg_items = self._bg_items
+        refresh_after = self.BG_LIST_REFRESH if bg_items else self.BG_EMPTY_RETRY
         if ((now - self._bg_last_fetch) > refresh_after
                 and (self._bg_thread is None or not self._bg_thread.is_alive())):
             self._bg_last_fetch = now
@@ -2043,7 +2296,7 @@ class FunctionalHelper(xbmc.Monitor):
                 name="functional-bg", daemon=True)
             self._bg_thread.start()
 
-        if not self._bg_items:
+        if not bg_items:
             # Nothing to show (fetch still in flight, folder empty or
             # unreadable), clear so a previous mode's backdrop doesn't stay
             # on screen.
@@ -2059,9 +2312,9 @@ class FunctionalHelper(xbmc.Monitor):
             interval = self.BG_INTERVAL
 
         if (now - self._bg_last_change) >= interval:
-            self._bg_idx = (self._bg_idx + 1) % len(self._bg_items)
+            self._bg_idx = (self._bg_idx + 1) % len(bg_items)
             self._bg_last_change = now
-            url, label = self._bg_items[self._bg_idx]
+            url, label = bg_items[self._bg_idx]
             self._set_bg_props(url, label)
             _dlog("bg rotate -> {0} | {1}".format(label, url[:120]), xbmc.LOGDEBUG)
 
@@ -2095,6 +2348,13 @@ class FunctionalHelper(xbmc.Monitor):
                 items = self._fetch_genre_library(gname, gtype)
             else:  # random
                 items = self._fetch_random_library()
+        except LookupError as exc:
+            # The library did not answer. Keep whatever list is showing; an
+            # empty one retries on the short backoff, a full one on the
+            # normal refresh.
+            _dlog("bg fetch: {0}, keeping the current list".format(exc),
+                  xbmc.LOGWARNING)
+            return
         except Exception:  # noqa: BLE001
             _dlog("bg fetch worker failed:\n{0}".format(traceback.format_exc()),
                   xbmc.LOGERROR)
@@ -2104,11 +2364,20 @@ class FunctionalHelper(xbmc.Monitor):
         # workers' staleness guard).
         if source != self._bg_source:
             return
+        had_items = bool(self._bg_items)
+        unchanged = items == self._bg_items
         self._bg_items = items
         _dlog("bg slideshow ({0}): {1} items".format(source, len(items)))
-        # Force a rotation on the next slow tick.
-        self._bg_last_change = 0.0
+        if unchanged:
+            return  # same list: leave the picture and its timer alone
         self._bg_idx = -1
+        if not had_items:
+            # First list for this source: show something on the next slow
+            # tick. A refresh of a list that was already rotating keeps its
+            # rhythm instead; every library event (a stop that saved a
+            # resume point, a watched toggle, each item of a scan) used to
+            # snap Home to a new picture whatever the interval said.
+            self._bg_last_change = 0.0
 
     # ----- Favourites (categorised, filterable) ----------------------------
     # Ordered list of filter categories shown on the custom Favourites screen.
@@ -2267,10 +2536,17 @@ class FunctionalHelper(xbmc.Monitor):
 
         # Resolve the desired category: explicit selection, else configured
         # default, else 'all'.
-        category = xbmc.getInfoLabel("Skin.String(fav_category)").strip().lower()
-        if not category:
-            category = xbmc.getInfoLabel("Skin.String(fav_default_category)").strip().lower()
+        explicit = xbmc.getInfoLabel("Skin.String(fav_category)").strip().lower()
+        category = explicit or xbmc.getInfoLabel(
+            "Skin.String(fav_default_category)").strip().lower()
         if category not in self.FAV_CATS:
+            category = "all"
+        if (not explicit and category != "all"
+                and not any(it["cat"] == category for it in self._fav_all)):
+            # The configured default filter has nothing in it. Opening on an
+            # empty grid left the screen with no focusable control at all,
+            # so the default quietly becomes All until that category has
+            # something. A chip the viewer picks by hand is left alone.
             category = "all"
 
         if reloaded or category != self._fav_last_cat:
@@ -2550,7 +2826,7 @@ class FunctionalHelper(xbmc.Monitor):
                 "sort": {"method": "lastplayed", "order": "descending"},
                 "limits": {"start": 0, "end": self.NEXTUP_MAX * 2},
                 "properties": ["title", "art"]})
-            shows = (resp.get("result") or {}).get("tvshows") or []
+            shows = _result_rows(resp, "tvshows")
             items = []
             for show in shows:
                 if len(items) >= self.NEXTUP_MAX:
@@ -2562,7 +2838,10 @@ class FunctionalHelper(xbmc.Monitor):
                 items.append({
                     "dbid": self._safe_int(episode.get("episodeid"), 0),
                     "label": episode.get("title") or "",
-                    "sub": "{0} S{1}E{2}".format(
+                    # Marker first: the caption box is 140 wide, and with
+                    # the show name leading, "Breaking Bad S5E14" was cut to
+                    # "Breaking Ba..." so the row never said which episode.
+                    "sub": "S{1}E{2} \u00b7 {0}".format(
                         show.get("title") or episode.get("showtitle") or "",
                         self._safe_int(episode.get("season"), 0),
                         self._safe_int(episode.get("episode"), 0)),
@@ -2573,6 +2852,13 @@ class FunctionalHelper(xbmc.Monitor):
             self._nextup_publish(items)
             _dlog("next up: {0} row(s) from {1} show(s) in progress".format(
                 len(items), len(shows)))
+        except LookupError as exc:
+            # The library did not answer: leave the row as it is and look
+            # again in half a minute. Before _result_rows a failed query read
+            # as "no shows in progress" and emptied the row for five minutes.
+            _dlog("next up: {0}, keeping the current row".format(exc),
+                  xbmc.LOGWARNING)
+            self._nextup_last = time.time() - self.NEXTUP_REFRESH_SECS + 30
         except Exception:  # noqa: BLE001
             _dlog("next up lookup failed:\n" + traceback.format_exc(), xbmc.LOGERROR)
             self._nextup_last = time.time() - self.NEXTUP_REFRESH_SECS + 30
@@ -2585,6 +2871,7 @@ class FunctionalHelper(xbmc.Monitor):
         <param name="tvshowid">Library id of the show.</param>
         <returns>The episode record, or None when the show has no unwatched
         regular episode or its first one is already part way through.</returns>
+        <exception cref="LookupError">The library did not answer, see _result_rows.</exception>
         """
         if not tvshowid:
             return None
@@ -2596,7 +2883,7 @@ class FunctionalHelper(xbmc.Monitor):
             "sort": {"method": "episode", "order": "ascending"},
             "limits": {"start": 0, "end": 1},
             "properties": ["title", "season", "episode", "showtitle", "art", "resume"]})
-        episodes = (resp.get("result") or {}).get("episodes") or []
+        episodes = _result_rows(resp, "episodes")
         if not episodes:
             return None
         try:
@@ -2653,6 +2940,9 @@ class FunctionalHelper(xbmc.Monitor):
     # the service follows the focused list to fill the right column.
     # </remarks>
     LISTS_FILE = "special://profile/addon_data/skin.functional/lists.json"
+    # Appended to the lists file's path for the copy of it as it stood before
+    # the most recent save, see _lists_save and _lists_load.
+    LISTS_PREVIOUS_SUFFIX = ".previous"
     LISTS_MAX = 60           # rows on the Lists screen's left column
     LIST_ITEMS_MAX = 200     # rows on its right column (and per-list cap)
     # Minutes offered by "Port by Time" for a list that has never been
@@ -2683,9 +2973,11 @@ class FunctionalHelper(xbmc.Monitor):
         <param name="force">Re-read even if already loaded.</param>
         <returns>The in-memory list of list dicts (never None).</returns>
         <remarks>A missing file is an empty set of lists, never an error:
-        the feature must degrade to "no lists yet". An unreadable file is
-        also an empty set for this session, but it is set aside first so
-        that the next save cannot write over it, see _lists_set_aside.
+        the feature must degrade to "no lists yet". An unreadable or empty
+        file is set aside first so that the next save cannot write over it,
+        see _lists_set_aside, and the session then starts from the previous
+        copy kept beside it (LISTS_PREVIOUS_SUFFIX) when that one reads, or
+        from an empty set when it does not.
         </remarks>"""
         with self._lists_lock:
             if self._lists is not None and not force:
@@ -2693,15 +2985,35 @@ class FunctionalHelper(xbmc.Monitor):
             lists, last = [], ""
             broken = False
             path = self._lists_path()
-            if xbmcvfs.exists(path):
+            # Plain open(), not xbmcvfs.File: the profile folder is always a
+            # local path, and xbmcvfs.File().read() answers a failed open
+            # with an empty string instead of raising. That empty string then
+            # parsed as "no lists", nothing was set aside, and the next save
+            # wrote the emptiness over the real file. A file that exists but
+            # is empty (a power cut mid write on some filesystems) is treated
+            # the same way: unreadable, never "no lists".
+            if os.path.exists(path):
                 try:
-                    with xbmcvfs.File(path) as fh:
+                    with open(path, "r", encoding="utf-8") as fh:
                         lists, last = self._lists_parse(fh.read())
                 except Exception:  # noqa: BLE001
                     _dlog("lists.json unreadable:\n" + traceback.format_exc(),
                           xbmc.LOGWARNING)
                     lists, last = [], ""
                     broken = True
+            previous = path + self.LISTS_PREVIOUS_SUFFIX
+            if broken or (not os.path.exists(path) and os.path.exists(previous)):
+                # The copy _lists_save keeps of the file as it was before the
+                # last write. Losing one edit beats losing every list. The
+                # second case is a save interrupted between its two renames:
+                # the main file is gone for a moment and only this one exists.
+                try:
+                    with open(previous, "r", encoding="utf-8") as fh:
+                        lists, last = self._lists_parse(fh.read())
+                    _dlog("lists: using the previous copy, %d lists" % len(lists),
+                          xbmc.LOGWARNING)
+                except Exception:  # noqa: BLE001
+                    lists, last = [], ""
             self._lists = lists
             if broken:
                 self._lists_set_aside(path)
@@ -2732,9 +3044,17 @@ class FunctionalHelper(xbmc.Monitor):
         Watched switch; a file written before it existed reads as off.
         </remarks>
         """
-        data = json.loads(text or "{}")
+        if not (text or "").strip():
+            raise ValueError("lists.json is empty")
+        data = json.loads(text)
         if not isinstance(data, dict):
             raise ValueError("lists.json is not an object")
+        if not isinstance(data.get("lists"), list):
+            # Every file this skin writes has the key, even with no lists in
+            # it. Its absence means some other JSON file, or a damaged one;
+            # reading that as "no lists" is how an import of the wrong file
+            # used to report success.
+            raise ValueError("lists.json has no lists array")
         lists = []
         for entry in data.get("lists", []) or []:
             if not isinstance(entry, dict):
@@ -2771,6 +3091,12 @@ class FunctionalHelper(xbmc.Monitor):
         if not folder.endswith(("/", "\\")):
             folder += "/"
         self._lists_save()
+        if self._lists_frozen:
+            # The save was refused because the file on disk is unreadable
+            # and could not be moved aside. Copying that file out and
+            # announcing an export would hand over the damaged one.
+            self._lists_notify(_L(31487), True)
+            return
         dest = folder + "lists.json"
         if xbmcvfs.copy(self._lists_path(), dest):
             _dlog("lists exported to %s" % dest)
@@ -2787,7 +3113,10 @@ class FunctionalHelper(xbmc.Monitor):
         </summary>
         <param name="path">The file to read; empty asks with Kodi's file browser.</param>
         <remarks>Dialog thread. Nothing here is ever removed, so importing
-        twice is harmless, and the caps LISTS_MAX and LIST_ITEMS_MAX hold.</remarks>
+        twice is harmless, and the caps LISTS_MAX and LIST_ITEMS_MAX hold.
+        Each incoming item's library id is checked against this box first,
+        see _list_item_localise: the file may come from a box with its own
+        video database, where id 12 is a different film.</remarks>
         """
         if not path:
             path = xbmcgui.Dialog().browse(1, _L(31484), "files", ".json")
@@ -2801,6 +3130,19 @@ class FunctionalHelper(xbmc.Monitor):
                   xbmc.LOGWARNING)
             self._lists_notify(_L(31488), True)
             return
+        # Library ids belong to the box that wrote the file. Check each one
+        # against this box's library before anything is merged, off the lock
+        # because it is one query per item.
+        dropped = 0
+        for entry in incoming:
+            checked = []
+            for item in entry["items"]:
+                item = self._list_item_localise(item)
+                if item is None:
+                    dropped += 1
+                else:
+                    checked.append(item)
+            entry["items"] = checked
         new_lists = new_items = 0
         with self._lists_lock:
             lists = self._lists if self._lists is not None else []
@@ -2822,8 +3164,59 @@ class FunctionalHelper(xbmc.Monitor):
                     new_items += 1
             self._lists = lists
         self._lists_save()
-        _dlog("lists imported from %s: %d new list(s), %d new item(s)" % (path, new_lists, new_items))
+        _dlog("lists imported from %s: %d new list(s), %d new item(s), "
+              "%d item(s) this library does not have" % (
+                  path, new_lists, new_items, dropped))
         self._lists_notify(_L(31486) % (new_lists, new_items))
+
+    # dbtype -> (JSON-RPC details method, its id parameter, the key the
+    # record comes back under), for _list_item_localise.
+    LIST_DETAIL_CALLS = {
+        "movie": ("VideoLibrary.GetMovieDetails", "movieid", "moviedetails"),
+        "episode": ("VideoLibrary.GetEpisodeDetails", "episodeid", "episodedetails"),
+        "musicvideo": ("VideoLibrary.GetMusicVideoDetails", "musicvideoid",
+                       "musicvideodetails"),
+        "song": ("AudioLibrary.GetSongDetails", "songid", "songdetails"),
+    }
+
+    def _list_item_localise(self, item):
+        """
+        <summary>
+        Make an imported item safe to use on this box: keep its library id
+        only when this box's library has the same file under that id.
+        </summary>
+        <param name="item">A clean record from _lists_parse. Modified in place.</param>
+        <returns>
+        The record, with its id cleared when it does not belong here, or
+        None when it has neither a usable id nor a path and so cannot be
+        played or identified at all.
+        </returns>
+        <remarks>
+        A record is played, compared for duplicates and matched by Remove
+        Watched through its id whenever it has one. Carried over unchecked
+        from another box, id 12 queued whatever film is 12 here under the
+        original title and poster, was skipped as "already present" when a
+        different film happened to share the number, and could take the
+        wrong row off a list. A record whose id does not check out falls
+        back to its path, which every captured item carries. One query per
+        item with an id, which is why import runs on the dialog thread.
+        </remarks>
+        """
+        call = self.LIST_DETAIL_CALLS.get(item["dbtype"])
+        if not item["dbid"] or call is None:
+            return item if item["file"] else None
+        method, id_key, result_key = call
+        resp = _jsonrpc(method, {id_key: item["dbid"], "properties": ["file"]})
+        details = ((resp or {}).get("result") or {}).get(result_key) or {}
+        here = details.get("file") or ""
+        if item["file"]:
+            if here == item["file"]:
+                return item
+        elif here and (details.get("label") or "") == item["label"]:
+            # No path was stored, so the title is the only thing to go on.
+            return item
+        item["dbid"] = 0
+        return item if item["file"] else None
 
     def _lists_set_aside(self, path):
         """
@@ -2863,34 +3256,57 @@ class FunctionalHelper(xbmc.Monitor):
     def _lists_save(self):
         """<summary>Write self._lists and the last-used name to lists.json,
         then republish the screen properties.</summary>
-        <remarks>Writes go to a temp file first and are renamed over the
-        real one, so a crash mid-write cannot leave a truncated file that
-        the next load would read as "no lists". Refused outright while
-        _lists_frozen is set: the file on disk could not be read and could
-        not be moved aside, so writing would destroy it.</remarks>"""
-        with self._lists_lock:
-            frozen = self._lists_frozen
-            payload = json.dumps({"version": 1, "last": self._lists_last,
-                                  "lists": self._lists or []},
-                                 ensure_ascii=False, indent=1)
-        if frozen:
-            _dlog("lists.json save refused: the file on disk is unreadable "
-                  "and could not be set aside", xbmc.LOGERROR)
-            xbmcgui.Dialog().notification(
-                _L(31024), _L(31442), xbmcgui.NOTIFICATION_ERROR, 4000)
-            return
+        <remarks>Writes go to a temp file first, are flushed to disk and
+        are renamed over the real one, so a crash mid-write cannot leave a
+        truncated file. The file being replaced is kept beside it under
+        LISTS_PREVIOUS_SUFFIX. Refused while _lists_frozen is set: the file
+        on disk could not be read and could not be moved aside, so writing
+        would destroy it; each call tries the move again first. Must not be
+        called with _lists_lock held.</remarks>"""
         path = self._lists_path()
-        tmp = path + ".tmp"
-        try:
-            with open(tmp, "w", encoding="utf-8") as fh:
-                fh.write(payload)
-            os.replace(tmp, path)
-        except OSError:
-            _dlog("lists.json write failed:\n" + traceback.format_exc(),
-                  xbmc.LOGERROR)
-            xbmcgui.Dialog().notification(
-                _L(31024), _L(31333),
-                xbmcgui.NOTIFICATION_ERROR, 4000)
+        # One writer at a time, from building the text to the rename. The
+        # loop (a watched removal) and the dialog thread (any edit) can both
+        # be here; with the text built under one lock and written outside
+        # it, the older text could land last, and two writers sharing one
+        # temp name could have the second rename fail and toast a save
+        # error for a save that had worked.
+        with self._lists_io_lock:
+            with self._lists_lock:
+                if self._lists_frozen:
+                    # Try again to move the unreadable file aside (or notice
+                    # that it has gone). Only then is it safe to write; this
+                    # is the "later" the freeze was waiting for, which used
+                    # never to come short of restarting Kodi.
+                    if os.path.exists(path):
+                        self._lists_set_aside(path)
+                    else:
+                        self._lists_frozen = False
+                frozen = self._lists_frozen
+                payload = json.dumps({"version": 1, "last": self._lists_last,
+                                      "lists": self._lists or []},
+                                     ensure_ascii=False, indent=1)
+            if frozen:
+                _dlog("lists.json save refused: the file on disk is unreadable "
+                      "and could not be set aside", xbmc.LOGERROR)
+                return
+            tmp = path + ".tmp"
+            try:
+                with open(tmp, "w", encoding="utf-8") as fh:
+                    fh.write(payload)
+                    fh.flush()
+                    os.fsync(fh.fileno())
+                if os.path.exists(path):
+                    # Keep the file as it stood before this write. A rename,
+                    # so it costs nothing and cannot be half done; _lists_load
+                    # falls back to it when the main file will not read.
+                    os.replace(path, path + self.LISTS_PREVIOUS_SUFFIX)
+                os.replace(tmp, path)
+            except OSError:
+                _dlog("lists.json write failed:\n" + traceback.format_exc(),
+                      xbmc.LOGERROR)
+                xbmcgui.Dialog().notification(
+                    _L(31024), _L(31333),
+                    xbmcgui.NOTIFICATION_ERROR, 4000)
         self._set_or_reset("lists_last", self._lists_last)
         self._lists_publish()
 
@@ -2958,7 +3374,17 @@ class FunctionalHelper(xbmc.Monitor):
 
     def _lists_publish(self):
         """<summary>Push the list of lists into Lists.N.* Home properties
-        for the left column, and refresh the selected list's items.</summary>"""
+        for the left column, and refresh the selected list's items.</summary>
+        <remarks>Holds _lists_pub_lock throughout: the loop and the dialog
+        thread both publish, and interleaved they could leave the right
+        column showing rows from two different states, with item:N then
+        acting on a row other than the one on screen.</remarks>"""
+        with self._lists_pub_lock:
+            self._lists_publish_locked()
+
+    def _lists_publish_locked(self):
+        """<summary>Body of _lists_publish; the caller holds
+        _lists_pub_lock.</summary>"""
         win = xbmcgui.Window(HOME_WINDOW_ID)
         with self._lists_lock:
             lists = list(self._lists or [])
@@ -2994,6 +3420,17 @@ class FunctionalHelper(xbmc.Monitor):
         """<summary>Fill the right column (LI.N.*) with list number idx's
         items and the Lists.Sel.* heading.</summary>
         <param name="idx">1-based index into the lists, 0 or out of range clears.</param>"""
+        with self._lists_pub_lock:
+            self._list_items_publish_locked(idx)
+
+    def _list_items_publish_locked(self, idx):
+        """<summary>Body of _list_items_publish; the caller holds
+        _lists_pub_lock.</summary>
+        <param name="idx">1-based index into the lists, 0 or out of range clears.</param>
+        <remarks>Records the index it was ASKED for as published, even when
+        that index names no list. Recording 0 instead made an empty Lists
+        screen look permanently out of date to update_lists, which then
+        rewrote seven properties on every tick for as long as it was open.</remarks>"""
         win = xbmcgui.Window(HOME_WINDOW_ID)
         with self._lists_lock:
             lists = list(self._lists or [])
@@ -3032,7 +3469,7 @@ class FunctionalHelper(xbmc.Monitor):
                 for key in ("Label", "Sub", "Thumb", "Kind"):
                     win.clearProperty("LI.%d.%s" % (n, key))
         self._list_item_slots_used = len(items)
-        self._lists_sel_pub = idx if lst else 0
+        self._lists_sel_pub = idx
 
     def update_lists(self):
         """<summary>Fast-tick handler for the Lists feature: runs queued
@@ -3159,12 +3596,24 @@ class FunctionalHelper(xbmc.Monitor):
 
     def _lists_create(self, name, items=None):
         """<summary>Append a new list and save.</summary>
-        <returns>The new list's 1-based index.</returns>"""
+        <param name="name">The new list's name, already checked as unused.</param>
+        <param name="items">Records to start it with; none when omitted.</param>
+        <returns>The new list's 1-based index, or 0 when there is no room.</returns>
+        <remarks>LISTS_MAX is the number of rows the Lists screen has. A
+        list beyond it would be saved and become the quick add target with
+        no row to show it on, so it could never be ported, renamed or
+        removed. Callers must check for 0.</remarks>"""
         with self._lists_lock:
-            self._lists.append({"name": name, "items": list(items or []),
-                                "fill": 0, "autoremove": False})
-            idx = len(self._lists)
-            self._lists_last = name
+            if len(self._lists) >= self.LISTS_MAX:
+                idx = 0
+            else:
+                self._lists.append({"name": name, "items": list(items or []),
+                                    "fill": 0, "autoremove": False})
+                idx = len(self._lists)
+                self._lists_last = name
+        if not idx:
+            self._lists_notify(_L(31574) % self.LISTS_MAX, True)
+            return 0
         self._lists_save()
         return idx
 
@@ -3184,14 +3633,17 @@ class FunctionalHelper(xbmc.Monitor):
             target = next((l for l in lists if l["name"] == last), None)
         if target is None:
             names = [l["name"] for l in lists] + [_L(31464)]
-            choice = xbmcgui.Dialog().select(_L(31050), names)
+            # 31049 is "Add To List". This used to pass 31050, which is the
+            # on-screen keyboard's Shift key, so the picker was titled Shift.
+            choice = xbmcgui.Dialog().select(_L(31049), names)
             if choice < 0:
                 return
             if choice == len(lists):
                 name = self._lists_ask_name(_L(31338))
                 if not name:
                     return
-                self._lists_create(name)
+                if not self._lists_create(name):
+                    return
                 with self._lists_lock:
                     target = self._lists[-1]
             else:
@@ -3251,9 +3703,10 @@ class FunctionalHelper(xbmc.Monitor):
         idx, lst = self._lists_selected()
         if not lst:
             return
-        if not xbmcgui.Dialog().yesno(
-                _L(31343), _L(31344) % (
-                    lst["name"], len(lst["items"]))):
+        count = len(lst["items"])
+        question = (_L(31575) % lst["name"] if count == 1
+                    else _L(31344) % (lst["name"], count))
+        if not xbmcgui.Dialog().yesno(_L(31343), question):
             return
         with self._lists_lock:
             self._lists.pop(idx - 1)
@@ -3448,9 +3901,15 @@ class FunctionalHelper(xbmc.Monitor):
         # Keep the cursor on the row the item moved to; a removal leaves it
         # where the next item slid into.
         target = {1: pos, 2: pos + 2, 3: pos + 1}[choice]
-        target = max(1, min(target, len(lst["items"])))
-        if target:
-            xbmc.executebuiltin("SetFocus(51,%d,absolute)" % (target - 1))
+        remaining = len(lst["items"])
+        if not remaining:
+            # The last item has gone. List 51 is empty and cannot take
+            # focus (Kodi logs "has been asked to focus, but it can't" and
+            # leaves the screen with nothing lit), so go back to the lists.
+            xbmc.executebuiltin("SetFocus(50)")
+            return
+        target = max(1, min(target, remaining))
+        xbmc.executebuiltin("SetFocus(51,%d,absolute)" % (target - 1))
 
     def _lists_save_queue(self):
         """<summary>Turn the queue behind the open queue window into a new
@@ -3495,9 +3954,13 @@ class FunctionalHelper(xbmc.Monitor):
         name = self._lists_ask_name(_L(31363))
         if not name:
             return
-        self._lists_create(name, items[:self.LIST_ITEMS_MAX])
-        self._lists_notify((_L(31364) if len(items) == 1 else _L(31365)) % (
-            len(items), name))
+        stored = items[:self.LIST_ITEMS_MAX]
+        if not self._lists_create(name, stored):
+            return
+        # Count what went in, not what the queue held: a 250 item queue is
+        # cut to LIST_ITEMS_MAX and used to be announced as 250 saved.
+        self._lists_notify((_L(31364) if len(stored) == 1 else _L(31365)) % (
+            len(stored), name))
 
     # ---- Lists: Remove Watched ---------------------------------------------
     #
@@ -3611,8 +4074,13 @@ class FunctionalHelper(xbmc.Monitor):
         while self._lists_watched_q:
             seen.append(self._lists_watched_q.popleft())
         now = time.time()
-        self._lists_watch_ignore = {k: v for k, v in
-                                    self._lists_watch_ignore.items() if v > now}
+        # Expire through a snapshot and delete key by key. Rebuilding the
+        # dict here raced the continue action thread, which adds to it: an
+        # entry added mid rebuild was lost, and iterating while it grew
+        # raised and cost the records already popped above.
+        for key, expiry in list(self._lists_watch_ignore.items()):
+            if expiry <= now:
+                self._lists_watch_ignore.pop(key, None)
         removed = []  # (label, list name)
         with self._lists_lock:
             for lst in self._lists or []:
@@ -3697,7 +4165,10 @@ class FunctionalHelper(xbmc.Monitor):
             self._nav_sort_due = time.time() + self.NAV_SORT_DELAY
         elif self._nav_sort_due and time.time() >= self._nav_sort_due:
             self._nav_sort_due = 0.0
-            self._apply_default_sort()
+            if not self._apply_default_sort():
+                # No default to force here, so report the sort Kodi itself
+                # remembered for this node instead of the last button pressed.
+                self._sync_sort_active()
 
     def _genre_for_path(self, path):
         """
@@ -3718,10 +4189,15 @@ class FunctionalHelper(xbmc.Monitor):
             return self._age_rule_from_path(path, "genre")
         dbtype = "movie" if match.group(1).lower() == "movies" else "tvshow"
         genre_id = int(match.group(2))
+        # Ask for the list first, whether or not a name is already cached:
+        # _start_genre_fetch is a no-op once the type has been pulled, and a
+        # library event clears that mark so a renamed genre is picked up.
+        # Returning early on a cached name meant the list was never pulled
+        # again for an id it already knew.
+        self._start_genre_fetch(dbtype)
         name = self._genre_names.get((dbtype, genre_id))
         if name:
             return name
-        self._start_genre_fetch(dbtype)
         return (xbmc.getInfoLabel("Container.FolderName") or "").strip()
 
     def _start_genre_fetch(self, dbtype):
@@ -3734,6 +4210,8 @@ class FunctionalHelper(xbmc.Monitor):
             return
         if self._genre_thread is not None and self._genre_thread.is_alive():
             return
+        if time.time() < self._genre_retry_at:
+            return  # the last fetch failed; do not ask a sleeping database every tick
         self._genre_fetched.add(dbtype)
         self._genre_thread = threading.Thread(
             target=self._genre_fetch_worker, args=(dbtype,),
@@ -3747,8 +4225,12 @@ class FunctionalHelper(xbmc.Monitor):
         </summary>
         """
         try:
-            resp = _jsonrpc("VideoLibrary.GetGenres", {"type": dbtype})
-            rows = ((resp or {}).get("result") or {}).get("genres") or []
+            # _result_rows raises when the call itself failed. _jsonrpc
+            # swallows its own errors, so without that the except below
+            # could never run and one failed fetch stuck the label on the
+            # folder name until the next library event.
+            rows = _result_rows(
+                _jsonrpc("VideoLibrary.GetGenres", {"type": dbtype}), "genres")
             for row in rows:
                 gid = row.get("genreid")
                 label = (row.get("label") or "").strip()
@@ -3758,6 +4240,7 @@ class FunctionalHelper(xbmc.Monitor):
         except Exception:  # noqa: BLE001
             # Allow a later retry rather than being stuck on FolderName.
             self._genre_fetched.discard(dbtype)
+            self._genre_retry_at = time.time() + 30
             _dlog("genre fetch failed:\n{0}".format(traceback.format_exc()),
                   xbmc.LOGERROR)
 
@@ -3772,17 +4255,18 @@ class FunctionalHelper(xbmc.Monitor):
         sort_want channel (see update_sort_direction) rather than being read
         and toggled here, for the same stale-state reason.
         </remarks>
+        <returns>True when a default sort was applied, False when there was none to apply.</returns>
         """
         if xbmc.getCondVisibility("Container.Content(movies)"):
             key = "movies"
         elif xbmc.getCondVisibility("Container.Content(tvshows)"):
             key = "tvshows"
         else:
-            return
+            return False
         want = xbmc.getInfoLabel(
             "Skin.String(default_sort_{0})".format(key)).strip().lower()
         if want not in self.SORT_METHOD_IDS:
-            return  # unset or "kodi" = leave Kodi's own remembered sort alone
+            return False  # unset or "kodi" = leave Kodi's own remembered sort alone
         direction = xbmc.getInfoLabel(
             "Skin.String(default_sort_{0}_dir)".format(key)).strip().lower()
         if direction not in ("asc", "desc"):
@@ -3794,6 +4278,7 @@ class FunctionalHelper(xbmc.Monitor):
         _set_skin_string("sort_active", want)
         _set_skin_string("sort_want", direction)
         _dlog("nav: default sort for {0} = {1} {2}".format(key, want, direction))
+        return True
 
     # ---- Settings backup and restore --------------------------------------
     #
@@ -3848,9 +4333,10 @@ class FunctionalHelper(xbmc.Monitor):
         Keep the rolling snapshot of settings.xml current.
         </summary>
         <remarks>
-        Slow tick. Stats the file at most every BACKUP_CHECK_SECS and copies
-        it only when the mtime has moved, so a quiet box does one stat every
-        twenty seconds and nothing else.
+        Slow tick. Stats the file at most every BACKUP_CHECK_SECS and looks
+        at it only when the mtime has moved; the copy itself happens only
+        when the content differs from the snapshot (see _backup_worker), so
+        a quiet box does one stat every twenty seconds and nothing else.
         </remarks>
         """
         now = time.time()
@@ -3861,6 +4347,14 @@ class FunctionalHelper(xbmc.Monitor):
             mtime = os.path.getmtime(xbmcvfs.translatePath(self.SETTINGS_FILE))
         except OSError:
             return  # no settings file yet: nothing to back up
+        if not self._backup_age_published:
+            # Once per service start: tell the settings page a snapshot
+            # exists. The Restore button is enabled by this string alone,
+            # and it used to be written only after a successful copy, so
+            # after a settings reset (which blanks it with everything else)
+            # Restore stayed greyed out exactly when it was needed.
+            self._backup_age_published = True
+            self._publish_backup_age()
         if mtime == self._backup_mtime:
             return
         self._backup_mtime = mtime
@@ -3892,6 +4386,8 @@ class FunctionalHelper(xbmc.Monitor):
         </summary>
         <param name="announce">show a notification when done (the manual button).</param>
         <remarks>
+        One copy at a time: a request made while a copy is still running is
+        dropped, and the next change of settings.xml asks again.
         </remarks>
         """
         if self._backup_thread is not None and self._backup_thread.is_alive():
@@ -3924,22 +4420,42 @@ class FunctionalHelper(xbmc.Monitor):
                 _dlog("backup: settings.xml is empty, not overwriting the "
                       "snapshot", xbmc.LOGWARNING)
                 return
-            if not announce and self._looks_like_a_wipe(data):
+            target = self._backup_path()
+            wiped = self._looks_like_a_wipe(data)
+            if not announce and wiped:
                 # One rolling snapshot is only a backup if the event it
                 # protects against can't overwrite it. A settings reset
                 # rewrites settings.xml, and the automatic snapshot would
                 # cheerfully copy the wreckage over the good copy seconds
                 # later. "Back Up Now" is never blocked, so a deliberate
                 # cull is still one button away.
-                _dlog("backup: settings.xml lost most of its entries, "
+                _dlog("backup: settings.xml lost most of its choices, "
                       "keeping the previous snapshot", xbmc.LOGWARNING)
+                # The reset blanked the string that enables Restore too.
+                self._publish_backup_age()
+                return
+            if not announce and self._same_settings(data, target):
+                # Nothing but the snapshot's own timestamp has changed.
+                # Every snapshot used to end by writing that timestamp into
+                # a skin string, which made Kodi rewrite settings.xml, which
+                # moved its mtime, which triggered the next snapshot: two
+                # files rewritten every twenty seconds for ever on an idle
+                # box.
                 return
             folder = xbmcvfs.translatePath(self.BACKUP_DIR)
             if not os.path.isdir(folder):
                 os.makedirs(folder, exist_ok=True)
+            if announce and wiped and os.path.isfile(target):
+                # Back Up Now over a snapshot that holds far more than the
+                # live settings do. The button is allowed to do that, but
+                # the fuller snapshot is the only copy of those choices, so
+                # it is kept under another name rather than destroyed.
+                os.replace(target, target + self.BACKUP_KEPT_SUFFIX)
+                _dlog("backup: the fuller snapshot was kept as {0}".format(
+                    os.path.basename(target + self.BACKUP_KEPT_SUFFIX)),
+                    xbmc.LOGWARNING)
             # Write beside the target and rename: a snapshot interrupted
             # half-written is worse than no snapshot at all.
-            target = self._backup_path()
             temp = target + ".part"
             with open(temp, "wb") as fh:
                 fh.write(data)
@@ -3958,29 +4474,98 @@ class FunctionalHelper(xbmc.Monitor):
                     _L(31000), _L(31367),
                     xbmcgui.NOTIFICATION_WARNING, 4000)
 
-    # Below this many stored settings there is nothing worth protecting, and
+    # Below this many stored choices there is nothing worth protecting, and
     # the ratio test would fire on a brand-new profile legitimately growing.
-    WIPE_GUARD_MIN = 8
+    WIPE_GUARD_MIN = 4
+    # Appended to the snapshot's name for the copy kept when Back Up Now
+    # replaces a snapshot that held far more, see _backup_worker.
+    BACKUP_KEPT_SUFFIX = ".before-reset"
+    # Seeded by the service itself at start, so present again straight after
+    # a reset and no evidence of anything the user chose.
+    WIPE_IGNORE_KEYS = frozenset(("infobar_clearance_top", "infobar_clearance_bottom"))
+    _BACKUP_WHEN_RE = re.compile(
+        rb'<setting id="settings_backup_when"[^>]*?(?:/>|>[^<]*</setting>)')
+
+    @classmethod
+    def _count_choices(cls, data):
+        """
+        <summary>
+        How many settings in a settings.xml hold something the user chose.
+        </summary>
+        <param name="data">The file's raw bytes.</param>
+        <returns>The count, or None when the bytes do not parse as XML.</returns>
+        <remarks>
+        A choice is a string with text in it or a bool that is true, on a
+        key that a restore would put back (the same skip lists as
+        _read_backup, plus WIPE_IGNORE_KEYS). Counting entries, as this used
+        to, cannot see a reset at all: Kodi blanks every value in place and
+        keeps every entry, so a wiped file has exactly as many entries as a
+        full one. Readouts the service republishes within seconds of a reset
+        (the library figures, the cache labels) are left out for the same
+        reason; they would make a wiped file look lived in.
+        </remarks>
+        """
+        try:
+            root = ET.fromstring(data)
+        except ET.ParseError:
+            return None
+        count = 0
+        for node in root.findall("setting"):
+            key = (node.get("id") or "").strip()
+            if (not key or key in cls.BACKUP_SKIP_KEYS
+                    or key in cls.WIPE_IGNORE_KEYS
+                    or key.startswith(cls.BACKUP_SKIP_PREFIXES)
+                    or key.endswith(cls.BACKUP_SKIP_SUFFIXES)):
+                continue
+            value = (node.text or "").strip()
+            if (node.get("type") or "").strip() == "bool":
+                count += value.lower() == "true"
+            else:
+                count += bool(value)
+        return count
 
     def _looks_like_a_wipe(self, data):
         """
         <summary>
-        True if *data* has lost most of the settings the snapshot holds.
+        True if *data* has lost most of the choices the snapshot holds.
         </summary>
         <param name="data">the raw bytes just read from settings.xml.</param>
+        <returns>True when the snapshot should not be replaced automatically.</returns>
         <remarks>
-        A crude count of <setting entries, which is all this needs to be: the
-        signature of a reset is "was 60, is now 2", not "was 60, is now 58".
+        The signature of a reset is "held 40 choices, now holds 2", not "held
+        40, now holds 38". A settings file that does not parse is treated as
+        a wipe as well: Kodi may be part way through writing it, and the
+        next change of mtime gives another chance.
         </remarks>
         """
         try:
             with open(self._backup_path(), "rb") as fh:
-                stored = fh.read().count(b"<setting ")
+                stored = self._count_choices(fh.read())
         except OSError:
             return False  # no snapshot yet: anything is an improvement
-        if stored < self.WIPE_GUARD_MIN:
+        if stored is None or stored < self.WIPE_GUARD_MIN:
             return False
-        return data.count(b"<setting ") * 2 < stored
+        live = self._count_choices(data)
+        return live is None or live * 2 < stored
+
+    @classmethod
+    def _same_settings(cls, data, snapshot_path):
+        """
+        <summary>
+        True when settings.xml matches the snapshot apart from the entry
+        that records when the snapshot was taken.
+        </summary>
+        <param name="data">The raw bytes just read from settings.xml.</param>
+        <param name="snapshot_path">Filesystem path of the snapshot.</param>
+        <returns>False when they differ or there is no snapshot to compare with.</returns>
+        """
+        try:
+            with open(snapshot_path, "rb") as fh:
+                stored = fh.read()
+        except OSError:
+            return False
+        return (cls._BACKUP_WHEN_RE.sub(b"", data)
+                == cls._BACKUP_WHEN_RE.sub(b"", stored))
 
     def _publish_backup_age(self):
         """
@@ -4057,11 +4642,11 @@ class FunctionalHelper(xbmc.Monitor):
                 if value.lower() == "true":
                     xbmc.executebuiltin("Skin.SetBool({0})".format(key))
                 else:
-                    xbmc.executebuiltin("Skin.Reset({0})".format(key))
+                    _reset_skin_string(key)
             elif value:
                 _set_skin_string(key, value)
             else:
-                xbmc.executebuiltin("Skin.Reset({0})".format(key))
+                _reset_skin_string(key)
         _dlog("restore: re-applied {0} settings from {1}".format(
             len(entries), path))
         xbmcgui.Dialog().notification(
@@ -4089,17 +4674,61 @@ class FunctionalHelper(xbmc.Monitor):
         """
         want = xbmc.getInfoLabel("Skin.String(sort_want)").strip().lower()
         if not want:
+            self._sort_want_ticks = 0
             return
         # Only meddle while the video library window is up, so we never nudge
         # some other window's container.
         if not xbmc.getCondVisibility("Window.IsVisible(videos)"):
-            xbmc.executebuiltin("Skin.Reset(sort_want)")
+            _reset_skin_string("sort_want")
             return
+        # Did the node take the sort the button asked for? Not every node
+        # offers every method (a season list has one), and Kodi ignores a
+        # SetSortMethod it does not offer. The direction used to be applied
+        # regardless, so choosing Year in a season left the order as it was
+        # and silently reversed it. Give the container a few ticks to settle
+        # before deciding, then put sort_active back to the truth and leave
+        # the direction alone.
+        active = xbmc.getInfoLabel("Skin.String(sort_active)").strip().lower()
+        expected = self.SORT_METHOD_IDS.get(active)
+        if expected is not None and not xbmc.getCondVisibility(
+                "Container.SortMethod({0})".format(expected)):
+            self._sort_want_ticks += 1
+            if self._sort_want_ticks < self.SORT_SETTLE_TICKS:
+                return
+            self._sort_want_ticks = 0
+            _dlog("sort: this node did not take {0!r}, direction left alone".format(active))
+            self._sync_sort_active()
+            _reset_skin_string("sort_want")
+            return
+        self._sort_want_ticks = 0
         if want == "desc" and xbmc.getCondVisibility("Container.SortDirection(ascending)"):
             xbmc.executebuiltin("Container.SetSortDirection")
         elif want == "asc" and xbmc.getCondVisibility("Container.SortDirection(descending)"):
             xbmc.executebuiltin("Container.SetSortDirection")
-        xbmc.executebuiltin("Skin.Reset(sort_want)")
+        _reset_skin_string("sort_want")
+
+    SORT_SETTLE_TICKS = 3  # fast ticks to wait for a new sort method to show
+
+    def _sync_sort_active(self):
+        """
+        <summary>
+        Make Skin.String(sort_active) name the sort the container on screen
+        is really using.
+        </summary>
+        <remarks>
+        sort_active is one string for every node, written by the Sort
+        buttons, while Kodi remembers a sort per node. Sort Movies by Year,
+        open TV Shows (still by title) and the fast scroll badge showed
+        years over an A to Z list. Called after every path change and after
+        a rejected sort. When the container uses a method the side menu has
+        no button for, the string is left as it is.
+        </remarks>
+        """
+        for name, method_id in self.SORT_METHOD_IDS.items():
+            if xbmc.getCondVisibility("Container.SortMethod({0})".format(method_id)):
+                if xbmc.getInfoLabel("Skin.String(sort_active)").strip().lower() != name:
+                    _set_skin_string("sort_active", name)
+                return
 
     # ---- Layout command handler ----------------------------------------
 
@@ -4264,7 +4893,7 @@ class FunctionalHelper(xbmc.Monitor):
         if self._sleep_deadline is None:
             return
 
-        remaining = int(round(self._sleep_deadline - time.time()))
+        remaining = int(round(self._sleep_deadline - time.monotonic()))
         if remaining <= 0:
             self._sleep_fire()
             return
@@ -4329,10 +4958,16 @@ class FunctionalHelper(xbmc.Monitor):
             self._sleep_disarm(announce=True)
             return
         _set_skin_string("sleep_default", self._fmt_hhmm(minutes))
+        # Two modes, never both. An episode count left armed took priority
+        # in update_sleep_timer, so a clock timer set over it was confirmed
+        # with a toast and then ignored: the label flipped back to the
+        # episode count and the box never powered down on the clock.
+        self._sleep_episodes = 0
+        self._sleep_fire_pending = False
         self._sleep_warned = minutes * 60 <= self.SLEEP_WARN_SECS
         self._sleep_published = self._fmt_countdown(minutes * 60)
         _set_home_property("sleep_remaining", self._sleep_published)
-        self._sleep_deadline = time.time() + minutes * 60
+        self._sleep_deadline = time.monotonic() + minutes * 60
         _dlog("sleep timer: armed for {0}".format(self._fmt_hhmm(minutes)))
         self._sleep_notify(_L(31427).format(self._fmt_hhmm(minutes)))
 
@@ -4686,13 +5321,20 @@ class FunctionalHelper(xbmc.Monitor):
         if path == self._age_last_path:
             return
         self._age_last_path = path
-        cutoff = self._safe_int(self._age_rule_from_path(path, "year"), 0)
+        # Below a show (its seasons and episodes) Kodi keeps the parent
+        # node's query string, so a season opened from a searched or age
+        # filtered TV titles node still carries that tvshows playlist. Kodi
+        # ignores it there; reading it back made the side menu claim a
+        # search over a list that was not filtered. Only an episodes
+        # playlist counts at that depth.
+        kinds = ("episodes",) if self.SHOW_CHILD_RE.match(path) else None
+        cutoff = self._safe_int(self._age_rule_from_path(path, "year", kinds), 0)
         want = str(time.localtime().tm_year - cutoff) if cutoff else ""
         if xbmc.getInfoLabel("Skin.String(age_filter)").strip() != want:
             _set_skin_string("age_filter", want)
         # Same idea for the search text: the menu row shows what the node on
         # screen is actually filtered by, not what was last typed.
-        text = self._age_rule_from_path(path, "title")
+        text = self._age_rule_from_path(path, "title", kinds)
         if xbmc.getInfoLabel("Skin.String(search_active)").strip() != text:
             _set_skin_string("search_active", text)
 
@@ -4739,6 +5381,7 @@ class FunctionalHelper(xbmc.Monitor):
                          "pictures": hide_pics, "weather": not show_weather, "lists": hide_lists,
                          "stats": hide_stats or not has_stats, "none": True}
         win = xbmcgui.Window(HOME_WINDOW_ID)
+        shown = 0
         for n, (kind, label, fav) in enumerate(raw, 1):
             default = self.TILE_DEFAULTS[n - 1]
             using_default = kind not in self.TILE_NAMES and kind not in ("fav", "none")
@@ -4756,13 +5399,99 @@ class FunctionalHelper(xbmc.Monitor):
                 name = ""
             else:
                 name = _L(self.TILE_NAMES[effective])
-                kind_label = name + (" " + _L(31500) if using_default else "")
+                if using_default and hidden:
+                    # The slot's default is switched off for this box (the
+                    # Weather default without the old show weather toggle,
+                    # the Stats default without its add-on). The settings
+                    # row used to read "Weather (default)" beside a Home
+                    # screen with no Weather tile; say what Home shows.
+                    kind_label = _L(31494) + " " + _L(31500)
+                else:
+                    kind_label = name + (" " + _L(31500) if using_default else "")
             win.setProperty("Tile.%d.Kind" % n, "" if hidden else effective)
             win.setProperty("Tile.%d.Label" % n, label or name)
             win.setProperty("Tile.%d.KindLabel" % n, kind_label)
+            shown += 0 if hidden else 1
+        win.setProperty("Tile.Count", str(shown))
+        self._tiles_shown = shown
+        # Home's tiles are gated on the properties just written, so on a
+        # cold start the menu did not exist when Kodi placed its default
+        # focus; see update_home_focus.
+        self._home_focus_checks = self.HOME_FOCUS_TICKS
         _dlog("tiles: " + ", ".join(
             "{0}={1}".format(n, win.getProperty("Tile.%d.Kind" % n) or "off")
             for n in range(1, self.TILE_SLOTS + 1)))
+
+    HOME_FOCUS_TICKS = 12      # fast ticks update_home_focus keeps looking, about three seconds
+    HOME_MENU_ID = 9000        # Home.xml: the tile row
+    HOME_CORNER_BAR_ID = 9190  # Home.xml: the group holding the corner bar
+
+    def update_home_focus(self):
+        """
+        <summary>
+        Give Home a focused control when it has none after the tiles were
+        published.
+        </summary>
+        <remarks>
+        Fast tick, and idle except for a few ticks after update_tiles has
+        written. Every tile is visible only once its Tile.N.Kind property
+        exists, and those are first written three seconds after the service
+        starts, by which time Home has already tried to focus an empty menu
+        and given up; Kodi does not try again when the menu fills. Home then
+        sat with nothing lit and swallowed the first key press. With every
+        tile set to Off there is no menu to focus at all, so the corner bar
+        is focused instead, which is the only way left to reach Settings.
+        Does nothing while another window or a dialog is in front, or once
+        anything on Home has focus.
+        </remarks>
+        """
+        if self._home_focus_checks <= 0:
+            return
+        self._home_focus_checks -= 1
+        if (not xbmc.getCondVisibility("Window.IsActive(home)")
+                or xbmc.getCondVisibility("System.HasActiveModalDialog")):
+            return
+        if xbmc.getInfoLabel("System.CurrentControlID").strip():
+            self._home_focus_checks = 0
+            return
+        target = self.HOME_MENU_ID if self._tiles_shown else self.HOME_CORNER_BAR_ID
+        xbmc.executebuiltin("SetFocus({0})".format(target))
+
+    STARTUP_WATCH_TICKS = 240  # fast ticks update_startup_fallback keeps watching, about a minute
+
+    def update_startup_fallback(self):
+        """
+        <summary>
+        Leave the startup splash if its own one shot alarm did not manage to.
+        </summary>
+        <remarks>
+        Fast tick, for the first minute after the service starts and only
+        until the splash has been seen to go. Startup.xml hands over to the
+        configured startup window from an alarm that fires once, a second
+        after it loads. Kodi refuses ReplaceWindow while a modal dialog is
+        up (an add-on's first run prompt, say), and nothing tried again, so
+        the splash could be left on screen with no controls once the dialog
+        closed. This is that second try: the same ReplaceWindow, as soon as
+        the splash is in front with no dialog over it.
+        </remarks>
+        """
+        if self._startup_watch <= 0:
+            return
+        self._startup_watch -= 1
+        if not xbmc.getCondVisibility("Window.IsActive(startup)"):
+            if self._startup_watch < self.STARTUP_WATCH_TICKS - 8:
+                # Gone, and has been for a couple of seconds: the hand over
+                # worked, nothing more to watch for.
+                self._startup_watch = 0
+            return
+        if xbmc.getCondVisibility("System.HasActiveModalDialog"):
+            return
+        target = xbmc.getInfoLabel("System.StartupWindow").strip()
+        if target:
+            _dlog("startup: the splash was still up, handing over to {0}".format(target))
+            xbmc.executebuiltin("ReplaceWindow({0})".format(target))
+            # Give it time to act before trying again.
+            self._startup_watch = min(self._startup_watch, self.STARTUP_WATCH_TICKS) - 8
 
     def update_tile_command(self):
         """
@@ -4799,12 +5528,19 @@ class FunctionalHelper(xbmc.Monitor):
         name = xbmc.getInfoLabel("Skin.String(tile{0}_fav)".format(n)).strip()
         self._read_favourites()
         for item in self._fav_all:
-            if item["name"] == name:
+            # Compared the way _set_skin_string stored it: double quotes
+            # dropped, edges trimmed. A favourite named with either could be
+            # picked for a tile and then never ran.
+            if name and item["name"].replace('"', '').strip() == name:
                 _dlog("tile %d runs favourite %r: %s" % (n, name, item["action"]))
                 xbmc.executebuiltin(item["action"])
                 return
         _dlog("tile %d: favourite %r not found" % (n, name), xbmc.LOGWARNING)
-        xbmcgui.Dialog().notification(_L(31000), _L(31501), xbmcgui.NOTIFICATION_INFO, 3000)
+        # "Not chosen yet" only when that is true; a name that no longer
+        # matches anything means the favourite was renamed or removed.
+        xbmcgui.Dialog().notification(
+            _L(31000), _L(31576) if name else _L(31501),
+            xbmcgui.NOTIFICATION_INFO, 3500)
 
     def _tile_pick(self, n):
         """
@@ -4855,6 +5591,42 @@ class FunctionalHelper(xbmc.Monitor):
         _set_skin_string("accent_custom_hi", value[:2] + lighter)
         _dlog("accent: custom {0} -> highlight {1}".format(value, value[:2] + lighter))
 
+    GENRE_ALL = "__all__"  # genre_command value for the picker's "All" row
+
+    def update_genre_command(self):
+        """
+        <summary>
+        Watch Skin.String(genre_command) and open the node for the genre the
+        picker row asked for, keeping the age and search filters in force.
+        </summary>
+        <remarks>
+        Fast tick. The value is the genre's name, or GENRE_ALL for the row
+        that removes the genre. The picker used to load the genre's own
+        library node directly, which threw away an age threshold or a search
+        the list was already narrowed by; the other two filters stacked on a
+        genre, but only in that order. Going through _age_node makes all
+        three stack whichever is chosen last. With no age and no search the
+        result is still the genre's own node, so nothing changes for a plain
+        genre pick.
+        </remarks>
+        """
+        value = self._take_command("genre_command")
+        if not value:
+            return
+        path = (xbmc.getInfoLabel("Container.FolderPath") or "").strip()
+        if not path.lower().startswith("videodb://"):
+            _dlog("genre: not a library node, ignored: {0}".format(path[:80]))
+            return
+        kind = "tvshows" if path.lower().startswith("videodb://tvshows") else "movies"
+        genre = "" if value == self.GENRE_ALL else value
+        years = self._safe_int(xbmc.getInfoLabel("Skin.String(age_filter)"), 0)
+        text = self._age_rule_from_path(path, "title")
+        target = self._age_node(kind, years, genre, text)
+        _dlog("genre: {0} {1!r} older than {2}y search {3!r} -> {4}".format(
+            kind, genre, years, text, target[:100]))
+        xbmc.executebuiltin("Container.Update({0})".format(target))
+        self._age_last_path = None
+
     def update_search_command(self):
         """
         <summary>
@@ -4885,10 +5657,23 @@ class FunctionalHelper(xbmc.Monitor):
         Dialog thread: ask for the search text, seeded with the text in
         force, and apply it. An empty answer clears the search.
         </summary>
+        <remarks>
+        xbmc.Keyboard rather than Dialog().input, because input() returns
+        the same empty string for Back as for an emptied field. Backing out
+        of the keyboard used to clear a search that was in force, and on a
+        set, actor or year node with no search it sent the viewer to the
+        plain titles node. Only a confirmed answer is applied now.
+        </remarks>
         """
         current = xbmc.getInfoLabel("Skin.String(search_active)").strip()
-        text = xbmcgui.Dialog().input(_L(31479), current)
-        self._search_apply((text or "").strip())
+        keyboard = xbmc.Keyboard(current, _L(31479))
+        keyboard.doModal()
+        if not keyboard.isConfirmed():
+            return
+        text = (keyboard.getText() or "").strip()
+        if not text and not current:
+            return  # nothing in force and nothing asked for: leave the node alone
+        self._search_apply(text)
 
     def _search_apply(self, text):
         """
@@ -4962,22 +5747,29 @@ class FunctionalHelper(xbmc.Monitor):
         return self.AGE_NODES[kind] + "?xsp=" + urllib.parse.quote(
             json.dumps(xsp, separators=(",", ":")))
 
+    # A node below one show: its seasons, or a season's episodes.
+    SHOW_CHILD_RE = re.compile(r"^videodb://tvshows/titles/-?\d+/", re.IGNORECASE)
+
     @staticmethod
-    def _age_rule_from_path(path, field):
+    def _age_rule_from_path(path, field, kinds=None):
         """
         <summary>
         First value of one rule inside the xsp playlist a videodb URL carries.
         </summary>
         <param name="path">Container.FolderPath.</param>
         <param name="field">Rule field to look for, such as "year" or "genre".</param>
-        <returns>The rule's first value, or "" when the path carries no such rule.</returns>
+        <param name="kinds">Playlist types that count, such as ("episodes",); None accepts any.</param>
+        <returns>The rule's first value, or "" when the path carries no such rule or its playlist is of another type.</returns>
         """
         if "xsp=" not in (path or ""):
             return ""
         try:
             query = urllib.parse.urlparse(path).query
             raw = urllib.parse.parse_qs(query).get("xsp", [""])[0]
-            rules = (json.loads(raw).get("rules") or {}).get("and") or []
+            playlist = json.loads(raw)
+            if kinds is not None and playlist.get("type") not in kinds:
+                return ""
+            rules = (playlist.get("rules") or {}).get("and") or []
         except (ValueError, TypeError, AttributeError):
             return ""
         for rule in rules:
@@ -5087,17 +5879,33 @@ class FunctionalHelper(xbmc.Monitor):
         <param name="lower">Lower case the value before returning it.</param>
         <returns>The stripped value, or "" when the channel was empty.</returns>
         <remarks>
-        The string is cleared before the value is handed back, so a command
-        can never fire twice however long the handler takes and whatever it
-        does with the value. Every channel ends in _command or _run, which
+        The clear is requested before the value is handed back, and the same
+        value is not handed back again until the clear has been seen to
+        land, so a command cannot fire twice however long the handler takes
+        or Kodi takes to apply the reset. Every channel ends in _command or _run, which
         BACKUP_SKIP_SUFFIXES relies on to keep them out of a restore. This
         used to be written out at every site; one helper means one place to
         log or validate when the next channel arrives.
         </remarks>
         """
         value = xbmc.getInfoLabel("Skin.String({0})".format(key)).strip()
-        if value:
-            xbmc.executebuiltin("Skin.Reset({0})".format(key))
+        if not value:
+            _COMMANDS_TAKEN.pop(key, None)
+            return ""
+        # The Skin.Reset below is posted to Kodi's main thread, not applied
+        # here. If that thread is busy for longer than one tick the string
+        # still reads the same next time round, and without this test the
+        # one click was taken twice: a layout step of 10 became 20, a cache
+        # preset was skipped, a favourite ran twice. A value identical to
+        # the one just taken is therefore ignored until the string has been
+        # seen empty, or COMMAND_REPEAT_SECS have passed, after which it is
+        # treated as a fresh click (and reset again).
+        taken = _COMMANDS_TAKEN.get(key)
+        now = time.time()
+        if taken and taken[0] == value and (now - taken[1]) < COMMAND_REPEAT_SECS:
+            return ""
+        _COMMANDS_TAKEN[key] = (value, now)
+        _reset_skin_string(key)
         return value.lower() if lower else value
 
     @staticmethod
@@ -5125,7 +5933,7 @@ class FunctionalHelper(xbmc.Monitor):
         if value:
             _set_skin_string(key, value)
         else:
-            xbmc.executebuiltin("Skin.Reset({0})".format(key))
+            _reset_skin_string(key)
 
     @staticmethod
     def _parse_hhmm(text):
@@ -5157,6 +5965,61 @@ class FunctionalHelper(xbmc.Monitor):
         """
         return "{0:02d}:{1:02d}".format(minutes // 60, minutes % 60)
 
+    BG_PENDING_SECS = 2.0  # how long a value this service wrote outranks what the store reads
+
+    def _bg_get(self, key):
+        """
+        <summary>
+        Read a background skin string, seeing this service's own recent
+        writes even before Kodi has applied them.
+        </summary>
+        <param name="key">Skin string name, a live key or a slot key.</param>
+        <returns>The value last written through _bg_put if that write may not have landed yet, otherwise what the store holds.</returns>
+        <remarks>
+        Skin.SetString and Skin.Reset are posted to Kodi's main thread and
+        applied later, while a read is answered at once. The schedule code
+        copies slot to live and live to slot within one call, and reading
+        back the value it had only just asked for returned the old one:
+        enabling the schedule for the first time inside skin settings
+        emptied the live background settings, and an edit made in the last
+        second before closing settings was overwritten by the older value.
+        A pending value is dropped as soon as the store agrees with it, or
+        after BG_PENDING_SECS, so a change made by the user through the
+        settings page wins from then on.
+        </remarks>
+        """
+        actual = xbmc.getInfoLabel("Skin.String({0})".format(key))
+        pending = self._bg_pending.get(key)
+        if pending is None:
+            return actual
+        value, expires = pending
+        if actual == value or time.time() >= expires:
+            self._bg_pending.pop(key, None)
+            return actual
+        return value
+
+    def _bg_put(self, key, value):
+        """
+        <summary>
+        Write a background skin string, or clear it when the value is empty,
+        unless it already holds that value.
+        </summary>
+        <param name="key">Skin string name, a live key or a slot key.</param>
+        <param name="value">Text to store; empty clears the string so String.IsEmpty conditions keep working.</param>
+        <remarks>
+        "Already holds" is judged through _bg_get, so a write still in
+        flight counts. The value is remembered as pending for the same
+        reason, see _bg_get.
+        </remarks>
+        """
+        if value == self._bg_get(key):
+            return
+        if value:
+            _set_skin_string(key, value)
+        else:
+            _reset_skin_string(key)
+        self._bg_pending[key] = (value, time.time() + self.BG_PENDING_SECS)
+
     def _bg_slot_store(self, slot):
         """
         <summary>
@@ -5164,8 +6027,7 @@ class FunctionalHelper(xbmc.Monitor):
         </summary>
         """
         for key, live in self.BG_SCHED_LIVE.items():
-            self._set_or_reset("bg_slot{0}_{1}".format(slot, key),
-                               self._get_skin(live))
+            self._bg_put("bg_slot{0}_{1}".format(slot, key), self._bg_get(live))
 
     def _bg_slot_load(self, slot):
         """
@@ -5174,8 +6036,7 @@ class FunctionalHelper(xbmc.Monitor):
         </summary>
         """
         for key, live in self.BG_SCHED_LIVE.items():
-            self._set_or_reset(live,
-                               self._get_skin("bg_slot{0}_{1}".format(slot, key)))
+            self._bg_put(live, self._bg_get("bg_slot{0}_{1}".format(slot, key)))
 
     def _bg_sched_slot_count(self):
         """
@@ -5197,12 +6058,12 @@ class FunctionalHelper(xbmc.Monitor):
         </summary>
         """
         for n in range(1, count + 1):
-            if self._get_skin("bg_slot{0}_seeded".format(n)):
+            if self._bg_get("bg_slot{0}_seeded".format(n)):
                 continue
-            _set_skin_string("bg_slot{0}_seeded".format(n), "1")
-            if not self._get_skin("bg_slot{0}_start".format(n)):
-                _set_skin_string("bg_slot{0}_start".format(n),
-                                 self.BG_SCHED_DEFAULT_STARTS[n - 1])
+            self._bg_put("bg_slot{0}_seeded".format(n), "1")
+            if not self._bg_get("bg_slot{0}_start".format(n)):
+                self._bg_put("bg_slot{0}_start".format(n),
+                             self.BG_SCHED_DEFAULT_STARTS[n - 1])
             self._bg_slot_store(n)
             _dlog("bg schedule: seeded slot {0} from live settings".format(n))
 
@@ -5220,7 +6081,7 @@ class FunctionalHelper(xbmc.Monitor):
         best = best_start = None       # latest start <= now
         latest = latest_start = None   # latest start overall (for wrap)
         for n in range(1, count + 1):
-            start = self._parse_hhmm(self._get_skin("bg_slot{0}_start".format(n)))
+            start = self._parse_hhmm(self._bg_get("bg_slot{0}_start".format(n)))
             if start is None:
                 continue
             if latest_start is None or start > latest_start:
@@ -5330,6 +6191,8 @@ class FunctionalHelper(xbmc.Monitor):
         <summary>
         Up to BG_COUNT recently watched movies; returns (fanart_url, 'Title (year)') tuples.
         </summary>
+        <returns>The pairs, newest played first; empty when nothing has been watched.</returns>
+        <exception cref="LookupError">The library did not answer, see _result_rows.</exception>
         """
         params = {
             "limits": {"start": 0, "end": self.BG_COUNT},
@@ -5337,8 +6200,7 @@ class FunctionalHelper(xbmc.Monitor):
             "filter": {"field": "playcount", "operator": "greaterthan", "value": "0"},
             "properties": ["art", "title", "year"],
         }
-        resp = _jsonrpc("VideoLibrary.GetMovies", params)
-        movies = (resp.get("result", {}) or {}).get("movies", []) if resp else []
+        movies = _result_rows(_jsonrpc("VideoLibrary.GetMovies", params), "movies")
         items = []
         for m in movies:
             fanart = (m.get("art", {}) or {}).get("fanart", "")
@@ -5373,9 +6235,10 @@ class FunctionalHelper(xbmc.Monitor):
         <summary>
         Up to BG_COUNT random fanart entries restricted to a single genre.
         </summary>
-        <remarks>
-        gtype is movies / tvshows / both; anything else falls back to movies.
-        </remarks>
+        <param name="genre">Genre name exactly as the library holds it.</param>
+        <param name="gtype">movies, tvshows or both; anything else falls back to movies.</param>
+        <returns>(fanart_url, label) pairs, shuffled.</returns>
+        <exception cref="LookupError">The library did not answer, see _result_rows.</exception>
         """
         if gtype not in ("movies", "tvshows", "both"):
             gtype = "movies"
@@ -5387,13 +6250,11 @@ class FunctionalHelper(xbmc.Monitor):
         }
         items = []
         if gtype in ("movies", "both"):
-            resp = _jsonrpc("VideoLibrary.GetMovies", params)
-            items += self._fanart_items(
-                (resp.get("result", {}) or {}).get("movies", []) if resp else [])
+            items += self._fanart_items(_result_rows(
+                _jsonrpc("VideoLibrary.GetMovies", params), "movies"))
         if gtype in ("tvshows", "both"):
-            resp = _jsonrpc("VideoLibrary.GetTVShows", params)
-            items += self._fanart_items(
-                (resp.get("result", {}) or {}).get("tvshows", []) if resp else [],
+            items += self._fanart_items(_result_rows(
+                _jsonrpc("VideoLibrary.GetTVShows", params), "tvshows"),
                 with_year=False)
         # Interleave movies and shows in "both" mode.
         random.shuffle(items)
@@ -5404,6 +6265,8 @@ class FunctionalHelper(xbmc.Monitor):
         <summary>
         Up to BG_COUNT random fanart entries from the movie + TV-show library.
         </summary>
+        <returns>(fanart_url, label) pairs, shuffled so films and shows interleave.</returns>
+        <exception cref="LookupError">The library did not answer, see _result_rows.</exception>
         """
         items = []
         movie_params = {
@@ -5411,8 +6274,7 @@ class FunctionalHelper(xbmc.Monitor):
             "sort": {"order": "ascending", "method": "random"},
             "properties": ["art", "title", "year"],
         }
-        resp = _jsonrpc("VideoLibrary.GetMovies", movie_params)
-        for m in (resp.get("result", {}) or {}).get("movies", []) if resp else []:
+        for m in _result_rows(_jsonrpc("VideoLibrary.GetMovies", movie_params), "movies"):
             fanart = (m.get("art", {}) or {}).get("fanart", "")
             if not fanart:
                 continue
@@ -5425,8 +6287,7 @@ class FunctionalHelper(xbmc.Monitor):
             "sort": {"order": "ascending", "method": "random"},
             "properties": ["art", "title", "year"],
         }
-        resp = _jsonrpc("VideoLibrary.GetTVShows", show_params)
-        for s in (resp.get("result", {}) or {}).get("tvshows", []) if resp else []:
+        for s in _result_rows(_jsonrpc("VideoLibrary.GetTVShows", show_params), "tvshows"):
             fanart = (s.get("art", {}) or {}).get("fanart", "")
             if not fanart:
                 continue
@@ -5448,8 +6309,8 @@ def run():
     A construction failure is logged as fatal and the service returns. The
     three second grace before the first property write follows two crash
     dumps that coincided with writes during the Startup to Home transition.
-    Fast tickers run every loop and slow ones every SLOW_EVERY loops, and one
-    bad tick is caught and logged so it cannot kill the service.
+    Fast tickers run every loop and slow ones every SLOW_EVERY loops, each
+    handler under its own guard, see _run_handlers.
     </remarks>
     """
     version = xbmc.getInfoLabel("System.AddonVersion(skin.functional)")
@@ -5478,61 +6339,107 @@ def run():
     # Fast-tickers (focused ETA, command channels) run every loop.
     # Slow-tickers (home background slideshow) only every Nth loop.
     SLOW_EVERY = int(1.0 / FunctionalHelper.POLL_SECS) or 1  # ~once per second
+    # The handlers, as bound methods. Naming them here rather than calling
+    # them inline does two things. A name that no longer exists fails right
+    # here at start, loudly, instead of raising on every tick inside a guard
+    # that swallowed it. And each handler gets its own guard below.
+    fast = (
+        # First, so the timers it resets are seen by this same tick.
+        helper.apply_library_events,
+        # Order matters: update_video_nav_state can ask for a sort
+        # direction, and update_sort_direction must not try to honour it in
+        # the same tick, that is the stale-state race its whole deferral
+        # exists to avoid. Running it first means the request lands a tick
+        # later, once the new sort method has settled.
+        helper.update_sort_direction,
+        helper.update_video_nav_state,
+        helper.update_focused_eta,
+        helper.update_media_age,
+        helper.update_focused_age,
+        helper.update_settings_command,
+        helper.update_layout_command,
+        helper.update_bg_command,
+        helper.update_random_command,
+        helper.update_age_command,
+        helper.update_genre_command,
+        helper.update_search_command,
+        helper.update_accent,
+        helper.update_startup_fallback,
+        helper.update_tiles,
+        helper.update_home_focus,
+        helper.update_tile_command,
+        helper.update_favourites,
+        helper.update_continue_watching,
+        helper.update_lists,
+        helper.update_playing_cast,
+        helper.update_info_cast,
+        helper.update_cast_command,
+        helper.update_cache_command,
+        # Fast ticker: the countdown has to move once a second, and the
+        # power menu's command must be picked up while the menu is still in
+        # front of the user.
+        helper.update_sleep_timer,
+        # Fast as well: it only compares a timestamp unless a refresh is
+        # due, and a toggled hide_nextup should refill the row at once.
+        helper.update_next_up,
+    )
+    slow = (
+        helper.update_queue_eta,
+        helper.update_settings_backup,
+        helper.update_buffer_stats,
+        helper.update_bg_schedule,
+        helper.update_home_bg,
+        helper.maybe_refresh_stats,
+        helper.normalize_clearance,
+    )
+    failures = {}
     tick = 0
     while not helper.abortRequested():
-        # One bad tick must never kill the service, without this guard a
-        # single transient error (JSON-RPC hiccup during a library scan,
-        # window churn at shutdown) silently stopped the slideshow and
-        # every other handler until Kodi was restarted.
-        try:
-            # Order matters: update_video_nav_state can ask for a sort
-            # direction, and update_sort_direction must not try to honour it
-            # in the same tick, that is the stale-state race its whole
-            # deferral exists to avoid. Running it first means the request
-            # lands a tick later, once the new sort method has settled.
-            helper.update_sort_direction()
-            helper.update_video_nav_state()
-            helper.update_focused_eta()
-            helper.update_media_age()
-            helper.update_focused_age()
-            helper.update_settings_command()
-            helper.update_layout_command()
-            helper.update_bg_command()
-            helper.update_random_command()
-            helper.update_age_command()
-            helper.update_search_command()
-            helper.update_accent()
-            helper.update_tiles()
-            helper.update_tile_command()
-            helper.update_favourites()
-            helper.update_continue_watching()
-            helper.update_lists()
-            helper.update_playing_cast()
-            helper.update_info_cast()
-            helper.update_cast_command()
-            helper.update_cache_command()
-            # Fast ticker: the countdown has to move once a second, and the
-            # power menu's command must be picked up while the menu is still
-            # in front of the user.
-            helper.update_sleep_timer()
-            # Fast as well: it only compares a timestamp unless a refresh is
-            # due, and a toggled hide_nextup should refill the row at once.
-            helper.update_next_up()
-            if tick == 0:
-                helper.update_queue_eta()
-                helper.update_settings_backup()
-                helper.update_buffer_stats()
-                helper.update_bg_schedule()
-                helper.update_home_bg()
-                helper.maybe_refresh_stats()
-                helper.normalize_clearance()
-        except Exception:  # noqa: BLE001
-            _dlog("tick failed (continuing):\n{0}".format(
-                traceback.format_exc()), xbmc.LOGERROR)
+        _run_handlers(fast, failures)
+        if tick == 0:
+            _run_handlers(slow, failures)
         tick = (tick + 1) % SLOW_EVERY
         if helper.waitForAbort(FunctionalHelper.POLL_SECS):
             break
     _dlog("service shutting down")
+
+
+# A handler that keeps failing is logged on its first failure and then once
+# in this many, about once a minute for a fast handler.
+HANDLER_LOG_EVERY = 240
+
+
+def _run_handlers(handlers, failures):
+    """
+    <summary>
+    Call each handler in turn, each under its own guard.
+    </summary>
+    <param name="handlers">Bound methods taking no arguments, in call order.</param>
+    <param name="failures">Dict of handler name to consecutive failure count, kept by the caller across ticks.</param>
+    <remarks>
+    One bad handler must never kill the service, and must not take the
+    others down with it either. The whole tick used to sit under a single
+    guard, so a handler that raised every time skipped everything after it
+    on every tick: the sleep timer, second from last, would never have
+    fired, and the slow block (backup, schedule, background, stats) never
+    ran. It also wrote a full traceback four times a second. Failures are
+    now counted per handler and logged on the first and then every
+    HANDLER_LOG_EVERY, and the count is cleared by a clean run.
+    </remarks>
+    """
+    for handler in handlers:
+        name = handler.__name__
+        try:
+            handler()
+        except Exception:  # noqa: BLE001
+            count = failures.get(name, 0) + 1
+            failures[name] = count
+            if count == 1 or count % HANDLER_LOG_EVERY == 0:
+                _dlog("{0} failed, {1} time(s) running (continuing):\n{2}".format(
+                    name, count, traceback.format_exc()), xbmc.LOGERROR)
+        else:
+            if name in failures:
+                del failures[name]
 
 
 if __name__ == "__main__":

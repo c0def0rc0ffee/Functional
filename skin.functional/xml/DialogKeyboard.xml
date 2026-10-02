@@ -24,9 +24,23 @@
   clicks did nothing and only a physical keyboard could type. This version
   uses the correct IDs, so both work.
 
-  Navigation: each row is its own grouplist, positioned absolutely, and the
-  rows are chained to each other with explicit <onup>/<ondown> (ids 9501 to
-  9506). Left/right inside a row is the grouplist's own job.
+  Navigation: each row is its own grouplist, positioned absolutely.
+  Left/right inside a row is the grouplist's own job. Up/down is wired
+  key by key in the four character rows, so Down from "t" lands on "g"
+  and not on the first key of the next row: a move to a grouplist id
+  goes to that row's first or last used key and loses the column. A
+  grouplist keeps a child's own <onup>/<ondown> (DialogNumeric relies on
+  the same thing), and a key Kodi has hidden for the current layout
+  passes the move on in the same direction, so short rows need no
+  special cases. That is why the character keys are written out in full
+  here and do not use the KeyboardKey include, which has no navigation
+  parameters. The rows keep their own <onup>/<ondown> (ids 9501 to 9506)
+  as the fallback the special keys still use.
+
+  Column map from the bottom character row to the special keys, by where
+  each 80 px key sits over them (columns 0 to 12): 0 and 1 Shift, 2 Caps,
+  3 and 4 Sym, 5 to 7 Space, 8 and 9 cursor left, 10 cursor right, 11
+  and 12 Backspace.
 
   Two earlier attempts failed, in opposite ways, and both are worth keeping
   in mind:
@@ -36,7 +50,7 @@
     - All rows nested inside one outer vertical grouplist, to let Kodi
       auto-navigate between them. Nested groups inside a grouplist break
       focus traversal, the same trap as the MusicOSD transport row and the
-      favourites category chips (see PROJECT_NOTES), so focus reached the
+      favourites category chips, so focus reached the
       top row and stopped there, leaving Done and Cancel unreachable by
       remote.
 
@@ -109,8 +123,8 @@
 			<ondown>9501</ondown>
 		</control>
 
-		<!-- ===== KEY GRID: sibling rows, explicitly chained ===== -->
-		<!-- Row 0: 100-112 -->
+		<!-- ===== KEY GRID: four rows of inline keys, each wired to the key above and below ===== -->
+		<!-- Row 0: 100 to 112 -->
 		<control type="grouplist" id="9501">
 			<left>40</left>
 			<top>156</top>
@@ -120,22 +134,204 @@
 			<height>80</height>
 			<orientation>horizontal</orientation>
 			<itemgap>5</itemgap>
-			<include content="KeyboardKey"><param name="id" value="100"/></include>
-			<include content="KeyboardKey"><param name="id" value="101"/></include>
-			<include content="KeyboardKey"><param name="id" value="102"/></include>
-			<include content="KeyboardKey"><param name="id" value="103"/></include>
-			<include content="KeyboardKey"><param name="id" value="104"/></include>
-			<include content="KeyboardKey"><param name="id" value="105"/></include>
-			<include content="KeyboardKey"><param name="id" value="106"/></include>
-			<include content="KeyboardKey"><param name="id" value="107"/></include>
-			<include content="KeyboardKey"><param name="id" value="108"/></include>
-			<include content="KeyboardKey"><param name="id" value="109"/></include>
-			<include content="KeyboardKey"><param name="id" value="110"/></include>
-			<include content="KeyboardKey"><param name="id" value="111"/></include>
-			<include content="KeyboardKey"><param name="id" value="112"/></include>
+			<control type="button" id="100">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>120</ondown>
+			</control>
+			<control type="button" id="101">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>121</ondown>
+			</control>
+			<control type="button" id="102">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>122</ondown>
+			</control>
+			<control type="button" id="103">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>123</ondown>
+			</control>
+			<control type="button" id="104">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>124</ondown>
+			</control>
+			<control type="button" id="105">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>125</ondown>
+			</control>
+			<control type="button" id="106">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>126</ondown>
+			</control>
+			<control type="button" id="107">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>127</ondown>
+			</control>
+			<control type="button" id="108">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>128</ondown>
+			</control>
+			<control type="button" id="109">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>129</ondown>
+			</control>
+			<control type="button" id="110">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>130</ondown>
+			</control>
+			<control type="button" id="111">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>131</ondown>
+			</control>
+			<control type="button" id="112">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>312</onup>
+				<ondown>132</ondown>
+			</control>
 		</control>
 
-		<!-- Row 1: 120-132 -->
+		<!-- Row 1: 120 to 132 -->
 		<control type="grouplist" id="9502">
 			<left>40</left>
 			<top>244</top>
@@ -145,22 +341,204 @@
 			<height>80</height>
 			<orientation>horizontal</orientation>
 			<itemgap>5</itemgap>
-			<include content="KeyboardKey"><param name="id" value="120"/></include>
-			<include content="KeyboardKey"><param name="id" value="121"/></include>
-			<include content="KeyboardKey"><param name="id" value="122"/></include>
-			<include content="KeyboardKey"><param name="id" value="123"/></include>
-			<include content="KeyboardKey"><param name="id" value="124"/></include>
-			<include content="KeyboardKey"><param name="id" value="125"/></include>
-			<include content="KeyboardKey"><param name="id" value="126"/></include>
-			<include content="KeyboardKey"><param name="id" value="127"/></include>
-			<include content="KeyboardKey"><param name="id" value="128"/></include>
-			<include content="KeyboardKey"><param name="id" value="129"/></include>
-			<include content="KeyboardKey"><param name="id" value="130"/></include>
-			<include content="KeyboardKey"><param name="id" value="131"/></include>
-			<include content="KeyboardKey"><param name="id" value="132"/></include>
+			<control type="button" id="120">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>100</onup>
+				<ondown>140</ondown>
+			</control>
+			<control type="button" id="121">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>101</onup>
+				<ondown>141</ondown>
+			</control>
+			<control type="button" id="122">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>102</onup>
+				<ondown>142</ondown>
+			</control>
+			<control type="button" id="123">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>103</onup>
+				<ondown>143</ondown>
+			</control>
+			<control type="button" id="124">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>104</onup>
+				<ondown>144</ondown>
+			</control>
+			<control type="button" id="125">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>105</onup>
+				<ondown>145</ondown>
+			</control>
+			<control type="button" id="126">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>106</onup>
+				<ondown>146</ondown>
+			</control>
+			<control type="button" id="127">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>107</onup>
+				<ondown>147</ondown>
+			</control>
+			<control type="button" id="128">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>108</onup>
+				<ondown>148</ondown>
+			</control>
+			<control type="button" id="129">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>109</onup>
+				<ondown>149</ondown>
+			</control>
+			<control type="button" id="130">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>110</onup>
+				<ondown>150</ondown>
+			</control>
+			<control type="button" id="131">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>111</onup>
+				<ondown>151</ondown>
+			</control>
+			<control type="button" id="132">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>112</onup>
+				<ondown>152</ondown>
+			</control>
 		</control>
 
-		<!-- Row 2: 140-152 -->
+		<!-- Row 2: 140 to 152 -->
 		<control type="grouplist" id="9503">
 			<left>40</left>
 			<top>332</top>
@@ -170,22 +548,204 @@
 			<height>80</height>
 			<orientation>horizontal</orientation>
 			<itemgap>5</itemgap>
-			<include content="KeyboardKey"><param name="id" value="140"/></include>
-			<include content="KeyboardKey"><param name="id" value="141"/></include>
-			<include content="KeyboardKey"><param name="id" value="142"/></include>
-			<include content="KeyboardKey"><param name="id" value="143"/></include>
-			<include content="KeyboardKey"><param name="id" value="144"/></include>
-			<include content="KeyboardKey"><param name="id" value="145"/></include>
-			<include content="KeyboardKey"><param name="id" value="146"/></include>
-			<include content="KeyboardKey"><param name="id" value="147"/></include>
-			<include content="KeyboardKey"><param name="id" value="148"/></include>
-			<include content="KeyboardKey"><param name="id" value="149"/></include>
-			<include content="KeyboardKey"><param name="id" value="150"/></include>
-			<include content="KeyboardKey"><param name="id" value="151"/></include>
-			<include content="KeyboardKey"><param name="id" value="152"/></include>
+			<control type="button" id="140">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>120</onup>
+				<ondown>160</ondown>
+			</control>
+			<control type="button" id="141">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>121</onup>
+				<ondown>161</ondown>
+			</control>
+			<control type="button" id="142">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>122</onup>
+				<ondown>162</ondown>
+			</control>
+			<control type="button" id="143">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>123</onup>
+				<ondown>163</ondown>
+			</control>
+			<control type="button" id="144">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>124</onup>
+				<ondown>164</ondown>
+			</control>
+			<control type="button" id="145">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>125</onup>
+				<ondown>165</ondown>
+			</control>
+			<control type="button" id="146">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>126</onup>
+				<ondown>166</ondown>
+			</control>
+			<control type="button" id="147">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>127</onup>
+				<ondown>167</ondown>
+			</control>
+			<control type="button" id="148">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>128</onup>
+				<ondown>168</ondown>
+			</control>
+			<control type="button" id="149">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>129</onup>
+				<ondown>169</ondown>
+			</control>
+			<control type="button" id="150">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>130</onup>
+				<ondown>170</ondown>
+			</control>
+			<control type="button" id="151">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>131</onup>
+				<ondown>171</ondown>
+			</control>
+			<control type="button" id="152">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>132</onup>
+				<ondown>172</ondown>
+			</control>
 		</control>
 
-		<!-- Row 3: 160-172 -->
+		<!-- Row 3: 160 to 172 -->
 		<control type="grouplist" id="9504">
 			<left>40</left>
 			<top>420</top>
@@ -195,22 +755,208 @@
 			<height>80</height>
 			<orientation>horizontal</orientation>
 			<itemgap>5</itemgap>
-			<include content="KeyboardKey"><param name="id" value="160"/></include>
-			<include content="KeyboardKey"><param name="id" value="161"/></include>
-			<include content="KeyboardKey"><param name="id" value="162"/></include>
-			<include content="KeyboardKey"><param name="id" value="163"/></include>
-			<include content="KeyboardKey"><param name="id" value="164"/></include>
-			<include content="KeyboardKey"><param name="id" value="165"/></include>
-			<include content="KeyboardKey"><param name="id" value="166"/></include>
-			<include content="KeyboardKey"><param name="id" value="167"/></include>
-			<include content="KeyboardKey"><param name="id" value="168"/></include>
-			<include content="KeyboardKey"><param name="id" value="169"/></include>
-			<include content="KeyboardKey"><param name="id" value="170"/></include>
-			<include content="KeyboardKey"><param name="id" value="171"/></include>
-			<include content="KeyboardKey"><param name="id" value="172"/></include>
+			<control type="button" id="160">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>140</onup>
+				<ondown>302</ondown>
+			</control>
+			<control type="button" id="161">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>141</onup>
+				<ondown>302</ondown>
+			</control>
+			<control type="button" id="162">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>142</onup>
+				<ondown>303</ondown>
+			</control>
+			<control type="button" id="163">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>143</onup>
+				<ondown>304</ondown>
+			</control>
+			<control type="button" id="164">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>144</onup>
+				<ondown>304</ondown>
+			</control>
+			<control type="button" id="165">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>145</onup>
+				<ondown>32</ondown>
+			</control>
+			<control type="button" id="166">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>146</onup>
+				<ondown>32</ondown>
+			</control>
+			<control type="button" id="167">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>147</onup>
+				<ondown>32</ondown>
+			</control>
+			<control type="button" id="168">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>148</onup>
+				<ondown>305</ondown>
+			</control>
+			<control type="button" id="169">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>149</onup>
+				<ondown>305</ondown>
+			</control>
+			<control type="button" id="170">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>150</onup>
+				<ondown>306</ondown>
+			</control>
+			<control type="button" id="171">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>151</onup>
+				<ondown>8</ondown>
+			</control>
+			<control type="button" id="172">
+				<width>80</width>
+				<height>80</height>
+				<font>font_med</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label></label>
+				<onup>152</onup>
+				<ondown>8</ondown>
+			</control>
 		</control>
 
-		<!-- ===== SPECIAL KEYS ROW ===== -->
+		<!-- ===== SPECIAL KEYS ROW =====
+		     Widths: 3 x 130 + 310 + 2 x 90 + 190 and six 5 px gaps = 1100. Backspace
+		     is 190 because the word measures 158 px in font_med: at 120 it showed
+		     as "Backs...". Up and Down here fall back to the row ids, which
+		     return to the key last used in the row above. -->
 		<control type="grouplist" id="9505">
 			<left>40</left>
 			<top>508</top>
@@ -221,16 +967,18 @@
 			<orientation>horizontal</orientation>
 			<itemgap>5</itemgap>
 			<align>center</align>
-			<include content="KeyboardKey"><param name="id" value="302"/><param name="width" value="150"/><param name="label" value="$LOCALIZE[31050]"/></include>
-			<include content="KeyboardKey"><param name="id" value="303"/><param name="width" value="150"/><param name="label" value="$LOCALIZE[31051]"/></include>
-			<include content="KeyboardKey"><param name="id" value="304"/><param name="width" value="150"/><param name="label" value="$LOCALIZE[31052]"/></include>
-			<include content="KeyboardKey"><param name="id" value="32"/><param name="width" value="320"/><param name="label" value="$LOCALIZE[31053]"/></include>
+			<include content="KeyboardKey"><param name="id" value="302"/><param name="width" value="130"/><param name="label" value="$LOCALIZE[31050]"/></include>
+			<include content="KeyboardKey"><param name="id" value="303"/><param name="width" value="130"/><param name="label" value="$LOCALIZE[31051]"/></include>
+			<include content="KeyboardKey"><param name="id" value="304"/><param name="width" value="130"/><param name="label" value="$LOCALIZE[31052]"/></include>
+			<include content="KeyboardKey"><param name="id" value="32"/><param name="width" value="310"/><param name="label" value="$LOCALIZE[31053]"/></include>
 			<include content="KeyboardKey"><param name="id" value="305"/><param name="width" value="90"/><param name="label" value="◄"/></include>
 			<include content="KeyboardKey"><param name="id" value="306"/><param name="width" value="90"/><param name="label" value="►"/></include>
-			<include content="KeyboardKey"><param name="id" value="8"/><param name="width" value="120"/><param name="label" value="$LOCALIZE[31054]"/></include>
+			<include content="KeyboardKey"><param name="id" value="8"/><param name="width" value="190"/><param name="label" value="$LOCALIZE[31054]"/></include>
 		</control>
 
-		<!-- ===== ACTION ROW (Done / Cancel / Clear) ===== -->
+		<!-- ===== ACTION ROW (Done / Cancel / Clear) =====
+		     Up goes to the special key above each button: Caps, Space and
+		     Backspace. Down is the row's own, to the edit field. -->
 		<control type="grouplist" id="9506">
 			<left>40</left>
 			<top>596</top>
@@ -253,6 +1001,7 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[186]</label>
+				<onup>303</onup>
 			</control>
 			<control type="button" id="301">
 				<width>340</width>
@@ -266,6 +1015,7 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[222]</label>
+				<onup>32</onup>
 			</control>
 			<control type="button" id="308">
 				<width>300</width>
@@ -279,6 +1029,7 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[192]</label>
+				<onup>8</onup>
 			</control>
 		</control>
 

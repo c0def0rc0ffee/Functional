@@ -18,10 +18,26 @@
   Fav.N.* and hide themselves when empty, so its length follows the active
   filter. Clicking an item sets Skin.String(fav_run) and the service executes
   that favourite's stored action.
+
+  The chip choice lasts for one visit. fav_category is a skin string, so it
+  used to survive the window and Kodi itself: the Default Favourites Filter
+  setting, which the service only reads while fav_category is empty, stopped
+  working after the first chip was ever pressed, and a remembered category
+  that had since emptied opened this screen on an empty list. The window now
+  clears the string on load, so every visit starts on the default.
+
+  Focus goes to group 80, never straight to the list. An empty list cannot
+  take focus, and a window whose default control cannot take it has no focus
+  at all: every key press retried the list and failed, so the chips could
+  not be reached. The group tries the list first and falls back to the first
+  chip (All is never hidden).
   </remarks>
 -->
 <window id="1150" type="window">
-	<defaultcontrol always="true">50</defaultcontrol>
+	<defaultcontrol always="true">80</defaultcontrol>
+	<!-- Back to the default filter on every visit, see the remarks above.
+	     The list repaints from the service's next tick, a quarter second. -->
+	<onload>Skin.Reset(fav_category)</onload>
 	<controls>
 
 		<include content="WindowBackground"/>
@@ -47,6 +63,13 @@
 		     automatically. Each chip's shiftN params name the predecessors
 		     that can hide, so the row packs left with no holes: one slot
 		     per hidden predecessor, evaluated live. -->
+		<!-- FAV-FOCUS-GROUP: wraps everything focusable. Asked for focus it
+		     gives it to list 50 when that holds anything (always="true", so
+		     not to whichever child had it last) and otherwise to the first
+		     focusable child, the All chip. It has no size or position of
+		     its own, so its children keep their window coordinates. -->
+		<control type="group" id="80">
+		<defaultcontrol always="true">50</defaultcontrol>
 		<control type="group" id="70">
 			<include content="FavCategoryButton"><param name="id" value="71" /><param name="x" value="60" /><param name="cat" value="all" /><param name="label" value="$LOCALIZE[31008]" /><param name="onleft" value="76" /><param name="onright" value="72" /></include>
 			<include content="FavCategoryButton"><param name="id" value="72" /><param name="x" value="250" /><param name="cat" value="movies" /><param name="label" value="$LOCALIZE[31009]" /><param name="onleft" value="71" /><param name="onright" value="73" /><param name="visible" value="!String.IsEqual(Window(home).Property(Fav.CatCount.movies),0)" /></include>
@@ -320,6 +343,7 @@
 			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
 			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
+		</control>
 		</control>
 
 		<!-- Empty-state hint -->

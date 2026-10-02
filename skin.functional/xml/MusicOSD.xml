@@ -118,7 +118,9 @@
 			<textcolor>$VAR[AccentColor]</textcolor>
 			<align>right</align>
 			<label>$LOCALIZE[31098] $INFO[Player.FinishTime]</label>
-			<visible>Player.HasMedia + !Player.Paused</visible>
+			<!-- A stream with no known length (internet radio) has no end to
+			     show: Kodi reports the current time as its finish time. -->
+			<visible>Player.HasMedia + !Player.Paused + !String.IsEmpty(Player.Duration)</visible>
 		</control>
 
 		<!-- ========== TRANSPORT BUTTONS ========== -->

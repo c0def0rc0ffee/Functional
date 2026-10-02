@@ -156,12 +156,15 @@
 			</include>
 
 			<!-- Backdrop strip behind the menu list. Kodi resizes id 999
-			     (BACKGROUND_IMAGE) to the populated button count itself. -->
+			     (BACKGROUND_IMAGE) itself, to this declared height less the
+			     grouplist's maximum plus the height of the rows it added. The
+			     height here must therefore EQUAL the grouplist maximum below:
+			     at 780 against 660 every menu carried a 120 px empty band. -->
 			<control type="image" id="999">
 				<left>0</left>
 				<top>110</top>
 				<width>600</width>
-				<height>780</height>
+				<height>660</height>
 				<texture colordiffuse="bg_panel">white.png</texture>
 				<visible>!$EXP[continue_menu]</visible>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>

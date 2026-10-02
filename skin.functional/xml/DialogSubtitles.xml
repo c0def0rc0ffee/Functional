@@ -2,7 +2,8 @@
 <!--
   <summary>
   Subtitle search dialog: service and result lists on Kodi's fixed ids,
-  with grouplist 190 for the actions.
+  with grouplist 190 for the actions. Each list has its own scrollbar
+  (73 for the results, 74 for the services).
   </summary>
 -->
 <window type="dialog">
@@ -78,7 +79,11 @@
 			<itemgap>10</itemgap>
 			<onleft>190</onleft>
 			<onright>190</onright>
-			<ondown>120</ondown>
+			<!-- Down goes to the service list, which sits under this button and
+			     always has a row. It used to go to the results list 120: an empty
+			     list cannot take focus and has no ondown to pass the move on, so
+			     with no results Manual search was a dead end. -->
+			<ondown>150</ondown>
 
 			<control type="button" id="160">
 				<width>380</width>
@@ -189,9 +194,12 @@
 			</focusedlayout>
 		</control>
 
-		<!-- Scrollbar -->
+		<!-- Results scrollbar. left 1174 = 1200 panel width less the 10 margin
+		     and the 16 width: a root level <right> or <bottom> is measured from
+		     the 1920x1080 canvas, which put this bar and both footer labels off
+		     the screen. -->
 		<control type="scrollbar" id="73">
-			<right>10</right>
+			<left>1174</left>
 			<top>200</top>
 			<width>16</width>
 			<height>540</height>
@@ -214,7 +222,7 @@
 			<onright>120</onright>
 			<onup>190</onup>
 			<onback>PreviousMenu</onback>
-			<pagecontrol>73</pagecontrol>
+			<pagecontrol>74</pagecontrol>
 
 			<itemlayout height="60" width="300">
 				<control type="label">
@@ -251,10 +259,27 @@
 			</focusedlayout>
 		</control>
 
-		<!-- Status / footer (Kodi writes search status into id 140) -->
+		<!-- Service list scrollbar, in the 20 px gap between the two lists. The
+		     lists used to share 73, so each overwrote the other's position. -->
+		<control type="scrollbar" id="74">
+			<left>344</left>
+			<top>200</top>
+			<width>10</width>
+			<height>540</height>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>150</onleft>
+			<onright>120</onright>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
+		</control>
+
+		<!-- Status / footer (Kodi writes search status into id 140). top 770 =
+		     840 panel height less the 30 margin and the 40 height. -->
 		<control type="label" id="140">
 			<left>40</left>
-			<bottom>30</bottom>
+			<top>770</top>
 			<width>780</width>
 			<height>40</height>
 			<font>font_small</font>
@@ -265,8 +290,8 @@
 		</control>
 		<!-- Active service name (Kodi writes it into id 100) -->
 		<control type="label" id="100">
-			<right>40</right>
-			<bottom>30</bottom>
+			<left>820</left>
+			<top>770</top>
 			<width>340</width>
 			<height>40</height>
 			<font>font_small</font>

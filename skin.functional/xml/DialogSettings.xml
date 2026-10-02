@@ -55,12 +55,14 @@
 			<label></label>
 		</control>
 
-		<!-- Settings list (Kodi populates with cloned templates) -->
+		<!-- Settings list (Kodi populates with cloned templates). Height 470 is
+		     six 70 px rows and five 10 px gaps exactly; at 500 a seventh row
+		     showed as a 20 px sliver. -->
 		<control type="grouplist" id="5">
 			<left>40</left>
 			<top>90</top>
 			<width>1120</width>
-			<height>500</height>
+			<height>470</height>
 			<itemgap>10</itemgap>
 			<orientation>vertical</orientation>
 			<usecontrolcoords>true</usecontrolcoords>
@@ -72,24 +74,27 @@
 			<scrolltime tween="cubic" easing="out">200</scrolltime>
 		</control>
 
-		<!-- Description textbox -->
+		<!-- Description textbox: two 27 px lines of font_small -->
 		<control type="textbox" id="6">
 			<left>40</left>
-			<top>600</top>
+			<top>570</top>
 			<width>1120</width>
-			<height>50</height>
+			<height>54</height>
 			<font>font_small</font>
 			<textcolor>text_dim</textcolor>
 			<align>justify</align>
 			<autoscroll time="3000" delay="5000" repeat="5000">true</autoscroll>
 		</control>
 
-		<!-- Scrollbar -->
+		<!-- Scrollbar. Placed with left and top: a root level <right> or
+		     <bottom> is measured from the 1920x1080 canvas, not from this 1200x720
+		     panel, and with the window origin at 360,180 that put this bar and
+		     the button row off the screen. -->
 		<control type="scrollbar" id="60">
-			<right>10</right>
+			<left>1174</left>
 			<top>90</top>
 			<width>16</width>
-			<height>500</height>
+			<height>470</height>
 			<orientation>vertical</orientation>
 			<showonepage>false</showonepage>
 			<onleft>5</onleft>
@@ -99,10 +104,12 @@
 			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 		</control>
 
-		<!-- Action buttons (OK / Cancel / Defaults) -->
+		<!-- Action buttons (OK / Cancel / Defaults): top 630 leaves 30 px under
+		     the 60 px row in the 720 px panel. See the scrollbar note above for
+		     why this is not <bottom>30</bottom>. -->
 		<control type="grouplist" id="9000">
 			<left>40</left>
-			<bottom>30</bottom>
+			<top>630</top>
 			<width>1120</width>
 			<height>60</height>
 			<orientation>horizontal</orientation>
@@ -257,6 +264,12 @@
 		</control>
 
 		<control type="colorbutton" id="15">
+			<!-- Colour swatch: Kodi tints this mask with the setting's colour.
+			     Without a mask texture no swatch is drawn at all. -->
+			<colorwidth>100</colorwidth>
+			<colorheight>40</colorheight>
+			<texturecolormask>white.png</texturecolormask>
+			<texturecolordisabledmask colordiffuse="disabled">white.png</texturecolordisabledmask>
 			<width>1120</width>
 			<height>70</height>
 			<font>font_reg</font>

@@ -40,7 +40,9 @@
 		</control>
 		<control type="image">
 			<left>0</left>
-			<bottom>0</bottom>
+			<!-- 786 = 790 panel height less this 4 px line. Not <bottom>: at root
+			     level that is measured from the 1080 canvas, off the screen here. -->
+			<top>786</top>
 			<width>1220</width>
 			<height>4</height>
 			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
@@ -63,7 +65,8 @@
 			<left>20</left>
 			<top>90</top>
 			<width>880</width>
-			<height>620</height>
+			<!-- eight 80 px rows -->
+			<height>640</height>
 			<orientation>vertical</orientation>
 			<onleft>9001</onleft>
 			<onright>61</onright>
@@ -105,7 +108,7 @@
 			<left>910</left>
 			<top>90</top>
 			<width>12</width>
-			<height>620</height>
+			<height>640</height>
 			<orientation>vertical</orientation>
 			<showonepage>false</showonepage>
 			<onleft>6</onleft>
@@ -117,7 +120,7 @@
 
 		<control type="label">
 			<left>28</left>
-			<top>730</top>
+			<top>738</top>
 			<width>880</width>
 			<height>40</height>
 			<font>font_reg</font>

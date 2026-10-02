@@ -125,7 +125,7 @@ msgid "Free software under the GNU General Public Licence, version 2 or later."
 msgstr ""
 
 msgctxt "#31027"
-msgid "Typeface: Noto Sans, SIL Open Font Licence 1.1.   ·   This programme comes with absolutely no warranty. It is free software, and you are welcome to redistribute it under the terms of the GPL.   ·   Press Back to return to Skin Settings."
+msgid "Typeface: Noto Sans, SIL Open Font Licence 1.1.   ·   This program comes with absolutely no warranty. It is free software, and you are welcome to redistribute it under the terms of the GPL.   ·   Press Back to return to Skin Settings."
 msgstr ""
 
 msgctxt "#31028"
@@ -209,7 +209,7 @@ msgid "Actions"
 msgstr ""
 
 msgctxt "#31048"
-msgid "Add to list"
+msgid "Add To List:"
 msgstr ""
 
 msgctxt "#31049"
@@ -573,7 +573,7 @@ msgid "Tall"
 msgstr ""
 
 msgctxt "#31139"
-msgid "75 % (default)"
+msgid "75% (default)"
 msgstr ""
 
 msgctxt "#31140"
@@ -809,7 +809,7 @@ msgid "Library Options"
 msgstr ""
 
 msgctxt "#31198"
-msgid "← / right to close"
+msgid "Press Right to close"
 msgstr ""
 
 msgctxt "#31199"
@@ -1525,7 +1525,7 @@ msgid "1 year old"
 msgstr ""
 
 msgctxt "#31383"
-msgid "Show how old a title is on the info screens"
+msgid "Show Title Age on the Info Screens"
 msgstr ""
 
 msgctxt "#31384"
@@ -1677,11 +1677,11 @@ msgid "Measured from the play log on this box"
 msgstr ""
 
 msgctxt "#31424"
-msgid "Sleep timer"
+msgid "Sleep Timer"
 msgstr ""
 
 msgctxt "#31425"
-msgid "Cancel sleep timer"
+msgid "Cancel Sleep Timer"
 msgstr ""
 
 msgctxt "#31426"
@@ -1701,15 +1701,15 @@ msgid "Powering down in one minute"
 msgstr ""
 
 msgctxt "#31430"
-msgid "Corner bar position:"
+msgid "Corner Bar Position:"
 msgstr ""
 
 msgctxt "#31431"
-msgid "Sleep timer in the power menu"
+msgid "Sleep Timer in the Power Menu"
 msgstr ""
 
 msgctxt "#31432"
-msgid "Show the sleep countdown on screen"
+msgid "Show Sleep Countdown on Screen"
 msgstr ""
 
 msgctxt "#31433"
@@ -1759,7 +1759,7 @@ msgstr ""
 
 # Lists and Favourites settings: where the Lists screen keeps its action row. 22/09/2026.
 msgctxt "#31444"
-msgid "Action buttons at the top of the Lists screen"
+msgid "Action Buttons at the Top of the Lists Screen"
 msgstr ""
 
 # Service readouts and item kinds that used to be hard coded in service.py. 22/09/2026.
@@ -1849,7 +1849,7 @@ msgid "NEXT UP"
 msgstr ""
 
 msgctxt "#31466"
-msgid "Next Up row: the next unwatched episode of each show you are part way through"
+msgid "Show Next Up Row (next unwatched episodes)"
 msgstr ""
 
 msgctxt "#31467"
@@ -1862,16 +1862,16 @@ msgid "RECENTLY ADDED"
 msgstr ""
 
 msgctxt "#31469"
-msgid "Recently Added tab beside Continue Watching: the newest movies and episodes"
+msgid "Show Recently Added Tab (newest titles)"
 msgstr ""
 
 # Sleep timer by episode. 22/09/2026.
 msgctxt "#31470"
-msgid "Sleep when this finishes"
+msgid "Sleep When This Finishes"
 msgstr ""
 
 msgctxt "#31471"
-msgid "Sleep after several episodes..."
+msgid "Sleep After Several Episodes…"
 msgstr ""
 
 msgctxt "#31472"
@@ -1914,11 +1914,11 @@ msgstr ""
 
 # Lists export and import. 22/09/2026.
 msgctxt "#31481"
-msgid "Export lists..."
+msgid "Export Lists…"
 msgstr ""
 
 msgctxt "#31482"
-msgid "Import lists..."
+msgid "Import Lists…"
 msgstr ""
 
 msgctxt "#31483"
@@ -1951,7 +1951,7 @@ msgid "Custom"
 msgstr ""
 
 msgctxt "#31490"
-msgid "Custom accent colour..."
+msgid "Custom Accent Colour…"
 msgstr ""
 
 msgctxt "#31491"
@@ -2021,4 +2021,43 @@ msgstr ""
 
 msgctxt "#31508"
 msgid "Watched, removed from %s"
+msgstr ""
+
+# Service strings added 02/10/2026 (ids 31570 to 31579 are the helper service's).
+# Toast when hiding the OSD's full buffer button puts buffering back to Kodi's defaults.
+msgctxt "#31570"
+msgid "Full buffer button hidden, buffering back to defaults"
+msgstr ""
+
+# Durations in their two largest units: hours and minutes, minutes and seconds, seconds.
+msgctxt "#31571"
+msgid "{0}h {1}m"
+msgstr ""
+
+msgctxt "#31572"
+msgid "{0}m {1}s"
+msgstr ""
+
+msgctxt "#31573"
+msgid "{0}s"
+msgstr ""
+
+# Lists: no room for another list (the number is how many rows the Lists screen has).
+msgctxt "#31574"
+msgid "You already have %d lists, which is as many as there is room for"
+msgstr ""
+
+# Lists: the remove prompt for a list holding exactly one item (31344 is the plural).
+msgctxt "#31575"
+msgid "Remove the list %s and its 1 item?"
+msgstr ""
+
+# Home tiles: the favourite a tile points at has been renamed or removed.
+msgctxt "#31576"
+msgid "That favourite has gone. Choose one again in Skin Settings"
+msgstr ""
+
+# Library info bar: the last played segment when it opens its line (31159 is the same word with the separator in front). 02/10/2026.
+msgctxt "#31530"
+msgid "Played"
 msgstr ""

@@ -24,7 +24,8 @@
 			<left>40</left>
 			<top>120</top>
 			<width>500</width>
-			<height>820</height>
+			<!-- eleven 70 px rows and ten 4 px gaps -->
+			<height>810</height>
 			<itemgap>4</itemgap>
 			<orientation>vertical</orientation>
 			<usecontrolcoords>true</usecontrolcoords>
@@ -61,7 +62,8 @@
 			<left>580</left>
 			<top>120</top>
 			<width>1280</width>
-			<height>700</height>
+			<!-- nine 70 px rows and eight 10 px gaps: a whole number of rows -->
+			<height>710</height>
 			<itemgap>10</itemgap>
 			<orientation>vertical</orientation>
 			<usecontrolcoords>true</usecontrolcoords>
@@ -78,7 +80,8 @@
 			<left>580</left>
 			<bottom>30</bottom>
 			<right>40</right>
-			<height>140</height>
+			<!-- five 27 px lines of font_small -->
+			<height>135</height>
 			<font>font_small</font>
 			<textcolor>text_dim</textcolor>
 			<align>justify</align>
@@ -90,7 +93,7 @@
 			<right>20</right>
 			<top>120</top>
 			<width>16</width>
-			<height>700</height>
+			<height>710</height>
 			<orientation>vertical</orientation>
 			<showonepage>false</showonepage>
 			<onleft>5</onleft>
@@ -210,8 +213,14 @@
 			<textoffsetx>20</textoffsetx>
 		</control>
 
-		<!-- Color picker setting -->
+		<!-- Colour picker setting -->
 		<control type="colorbutton" id="15">
+			<!-- Colour swatch: Kodi tints this mask with the setting's colour.
+			     Without a mask texture no swatch is drawn at all. -->
+			<colorwidth>100</colorwidth>
+			<colorheight>40</colorheight>
+			<texturecolormask>white.png</texturecolormask>
+			<texturecolordisabledmask colordiffuse="disabled">white.png</texturecolordisabledmask>
 			<width>1280</width>
 			<height>70</height>
 			<font>font_reg</font>

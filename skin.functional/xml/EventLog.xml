@@ -7,7 +7,8 @@
   Kodi-hardcoded control IDs:
      4  = Sort toggle (standard media-window button)
     20  = Action: Clear list
-    21  = (unused here)
+    21  = Event level button (Kodi relabels it and cycles the level).
+          Optional and not provided here; Estuary has it.
     22  = "Show higher levels" radiobutton (Kodi relabels it from string 14120)
     50  = Events list (fixedlist)
     60  = Scrollbar
@@ -119,7 +120,8 @@
 			<left>440</left>
 			<top>120</top>
 			<width>1400</width>
-			<height>820</height>
+			<!-- nine 90 px rows -->
+			<height>810</height>
 			<focusposition>4</focusposition>
 			<movement>3</movement>
 			<onleft>9000</onleft>
@@ -236,7 +238,7 @@
 			<right>14</right>
 			<top>120</top>
 			<width>10</width>
-			<height>820</height>
+			<height>810</height>
 			<orientation>vertical</orientation>
 			<showonepage>false</showonepage>
 			<onleft>50</onleft>

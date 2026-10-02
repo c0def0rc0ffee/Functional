@@ -44,7 +44,8 @@
 			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 		</control>
 
-		<!-- Thumb / poster on the left, different anchor depending on OSD position so the poster always extends INTO the screen, not off it -->
+		<!-- Thumb / poster on the left, different anchor depending on OSD position so the poster always extends INTO the screen, not off it.
+		     $VAR[PlayerPosterArt] falls back to the show's poster: a library episode has no poster art of its own. -->
 		<!-- OSD bottom: extend up from OSD bottom -->
 		<control type="image">
 			<visible>!Skin.HasSetting(hide_osd_thumb) + !String.IsEqual(Skin.String(osd_position),top)</visible>
@@ -53,7 +54,7 @@
 			<width>200</width>
 			<height>300</height>
 			<aspectratio>keep</aspectratio>
-			<texture fallback="DefaultVideo.png" background="true">$INFO[Player.Art(poster)]</texture>
+			<texture fallback="DefaultVideo.png" background="true">$VAR[PlayerPosterArt]</texture>
 		</control>
 		<!-- OSD top: extend down from OSD top -->
 		<control type="image">
@@ -63,7 +64,7 @@
 			<width>200</width>
 			<height>300</height>
 			<aspectratio>keep</aspectratio>
-			<texture fallback="DefaultVideo.png" background="true">$INFO[Player.Art(poster)]</texture>
+			<texture fallback="DefaultVideo.png" background="true">$VAR[PlayerPosterArt]</texture>
 		</control>
 
 		<!-- ========== TITLE ROW ========== -->
@@ -76,7 +77,9 @@
 			<font>font_big</font>
 			<textcolor>text</textcolor>
 			<scroll>true</scroll>
-			<label>$INFO[VideoPlayer.Title]$INFO[VideoPlayer.Year, ( ,)]</label>
+			<!-- Prefix " (" with no space after the bracket: the text between
+			     the commas is kept verbatim, and " ( " read "Title ( 2003)". -->
+			<label>$INFO[VideoPlayer.Title]$INFO[VideoPlayer.Year, (,)]</label>
 			<visible>!String.IsEmpty(VideoPlayer.Title) + String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
 		</control>
 
@@ -146,7 +149,12 @@
 			<textcolor>$VAR[AccentColor]</textcolor>
 			<align>right</align>
 			<label>$LOCALIZE[31098] $INFO[Player.FinishTime]</label>
-			<visible>Player.HasMedia + !Player.Paused</visible>
+			<!-- NO-DURATION. A stream Kodi cannot measure (live, some
+			     add-ons) has an empty Player.Duration, a progress of 0 and
+			     the current time as its finish time. The three readouts that
+			     depend on a length stand down for it: this one, the total
+			     after the elapsed time, and the percentage. -->
+			<visible>Player.HasMedia + !Player.Paused + !String.IsEmpty(Player.Duration)</visible>
 		</control>
 		<control type="label">
 			<right>40</right>
@@ -170,7 +178,7 @@
 			<height>24</height>
 			<font>font_reg</font>
 			<textcolor>text_dim</textcolor>
-			<label>$INFO[Player.Time(hh:mm:ss)] / $INFO[Player.Duration(hh:mm:ss)]</label>
+			<label>$INFO[Player.Time(hh:mm:ss)]$INFO[Player.Duration(hh:mm:ss), / ,]</label>
 		</control>
 
 		<!-- Centred progress percentage (whole numbers, native Kodi infolabel) -->
@@ -184,6 +192,7 @@
 			<aligny>center</aligny>
 			<textcolor>$VAR[AccentColor]</textcolor>
 			<label>$INFO[Player.Progress]%</label>
+			<visible>!String.IsEmpty(Player.Duration)</visible>
 		</control>
 
 		<!-- Resolution pill below Ends-at: tinted background + light text -->
@@ -230,11 +239,14 @@
 		</control>
 
 		<!-- ========== TRANSPORT BUTTONS ==========
-		     6 buttons centred at bottom. Total bar width:
-		     80+12+80+12+112+12+80+12+80+12+80 = 572 → start x = (1920-572)/2 = 674
+		     Nine buttons centred at the bottom, 14 apart: eight of 80 and
+		     Play / Pause at 112, so 8 x 80 + 112 + 8 x 14 = 864 and the row
+		     starts at (1920 - 864) / 2 = 528 and ends at 1392. The full
+		     buffer button (214, 200 wide) hangs off the right of that at
+		     1406 and is not part of the centring: it can be switched off.
 		-->
 
-		<!-- 200 Previous (x=674) -->
+		<!-- 200 Previous (x=528) -->
 		<control type="button" id="200">
 			<left>528</left>
 			<bottom>10</bottom>
@@ -257,7 +269,7 @@
 			<texture>icons/prev.png</texture>
 		</control>
 
-		<!-- 202 Rewind (x=766) -->
+		<!-- 202 Rewind (x=622) -->
 		<control type="button" id="202">
 			<left>622</left>
 			<bottom>10</bottom>
@@ -280,7 +292,7 @@
 			<texture>icons/rew.png</texture>
 		</control>
 
-		<!-- 222 Play / Pause (x=858, w=112) -->
+		<!-- 222 Play / Pause (x=716, w=112) -->
 		<control type="button" id="222">
 			<left>716</left>
 			<bottom>10</bottom>
@@ -313,7 +325,7 @@
 			<visible>Player.Paused</visible>
 		</control>
 
-		<!-- 223 Stop (x=982) -->
+		<!-- 223 Stop (x=842) -->
 		<control type="button" id="223">
 			<left>842</left>
 			<bottom>10</bottom>
@@ -336,7 +348,7 @@
 			<texture>icons/stop.png</texture>
 		</control>
 
-		<!-- 203 Fast forward (x=1074) -->
+		<!-- 203 Fast forward (x=936) -->
 		<control type="button" id="203">
 			<left>936</left>
 			<bottom>10</bottom>

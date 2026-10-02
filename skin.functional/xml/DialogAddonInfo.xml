@@ -5,8 +5,8 @@
   </summary>
   <remarks>
   Kodi-assigned action button IDs (Omega):
-     6 = Install / Uninstall (togglebutton, depends on installed state)
-     7 = Enable / Disable    (togglebutton)
+     6 = Install / Uninstall (plain button, Kodi writes the label)
+     7 = Enable / Disable    (plain button, Kodi writes the label)
      8 = Update
      9 = Configure (open addon settings)
     10 = Dependencies
@@ -19,8 +19,22 @@
   never add a skin-side <visible> to those two, it would override Kodi's
   show/hide. Everything else is only ever enabled/disabled, so a
   <visible>Control.IsEnabled(N)</visible> gate is safe there (Estuary gates
-  13 this way). Widths are chosen so the worst case (12, 9, 13, 10, 7,
-  8-or-14, 6 all visible) is exactly 6x150 + 180 + 6x10 gaps = 1140.
+  13 this way).
+
+  The button row is set in font_small. At font_reg Dependencies measures
+  173 px and Auto-update 153 px, which did not fit a row of seven in the
+  1140 px between the margins; at font_small they are 134 and 118. The
+  worst case (12, 9, 13, 10, 7, 8 or 14, and 6 all visible) is six
+  buttons of 145, the radio button at 222 and six 8 px gaps:
+  870 + 222 + 48 = 1140.
+
+  6 and 7 must stay plain buttons. As togglebuttons they flipped to their
+  selected state on every press and drew alt textures that were never
+  defined, so after one press the button lost its background and its
+  focus fill. Kodi only ever writes their label, never a selected state.
+
+  The panel uses the opaque bg_dialog: through the translucent bg_panel
+  the add-on list behind showed in the description.
   </remarks>
 -->
 <window type="dialog">
@@ -49,7 +63,7 @@
 			<top>0</top>
 			<width>1200</width>
 			<height>720</height>
-			<texture colordiffuse="bg_panel">white.png</texture>
+			<texture colordiffuse="bg_dialog">white.png</texture>
 		</control>
 		<control type="image">
 			<left>0</left>
@@ -106,7 +120,8 @@
 			<left>300</left>
 			<top>160</top>
 			<width>870</width>
-			<height>340</height>
+			<!-- ten 35 px lines of font_reg; at 340 the last line was cut in half -->
+			<height>350</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
 			<!-- The news element of the add-on's manifest, which for this skin
@@ -118,9 +133,10 @@
 		<!-- Disclaimer (only if present) -->
 		<control type="textbox">
 			<left>30</left>
-			<top>510</top>
+			<top>514</top>
 			<width>1140</width>
-			<height>60</height>
+			<!-- two 27 px lines of font_small -->
+			<height>54</height>
 			<font>font_small</font>
 			<textcolor>text_dim</textcolor>
 			<align>center</align>
@@ -135,16 +151,16 @@
 			<width>1140</width>
 			<height>80</height>
 			<orientation>horizontal</orientation>
-			<itemgap>10</itemgap>
+			<itemgap>8</itemgap>
 			<align>center</align>
 			<onleft>9000</onleft>
 			<onright>9000</onright>
 
 			<!-- 12 = Open / Launch -->
 			<control type="button" id="12">
-				<width>150</width>
+				<width>145</width>
 				<height>70</height>
-				<font>font_reg</font>
+				<font>font_small</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
@@ -156,9 +172,9 @@
 			</control>
 			<!-- 9 = Configure / Settings -->
 			<control type="button" id="9">
-				<width>150</width>
+				<width>145</width>
 				<height>70</height>
-				<font>font_reg</font>
+				<font>font_small</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
@@ -168,18 +184,23 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[24020]</label>
 			</control>
-			<!-- 13 = Auto-update toggle -->
+			<!-- 13 = Auto-update toggle. Kodi draws three things in a radiobutton:
+			     the label from the left offset, an On or Off word ending at the
+			     right offset, and the 16 px radio square 8 px in from the right
+			     edge. With an offset of 30 in 222 the label runs 30..148, the word
+			     ends at 192 and the square sits at 198..214, so none of them
+			     overlap; at 180 wide in font_reg the square sat on the text. -->
 			<control type="radiobutton" id="13">
 				<visible>Control.IsEnabled(13)</visible>
-				<width>180</width>
+				<width>222</width>
 				<height>70</height>
-				<font>font_reg</font>
+				<font>font_small</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
-				<textoffsetx>20</textoffsetx>
+				<textoffsetx>30</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<textureradioonfocus colordiffuse="white">white.png</textureradioonfocus>
@@ -190,9 +211,9 @@
 			</control>
 			<!-- 10 = Dependencies -->
 			<control type="button" id="10">
-				<width>150</width>
+				<width>145</width>
 				<height>70</height>
-				<font>font_reg</font>
+				<font>font_small</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
@@ -202,11 +223,11 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[39024]</label>
 			</control>
-			<!-- 7 = Enable / Disable togglebutton -->
-			<control type="togglebutton" id="7">
-				<width>150</width>
+			<!-- 7 = Enable / Disable (Kodi writes whichever applies) -->
+			<control type="button" id="7">
+				<width>145</width>
 				<height>70</height>
-				<font>font_reg</font>
+				<font>font_small</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
@@ -215,13 +236,12 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[24022]</label>
-				<altlabel>$LOCALIZE[24021]</altlabel>
 			</control>
 			<!-- 8 = Update (Kodi hides it when no update is available) -->
 			<control type="button" id="8">
-				<width>150</width>
+				<width>145</width>
 				<height>70</height>
-				<font>font_reg</font>
+				<font>font_small</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
@@ -233,9 +253,9 @@
 			</control>
 			<!-- 14 = Versions (Kodi hides it when an update is available) -->
 			<control type="button" id="14">
-				<width>150</width>
+				<width>145</width>
 				<height>70</height>
-				<font>font_reg</font>
+				<font>font_small</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
@@ -245,11 +265,11 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[24069]</label>
 			</control>
-			<!-- 6 = Install / Uninstall togglebutton -->
-			<control type="togglebutton" id="6">
-				<width>150</width>
+			<!-- 6 = Install / Uninstall (Kodi writes whichever applies) -->
+			<control type="button" id="6">
+				<width>145</width>
 				<height>70</height>
-				<font>font_reg</font>
+				<font>font_small</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
@@ -258,7 +278,6 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[24038]</label>
-				<altlabel>$LOCALIZE[24037]</altlabel>
 			</control>
 
 		</control>

@@ -8,6 +8,10 @@
 <window type="dialog">
 	<animation effect="fade" time="150">WindowOpen</animation>
 	<animation effect="fade" time="150">WindowClose</animation>
+	<!-- A toast in one of the bottom positions (the default bottom right, bl
+	     or bc) reaches into this 660..1260 by 900..1000 box, so the pop-up
+	     steps up 160 px while one is showing. -->
+	<animation effect="slide" end="0,-160" time="150" condition="Window.IsVisible(notification) + !String.IsEqual(Skin.String(notification_position),tl) + !String.IsEqual(Skin.String(notification_position),tc) + !String.IsEqual(Skin.String(notification_position),tr)">Conditional</animation>
 	<coordinates>
 		<system>1</system>
 		<posx>660</posx>
@@ -71,9 +75,12 @@
 			<textureslidernibfocus colordiffuse="$VAR[AccentHiColor]">slider_nib.png</textureslidernibfocus>
 		</control>
 
-		<!-- Numeric readout (Kodi reports Player.Volume as dB, e.g. "-6.0 dB") -->
+		<!-- Numeric readout (Kodi reports Player.Volume as dB, e.g. "-6.0 dB").
+		     left 460 = 600 panel width less the 20 margin and the 120 width; a
+		     root level <right> is measured from the 1920 canvas and put this
+		     label off the screen. -->
 		<control type="label">
-			<right>20</right>
+			<left>460</left>
 			<top>0</top>
 			<width>120</width>
 			<height>100</height>

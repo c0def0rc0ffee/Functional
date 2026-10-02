@@ -1,6 +1,6 @@
 # Functional Skin: Install Guide
 
-The display name is **Functional**. The addon ID and folder name are both `skin.functional`. Release zips are named `skin.functional-<version>.zip` (built into `Skin Dist/` by `build_zip.py`).
+The display name is **Functional**. The addon ID and folder name are both `skin.functional`. Release zips are named `skin.functional-<version>.zip` (built into `Skin Dist/` by `python3 build_zip.py`).
 
 ## Method 1: Repository add-on (recommended, updates itself)
 
@@ -43,7 +43,7 @@ Same as above: enable **Unknown sources** under **Settings → System → Add-on
 
 ### Install
 
-1. Copy the latest `skin.functional-*.zip` to the device (USB stick, network share, cloud download, whatever's easiest)
+1. Download the latest `skin.functional-*.zip` from the [Releases](https://github.com/c0def0rc0ffee/Functional/releases) page and copy it to the device (USB stick, network share, cloud download, whatever's easiest)
 2. In Kodi: **Settings → Add-ons → Install from zip file**
 3. Browse to the zip and select it
 4. Wait for the "Add-on installed" notification at the top-right

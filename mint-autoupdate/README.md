@@ -14,7 +14,10 @@ for headless / remote-only setups.)
 - `start-kodi.sh` runs the updater, then launches Kodi. Use this as your Kodi
   launcher so the update is guaranteed to run first.
 
-It auto-detects the addons directory for Flatpak, Snap, or native Kodi.
+It auto-detects the addons directory for Flatpak, Snap, or native Kodi. It
+never swaps the skin while Kodi is running (the new zip is applied the next
+time it runs before Kodi starts), and if an update is cut short, by a power
+cut for example, the next run puts the previous skin back.
 
 ## One-time setup
 1. Put this `mint-autoupdate` folder somewhere on the box, e.g. `~/kodi-skin/`.

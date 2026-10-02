@@ -2,7 +2,8 @@
 <!--
   <summary>
   Full screen music visualisation: visualisation control 2 filling the
-  screen, with overlays not allowed.
+  screen, with overlays not allowed. The artist and title line hides
+  while the music OSD or the seek bar is up.
   </summary>
 -->
 <window>
@@ -23,6 +24,11 @@
 			<font>font_big</font>
 			<textcolor>text</textcolor>
 			<label>$INFO[MusicPlayer.Artist,, · ]$INFO[MusicPlayer.Title]</label>
+			<!-- The music OSD and the seek bar both draw a slightly see
+			     through panel over this strip of the screen, and this line
+			     showed through them as a ghost behind their own text. Both
+			     name the track themselves, so it stands down for them. -->
+			<visible>!Window.IsActive(musicosd) + !Window.IsVisible(seekbar)</visible>
 		</control>
 	</controls>
 </window>

@@ -18,7 +18,8 @@
 			<left>60</left>
 			<top>140</top>
 			<width>1800</width>
-			<height>880</height>
+			<!-- nine 100 px rows -->
+			<height>900</height>
 			<onleft>9000</onleft>
 			<onright>9000</onright>
 			<onup>9000</onup>

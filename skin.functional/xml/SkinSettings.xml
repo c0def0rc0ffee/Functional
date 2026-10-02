@@ -14,7 +14,7 @@
   (7020/7022 and 7023/7024) with section labels inside them; the
   labels carry ids (7060 to 7064) so the grouplist can link past
   them, and rows in a grouplist carry no onup or ondown. Every list
-  has a scrollbar (7050 to 7054) that only shows when something is
+  has a scrollbar (7050 to 7055) that only shows when something is
   below the fold. Library and Playback keep their original stored
   category values, media and video. Two-column pages start both
   columns on the 190 line.
@@ -668,7 +668,23 @@
 				<!-- TILES: the eight main menu slots. A cycle row per slot, a
 				     label row while the tile is on, and a favourite row while it is
 				     a favourite tile. The kind strings and the resolved names come
-				     from service.py:update_tiles. -->
+				     from service.py:update_tiles.
+
+				     Tile.N.Kind is empty exactly when the tile is not on Home,
+				     and two things here lean on that.
+				     The label row asks it (or "is a favourite tile", so the
+				     label can be typed before a favourite is chosen) instead of
+				     testing the stored string for the word none: an untouched
+				     slot stores nothing at all, so slot 8, off by default,
+				     showed a label row for a tile that does not exist.
+				     The first click on an untouched slot has two branches. A
+				     default that is on Home moves on to the next kind, as
+				     before. A default that is NOT on Home (Weather, which no
+				     switch turns on any more; Stats, which needs its add-on;
+				     any kind an older setup had hidden) is switched on as that
+				     same kind, rather than skipped so that it took a whole lap
+				     of the cycle to reach. The two conditions are exact
+				     opposites, so one click fires one of them. -->
 				<control type="label" id="7066">
 					<width>680</width>
 					<height>60</height>
@@ -690,7 +706,8 @@
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 					<label>$LOCALIZE[31493] 1: $INFO[Window(home).Property(Tile.1.KindLabel)]</label>
-					<onclick condition="String.IsEmpty(Skin.String(tile1))">Skin.SetString(tile1,tvshows)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile1)) + !String.IsEmpty(Window(home).Property(Tile.1.Kind))">Skin.SetString(tile1,tvshows)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile1)) + String.IsEmpty(Window(home).Property(Tile.1.Kind))">Skin.SetString(tile1,movies)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile1),movies)">Skin.SetString(tile1,tvshows)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile1),tvshows)">Skin.SetString(tile1,music)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile1),music)">Skin.SetString(tile1,pictures)</onclick>
@@ -707,7 +724,7 @@
 					<onright>7024</onright>
 				</control>
 				<control type="button" id="7161">
-					<visible>!String.IsEqual(Skin.String(tile1),none)</visible>
+					<visible>!String.IsEmpty(Window(home).Property(Tile.1.Kind)) | String.IsEqual(Skin.String(tile1),fav)</visible>
 					<width>640</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -755,7 +772,8 @@
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 					<label>$LOCALIZE[31493] 2: $INFO[Window(home).Property(Tile.2.KindLabel)]</label>
-					<onclick condition="String.IsEmpty(Skin.String(tile2))">Skin.SetString(tile2,music)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile2)) + !String.IsEmpty(Window(home).Property(Tile.2.Kind))">Skin.SetString(tile2,music)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile2)) + String.IsEmpty(Window(home).Property(Tile.2.Kind))">Skin.SetString(tile2,tvshows)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile2),movies)">Skin.SetString(tile2,tvshows)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile2),tvshows)">Skin.SetString(tile2,music)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile2),music)">Skin.SetString(tile2,pictures)</onclick>
@@ -772,7 +790,7 @@
 					<onright>7024</onright>
 				</control>
 				<control type="button" id="7162">
-					<visible>!String.IsEqual(Skin.String(tile2),none)</visible>
+					<visible>!String.IsEmpty(Window(home).Property(Tile.2.Kind)) | String.IsEqual(Skin.String(tile2),fav)</visible>
 					<width>640</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -820,7 +838,8 @@
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 					<label>$LOCALIZE[31493] 3: $INFO[Window(home).Property(Tile.3.KindLabel)]</label>
-					<onclick condition="String.IsEmpty(Skin.String(tile3))">Skin.SetString(tile3,pictures)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile3)) + !String.IsEmpty(Window(home).Property(Tile.3.Kind))">Skin.SetString(tile3,pictures)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile3)) + String.IsEmpty(Window(home).Property(Tile.3.Kind))">Skin.SetString(tile3,music)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile3),movies)">Skin.SetString(tile3,tvshows)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile3),tvshows)">Skin.SetString(tile3,music)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile3),music)">Skin.SetString(tile3,pictures)</onclick>
@@ -837,7 +856,7 @@
 					<onright>7024</onright>
 				</control>
 				<control type="button" id="7163">
-					<visible>!String.IsEqual(Skin.String(tile3),none)</visible>
+					<visible>!String.IsEmpty(Window(home).Property(Tile.3.Kind)) | String.IsEqual(Skin.String(tile3),fav)</visible>
 					<width>640</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -885,7 +904,8 @@
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 					<label>$LOCALIZE[31493] 4: $INFO[Window(home).Property(Tile.4.KindLabel)]</label>
-					<onclick condition="String.IsEmpty(Skin.String(tile4))">Skin.SetString(tile4,weather)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile4)) + !String.IsEmpty(Window(home).Property(Tile.4.Kind))">Skin.SetString(tile4,weather)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile4)) + String.IsEmpty(Window(home).Property(Tile.4.Kind))">Skin.SetString(tile4,pictures)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile4),movies)">Skin.SetString(tile4,tvshows)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile4),tvshows)">Skin.SetString(tile4,music)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile4),music)">Skin.SetString(tile4,pictures)</onclick>
@@ -902,7 +922,7 @@
 					<onright>7024</onright>
 				</control>
 				<control type="button" id="7164">
-					<visible>!String.IsEqual(Skin.String(tile4),none)</visible>
+					<visible>!String.IsEmpty(Window(home).Property(Tile.4.Kind)) | String.IsEqual(Skin.String(tile4),fav)</visible>
 					<width>640</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -950,7 +970,8 @@
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 					<label>$LOCALIZE[31493] 5: $INFO[Window(home).Property(Tile.5.KindLabel)]</label>
-					<onclick condition="String.IsEmpty(Skin.String(tile5))">Skin.SetString(tile5,lists)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile5)) + !String.IsEmpty(Window(home).Property(Tile.5.Kind))">Skin.SetString(tile5,lists)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile5)) + String.IsEmpty(Window(home).Property(Tile.5.Kind))">Skin.SetString(tile5,weather)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile5),movies)">Skin.SetString(tile5,tvshows)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile5),tvshows)">Skin.SetString(tile5,music)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile5),music)">Skin.SetString(tile5,pictures)</onclick>
@@ -967,7 +988,7 @@
 					<onright>7024</onright>
 				</control>
 				<control type="button" id="7165">
-					<visible>!String.IsEqual(Skin.String(tile5),none)</visible>
+					<visible>!String.IsEmpty(Window(home).Property(Tile.5.Kind)) | String.IsEqual(Skin.String(tile5),fav)</visible>
 					<width>640</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -1015,7 +1036,8 @@
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 					<label>$LOCALIZE[31493] 6: $INFO[Window(home).Property(Tile.6.KindLabel)]</label>
-					<onclick condition="String.IsEmpty(Skin.String(tile6))">Skin.SetString(tile6,stats)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile6)) + !String.IsEmpty(Window(home).Property(Tile.6.Kind))">Skin.SetString(tile6,stats)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile6)) + String.IsEmpty(Window(home).Property(Tile.6.Kind))">Skin.SetString(tile6,lists)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile6),movies)">Skin.SetString(tile6,tvshows)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile6),tvshows)">Skin.SetString(tile6,music)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile6),music)">Skin.SetString(tile6,pictures)</onclick>
@@ -1032,7 +1054,7 @@
 					<onright>7024</onright>
 				</control>
 				<control type="button" id="7166">
-					<visible>!String.IsEqual(Skin.String(tile6),none)</visible>
+					<visible>!String.IsEmpty(Window(home).Property(Tile.6.Kind)) | String.IsEqual(Skin.String(tile6),fav)</visible>
 					<width>640</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -1080,7 +1102,10 @@
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 					<label>$LOCALIZE[31493] 7: $INFO[Window(home).Property(Tile.7.KindLabel)]</label>
-					<onclick condition="String.IsEmpty(Skin.String(tile7))">Skin.SetString(tile7,favourites)</onclick>
+					<!-- Stats can only be switched on where its add-on is
+					     installed; without it the slot moves straight on. -->
+					<onclick condition="String.IsEmpty(Skin.String(tile7)) + [!String.IsEmpty(Window(home).Property(Tile.7.Kind)) | !System.HasAddon(script.jellystat)]">Skin.SetString(tile7,favourites)</onclick>
+					<onclick condition="String.IsEmpty(Skin.String(tile7)) + String.IsEmpty(Window(home).Property(Tile.7.Kind)) + System.HasAddon(script.jellystat)">Skin.SetString(tile7,stats)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile7),movies)">Skin.SetString(tile7,tvshows)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile7),tvshows)">Skin.SetString(tile7,music)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(tile7),music)">Skin.SetString(tile7,pictures)</onclick>
@@ -1097,7 +1122,7 @@
 					<onright>7024</onright>
 				</control>
 				<control type="button" id="7167">
-					<visible>!String.IsEqual(Skin.String(tile7),none)</visible>
+					<visible>!String.IsEmpty(Window(home).Property(Tile.7.Kind)) | String.IsEqual(Skin.String(tile7),fav)</visible>
 					<width>640</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -1162,7 +1187,7 @@
 					<onright>7024</onright>
 				</control>
 				<control type="button" id="7168">
-					<visible>!String.IsEqual(Skin.String(tile8),none)</visible>
+					<visible>!String.IsEmpty(Window(home).Property(Tile.8.Kind)) | String.IsEqual(Skin.String(tile8),fav)</visible>
 					<width>640</width>
 					<height>60</height>
 					<font>font_reg</font>
@@ -1490,9 +1515,9 @@
 			<!-- Any colour at all: Kodi's colour picker (Skin.SetColor takes the
 			     setting, a heading string id and the current value to land on)
 			     writes the hex into accent_custom, then the accent switches to
-			     it. The picker is modal, so the second line runs after it has
+			     it. The picker is modal, so the lines after it run once it has
 			     closed; cancelling leaves the old custom value, or none, and
-			     AccentColor falls back to blue for none. -->
+			     the accent in use is left alone (see ACCENT-PICK below). -->
 			<control type="button" id="7320">
 				<left>440</left>
 				<top>310</top>
@@ -1508,12 +1533,48 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>31490</label>
+				<!-- ACCENT-PICK. The value before the pick is parked in a Home
+				     property (cleared when there is none: SetProperty with an
+				     empty value is not something to rely on, and the two
+				     conditions are exact opposites). After the picker closes
+				     focus is passed to relay 7321, which decides whether a
+				     colour was actually chosen. -->
+				<onclick condition="String.IsEmpty(Skin.String(accent_custom))">ClearProperty(accent_before_pick,home)</onclick>
+				<onclick condition="!String.IsEmpty(Skin.String(accent_custom))">SetProperty(accent_before_pick,$INFO[Skin.String(accent_custom)],home)</onclick>
 				<onclick>Skin.SetColor(accent_custom,31491,$INFO[Skin.String(accent_custom)])</onclick>
-				<onclick>Skin.SetString(accent_color,custom)</onclick>
+				<onclick>SetFocus(7321)</onclick>
 				<onleft>7000</onleft>
 				<onright>7310</onright>
 				<onup>7300</onup>
 				<ondown>7301</ondown>
+			</control>
+			<!-- ACCENT-PICK relay. Every onclick condition on a button is
+			     worked out at the moment of the click, before the first line
+			     runs, so no line on 7320 can ask what the picker returned.
+			     An onfocus condition is worked out when focus arrives, which
+			     is after the picker has closed. So 7320 hands focus here, this
+			     switches the accent to custom only if the stored colour
+			     changed, and hands focus straight back. Cancelling the picker
+			     used to switch the accent anyway: to the old custom colour,
+			     or to blue with none. One pixel, no textures, and all four
+			     directions lead back to 7320 in case focus is ever left here.
+			     Picking the very colour that was already stored reads as no
+			     change; the Accent Colour row above still cycles to Custom. -->
+			<control type="button" id="7321">
+				<left>440</left>
+				<top>372</top>
+				<width>1</width>
+				<height>1</height>
+				<label></label>
+				<disabledcolor>disabled</disabledcolor>
+				<texturefocus>-</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<onfocus condition="!String.IsEqual(Skin.String(accent_custom),Window(home).Property(accent_before_pick))">Skin.SetString(accent_color,custom)</onfocus>
+				<onfocus>SetFocus(7320)</onfocus>
+				<onleft>7320</onleft>
+				<onright>7320</onright>
+				<onup>7320</onup>
+				<ondown>7320</ondown>
 			</control>
 			<control type="image">
 				<left>440</left>
@@ -2238,6 +2299,12 @@
 				<orientation>vertical</orientation>
 				<pagecontrol>7051</pagecontrol>
 				<onleft>7230</onleft>
+				<!-- Without these two a grouplist links its last row to its
+				     first: Down on the last field went back to Genre and never
+				     reached the age switch (7316) directly beneath, and Up on
+				     Genre never reached the info bar switch (7200) above. -->
+				<onup>7200</onup>
+				<ondown>7316</ondown>
 
 				<control type="radiobutton" id="7201">
 					<width>680</width>
@@ -2344,8 +2411,8 @@
 					<onclick>Skin.ToggleSetting(hide_resolution)</onclick>
 					<onleft>7230</onleft>
 				</control>
-				<!-- 7206 was File Size (removed; see PROJECT_NOTES "Focused-item
-				     file size") and now carries the age field, which is off by
+				<!-- 7206 was File Size (removed, the sizes Kodi reported were
+				     unreliable) and now carries the age field, which is off by
 				     default like the other show_* fields. -->
 				<control type="radiobutton" id="7206">
 					<width>680</width>
@@ -2684,14 +2751,18 @@
 
 			<!-- ===== Left column: one unified mode list ===== -->
 			<!-- Single grouplist so the controls that only apply to certain
-			     modes are auto-skipped by keyboard nav when hidden. -->
-			<control type="grouplist">
+			     modes are auto-skipped by keyboard nav when hidden. It was the
+			     one list on these pages with no scrollbar, and it does
+			     overflow its 700: genre mode with Show On All Screens is 710,
+			     and a time schedule adds two more rows (up to 850). -->
+			<control type="grouplist" id="7025">
 				<left>440</left>
 				<top>200</top>
 				<width>900</width>
 				<height>700</height>
 				<itemgap>10</itemgap>
 				<orientation>vertical</orientation>
+				<pagecontrol>7055</pagecontrol>
 				<onleft>7000</onleft>
 
 				<!-- Time schedule: Off → 2 → 3 → 4 slots → Off. When on, the
@@ -3048,6 +3119,19 @@
 					<onclick condition="String.IsEqual(Skin.String(bg_label_position),bottomright)">Skin.SetString(bg_label_position,bottomcenter)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(bg_label_position),bottomcenter)">Skin.SetString(bg_label_position,off)</onclick>
 				</control>
+			</control>
+			<control type="scrollbar" id="7055">
+				<left>1352</left>
+				<top>200</top>
+				<width>8</width>
+				<height>700</height>
+				<orientation>vertical</orientation>
+				<showonepage>false</showonepage>
+				<onleft>7025</onleft>
+				<onright>7025</onright>
+				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 			</control>
 
 			<!-- ===== Right column: preview (static image only) =====

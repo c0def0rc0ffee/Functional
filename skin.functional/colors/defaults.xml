@@ -17,6 +17,9 @@
 	<color name="text_dim">FFB0B0B0</color>
 	<color name="bg">FF101418</color>
 	<color name="bg_panel">CC181C22</color>
+	<!-- bg_panel without its translucency, for a dialog that opens over a
+	     busy window: through bg_panel the text behind showed in the panel. -->
+	<color name="bg_dialog">FF181C22</color>
 	<color name="selected">FF1E88E5</color>
 	<color name="disabled">66FFFFFF</color>
 </colors>

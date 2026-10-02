@@ -53,12 +53,12 @@
 			<label></label>
 		</control>
 
-		<!-- Files list -->
+		<!-- Files list: 720 = twelve 60 px rows -->
 		<control type="list" id="450">
 			<left>40</left>
 			<top>90</top>
 			<width>1140</width>
-			<height>700</height>
+			<height>720</height>
 			<onleft>9000</onleft>
 			<onright>9000</onright>
 			<pagecontrol>60</pagecontrol>
@@ -117,12 +117,14 @@
 			</focusedlayout>
 		</control>
 
-		<!-- Alternative thumbnail-grid panel (id 451), Kodi uses this for image-heavy directories -->
+		<!-- Alternative thumbnail grid (id 451), which Kodi uses when browsing for
+		     images. 720 = three 240 px rows; at 700 with 200 px rows the fourth
+		     row showed cut in half. -->
 		<control type="panel" id="451">
 			<left>40</left>
 			<top>90</top>
 			<width>1140</width>
-			<height>700</height>
+			<height>720</height>
 			<onleft>9000</onleft>
 			<onright>9000</onright>
 			<onup>451</onup>
@@ -131,20 +133,20 @@
 			<orientation>vertical</orientation>
 			<scrolltime tween="cubic" easing="out">200</scrolltime>
 
-			<itemlayout height="200" width="190">
+			<itemlayout height="240" width="190">
 				<control type="image">
 					<left>4</left>
 					<top>4</top>
 					<width>182</width>
-					<height>140</height>
+					<height>180</height>
 					<aspectratio>scale</aspectratio>
 					<texture fallback="DefaultFolder.png" background="true">$INFO[ListItem.Icon]</texture>
 				</control>
 				<control type="label">
 					<left>4</left>
-					<top>146</top>
+					<top>186</top>
 					<width>182</width>
-					<height>50</height>
+					<height>54</height>
 					<font>font_small</font>
 					<textcolor>text</textcolor>
 					<selectedcolor>$VAR[AccentHiColor]</selectedcolor>
@@ -154,12 +156,12 @@
 					<label>$INFO[ListItem.Label]</label>
 				</control>
 			</itemlayout>
-			<focusedlayout height="200" width="190">
+			<focusedlayout height="240" width="190">
 				<control type="image">
 					<left>0</left>
 					<top>0</top>
 					<width>190</width>
-					<height>148</height>
+					<height>188</height>
 					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 					<visible>Control.HasFocus(451)</visible>
 				</control>
@@ -167,15 +169,15 @@
 					<left>4</left>
 					<top>4</top>
 					<width>182</width>
-					<height>140</height>
+					<height>180</height>
 					<aspectratio>scale</aspectratio>
 					<texture fallback="DefaultFolder.png" background="true">$INFO[ListItem.Icon]</texture>
 				</control>
 				<control type="label">
 					<left>4</left>
-					<top>146</top>
+					<top>186</top>
 					<width>182</width>
-					<height>50</height>
+					<height>54</height>
 					<font>font_small</font>
 					<textcolor>white</textcolor>
 					<selectedcolor>white</selectedcolor>
@@ -192,7 +194,7 @@
 			<left>1190</left>
 			<top>90</top>
 			<width>16</width>
-			<height>700</height>
+			<height>720</height>
 			<orientation>vertical</orientation>
 			<showonepage>false</showonepage>
 			<onleft>450</onleft>
@@ -273,10 +275,12 @@
 			</control>
 		</control>
 
-		<!-- Path label at bottom (Kodi populates id=412) -->
+		<!-- Path label at bottom (Kodi populates id=412). top 850 = 920 panel
+		     height less the 30 margin and the 40 height; a root level <bottom>
+		     is measured from the 1080 canvas and put this label off the screen. -->
 		<control type="label" id="412">
 			<left>40</left>
-			<bottom>30</bottom>
+			<top>850</top>
 			<width>1520</width>
 			<height>40</height>
 			<haspath>true</haspath>

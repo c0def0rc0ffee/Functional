@@ -2,7 +2,9 @@
 <!--
   <summary>
   Now playing playlist window: list 55 of the queue with scrollbar 60
-  over the window background.
+  over the window background. Kodi loads this one file for both the
+  video and the music queue. The focused layout repeats the item
+  layout's content, because Kodi draws one or the other, never both.
   </summary>
 -->
 <window>
@@ -45,6 +47,9 @@
 		</control>
 
 		<!-- Right of header: counts + total time + current ETA -->
+		<!-- Two labels, one per state: an empty queue has no total time, and
+		     the single label used to read "0 items · Total" with nothing
+		     after it. -->
 		<control type="label">
 			<right>40</right>
 			<top>10</top>
@@ -55,6 +60,19 @@
 			<align>right</align>
 			<aligny>center</aligny>
 			<label>$INFO[Container.NumItems] $LOCALIZE[31180] $INFO[Container.TotalTime]</label>
+			<visible>!String.IsEmpty(Container.TotalTime)</visible>
+		</control>
+		<control type="label">
+			<right>40</right>
+			<top>10</top>
+			<width>800</width>
+			<height>40</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<align>right</align>
+			<aligny>center</aligny>
+			<label>$INFO[Container.NumItems] $LOCALIZE[31016]</label>
+			<visible>String.IsEmpty(Container.TotalTime)</visible>
 		</control>
 		<!-- Queue end time. Container.TotalTime is a duration ("5h 40m"),
 		     which still leaves you doing sums against the clock, so
@@ -160,16 +178,70 @@
 					<height>80</height>
 					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 				</control>
+				<!-- Kodi draws the focused layout INSTEAD of the item layout, not
+				     over it, so everything the row shows has to be repeated here.
+				     With only the bar and the play mark the focused row was a
+				     blank accent stripe. The play mark takes the index's place on
+				     the playing row, so the two conditions are exact opposites.
+				     White, not the accent highlight: the bar behind is the accent. -->
+				<!-- Index -->
+				<control type="label">
+					<left>10</left>
+					<top>0</top>
+					<width>60</width>
+					<height>80</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.CurrentItem]</label>
+					<visible>!ListItem.IsPlaying</visible>
+				</control>
 				<control type="image">
 					<left>26</left>
 					<top>26</top>
 					<width>28</width>
 					<height>28</height>
 					<aspectratio>keep</aspectratio>
-					<texture colordiffuse="$VAR[AccentHiColor]">icons/play.png</texture>
+					<texture colordiffuse="white">icons/play.png</texture>
 					<!-- playlistposition is 0-based and Playlist.Position 1-based, so the old
 					     comparison lit the row AFTER the playing one. -->
 					<visible>ListItem.IsPlaying</visible>
+				</control>
+				<!-- Thumb -->
+				<control type="image">
+					<left>90</left>
+					<top>10</top>
+					<width>108</width>
+					<height>60</height>
+					<aspectratio>scale</aspectratio>
+					<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Art(thumb)]</texture>
+				</control>
+				<!-- Title -->
+				<control type="label">
+					<left>220</left>
+					<top>0</top>
+					<width>1300</width>
+					<height>80</height>
+					<font>font_reg</font>
+					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<!-- Duration -->
+				<control type="label">
+					<right>20</right>
+					<top>0</top>
+					<width>200</width>
+					<height>80</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<selectedcolor>white</selectedcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$INFO[ListItem.Duration]</label>
 				</control>
 			</focusedlayout>
 		</control>

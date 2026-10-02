@@ -134,25 +134,31 @@
 				<onup>9001</onup>
 				<ondown>9001</ondown>
 				<scrolltime tween="cubic" easing="out">200</scrolltime>
+				<!-- BOOKMARK-INSET. Everything in both layouts sits 4 in from
+				     the cell's top left so the focus frame (288 x 166 at 0,0)
+				     fits inside the cell. A container clips what it draws to
+				     its own box, and the frame used to start at -4,-4: its top
+				     edge was always cut off, and its left edge on the first
+				     thumbnail. -->
 				<itemlayout width="300" height="330">
 					<control type="image">
-						<left>0</left>
-						<top>0</top>
+						<left>4</left>
+						<top>4</top>
 						<width>280</width>
 						<height>158</height>
 						<texture colordiffuse="grey_mid">white.png</texture>
 					</control>
 					<control type="image">
-						<left>0</left>
-						<top>0</top>
+						<left>4</left>
+						<top>4</top>
 						<width>280</width>
 						<height>158</height>
 						<aspectratio>scale</aspectratio>
 						<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Art(thumb)]</texture>
 					</control>
 					<control type="label">
-						<left>0</left>
-						<top>166</top>
+						<left>4</left>
+						<top>170</top>
 						<width>280</width>
 						<height>30</height>
 						<font>font_reg</font>
@@ -160,8 +166,8 @@
 						<label>$INFO[ListItem.Label]</label>
 					</control>
 					<control type="label">
-						<left>0</left>
-						<top>196</top>
+						<left>4</left>
+						<top>200</top>
 						<width>280</width>
 						<height>26</height>
 						<font>font_small</font>
@@ -171,31 +177,31 @@
 				</itemlayout>
 				<focusedlayout width="300" height="330">
 					<control type="image">
-						<left>-4</left>
-						<top>-4</top>
+						<left>0</left>
+						<top>0</top>
 						<width>288</width>
 						<height>166</height>
 						<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
 						<visible>Control.HasFocus(11)</visible>
 					</control>
 					<control type="image">
-						<left>0</left>
-						<top>0</top>
+						<left>4</left>
+						<top>4</top>
 						<width>280</width>
 						<height>158</height>
 						<texture colordiffuse="grey_mid">white.png</texture>
 					</control>
 					<control type="image">
-						<left>0</left>
-						<top>0</top>
+						<left>4</left>
+						<top>4</top>
 						<width>280</width>
 						<height>158</height>
 						<aspectratio>scale</aspectratio>
 						<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Art(thumb)]</texture>
 					</control>
 					<control type="label">
-						<left>0</left>
-						<top>166</top>
+						<left>4</left>
+						<top>170</top>
 						<width>280</width>
 						<height>30</height>
 						<font>font_reg</font>
@@ -203,8 +209,8 @@
 						<label>$INFO[ListItem.Label]</label>
 					</control>
 					<control type="label">
-						<left>0</left>
-						<top>196</top>
+						<left>4</left>
+						<top>200</top>
 						<width>280</width>
 						<height>26</height>
 						<font>font_small</font>

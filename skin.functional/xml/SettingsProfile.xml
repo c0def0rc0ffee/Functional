@@ -15,7 +15,8 @@
 			<left>60</left>
 			<top>120</top>
 			<width>1800</width>
-			<height>780</height>
+			<!-- ten 80 px rows -->
+			<height>800</height>
 			<onup>4</onup>
 			<ondown>4</ondown>
 			<itemlayout height="80" width="1800">

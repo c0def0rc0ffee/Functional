@@ -156,13 +156,7 @@ Each release is described in [CHANGELOG.md](CHANGELOG.md). The current version's
 
 ## Installation
 
-1. Download the latest release ZIP from the [Releases](../../releases) page.
-2. In Kodi: **Settings > Add-ons > Install from zip file** and select the ZIP.
-3. Go to **Settings > Interface > Skin** and select **Functional**.
-
-On a headless / remote-only Linux box, the scripts in [`mint-autoupdate/`](mint-autoupdate/) are an optional convenience, drop a new ZIP in a folder and reboot to update without a keyboard.
-
-For manual-copy installs, per-device paths, and migrating from the old `skin.starter` ID, see [INSTALL.md](INSTALL.md).
+Every way of installing and updating the skin is in [INSTALL.md](INSTALL.md): the repository add-on that keeps it current by itself, a release ZIP from the [Releases](../../releases) page, a manual copy with per-device paths, an unattended update at boot for a headless Linux box, and migrating from the old `skin.starter` ID.
 
 ## Licence
 

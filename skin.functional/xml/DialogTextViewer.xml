@@ -47,7 +47,8 @@
 			<left>40</left>
 			<top>80</top>
 			<width>1500</width>
-			<height>800</height>
+			<!-- 23 lines of font_reg at 35 px, so no line is cut in half -->
+			<height>805</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
 			<pagecontrol>60</pagecontrol>
@@ -58,7 +59,7 @@
 			<left>1564</left>
 			<top>80</top>
 			<width>16</width>
-			<height>800</height>
+			<height>805</height>
 			<orientation>vertical</orientation>
 			<showonepage>false</showonepage>
 			<onleft>1000</onleft>

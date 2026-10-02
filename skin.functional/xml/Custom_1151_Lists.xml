@@ -79,7 +79,16 @@
 			<width>560</width>
 			<height>770</height>
 			<onleft>50</onleft>
-			<onright condition="Control.IsVisible(51)">51</onright>
+			<!-- LISTS-EMPTY-NAV: every line that hands focus to list 51
+			     tests that it HOLDS something, not that it is visible. An
+			     empty list is visible and cannot take focus; Kodi then
+			     follows 51's own exit in the same direction, which for Up
+			     and Down is the action row, so with an empty list selected
+			     (every new list starts that way) focus could not leave the
+			     row and the fallback lines were never reached. The property
+			     test beside the count covers the moment when the column is
+			     hidden and its list still holds the previous rows. -->
+			<onright condition="Integer.IsGreater(Container(51).NumItems,0) + Integer.IsGreater(Window(home).Property(Lists.Sel.Count),0)">51</onright>
 			<onright>9000</onright>
 			<ondown>9000</ondown>
 			<onup>9000</onup>
@@ -310,15 +319,19 @@
 				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 			</control>
 
-			<!-- Empty list -->
+			<!-- Empty list. The hint is 1261 wide at font_med and the column
+			     1180, so it wraps to two lines (44 each) in a 100 tall box,
+			     y 440 to 540, where the single truncated line used to sit. -->
 			<control type="label">
 				<visible>String.IsEqual(Window(home).Property(Lists.Sel.Count),0)</visible>
 				<left>660</left>
-				<top>460</top>
+				<top>440</top>
 				<width>1180</width>
-				<height>60</height>
+				<height>100</height>
 				<font>font_med</font>
 				<align>center</align>
+				<aligny>center</aligny>
+				<wrapmultiline>true</wrapmultiline>
 				<textcolor>text_dim</textcolor>
 				<label>31017</label>
 			</control>
@@ -368,9 +381,11 @@
 			<height>60</height>
 			<orientation>horizontal</orientation>
 			<itemgap>14</itemgap>
-			<onup condition="Control.IsVisible(51)">51</onup>
+			<!-- See LISTS-EMPTY-NAV on list 50: the items when there are
+			     any, otherwise the list of lists. -->
+			<onup condition="Integer.IsGreater(Container(51).NumItems,0) + Integer.IsGreater(Window(home).Property(Lists.Sel.Count),0)">51</onup>
 			<onup>50</onup>
-			<ondown condition="Control.IsVisible(51)">51</ondown>
+			<ondown condition="Integer.IsGreater(Container(51).NumItems,0) + Integer.IsGreater(Window(home).Property(Lists.Sel.Count),0)">51</ondown>
 			<ondown>50</ondown>
 
 			<control type="button" id="9001">

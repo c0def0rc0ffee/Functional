@@ -72,6 +72,24 @@
 	<expression name="menu_top">String.IsEqual(Skin.String(menu_position),top)</expression>
 	<expression name="menu_bottom">String.IsEqual(Skin.String(menu_position),bottom)</expression>
 	<expression name="continue_tab_top">String.IsEqual(Skin.String(continue_tab),top)</expression>
+	<!-- HOME-LAYOUT-EXPRESSIONS. The corner bar lies ABOVE the menu only when it
+	     is on the top edge and the menu is not: with both at the top the menu
+	     is y 40 to 180 and the bar y 180 to 250, underneath it. Home's Up and
+	     Down are written against this, not against corner_bar_top alone. -->
+	<expression name="bar_above_menu">$EXP[corner_bar_top] + !$EXP[menu_top]</expression>
+	<!-- The weather line under the clock is showing. Named because the button
+	     in it (9006) sits inside a group: Control.IsVisible(9006) reads the
+	     button's own state and stays true while the group is hidden. -->
+	<expression name="weather_widget_shown">Skin.HasSetting(show_weather_widget) + Weather.IsFetched</expression>
+	<!-- Any block of the stats column on the right of Home is showing, in
+	     which case a centred menu row moves left to stay clear of it. -->
+	<expression name="home_stats_shown">!Skin.HasSetting(hide_movies_count) | !Skin.HasSetting(hide_tvshows_count) | [!Skin.HasSetting(hide_jellystat) + System.HasAddon(script.jellystat) + !String.IsEmpty(Window(home).Property(JellyStat.AllTime.Hours))]</expression>
+	<!-- Which of a menu slot's three button widths shows, from the number of
+	     tiles on screen (Tile.Count, service.py:update_tiles). An empty count
+	     reads as zero, so before the service's first tick the wide ones show. -->
+	<expression name="tiles_wide">!Integer.IsGreater(Window(home).Property(Tile.Count),6)</expression>
+	<expression name="tiles_mid">Integer.IsEqual(Window(home).Property(Tile.Count),7)</expression>
+	<expression name="tiles_narrow">Integer.IsGreater(Window(home).Property(Tile.Count),7)</expression>
 
 	<!-- A sleep timer is running. service.py republishes the countdown every
 	     tick and clears the property when the timer is cancelled or fires, so
@@ -113,24 +131,43 @@
 	     Kodi never resolves $VAR/$INFO inside <left>/<top>/<align> (they are
 	     parsed as raw numbers at window load), so the position choices are
 	     baked as one label per position via $PARAM, which IS substituted at
-	     include-expansion time. Home.xml instantiates BgCaption five times,
-	     one per position; "off"/unset shows none. -->
+	     include-expansion time. SkinBackground instantiates BgCaption five
+	     times, one per position; "off"/unset shows none.
+
+	     BG-CAPTION-SHIFT: each corner already holds something on Home (logo,
+	     clock, version line, corner bar), and the caption is drawn under all
+	     of them. A caption therefore steps aside with a time="0" slide while
+	     the thing in its corner is showing, and takes the true corner when it
+	     is not. shift1 and shift2 are the conditions, by1 and by2 the "x,y"
+	     offsets; a caller that passes two must make them exclusive, because
+	     slides stack. -->
 	<include name="BgCaption">
-		<control type="label">
-			<left>60</left>
-			<top>$PARAM[top]</top>
-			<right>60</right>
-			<height>40</height>
-			<font>font_med</font>
-			<align>$PARAM[align]</align>
-			<aligny>center</aligny>
-			<textcolor>white</textcolor>
-			<shadowcolor>FF000000</shadowcolor>
-			<scroll>true</scroll>
-			<label>$INFO[Window(home).Property(home_bg_label)]</label>
-			<visible>!String.IsEmpty(Window(home).Property(home_bg_label)) + String.IsEqual(Skin.String(bg_label_position),$PARAM[pos])</visible>
-			<animation effect="fade" time="400">VisibleChange</animation>
-		</control>
+		<param name="pos" />
+		<param name="top" />
+		<param name="align" />
+		<param name="shift1" default="false" />
+		<param name="by1" default="0,0" />
+		<param name="shift2" default="false" />
+		<param name="by2" default="0,0" />
+		<definition>
+			<control type="label">
+				<left>60</left>
+				<top>$PARAM[top]</top>
+				<right>60</right>
+				<height>40</height>
+				<font>font_med</font>
+				<align>$PARAM[align]</align>
+				<aligny>center</aligny>
+				<textcolor>white</textcolor>
+				<shadowcolor>FF000000</shadowcolor>
+				<scroll>true</scroll>
+				<label>$INFO[Window(home).Property(home_bg_label)]</label>
+				<visible>!String.IsEmpty(Window(home).Property(home_bg_label)) + String.IsEqual(Skin.String(bg_label_position),$PARAM[pos])</visible>
+				<animation effect="fade" time="400">VisibleChange</animation>
+				<animation effect="slide" end="$PARAM[by1]" time="0" condition="$PARAM[shift1]">Conditional</animation>
+				<animation effect="slide" end="$PARAM[by2]" time="0" condition="$PARAM[shift2]">Conditional</animation>
+			</control>
+		</definition>
 	</include>
 	<variable name="BgLabelPositionLabel">
 		<value condition="String.IsEqual(Skin.String(bg_label_position),topleft)">$LOCALIZE[31106]</value>
@@ -258,31 +295,74 @@
 		<value></value>
 	</variable>
 
+	<!-- POSTER-FALLBACK. Poster for whatever is playing (video OSD and the
+	     full screen info card) and for the item the video info dialog is
+	     about. A library episode has no "poster" art of its own, only its
+	     thumb, with the show's art alongside under the tvshow. prefix, so
+	     asking for the poster alone gave every episode the generic video
+	     icon. Both end empty on purpose: the image control's own fallback
+	     texture then applies, as it did before. -->
+	<variable name="PlayerPosterArt">
+		<value condition="!String.IsEmpty(Player.Art(poster))">$INFO[Player.Art(poster)]</value>
+		<value condition="!String.IsEmpty(Player.Art(tvshow.poster))">$INFO[Player.Art(tvshow.poster)]</value>
+		<value></value>
+	</variable>
+	<variable name="ItemPosterArt">
+		<value condition="!String.IsEmpty(ListItem.Art(poster))">$INFO[ListItem.Art(poster)]</value>
+		<value condition="!String.IsEmpty(ListItem.Art(tvshow.poster))">$INFO[ListItem.Art(tvshow.poster)]</value>
+		<value></value>
+	</variable>
+
 	<!-- Toggleable info-bar fields. Most use hide_X (visible by default).
 	     show_filesize, show_lastplayed and show_age are off by default. -->
+	<!-- INFOBAR-SEGMENTS. "This segment is on and has something to show",
+	     once per segment, so every later segment can ask whether anything
+	     came before it and drop its " · " when nothing did. Kodi loads all
+	     expressions before any variable, so their place in the file does not
+	     matter. Left line: duration, ends at, rating, age. Right line:
+	     genre, certificate, resolution, last played. -->
+	<expression name="infobar_duration">!Skin.HasSetting(hide_duration) + !String.IsEmpty(ListItem.Duration)</expression>
+	<expression name="infobar_endsat">!Skin.HasSetting(hide_endsat) + !String.IsEmpty(Window(home).Property(focused_finish_time))</expression>
+	<expression name="infobar_rating">!Skin.HasSetting(hide_rating) + !String.IsEmpty(ListItem.Rating)</expression>
+	<expression name="infobar_genre">!Skin.HasSetting(hide_genre) + !String.IsEmpty(ListItem.Genre)</expression>
+	<expression name="infobar_mpaa">!Skin.HasSetting(hide_mpaa) + !String.IsEmpty(ListItem.MPAA)</expression>
+	<expression name="infobar_resolution">!Skin.HasSetting(hide_resolution) + !String.IsEmpty(ListItem.VideoResolution)</expression>
+	<!-- The Duration switch in skin settings wrote hide_duration and nothing
+	     read it: the info bar printed ListItem.Duration bare. -->
+	<variable name="ItemDurationLabel">
+		<value condition="$EXP[infobar_duration]">$INFO[ListItem.Duration]</value>
+		<value></value>
+	</variable>
 	<variable name="ItemGenreLabel">
-		<value condition="!Skin.HasSetting(hide_genre) + !String.IsEmpty(ListItem.Genre)">$INFO[ListItem.Genre]</value>
+		<value condition="$EXP[infobar_genre]">$INFO[ListItem.Genre]</value>
 		<value></value>
 	</variable>
 	<!-- The " · " prefixes assume an earlier segment rendered; each variable
 	     drops its prefix when it would open the line (TV shows have no
 	     duration, so the old versions rendered a stray leading dot). -->
 	<variable name="ItemEndsAtLabel">
-		<value condition="!Skin.HasSetting(hide_endsat) + !String.IsEmpty(Window(home).Property(focused_finish_time)) + String.IsEmpty(ListItem.Duration)">$LOCALIZE[31098] $INFO[Window(home).Property(focused_finish_time)]</value>
-		<value condition="!Skin.HasSetting(hide_endsat) + !String.IsEmpty(Window(home).Property(focused_finish_time))"> $LOCALIZE[31132] $INFO[Window(home).Property(focused_finish_time)]</value>
+		<value condition="$EXP[infobar_endsat] + !$EXP[infobar_duration]">$LOCALIZE[31098] $INFO[Window(home).Property(focused_finish_time)]</value>
+		<value condition="$EXP[infobar_endsat]"> $LOCALIZE[31132] $INFO[Window(home).Property(focused_finish_time)]</value>
 		<value></value>
 	</variable>
 	<variable name="ItemStarRatingLabel">
-		<value condition="!Skin.HasSetting(hide_rating) + !String.IsEmpty(ListItem.Rating) + String.IsEmpty(ListItem.Duration) + [Skin.HasSetting(hide_endsat) | String.IsEmpty(Window(home).Property(focused_finish_time))]">★ $INFO[ListItem.Rating]</value>
-		<value condition="!Skin.HasSetting(hide_rating) + !String.IsEmpty(ListItem.Rating)"> · ★ $INFO[ListItem.Rating]</value>
+		<value condition="$EXP[infobar_rating] + !$EXP[infobar_duration] + !$EXP[infobar_endsat]">★ $INFO[ListItem.Rating]</value>
+		<value condition="$EXP[infobar_rating]"> · ★ $INFO[ListItem.Rating]</value>
 		<value></value>
 	</variable>
+	<!-- Right hand line. These two used to carry their " · " whatever came
+	     before, so an item with no genre (or with Genre switched off) read
+	     " · 480p". Same rule as the left line now: the prefix only when an
+	     earlier segment of this line rendered. ItemLastPlayedLabel, further
+	     down, closes the line the same way. -->
 	<variable name="ItemMPAALabel">
-		<value condition="!Skin.HasSetting(hide_mpaa) + !String.IsEmpty(ListItem.MPAA)"> · $INFO[ListItem.MPAA]</value>
+		<value condition="$EXP[infobar_mpaa] + $EXP[infobar_genre]"> · $INFO[ListItem.MPAA]</value>
+		<value condition="$EXP[infobar_mpaa]">$INFO[ListItem.MPAA]</value>
 		<value></value>
 	</variable>
 	<variable name="ItemResolutionLabelGated">
-		<value condition="!Skin.HasSetting(hide_resolution) + !String.IsEmpty(ListItem.VideoResolution)"> · $VAR[ItemResolutionLabel]</value>
+		<value condition="$EXP[infobar_resolution] + [$EXP[infobar_genre] | $EXP[infobar_mpaa]]"> · $VAR[ItemResolutionLabel]</value>
+		<value condition="$EXP[infobar_resolution]">$VAR[ItemResolutionLabel]</value>
 		<value></value>
 	</variable>
 
@@ -326,9 +406,9 @@
 	</variable>
 	<variable name="VideoDimLabel">
 		<value condition="String.IsEqual(Skin.String(video_dim),0)">$LOCALIZE[31103]</value>
-		<value condition="String.IsEqual(Skin.String(video_dim),25)">25 %</value>
-		<value condition="String.IsEqual(Skin.String(video_dim),50)">50 %</value>
-		<value condition="String.IsEqual(Skin.String(video_dim),90)">90 %</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),25)">25%</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),50)">50%</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),90)">90%</value>
 		<value>$LOCALIZE[31139]</value>
 	</variable>
 
@@ -429,7 +509,7 @@
 	</variable>
 
 	<!-- Pre-baked conditional slide animations for the gallery / list panels.
-	     One animation per discrete clearance value (0, 10, ..., 250 px).
+	     One animation per discrete clearance value (0, 10, ..., 140 px).
 	     Whichever value the Skin.String currently equals, that animation
 	     activates and translates the panel by that many pixels. Bypasses
 	     a build-specific bug where $INFO substitution doesn't evaluate live
@@ -454,24 +534,24 @@
 		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),120)" end="0,120" reversible="true">Conditional</animation>
 		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),130)" end="0,130" reversible="true">Conditional</animation>
 		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),140)" end="0,140" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),150)" end="0,150" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),160)" end="0,160" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),170)" end="0,170" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),180)" end="0,180" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),190)" end="0,190" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),200)" end="0,200" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),210)" end="0,210" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),220)" end="0,220" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),230)" end="0,230" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),240)" end="0,240" reversible="true">Conditional</animation>
-		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + String.IsEqual(Skin.String(infobar_clearance_top),250)" end="0,250" reversible="true">Conditional</animation>
+		<!-- CLEARANCE-CAP. Anything above 140 slides by 140 and no further.
+		     The groups this is applied to are 940 high (a fixed 140 bottom
+		     inset), so a slide of N puts their foot at 940 + N: on the
+		     screen edge at 140, and off it beyond. The old 150 to 250 steps
+		     pushed the last list rows, or the third row of the small
+		     gallery, out of sight. One line covers every larger value still
+		     stored from before. -->
+		<animation effect="slide" condition="Skin.HasSetting(infobar_top) + Integer.IsGreater(Skin.String(infobar_clearance_top),140)" end="0,140" reversible="true">Conditional</animation>
 	</include>
 
 
-	<!-- Title suffix: TV episode shows first air date, movies show year -->
+	<!-- Title suffix: TV episode shows first air date, movies show year.
+	     ListItem.Premiered is the only source: Kodi fills it with the first
+	     aired date for an episode. A second branch here used to try
+	     ListItem.FirstAired, which is not an infolabel in Kodi 21 (the name
+	     exists only as a JSON field), so it could never be true. -->
 	<variable name="ItemTitleSuffix">
 		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.Premiered)"> $LOCALIZE[31152] $INFO[ListItem.Premiered]</value>
-		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.FirstAired)"> $LOCALIZE[31152] $INFO[ListItem.FirstAired]</value>
 		<value condition="!String.IsEmpty(ListItem.Year)"> ($INFO[ListItem.Year])</value>
 		<value></value>
 	</variable>
@@ -486,11 +566,36 @@
 		<value>$INFO[VideoPlayer.Year, · ,]</value>
 	</variable>
 
-	<!-- Date label for info dialog: air date for episodes, year for everything else -->
+	<!-- Date label for info dialog: air date for episodes, year for everything
+	     else. Premiered only, for the reason given at ItemTitleSuffix. -->
 	<variable name="InfoDateLabel">
 		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.Premiered)">$LOCALIZE[31153] $INFO[ListItem.Premiered]</value>
-		<value condition="String.IsEqual(ListItem.DBType,episode) + !String.IsEmpty(ListItem.FirstAired)">$LOCALIZE[31153] $INFO[ListItem.FirstAired]</value>
 		<value>$INFO[ListItem.Year]</value>
+	</variable>
+
+	<!-- Caption for the info dialog's button 8. Kodi plays a film or an
+	     episode from it, but for a show, a season or a film set the same
+	     button opens the folder, so "Play" there promised something that
+	     did not happen. 1024 is Kodi's own "Browse". -->
+	<variable name="VideoInfoPlayLabel">
+		<value condition="String.IsEqual(ListItem.DBType,tvshow) | String.IsEqual(ListItem.DBType,season) | String.IsEqual(ListItem.DBType,set)">$LOCALIZE[1024]</value>
+		<value>$LOCALIZE[208]</value>
+	</variable>
+
+	<!-- INFO-COUNTS. On a show Kodi puts the NUMBER of seasons in
+	     ListItem.Season and the number of episodes in ListItem.Episode, and
+	     on a season the episode field is that season's count. The info
+	     dialog printed both as an episode marker, so a show read "S5E62".
+	     These spell them out as counts, singular for one (36904 to 36907 are
+	     Kodi's own "season", "seasons", "episode", "episodes"). Used only on
+	     the show and season forms of the dialog's subtitle line. -->
+	<variable name="InfoSeasonCountLabel">
+		<value condition="Integer.IsEqual(ListItem.Season,1)">$INFO[ListItem.Season] $LOCALIZE[36904]</value>
+		<value>$INFO[ListItem.Season,, $LOCALIZE[36905]]</value>
+	</variable>
+	<variable name="InfoEpisodeCountLabel">
+		<value condition="Integer.IsEqual(ListItem.Episode,1)">$INFO[ListItem.Episode] $LOCALIZE[36906]</value>
+		<value>$INFO[ListItem.Episode,, $LOCALIZE[36907]]</value>
 	</variable>
 
 	<!-- Notification placement (notification dialog 460x140; screen 1920x1080)
@@ -638,9 +743,13 @@
 		<value condition="String.IsEqual(Skin.String(notification_position),bc)">$LOCALIZE[31110]</value>
 		<value>$LOCALIZE[31109]</value>
 	</variable>
-	<!-- ItemSizeLabel removed; see PROJECT_NOTES "Focused-item file size". -->
+	<!-- ItemSizeLabel removed: nothing inside Kodi can stat a plugin path, and the sizes read for local files were unreliable. -->
+	<!-- Last segment of the info bar's right hand line (see
+	     INFOBAR-SEGMENTS). 31159 carries the " · " inside the string, so
+	     the opening form uses 31530, the same word without it. -->
 	<variable name="ItemLastPlayedLabel">
-		<value condition="Skin.HasSetting(show_lastplayed) + !String.IsEmpty(ListItem.LastPlayed)"> $LOCALIZE[31159] $INFO[ListItem.LastPlayed]</value>
+		<value condition="Skin.HasSetting(show_lastplayed) + !String.IsEmpty(ListItem.LastPlayed) + [$EXP[infobar_genre] | $EXP[infobar_mpaa] | $EXP[infobar_resolution]]"> $LOCALIZE[31159] $INFO[ListItem.LastPlayed]</value>
+		<value condition="Skin.HasSetting(show_lastplayed) + !String.IsEmpty(ListItem.LastPlayed)">$LOCALIZE[31530] $INFO[ListItem.LastPlayed]</value>
 		<value></value>
 	</variable>
 	<!-- <summary>The focused item's age ("31 years old") for the info bar's
@@ -650,11 +759,12 @@
 	     itself and never this. The " · " prefix follows the same rule as
 	     ItemEndsAtLabel and ItemStarRatingLabel: dropped when nothing came
 	     before it, which is a TV show (no duration) with the star rating
-	     hidden or missing. The service already leaves the property empty
+	     hidden or missing, or any item with Duration, "Ends at" and the
+	     rating all switched off. The service already leaves the property empty
 	     when show_age is off; the condition here is belt and braces so a
 	     stale value can never show while the service is catching up.</remarks> -->
 	<variable name="ItemAgeLabel">
-		<value condition="Skin.HasSetting(show_age) + !String.IsEmpty(Window(home).Property(focused_age_label)) + String.IsEmpty(ListItem.Duration) + [Skin.HasSetting(hide_rating) | String.IsEmpty(ListItem.Rating)]">$INFO[Window(home).Property(focused_age_label)]</value>
+		<value condition="Skin.HasSetting(show_age) + !String.IsEmpty(Window(home).Property(focused_age_label)) + !$EXP[infobar_duration] + !$EXP[infobar_endsat] + !$EXP[infobar_rating]">$INFO[Window(home).Property(focused_age_label)]</value>
 		<value condition="Skin.HasSetting(show_age) + !String.IsEmpty(Window(home).Property(focused_age_label))"> · $INFO[Window(home).Property(focused_age_label)]</value>
 		<value></value>
 	</variable>
@@ -709,7 +819,6 @@
 		<value>$LOCALIZE[31169]</value>
 	</variable>
 
-	<!-- Solid color textures via diffuse -->
 	<!-- ===== Gallery view tile content =====
 	     Used by MyVideoNav's panel; called once per size variant from inside
 	     conditional <itemlayout>/<focusedlayout> blocks. Pass poster_w/h
@@ -732,6 +841,11 @@
 				<height>$PARAM[poster_h]</height>
 				<aspectratio>scale</aspectratio>
 				<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+				<!-- Hidden when there is no poster at all: the panel below is
+				     only 80 per cent opaque, so the fallback film icon used
+				     to show through it under the item's name. The fallback
+				     still covers a poster that is named but fails to load. -->
+				<visible>!String.IsEmpty(ListItem.Art(poster))</visible>
 			</control>
 			<!-- Items without poster art (add-on / plugin menu entries) get a
 			     name label so the tile isn't a blank square. Library items with
@@ -934,18 +1048,30 @@
 				<include content="FolderSlideshow"><param name="ms" value="300000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),300)"/></include>
 
 				<!-- Slideshow caption (Title (Year)); one label per position choice,
-				     since coordinates can't take $VAR (see BgCaption in Includes) -->
+				     since coordinates can't take $VAR (see BgCaption in Includes).
+				     Where each one lands on Home, caption box 40 tall, text
+				     about 32 (see BG-CAPTION-SHIFT):
+				     Top Left: y 40 to 80, text from x 180 beside the logo (x 40 to
+				     160), from x 60 with the logo hidden.
+				     Top Right: y 40 to 80, text ending x 1620, left of the clock
+				     (its text starts at x 1690 or later), ending x 1860 with
+				     the clock hidden.
+				     Bottom rows: y 920 to 960, above the corner bar (y 970 to
+				     1040) and the version line (y 1000 to 1040) whenever either
+				     is down there, else y 980 to 1020. Bottom Left goes to y 870
+				     to 910 with the bar at bottom left, because the version
+				     line has itself moved up to y 920 to 960 by then. -->
 				<control type="group">
 					<visible>[$PARAM[captions]] + !$EXP[bg_video_showing]</visible>
 					<left>0</left>
 					<top>0</top>
 					<width>1920</width>
 					<height>1080</height>
-					<include content="BgCaption"><param name="pos" value="topleft"/><param name="top" value="40"/><param name="align" value="left"/></include>
-					<include content="BgCaption"><param name="pos" value="topright"/><param name="top" value="40"/><param name="align" value="right"/></include>
-					<include content="BgCaption"><param name="pos" value="bottomleft"/><param name="top" value="980"/><param name="align" value="left"/></include>
-					<include content="BgCaption"><param name="pos" value="bottomright"/><param name="top" value="980"/><param name="align" value="right"/></include>
-					<include content="BgCaption"><param name="pos" value="bottomcenter"/><param name="top" value="980"/><param name="align" value="center"/></include>
+					<include content="BgCaption"><param name="pos" value="topleft"/><param name="top" value="40"/><param name="align" value="left"/><param name="shift1" value="!Skin.HasSetting(hide_logo)"/><param name="by1" value="120,0"/></include>
+					<include content="BgCaption"><param name="pos" value="topright"/><param name="top" value="40"/><param name="align" value="right"/><param name="shift1" value="!Skin.HasSetting(hide_datetime)"/><param name="by1" value="-240,0"/></include>
+					<include content="BgCaption"><param name="pos" value="bottomleft"/><param name="top" value="980"/><param name="align" value="left"/><param name="shift1" value="$EXP[corner_bar_bottom_left]"/><param name="by1" value="0,-110"/><param name="shift2" value="!$EXP[corner_bar_bottom_left] + [!Skin.HasSetting(hide_version) | !$EXP[corner_bar_top]]"/><param name="by2" value="0,-60"/></include>
+					<include content="BgCaption"><param name="pos" value="bottomright"/><param name="top" value="980"/><param name="align" value="right"/><param name="shift1" value="!$EXP[corner_bar_top]"/><param name="by1" value="0,-60"/></include>
+					<include content="BgCaption"><param name="pos" value="bottomcenter"/><param name="top" value="980"/><param name="align" value="center"/><param name="shift1" value="!$EXP[corner_bar_top]"/><param name="by1" value="0,-60"/></include>
 				</control>
 
 				<!-- Dim overlay over whichever background is showing -->
@@ -1191,6 +1317,17 @@
 		<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 	</include>
 
+	<!-- <summary>Description for the browse side panel: the first of plot,
+	     add-on description, add-on summary and comment that the focused
+	     item has. Add-on rows carry no plot, which left the panel blank in
+	     the add-on browser.</summary> -->
+	<variable name="BrowseDescription">
+		<value condition="!String.IsEmpty(ListItem.Plot)">$INFO[ListItem.Plot]</value>
+		<value condition="!String.IsEmpty(ListItem.AddonDescription)">$INFO[ListItem.AddonDescription]</value>
+		<value condition="!String.IsEmpty(ListItem.AddonSummary)">$INFO[ListItem.AddonSummary]</value>
+		<value>$INFO[ListItem.Comment]</value>
+	</variable>
+
 	<!-- Generic browse window content area (header + list + footer) -->
 	<include name="MediaBrowseContent">
 		<param name="title" />
@@ -1217,7 +1354,8 @@
 				<left>$PARAM[list_left]</left>
 				<top>120</top>
 				<width>$PARAM[list_width]</width>
-				<height>880</height>
+				<!-- fifteen 60 px rows: at 880 a part row showed at the foot -->
+				<height>900</height>
 				<onleft>$PARAM[nav_left]</onleft>
 				<onright>$PARAM[nav_right]</onright>
 				<pagecontrol>60</pagecontrol>
@@ -1305,7 +1443,8 @@
 					<left>0</left>
 					<top>0</top>
 					<width>660</width>
-					<height>880</height>
+					<!-- 900 to end level with the list and its scrollbar -->
+					<height>900</height>
 					<texture colordiffuse="bg_panel">white.png</texture>
 				</control>
 
@@ -1333,10 +1472,11 @@
 					<left>20</left>
 					<top>500</top>
 					<width>620</width>
-					<height>360</height>
+					<!-- fourteen 27 px lines of font_small, so no line is cut -->
+					<height>378</height>
 					<font>font_small</font>
 					<textcolor>text_dim</textcolor>
-					<label>$INFO[ListItem.Plot]</label>
+					<label>$VAR[BrowseDescription]</label>
 				</control>
 
 			</control>
@@ -1356,7 +1496,7 @@
 				<left>1160</left>
 				<top>120</top>
 				<width>20</width>
-				<height>880</height>
+				<height>900</height>
 				<orientation>vertical</orientation>
 				<showonepage>false</showonepage>
 				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
@@ -1392,7 +1532,11 @@
 				<label2>$INFO[Window(home).Property(Lists.$PARAM[n].Sub)]</label2>
 				<!-- $NUMBER[]: a bare number here is a string id (1 renders "Pictures"), same trap as <label>. -->
 				<property name="idx">$NUMBER[$PARAM[n]]</property>
-				<onclick>SetFocus(51)</onclick>
+				<!-- Only when the right column holds something. SetFocus first
+				     takes focus away from this row and an empty list cannot
+				     accept it, so clicking an empty list left the window with
+				     no focus and the next key press was swallowed. -->
+				<onclick condition="Integer.IsGreater(Container(51).NumItems,0)">SetFocus(51)</onclick>
 				<visible>!String.IsEmpty(Window(home).Property(Lists.$PARAM[n].Name))</visible>
 			</item>
 		</definition>
@@ -1420,16 +1564,24 @@
 	     A favourite tile hands its click to the service, which runs the
 	     favourite's stored action by name.</summary>
 	     <param name="n">1-based slot number.</param>
-	     <param name="id">Button id, one of the menu's fixed ids.</param> -->
+	     <param name="id">Button id, one of the menu's fixed ids.</param>
+	     <param name="width">Button width. Home.xml instantiates each slot at
+	     three widths because a width cannot follow a condition.</param>
+	     <param name="font">Label font, smaller on the narrowest width.</param>
+	     <param name="when">Condition picking this width, ANDed with the slot
+	     being in use, so only one of a slot's buttons ever shows.</param> -->
 	<include name="HomeTile">
 		<param name="n" />
 		<param name="id" />
+		<param name="width" default="220" />
+		<param name="font" default="font_med" />
+		<param name="when" default="true" />
 		<definition>
 			<control type="button" id="$PARAM[id]">
-				<visible>!String.IsEmpty(Window(home).Property(Tile.$PARAM[n].Kind))</visible>
-				<width>220</width>
+				<visible>!String.IsEmpty(Window(home).Property(Tile.$PARAM[n].Kind)) + [$PARAM[when]]</visible>
+				<width>$PARAM[width]</width>
 				<height>120</height>
-				<font>font_med</font>
+				<font>$PARAM[font]</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<focusedcolor>white</focusedcolor>
@@ -1936,7 +2088,7 @@
 	     positioned button paired with a separate underline image marking the
 	     active filter. Deliberately NOT a button-in-a-group inside a
 	     grouplist, because that nesting breaks focus traversal (same lesson as the
-	     MusicOSD transport row, see PROJECT_NOTES), which left every chip
+	     MusicOSD transport row), which left every chip
 	     after "All" unreachable. Explicit onleft/onright chains wrap around
 	     the row; Kodi falls through hidden chips (empty categories are
 	     hidden via the visible param) in the same direction, so the chain
@@ -2007,6 +2159,32 @@
 	     a centred group's top) conditional, and a fixed tall card would sit
 	     visibly off-centre with a block of empty space whenever the playing
 	     item has no cast (live TV, music videos, plain files). -->
+	<!-- FSINFO-SEGMENTS. The card's metadata row is genre, runtime, rating,
+	     certificate. Each of the last three takes its " · " only when
+	     something earlier in the row rendered: a plain file has no genre and
+	     the row used to open with a stray separator. The runtime is tested
+	     through Player.Duration, which is the value VideoPlayer.Duration
+	     shows. -->
+	<variable name="FsInfoDurationLabel">
+		<value condition="!String.IsEmpty(VideoPlayer.Genre)">$INFO[VideoPlayer.Duration, · ,]</value>
+		<value>$INFO[VideoPlayer.Duration]</value>
+	</variable>
+	<variable name="FsInfoRatingLabel">
+		<value condition="!String.IsEmpty(VideoPlayer.Genre) | !String.IsEmpty(Player.Duration)">$INFO[VideoPlayer.Rating, · ★ ,]</value>
+		<value>$INFO[VideoPlayer.Rating,★ ,]</value>
+	</variable>
+	<variable name="FsInfoMpaaLabel">
+		<value condition="!String.IsEmpty(VideoPlayer.Genre) | !String.IsEmpty(Player.Duration) | !String.IsEmpty(VideoPlayer.Rating)">$INFO[VideoPlayer.MPAA, · ,]</value>
+		<value>$INFO[VideoPlayer.MPAA]</value>
+	</variable>
+	<!-- Foot of the card: position of total and the percentage. A stream
+	     with no known length (live, some add-ons) has an empty duration and
+	     a progress of 0, which read "12:34 / " and "0%"; it now shows the
+	     elapsed time alone. -->
+	<variable name="FsInfoProgressLabel">
+		<value condition="!String.IsEmpty(Player.Duration)">$INFO[Player.Time(hh:mm:ss)] / $INFO[Player.Duration(hh:mm:ss)]  ·  $INFO[Player.Progress]%</value>
+		<value>$INFO[Player.Time(hh:mm:ss)]</value>
+	</variable>
 	<include name="FsInfoCardBody">
 		<definition>
 			<!-- Poster art (left column, 30 padding all round) -->
@@ -2016,7 +2194,7 @@
 				<width>320</width>
 				<height>480</height>
 				<aspectratio>keep</aspectratio>
-				<texture fallback="DefaultVideo.png" background="true">$INFO[Player.Art(poster)]</texture>
+				<texture fallback="DefaultVideo.png" background="true">$VAR[PlayerPosterArt]</texture>
 			</control>
 
 			<!-- Right column: title + metadata + plot -->
@@ -2044,7 +2222,10 @@
 				<font>font_big</font>
 				<textcolor>text</textcolor>
 				<scroll>true</scroll>
-				<label>$INFO[VideoPlayer.Title]$INFO[VideoPlayer.Year, ( ,)]</label>
+				<!-- The prefix is " (" with no space after the bracket: text
+				     between the commas is kept verbatim, and " ( " read
+				     "Title ( 2003)". -->
+				<label>$INFO[VideoPlayer.Title]$INFO[VideoPlayer.Year, (,)]</label>
 				<visible>String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
 			</control>
 			<control type="label">
@@ -2067,7 +2248,7 @@
 				<height>30</height>
 				<font>font_reg</font>
 				<textcolor>text_dim</textcolor>
-				<label>$INFO[VideoPlayer.Genre]$INFO[VideoPlayer.Duration, · ,]$INFO[VideoPlayer.Rating, · ★ ,]$INFO[VideoPlayer.MPAA, · ,]</label>
+				<label>$INFO[VideoPlayer.Genre]$VAR[FsInfoDurationLabel]$VAR[FsInfoRatingLabel]$VAR[FsInfoMpaaLabel]</label>
 			</control>
 
 			<!-- Resolution + audio pill row -->
@@ -2138,7 +2319,7 @@
 				<height>30</height>
 				<font>font_reg</font>
 				<textcolor>$VAR[AccentColor]</textcolor>
-				<label>$INFO[Player.Time(hh:mm:ss)] / $INFO[Player.Duration(hh:mm:ss)]  ·  $INFO[Player.Progress]%</label>
+				<label>$VAR[FsInfoProgressLabel]</label>
 			</control>
 			<control type="label">
 				<right>30</right>
@@ -2149,7 +2330,9 @@
 				<align>right</align>
 				<textcolor>$VAR[AccentColor]</textcolor>
 				<label>$LOCALIZE[31098] $INFO[Player.FinishTime]</label>
-				<visible>Player.HasMedia + !Player.Paused</visible>
+				<!-- No duration, no end: Kodi reports the current time as the
+				     finish time of a stream it cannot measure. -->
+				<visible>Player.HasMedia + !Player.Paused + !String.IsEmpty(Player.Duration)</visible>
 			</control>
 		</definition>
 	</include>
@@ -2323,10 +2506,12 @@
 	     read when the window loads and cannot follow an infolabel; only the
 	     one matching the current content is ever visible.
 
-	     Clicking a genre navigates the library container to that genre node,
-	     which is how Kodi itself filters by genre, so the view, sort and info
-	     bar all carry on as they were. The "All Genres" button below the list
-	     goes back to the plain titles node.
+	     Clicking a genre hands the genre's name to service.py on
+	     Skin.String(genre_command), and the service takes the library
+	     container to that genre, keeping any Age or Search filter the screen
+	     already carries, so the view, sort and info bar all carry on as they
+	     were. The "All Genres" button below the list sends __all__ on the
+	     same channel to drop the genre and nothing else.
 
 	     id:      this list's control id.
 	     otherid: the sibling list, so Up out of the top of a hidden list
@@ -2355,10 +2540,6 @@
 				<onback>8004</onback>
 				<pagecontrol>9503</pagecontrol>
 				<scrolltime tween="cubic" easing="out">200</scrolltime>
-				<!-- No label is stored: service.py reads the genre back
-				     off Container.FolderPath, which is the only version of
-				     the truth that survives navigating away and back. -->
-				<onclick>Container.Update($ESCINFO[ListItem.FolderPath])</onclick>
 				<!-- Hand focus back to whichever view is up before the overlay
 				     disappears out from under it (the Close button in the side
 				     menu picks its target the same way). -->
@@ -2366,6 +2547,21 @@
 				<onclick condition="!Control.IsVisible(50)">SetFocus(51)</onclick>
 				<onclick>Skin.Reset(genre_menu_open)</onclick>
 				<onclick>Skin.Reset(filter_menu_open)</onclick>
+				<!-- GENRE-COMMAND. The pick goes to
+				     service.py:update_genre_command, not straight into a
+				     Container.Update. Loading the genre node from here threw
+				     away an Age or Search filter already in force; the
+				     service rebuilds the node with those rules kept. What is
+				     sent is the genre NAME as the library holds it, which is
+				     the row's label; the service works out movies or TV from
+				     the folder on screen. $ESCINFO wraps the name in quotes,
+				     because Kodi splits builtin arguments on commas and a
+				     bare name with one in it would arrive cut short. Last
+				     line on purpose: by the time the service reads it the
+				     picker is closed and focus is on the view. No label is
+				     stored here: the service still reads the genre in force
+				     back off Container.FolderPath. -->
+				<onclick>Skin.SetString(genre_command,$ESCINFO[ListItem.Label])</onclick>
 				<itemlayout height="70" width="660">
 					<control type="label">
 						<left>24</left>
@@ -2459,37 +2655,11 @@
 	</include>
 
 	<!-- ===== ABOUT-PAGE-BLOCK =====
-	     Pieces used only by the About page (custom window 1152). Kept here
-	     rather than inline so the accent tints follow the user's chosen
-	     accent colour the same way every other control does. -->
-
-	<!--
-	  <summary>Accent colour at 12% alpha, for the sweeping glow band.</summary>
-	-->
-	<variable name="AccentColorGlow">
-		<value condition="String.IsEqual(Skin.String(accent_color),red)">1FE53935</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),green)">1F43A047</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),orange)">1FFB8C00</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),purple)">1F8E24AA</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),teal)">1F00897B</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),pink)">1FEC407A</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),amber)">1FFFB300</value>
-		<value>1F1E88E5</value>
-	</variable>
-
-	<!--
-	  <summary>Accent colour at 50% alpha, for the hairline that sweeps with it.</summary>
-	-->
-	<variable name="AccentColorHair">
-		<value condition="String.IsEqual(Skin.String(accent_color),red)">80E53935</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),green)">8043A047</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),orange)">80FB8C00</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),purple)">808E24AA</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),teal)">8000897B</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),pink)">80EC407A</value>
-		<value condition="String.IsEqual(Skin.String(accent_color),amber)">80FFB300</value>
-		<value>801E88E5</value>
-	</variable>
+	     Pieces used only by the About page (custom window 1152). The page's
+	     glow band and hairline used to take their tints from two tables
+	     here (AccentColorGlow, AccentColorHair), one pre-mixed colour per
+	     preset; a custom accent had no entry and came out blue. The page now
+	     fades $VAR[AccentColor] itself, so there is no table to keep in step. -->
 
 	<!--
 	  <summary>
@@ -2623,13 +2793,18 @@
 				<itemgap>10</itemgap>
 				<orientation>horizontal</orientation>
 				<align>$PARAM[align]</align>
-				<!-- Kodi takes the first condition that holds, so the
-				     bar-at-the-top cases come first and the long-standing
-				     bottom-edge targets stay as the fallback. -->
-				<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9211)">9211</onup>
-				<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9213)">9213</onup>
+				<!-- Kodi takes the first condition that holds. The top-edge
+				     targets apply only while the bar is ABOVE the menu
+				     ($EXP[bar_above_menu]): then the weather line and a top
+				     Continue tab lie over it and the menu under it. In every
+				     other layout, a top bar under a top menu included, the
+				     menu is above and a bottom Continue tab below. See
+				     HOME-VERTICAL-NAV in Home.xml. -->
+				<onup condition="$EXP[bar_above_menu] + $EXP[weather_widget_shown]">9006</onup>
+				<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9211)">9211</onup>
+				<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9213)">9213</onup>
 				<onup>9000</onup>
-				<ondown condition="$EXP[corner_bar_top]">9000</ondown>
+				<ondown condition="$EXP[bar_above_menu]">9000</ondown>
 				<ondown condition="Control.IsVisible(9210)">9210</ondown>
 				<ondown condition="Control.IsVisible(9212)">9212</ondown>
 

@@ -4,7 +4,9 @@
   Video info dialog for movies, shows and episodes. Publishes the item's
   fanart to Home as infobackground while open; grouplist 9000 holds the
   action buttons and the cast strip is fed by service.py's InfoCast
-  properties.
+  properties. The subtitle line and button 8's caption each have a form
+  per item type, because Kodi reuses the season and episode fields as
+  counts on a show or a season and reuses the button to open a folder.
   </summary>
 -->
 <window>
@@ -39,14 +41,15 @@
 			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 		</control>
 
-		<!-- Poster left -->
+		<!-- Poster left. $VAR[ItemPosterArt] falls back to the show's poster:
+		     an episode has no poster art of its own, only its thumb. -->
 		<control type="image">
 			<left>80</left>
 			<top>80</top>
 			<width>500</width>
 			<height>750</height>
 			<aspectratio>scale</aspectratio>
-			<texture fallback="DefaultVideo.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+			<texture fallback="DefaultVideo.png" background="true">$VAR[ItemPosterArt]</texture>
 		</control>
 
 		<!-- Title and meta right. Stops 300px short of the edge so a long,
@@ -62,6 +65,13 @@
 			<scroll>true</scroll>
 		</control>
 
+		<!-- Subtitle line, one form per item type and only one ever up.
+		     Episode: show title and the S and E marker. On a show Kodi
+		     reuses the same two fields for the NUMBER of seasons and of
+		     episodes, and on a season the episode field is that season's
+		     count, so the single old label read "S5E62" for a five season
+		     show. Those two get their own forms that say what the numbers
+		     are (see INFO-COUNTS in Includes.xml). -->
 		<control type="label">
 			<left>620</left>
 			<top>150</top>
@@ -70,7 +80,27 @@
 			<font>font_reg</font>
 			<textcolor>$VAR[AccentColor]</textcolor>
 			<label>$INFO[ListItem.TVShowTitle]$INFO[ListItem.Season,  ·  S,]$INFO[ListItem.Episode,E,]</label>
-			<visible>!String.IsEmpty(ListItem.TVShowTitle)</visible>
+			<visible>!String.IsEmpty(ListItem.TVShowTitle) + !String.IsEqual(ListItem.DBType,tvshow) + !String.IsEqual(ListItem.DBType,season)</visible>
+		</control>
+		<control type="label">
+			<left>620</left>
+			<top>150</top>
+			<right>80</right>
+			<height>30</height>
+			<font>font_reg</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>$VAR[InfoSeasonCountLabel]  ·  $VAR[InfoEpisodeCountLabel]</label>
+			<visible>String.IsEqual(ListItem.DBType,tvshow) + !String.IsEmpty(ListItem.Season) + !String.IsEmpty(ListItem.Episode)</visible>
+		</control>
+		<control type="label">
+			<left>620</left>
+			<top>150</top>
+			<right>80</right>
+			<height>30</height>
+			<font>font_reg</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>$INFO[ListItem.TVShowTitle]  ·  $VAR[InfoEpisodeCountLabel]</label>
+			<visible>String.IsEqual(ListItem.DBType,season) + !String.IsEmpty(ListItem.TVShowTitle) + !String.IsEmpty(ListItem.Episode)</visible>
 		</control>
 
 		<control type="label">
@@ -200,7 +230,8 @@
 			<onup>9000</onup>
 			<ondown>9000</ondown>
 
-			<!-- 8 = Play -->
+			<!-- 8 = Play, or Browse on a show, a season or a set, where Kodi
+			     opens the folder from this same button. -->
 			<control type="button" id="8">
 				<width>200</width>
 				<height>70</height>
@@ -211,7 +242,7 @@
 				<align>center</align>
 				<aligny>center</aligny>
 				<textoffsetx>0</textoffsetx>
-				<label>$LOCALIZE[208]</label>
+				<label>$VAR[VideoInfoPlayLabel]</label>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			</control>

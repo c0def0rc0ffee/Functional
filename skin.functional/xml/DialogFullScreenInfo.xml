@@ -10,7 +10,6 @@
 	<defaultcontrol always="true">999</defaultcontrol>
 	<animation effect="fade" time="200">WindowOpen</animation>
 	<animation effect="fade" time="200">WindowClose</animation>
-	<depth>DepthOSD+</depth>
 	<controls>
 
 		<!-- Click-trap behind the card so the video keeps receiving seek/skip keys

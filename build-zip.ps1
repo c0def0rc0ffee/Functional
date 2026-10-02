@@ -1,3 +1,6 @@
+# SUPERSEDED. Kept for reference only: nobody runs it and it is not a Windows
+# build target. The build is:  python3 build_zip.py
+#
 # <summary>
 # Builds both versioned zips for skin.functional:
 #   Skin Dist\skin.functional-<version>.zip      : Kodi-installable skin

@@ -15,7 +15,10 @@ the classes of mistake that have shipped before (an include parameter whose
 default was written as value=, a navigation target that no longer exists once
 includes are expanded, a string id missing from strings.po, a skin setting
 whose name drifted between the XML and service.py, a helper call that no
-longer resolves after a structural delete) and nothing subtler.
+longer resolves after a structural delete, including a helper reached
+through an instance or read at module level) and nothing subtler. A short
+self test runs first on every run and fails the build if a planted defect is
+no longer caught.
 
 Exit status is the number of findings capped at 1, so a shell can gate on it.
 </remarks>
@@ -23,9 +26,12 @@ Exit status is the number of findings capped at 1, so a shell can gate on it.
 import ast
 import builtins
 import collections
+import fnmatch
 import glob
 import os
 import re
+import subprocess
+import symtable
 import sys
 import xml.etree.ElementTree as ET
 
@@ -40,7 +46,7 @@ MEDIA = os.path.join(SKIN, "media")
 
 # ---------------------------------------------------------------- allowances
 # (file, id): DialogSeekBar carries Kodi's progress control id twice on purpose,
-# one per position of the bar. Documented in PROJECT_NOTES.
+# one per position of the bar.
 ALLOW_DUPLICATE_IDS = {("DialogSeekBar.xml", "23")}
 # Home properties another add-on writes; the skin only reads them.
 ALLOW_PROPERTY_PREFIXES = ("JellyStat.",)
@@ -51,6 +57,21 @@ ALLOW_TEXTURES = {"-"}
 ALLOW_NO_DISABLEDCOLOR = set()
 # Skin settings the XML reads that only Kodi itself or the user ever sets.
 ALLOW_UNSET_SETTINGS = set()
+# Methods the helper class inherits from Kodi's own monitor class. That base
+# class is not in this tree, so its members cannot be read from the source;
+# name each one the service calls here.
+ALLOW_INHERITED = {"waitForAbort", "abortRequested"}
+# Names every module has without binding them itself.
+MODULE_NAMES = {"__file__", "__name__", "__doc__", "__package__", "__spec__",
+                "__loader__", "__builtins__", "__path__", "__cached__"}
+# Names the compiler supplies inside a class body.
+CLASS_SCOPE_NAMES = {"__class__", "__classdict__", "__qualname__", "__module__",
+                     "__firstlineno__", "__static_attributes__", "__annotate__",
+                     "__conditional_annotations__"}
+# File types the house rules leave unread. Everything else that ships must
+# be UTF-8 text.
+BINARY_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".ttf", ".otf",
+               ".zip", ".xbt")
 
 NAV_TAGS = ("onup", "ondown", "onleft", "onright", "onback", "oninfo")
 FOCUSABLE = {"button", "radiobutton", "togglebutton", "spincontrol", "spincontrolex",
@@ -448,119 +469,440 @@ def check_visual(trees):
     return findings
 
 
-def check_service():
-    """<summary>service.py resolves: every helper it calls exists, every function carries a summary.</summary>
-    <returns>Findings: a bare name or self.method call that resolves to nothing,
-    a self attribute read that is never assigned, a bare except:, a function
-    without a summary tag, a mutable default argument.</returns>
-    <remarks>This is the check that would have caught the dead service of
-    September 2026, where a blanket except hid a removed helper and
-    py_compile still passed.</remarks>"""
-    findings = []
-    source = _read(SERVICE)
-    tree = ast.parse(source)
-    module_names = set(dir(builtins))
-    for node in tree.body:
-        if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
-            module_names.add(node.name)
-        elif isinstance(node, ast.Assign):
-            for target in node.targets:
-                for n in ast.walk(target):
-                    if isinstance(n, ast.Name):
-                        module_names.add(n.id)
-        elif isinstance(node, (ast.Import, ast.ImportFrom)):
-            for alias in node.names:
-                module_names.add((alias.asname or alias.name).split(".")[0])
-    methods, class_attrs, funcs = set(), set(), []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.ClassDef):
-            for item in node.body:
-                if isinstance(item, ast.FunctionDef):
-                    methods.add(item.name)
-                elif isinstance(item, ast.Assign):
-                    for target in item.targets:
-                        if isinstance(target, ast.Name):
-                            class_attrs.add(target.id)
-        if isinstance(node, ast.FunctionDef):
-            funcs.append(node)
-    assigned = {n.attr for n in ast.walk(tree)
-                if isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name)
-                and n.value.id == "self" and isinstance(n.ctx, ast.Store)}
-    known_self = methods | class_attrs | assigned
+def _class_members(classes, name, seen=()):
+    """<summary>Every attribute an instance of one module class can answer for.</summary>
+    <param name="classes">dict of class name to its ast.ClassDef, module level classes only.</param>
+    <param name="name">Class to describe.</param>
+    <param name="seen">Classes already visited, so a base class cycle cannot recurse for ever.</param>
+    <returns>Set of names: methods, class level assignments, every self attribute
+    the class's own methods store, the same for each base class defined in this
+    module, and ALLOW_INHERITED when a base class lives outside it.</returns>
+    <remarks>A base such as xbmc.Monitor is not in this tree, so its members
+    cannot be read from source; the allowance names the few that are used.</remarks>"""
+    node = classes[name]
+    found = set()
+    for item in node.body:
+        if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            found.add(item.name)
+        elif isinstance(item, ast.Assign):
+            for target in item.targets:
+                if isinstance(target, ast.Name):
+                    found.add(target.id)
+        elif isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
+            found.add(item.target.id)
+    for n in ast.walk(node):
+        if (isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name)
+                and n.value.id == "self" and isinstance(n.ctx, ast.Store)):
+            found.add(n.attr)
+    for base in node.bases:
+        if isinstance(base, ast.Name) and base.id in classes and base.id not in seen:
+            found |= _class_members(classes, base.id, seen + (name,))
+        elif not (isinstance(base, ast.Name) and base.id == "object"):
+            found |= ALLOW_INHERITED
+    return found
 
-    def local_names(func):
-        found = {a.arg for a in func.args.args + func.args.kwonlyargs}
-        for n in ast.walk(func):
-            if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store):
-                found.add(n.id)
-            elif isinstance(n, (ast.FunctionDef, ast.ClassDef)):
-                found.add(n.name)
-            elif isinstance(n, ast.arg):
-                found.add(n.arg)
-            elif isinstance(n, (ast.Import, ast.ImportFrom)):
-                for alias in n.names:
-                    found.add((alias.asname or alias.name).split(".")[0])
-        return found
+
+def _unresolved_names(source, tree):
+    """<summary>Every name the module reads that nothing binds.</summary>
+    <param name="source">Module source text.</param>
+    <param name="tree">The same source parsed by ast, used only for line numbers.</param>
+    <returns>Sorted list of (line, scope name, name).</returns>
+    <remarks>Uses the compiler's own symbol table rather than a hand kept walk,
+    so comprehension variables, closures, except and with targets, lambdas and
+    global declarations are scoped exactly as Python scopes them. A name read
+    in a scope is resolved when that scope binds it, an enclosing function
+    does, the module binds it anywhere, or it is a builtin. That covers a
+    call, a thread target, a table entry and a plain read alike, at module
+    level as well as inside functions. It does not prove the order things are
+    defined in, only that a definition exists.</remarks>"""
+    top = symtable.symtable(source, "service.py", "exec")
+    known = set(dir(builtins)) | MODULE_NAMES
+
+    def bound_here(sym):
+        """<summary>Whether a scope binds a name itself: by assignment, import,
+        parameter, or a def or class statement.</summary>"""
+        return sym.is_assigned() or sym.is_imported() or sym.is_parameter() or sym.is_namespace()
+
+    tables, stack = [], [top]
+    while stack:
+        table = stack.pop()
+        tables.append(table)
+        stack.extend(table.get_children())
+    for sym in top.get_symbols():
+        if bound_here(sym):
+            known.add(sym.get_name())
+    for table in tables:
+        for sym in table.get_symbols():
+            # "global x" inside a function, then "x = ...", binds a module name
+            # that the module body itself never mentions.
+            if sym.is_declared_global() and sym.is_assigned():
+                known.add(sym.get_name())
+    # Where each name is read, for the line shown in a finding: reads at
+    # module level apart from the rest, and the last line of every scope, so
+    # a finding points inside the scope it belongs to.
+    loads = collections.defaultdict(list)
+    top_loads = collections.defaultdict(list)
+    ends = {}
+    scoped = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load):
+            loads[n.id].append(n.lineno)
+        elif isinstance(n, scoped):
+            ends[(n.lineno, getattr(n, "name", "lambda"))] = n.end_lineno
+    stack = list(ast.iter_child_nodes(tree))
+    while stack:
+        n = stack.pop()
+        if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load):
+            top_loads[n.id].append(n.lineno)
+        if not isinstance(n, scoped):
+            stack.extend(ast.iter_child_nodes(n))
+    found = set()
+    for table in tables:
+        for sym in table.get_symbols():
+            name = sym.get_name()
+            if (not sym.is_referenced() or name in known or name in CLASS_SCOPE_NAMES
+                    or name.startswith(".")):
+                continue
+            if table is not top and (bound_here(sym) or sym.is_free()):
+                continue
+            start = 0 if table is top else table.get_lineno()
+            end = ends.get((start, table.get_name()), None)
+            if table is top:
+                lines = sorted(top_loads.get(name, [])) or sorted(loads.get(name, [])) or [1]
+            else:
+                lines = sorted(l for l in loads.get(name, [])
+                               if l >= start and (end is None or l <= end)) or [start or 1]
+            scope = "module level" if table is top else table.get_name() + "()"
+            found.add((lines[0], scope, name))
+    return sorted(found)
+
+
+def _service_findings(source):
+    """<summary>Every finding for one service module's source text.</summary>
+    <param name="source">The module source.</param>
+    <returns>Findings: a name that resolves to nothing (a call, a thread target,
+    a table entry or a plain read, inside a function or at module level), an
+    attribute of self, of an instance or of a class that the class never
+    defines, a bare except:, a function without a summary tag, a mutable
+    default argument.</returns>
+    <remarks>Split from check_service() so the self test can feed it planted
+    sources. Instances are followed where the source says what they are: a
+    name assigned straight from a call to a class defined in this module, in
+    the same function or at module level. That is how the service's run loop
+    reaches every update method (helper = TheClass(), then helper.method()
+    called outright or listed in a tuple of bound methods for a module level
+    runner to call), and those calls sit behind a blanket except Exception,
+    so a method removed by a range delete would otherwise fail on every tick
+    in silence. Every read of an attribute counts, not only a call. A helper
+    handed in as a parameter cannot be typed from the source and is not
+    checked; neither is getattr() with a computed name.</remarks>"""
+    findings = []
+    tree = ast.parse(source)
+    for line, scope, name in _unresolved_names(source, tree):
+        findings.append("service.py:{0} {1}: {2} resolves to nothing".format(line, scope, name))
+
+    classes = {n.name: n for n in tree.body if isinstance(n, ast.ClassDef)}
+    members = {name: _class_members(classes, name) for name in classes}
+    every_member = set().union(*members.values()) if members else set()
+    reported = set()
+
+    def missing(node, owner, what):
+        """<summary>Record one undefined attribute, once per owner and name.</summary>
+        <param name="node">The ast.Attribute that reads it.</param>
+        <param name="owner">Class the attribute was looked for on.</param>
+        <param name="what">The name written before the dot, for the message.</param>"""
+        key = (owner, node.attr)
+        if key not in reported:
+            reported.add(key)
+            findings.append("service.py:{0} {1}.{2} is never defined".format(node.lineno, what, node.attr))
+
+    def class_of(node):
+        """<summary>The module class a call expression constructs, or None.</summary>"""
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                and node.func.id in classes):
+            return node.func.id
+        return None
+
+    def own_nodes(scope):
+        """<summary>Every node that belongs to one scope and to no scope nested in it.</summary>
+        <remarks>The bodies of nested functions and classes are left out, so
+        an instance name never leaks between scopes. Lambdas are walked into:
+        they read the enclosing scope's names and have none of their own
+        worth tracking.</remarks>"""
+        stack = list(ast.iter_child_nodes(scope))
+        while stack:
+            n = stack.pop()
+            yield n
+            if not isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                stack.extend(ast.iter_child_nodes(n))
+
+    def instances(scope):
+        """<summary>Names a scope assigns straight from a module class's constructor.</summary>
+        <returns>dict of name to class name. A name the scope also assigns
+        from anything else is left out, since its type is then unknown.</returns>"""
+        found, rebound = {}, set()
+        for n in own_nodes(scope):
+            if isinstance(n, ast.Assign) and len(n.targets) == 1 and isinstance(n.targets[0], ast.Name):
+                cls = class_of(n.value)
+                if cls:
+                    found[n.targets[0].id] = cls
+                else:
+                    rebound.add(n.targets[0].id)
+        return {k: v for k, v in found.items() if k not in rebound}
+
+    funcs = [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+    module_instances = instances(tree)
+    method_owner = {}
+    for cname, cnode in classes.items():
+        for item in cnode.body:
+            if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                method_owner[item] = cname
+
+    for scope in [tree] + funcs:
+        local = instances(scope)
+        if scope is not tree:
+            stored = {n.id for n in ast.walk(scope)
+                      if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store)}
+            stored |= {a.arg for a in ast.walk(scope) if isinstance(a, ast.arg)}
+            for name, cls in module_instances.items():
+                if name not in stored:
+                    local.setdefault(name, cls)
+        owner = method_owner.get(scope)
+        for n in own_nodes(scope):
+            if not (isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name)):
+                continue
+            if isinstance(n.ctx, ast.Store):
+                continue
+            base = n.value.id
+            if base == "self" and scope is not tree:
+                allowed = members[owner] if owner else every_member
+                if n.attr not in allowed:
+                    missing(n, owner or "self", "self")
+            elif base in local:
+                if n.attr not in members[local[base]]:
+                    missing(n, local[base], base)
+            elif base in classes:
+                if n.attr not in members[base]:
+                    missing(n, base, base)
 
     for func in funcs:
-        local = local_names(func)
-        for n in ast.walk(func):
-            if isinstance(n, ast.Call) and isinstance(n.func, ast.Name):
-                if n.func.id not in module_names and n.func.id not in local:
-                    findings.append("service.py:{0} {1}(): call to {2}() resolves to nothing".format(
-                        n.lineno, func.name, n.func.id))
         docstring = ast.get_docstring(func)
         if not docstring or "<summary>" not in docstring:
             findings.append("service.py:{0} {1}(): no <summary> doc comment".format(func.lineno, func.name))
         for default in func.args.defaults + func.args.kw_defaults:
             if isinstance(default, (ast.List, ast.Dict, ast.Set)):
                 findings.append("service.py:{0} {1}(): mutable default argument".format(func.lineno, func.name))
-    seen = set()
     for node in ast.walk(tree):
-        if (isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name)
-                and node.value.id == "self" and node.attr not in known_self and node.attr not in seen):
-            seen.add(node.attr)
-            findings.append("service.py:{0} self.{1} is never defined".format(node.lineno, node.attr))
         if isinstance(node, ast.ExceptHandler) and node.type is None:
             findings.append("service.py:{0} bare except:".format(node.lineno))
     return findings
 
 
-def check_house_rules():
-    """<summary>No em or en dash and no AI attribution in anything that ships.</summary>
-    <returns>Findings with file and line.</returns>
-    <remarks>The file set is what build_zip.py packs: the skin folder plus
-    the tracked text files at the root. The attribution words are assembled
-    at run time so this file does not trip the publish scan itself.</remarks>"""
-    findings = []
-    files = [p for p in glob.glob(os.path.join(SKIN, "**", "*"), recursive=True)
-             if os.path.isfile(p) and p.endswith((".xml", ".py", ".po", ".txt", ".xsp"))]
-    files += glob.glob(os.path.join(REPO, "*.md")) + glob.glob(os.path.join(REPO, "*.py"))
-    files += glob.glob(os.path.join(HERE, "*.py"))
+def check_service():
+    """<summary>service.py resolves: every name it reads and every helper it calls exists, every function carries a summary.</summary>
+    <returns>The findings of _service_findings() for the skin's service.py.</returns>
+    <remarks>This is the check that would have caught the dead service of
+    September 2026, where a blanket except hid a removed helper and
+    py_compile still passed.</remarks>"""
+    return _service_findings(_read(SERVICE))
+
+
+def _ignore_basename_patterns():
+    """<summary>Filename patterns from the ignore files, for the walk used when git cannot list the tree.</summary>
+    <returns>List of fnmatch patterns tested against a bare filename: root
+    anchored plain names with the slash dropped, and unanchored patterns that
+    hold no slash. Directory rules and negations are left out.</returns>"""
+    patterns = []
+    for rel in (".gitignore", os.path.join(".git", "info", "exclude")):
+        path = os.path.join(REPO, rel)
+        if not os.path.isfile(path):
+            continue
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            for raw in handle:
+                line = raw.strip()
+                if not line or line.startswith(("#", "!")) or line.endswith("/"):
+                    continue
+                if line.startswith("/"):
+                    line = line[1:]
+                if "/" not in line:
+                    patterns.append(line)
+    return patterns
+
+
+def _shipped_files():
+    """<summary>Every file that ships: what git tracks plus anything new that git does not ignore.</summary>
+    <returns>Sorted list of paths relative to the repo root.</returns>
+    <remarks>The source zip and the publish stage are built from the working
+    tree and must equal git's list, so git's list is the file set, with new
+    files not yet added counted in so they are judged before they are
+    committed. The local only notes and tooling are ignored by git and so are
+    never read here, which is also why no local only filename has to be
+    written into this file. Without git (a source zip unpacked somewhere)
+    the tree is walked instead, dot folders, caches and the output folders
+    left out and the ignore file patterns applied by filename.</remarks>"""
+    try:
+        out = subprocess.run(["git", "-C", REPO, "ls-files", "-z", "--cached", "--others",
+                              "--exclude-standard"], capture_output=True, check=True).stdout
+        names = {p for p in out.decode("utf-8", "surrogateescape").split("\0") if p}
+        return sorted(p for p in names if os.path.isfile(os.path.join(REPO, p)))
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    patterns = _ignore_basename_patterns()
+    names = []
+    for root, dirs, files in os.walk(REPO):
+        dirs[:] = [d for d in dirs if not d.startswith(".") and d != "__pycache__"
+                   and d not in ("Skin Dist", "Skin Git")]
+        for fname in files:
+            if any(fnmatch.fnmatch(fname, p) for p in patterns):
+                continue
+            names.append(os.path.relpath(os.path.join(root, fname), REPO))
+    return sorted(names)
+
+
+def _house_patterns():
+    """<summary>The compiled patterns of the house rules, assembled at run time.</summary>
+    <returns>(literal dash characters, escaped dash regex, attribution regex).</returns>
+    <remarks>Nothing here is written out whole, so this file passes its own
+    check and the publish scan: the escaped forms are joined from halves and
+    the attribution words from fragments.</remarks>"""
+    amp, bs = "&", "\\"
+    escaped = [amp + "mdash;", amp + "ndash;", amp + "#" + "8212;", amp + "#" + "8211;",
+               amp + "#" + "x2014;", amp + "#" + "x2013;", bs + "u2014", bs + "u2013"]
+    dash_escaped = re.compile("|".join(re.escape(e) for e in escaped), re.IGNORECASE)
     attribution = re.compile("|".join(("cl" + "aude", "anthr" + "opic", "co-auth" + "ored-by",
                                        "generated " + "with")), re.IGNORECASE)
-    skip = ("PROJECT_NOTES.md", "Packaging.md", "GITHUB-RELEASE-GUIDE.md")
-    for path in sorted(set(files)):
-        base = os.path.basename(path)
-        if base in skip or base.startswith("CL" + "AUDE"):
+    return (chr(0x2014), chr(0x2013)), dash_escaped, attribution
+
+
+def _house_findings(rel, data):
+    """<summary>House rule findings for one file's bytes.</summary>
+    <param name="rel">Path shown in the findings.</param>
+    <param name="data">The file's raw bytes.</param>
+    <returns>Findings with file and line: an em or en dash, an escaped form
+    of one, an authorship trailer or tool attribution, and a file that is
+    not UTF-8 text at all.</returns>
+    <remarks>A file that will not decode is a finding, never a skip: until
+    02/10/2026 it was passed over in silence, and a text file saved in a
+    legacy code page was then invisible to this check and to every grep in
+    the publish scan. Known binary types are left out by extension before
+    this is called.</remarks>"""
+    findings = []
+    if b"\0" in data:
+        return ["{0}: NUL byte in a text file, so no content check can read it".format(rel)]
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        return ["{0}: not valid UTF-8 text (byte {1}), so no content check can read it".format(
+            rel, exc.start)]
+    dashes, dash_escaped, attribution = _house_patterns()
+    for number, line in enumerate(text.splitlines(), 1):
+        if any(ch in line for ch in dashes):
+            findings.append("{0}:{1}: em or en dash".format(rel, number))
+        if dash_escaped.search(line):
+            findings.append("{0}:{1}: escaped em or en dash".format(rel, number))
+        if attribution.search(line):
+            findings.append("{0}:{1}: authorship trailer or tool attribution".format(rel, number))
+    return findings
+
+
+def check_house_rules():
+    """<summary>No em or en dash, in any spelling, and no authorship trailer or tool attribution in anything that ships.</summary>
+    <returns>Findings with file and line.</returns>
+    <remarks>Every shipped text file is read whatever its type: scripts,
+    markdown at any depth, the dot files, the licence texts. Only the binary
+    types in BINARY_EXTS are left out.</remarks>"""
+    findings = []
+    for rel in _shipped_files():
+        if rel.lower().endswith(BINARY_EXTS):
             continue
-        try:
-            lines = _read(path).splitlines()
-        except UnicodeDecodeError:
-            continue
-        for number, line in enumerate(lines, 1):
-            if chr(0x2014) in line or chr(0x2013) in line:
-                findings.append("{0}:{1}: em or en dash".format(os.path.relpath(path, REPO), number))
-            if attribution.search(line):
-                findings.append("{0}:{1}: AI attribution".format(os.path.relpath(path, REPO), number))
+        with open(os.path.join(REPO, rel), "rb") as handle:
+            findings += _house_findings(rel.replace(os.sep, "/"), handle.read())
+    return findings
+
+
+_SELF_TEST_SERVICE = '''
+import threading
+TABLE = {"a": 1}
+def _worker():
+    """<summary>w</summary>"""
+class Helper(object):
+    """<summary>h</summary>"""
+    LIMIT = 3
+    def tick(self):
+        """<summary>t</summary>"""
+        self.count = self.LIMIT
+        return self.count
+def run():
+    """<summary>r</summary>"""
+    helper = Helper()
+    handlers = (helper.tick,)
+    try:
+        helper.tick()
+        for handler in handlers:
+            handler()
+    except Exception:
+        pass
+    threading.Thread(target=_worker).start()
+    return TABLE["a"] + Helper.LIMIT
+if __name__ == "__main__":
+    run()
+'''
+
+
+def check_self_test():
+    """<summary>Prove the service and house rule checks still catch what they exist to catch.</summary>
+    <returns>Findings: one per planted defect that was NOT reported, or a
+    clean sample that was.</returns>
+    <remarks>A check that quietly stopped seeing a class of mistake is worse
+    than no check, and both of these have done so before (helper calls made
+    through an instance, escaped dashes, files in a legacy code page). The
+    cases are tiny and run on every build. Each planted source differs from
+    the clean one by a single rename.</remarks>"""
+    findings = []
+    if _service_findings(_SELF_TEST_SERVICE):
+        findings.append("self test: the clean service sample was reported: {0}".format(
+            _service_findings(_SELF_TEST_SERVICE)[:2]))
+    planted = (
+        ("a method removed, still called through the instance", "helper.tick()", "helper.gone()"),
+        ("a handler removed, still listed in a tuple of bound methods",
+         "(helper.tick,)", "(helper.gone,)"),
+        ("the module level call target removed", "def run():", "def run_gone():"),
+        ("a thread target that no longer exists", "target=_worker", "target=_gone"),
+        ("a table that no longer exists", 'TABLE["a"]', 'GONE["a"]'),
+        ("a self attribute that is never defined", "return self.count", "return self.gone"),
+        ("a class attribute that is never defined", "Helper.LIMIT\n", "Helper.GONE\n"),
+    )
+    for label, old, new in planted:
+        source = _SELF_TEST_SERVICE.replace(old, new)
+        if source == _SELF_TEST_SERVICE or not _service_findings(source):
+            findings.append("self test: service check missed {0}".format(label))
+    amp, bs = "&", "\\"
+    house = (
+        ("an em dash", ("a " + chr(0x2014) + " b").encode("utf-8")),
+        ("an en dash", ("a " + chr(0x2013) + " b").encode("utf-8")),
+        ("a named dash entity", ("a " + amp + "mdash; b").encode("utf-8")),
+        ("a decimal dash entity", ("a " + amp + "#" + "8211; b").encode("utf-8")),
+        ("a hex dash entity", ("a " + amp + "#" + "x2014; b").encode("utf-8")),
+        ("a backslash escaped dash", ("a " + bs + "u2013 b").encode("utf-8")),
+        ("an authorship trailer", ("Co-Auth" + "ored-By: someone").encode("utf-8")),
+        ("a legacy code page file", b"plain text \x97 more"),
+        ("a NUL byte", b"plain text \x00 more"),
+    )
+    for label, data in house:
+        if not _house_findings("self-test", data):
+            findings.append("self test: house rules missed {0}".format(label))
+    if _house_findings("self-test", "plain text, nothing to see here\n".encode("utf-8")):
+        findings.append("self test: house rules reported a clean line")
     return findings
 
 
 def main():
     """<summary>Run every check, print the findings, exit 1 if there were any.</summary>
-    <returns>Process exit status: 0 clean, 1 findings.</returns>"""
+    <returns>Process exit status: 0 clean, 1 findings.</returns>
+    <remarks>The self test runs first and on every run, so a gate that has
+    lost its teeth fails the build before its verdict is trusted.</remarks>"""
     trees, findings = _trees()
-    results = [("well formed", findings)]
+    results = [("self test", check_self_test()), ("well formed", findings)]
     if not findings:
         results += [("includes", check_includes(trees)),
                     ("strings", check_strings()),

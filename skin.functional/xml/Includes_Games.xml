@@ -292,7 +292,8 @@
 			<left>95</left>
 			<top>810</top>
 			<width>1740</width>
-			<height>130</height>
+			<!-- five 27 px lines of font_small -->
+			<height>135</height>
 			<font>font_small</font>
 			<textcolor>text_dim</textcolor>
 		</control>
@@ -343,7 +344,8 @@
 			<left>80</left>
 			<top>225</top>
 			<width>1430</width>
-			<height>640</height>
+			<!-- six 100 px rows -->
+			<height>600</height>
 			<orientation>vertical</orientation>
 			<onright>9001</onright>
 			<onup>3</onup>
@@ -427,7 +429,7 @@
 			<left>1516</left>
 			<top>225</top>
 			<width>12</width>
-			<height>640</height>
+			<height>600</height>
 			<orientation>vertical</orientation>
 			<showonepage>false</showonepage>
 			<onleft>3</onleft>

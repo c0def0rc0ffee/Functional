@@ -53,9 +53,20 @@
 		</control>
 
 		<!-- Buffering indicator: the only mid-playback rebuffer feedback in
-		     Kodi. Without it a stalling stream is just frozen video. -->
+		     Kodi. Without it a stalling stream is just frozen video.
+
+		     It used to need a cache level above 0, which hid it at the very
+		     moment a stall begins (the buffer is empty: that is the stall)
+		     and for the whole of any stall under full file buffering, where
+		     Player.CacheLevel stays at 0 because there is no fixed buffer to
+		     be a percentage of. It now also shows at level 0 once playback
+		     has got going. The Player.Time test is what still keeps it away
+		     from the ordinary spin up at the start of a file; Integer
+		     comparisons read a clock value as seconds. With no level to
+		     report the figure and the bar stand down and the word is left on
+		     its own. -->
 		<control type="group" id="1">
-			<visible>Player.Caching + Integer.IsGreater(Player.CacheLevel,0)</visible>
+			<visible>Player.Caching + [Integer.IsGreater(Player.CacheLevel,0) | Integer.IsGreater(Player.Time,0)]</visible>
 			<animation effect="fade" delay="300" time="200">Visible</animation>
 			<animation effect="fade" delay="200" time="150">Hidden</animation>
 			<centerleft>50%</centerleft>
@@ -85,8 +96,21 @@
 				<align>center</align>
 				<textcolor>text</textcolor>
 				<label>$LOCALIZE[31327] $INFO[Player.CacheLevel]%</label>
+				<visible>Integer.IsGreater(Player.CacheLevel,0)</visible>
+			</control>
+			<control type="label">
+				<left>0</left>
+				<top>10</top>
+				<width>360</width>
+				<height>40</height>
+				<font>font_reg</font>
+				<align>center</align>
+				<textcolor>text</textcolor>
+				<label>$LOCALIZE[31327]</label>
+				<visible>!Integer.IsGreater(Player.CacheLevel,0)</visible>
 			</control>
 			<control type="progress">
+				<visible>Integer.IsGreater(Player.CacheLevel,0)</visible>
 				<left>40</left>
 				<top>70</top>
 				<width>280</width>

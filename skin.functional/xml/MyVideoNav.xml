@@ -4,6 +4,9 @@
   Video library window: panel 51 (the gallery view) and list 50. The sort
   tracker is seeded on load so the Sort dropdown always shows a selection,
   and the genre filter and default sort are published by service.py.
+  A genre pick is not loaded from here: the picker hands the choice to
+  service.py on Skin.String(genre_command), so an Age or Search filter
+  already in force is kept.
   </summary>
 -->
 <window>
@@ -17,6 +20,11 @@
 	<!-- Start with the filter sub-menu collapsed (also tidies up after the
 	     Local Only disable, which reloads this window via ReplaceWindow). -->
 	<onload>Skin.Reset(filter_menu_open)</onload>
+	<!-- The View and Sort sub-lists are transient in the same way. They
+	     used to stay open between visits, and two sections left open is
+	     what pushes the side menu past its own height. -->
+	<onload>Skin.Reset(view_menu_open)</onload>
+	<onload>Skin.Reset(sort_menu_open)</onload>
 	<!-- The genre picker is an overlay, never a saved state. The Genre
 	     LABEL is no longer stored at all: service.py derives it from
 	     Container.FolderPath and publishes Window(home).Property(genre_active),
@@ -548,7 +556,7 @@
 					<height>30</height>
 					<font>font_reg</font>
 					<textcolor>text_dim</textcolor>
-					<label>$INFO[ListItem.Duration]$VAR[ItemEndsAtLabel]$VAR[ItemStarRatingLabel]</label>
+					<label>$VAR[ItemDurationLabel]$VAR[ItemEndsAtLabel]$VAR[ItemStarRatingLabel]</label>
 				</control>
 				<control type="label">
 					<width min="0" max="240">auto</width>
@@ -626,7 +634,7 @@
 					<height>30</height>
 					<font>font_reg</font>
 					<textcolor>text_dim</textcolor>
-					<label>$INFO[ListItem.Duration]$VAR[ItemEndsAtLabel]$VAR[ItemStarRatingLabel]</label>
+					<label>$VAR[ItemDurationLabel]$VAR[ItemEndsAtLabel]$VAR[ItemStarRatingLabel]</label>
 				</control>
 				<control type="label">
 					<width min="0" max="240">auto</width>
@@ -708,20 +716,22 @@
 				<label>31198</label>
 			</control>
 
-			<!-- Buttons stacked vertically -->
-			<control type="grouplist">
+			<!-- Buttons stacked vertically. The six top level rows are all 60
+			     high (View, Sort and Direction were 70 and the rest 60). -->
+			<control type="grouplist" id="8600">
 				<left>30</left>
 				<top>140</top>
 				<width>380</width>
 				<height>920</height>
 				<itemgap>10</itemgap>
 				<orientation>vertical</orientation>
+				<pagecontrol>8601</pagecontrol>
 
 				<!-- ===== VIEW (collapsed) =====
 				     Toggle button + sub-list mirroring the Filter pattern. -->
 				<control type="button" id="8001">
 					<width>380</width>
-					<height>70</height>
+					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
@@ -794,7 +804,7 @@
 				     / episodes, invalid ones just no-op. -->
 				<control type="button" id="8002">
 					<width>380</width>
-					<height>70</height>
+					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
@@ -955,7 +965,7 @@
 
 				<control type="button" id="8003">
 					<width>380</width>
-					<height>70</height>
+					<height>60</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
@@ -1038,9 +1048,12 @@
 				     of a 1080px screen. Movies and TV shows each have their own
 				     genres node; at any other level (seasons, episodes, plugin
 				     folders) there is nothing to pick from, so the button hides
-				     and the menu chain skips straight past it. -->
+				     and the menu chain skips straight past it. The videodb test
+				     is what keeps it out of add-on folders and smart playlists
+				     that also report movies or tvshows content: a pick there
+				     would jump out of the folder into the library. -->
 				<control type="button" id="8005">
-					<visible>Skin.HasSetting(filter_menu_open) + [Container.Content(movies) | Container.Content(tvshows)]</visible>
+					<visible>Skin.HasSetting(filter_menu_open) + [Container.Content(movies) | Container.Content(tvshows)] + String.StartsWith(Container.FolderPath,videodb://)</visible>
 					<width>380</width>
 					<height>50</height>
 					<font>font_reg</font>
@@ -1218,7 +1231,13 @@
 				     the bottom bar is a fixed 140px inset (see the
 				     ClearanceAnimations comment in Includes.xml), so the old
 				     Bottom +/- buttons changed a number nothing read and were
-				     removed. service.py keeps values on the 10px grid. -->
+				     removed. service.py keeps values on the 10px grid.
+				     For the same reason the three Top rows only show while the
+				     info bar is at the top: with the bar at the bottom they
+				     changed a number nothing was reading. The clearance stops
+				     at 140: the list groups have a fixed 140 bottom inset, so
+				     a larger slide pushed the last rows off the screen (see
+				     ClearanceAnimations). -->
 
 				<control type="button" id="8499">
 					<width>380</width>
@@ -1316,7 +1335,7 @@
 
 				<!-- Top: − 10 px -->
 				<control type="button" id="8500">
-					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<visible>Skin.HasSetting(layout_adjust) + Skin.HasSetting(infobar_top)</visible>
 					<width>380</width>
 					<height>40</height>
 					<font>font_small</font>
@@ -1337,7 +1356,7 @@
 
 				<!-- Top value display + keypad fallback -->
 				<control type="button" id="8502">
-					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<visible>Skin.HasSetting(layout_adjust) + Skin.HasSetting(infobar_top)</visible>
 					<width>380</width>
 					<height>40</height>
 					<font>font_small</font>
@@ -1358,7 +1377,7 @@
 
 				<!-- Top: + 10 px -->
 				<control type="button" id="8504">
-					<visible>Skin.HasSetting(layout_adjust)</visible>
+					<visible>Skin.HasSetting(layout_adjust) + Skin.HasSetting(infobar_top)</visible>
 					<width>380</width>
 					<height>40</height>
 					<font>font_small</font>
@@ -1421,6 +1440,25 @@
 					<ondown>8001</ondown>
 				</control>
 
+			</control>
+
+			<!-- Only shows when the rows are taller than the menu, which
+			     takes two sections open at once (Layout Adjust with Filter,
+			     say). The rows already scrolled with the focus; this is the
+			     sign that there is more below. Mouse only: nothing navigates
+			     to it, and its Left and Right hand focus back to the rows. -->
+			<control type="scrollbar" id="8601">
+				<left>418</left>
+				<top>140</top>
+				<width>8</width>
+				<height>920</height>
+				<orientation>vertical</orientation>
+				<showonepage>false</showonepage>
+				<onleft>8600</onleft>
+				<onright>8600</onright>
+				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 			</control>
 
 		</control>
@@ -1496,17 +1534,31 @@
 				<height>630</height>
 				<orientation>vertical</orientation>
 				<showonepage>false</showonepage>
-				<onleft>9500</onleft>
-				<onright>9500</onright>
+				<!-- Left and Right go back to whichever list is up. Both used
+				     to name 9500, which is hidden in TV Shows, and that list's
+				     own Left and Right lead straight back here, so focus was
+				     stuck on the scrollbar. For navigation the first line
+				     whose condition holds wins; the two are exact opposites. -->
+				<onleft condition="Container.Content(tvshows)">9501</onleft>
+				<onleft condition="!Container.Content(tvshows)">9500</onleft>
+				<onright condition="Container.Content(tvshows)">9501</onright>
+				<onright condition="!Container.Content(tvshows)">9500</onright>
 				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
 				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
 				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 			</control>
 
-			<!-- Clear the genre filter: back to the plain titles node. Both
-			     branches carry their own condition and the two are exact
-			     negations of each other, and an unconditional fallback would
-			     fire IN ADDITION to the branch that already matched. -->
+			<!-- Clear the genre filter. The node is not loaded from here: the
+			     row hands the word __all__ to service.py:update_genre_command
+			     on Skin.String(genre_command), and the service reloads the
+			     node on screen without its genre rule but WITH any Age or
+			     Search rule it carries. The bare Container.Update to the
+			     titles node that used to sit here threw those away. The
+			     command is the last line, so the picker is already closed
+			     and focus is back on the view when the service reads it.
+			     The two SetFocus branches carry their own condition and are
+			     exact negations of each other; an unconditional fallback
+			     would fire IN ADDITION to the branch that already matched. -->
 			<control type="button" id="9502">
 				<left>610</left>
 				<top>876</top>
@@ -1521,12 +1573,11 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>31216</label>
-				<onclick condition="Container.Content(tvshows)">Container.Update(videodb://tvshows/titles/,replace)</onclick>
-				<onclick condition="!Container.Content(tvshows)">Container.Update(videodb://movies/titles/,replace)</onclick>
 				<onclick condition="Control.IsVisible(50)">SetFocus(50)</onclick>
 				<onclick condition="!Control.IsVisible(50)">SetFocus(51)</onclick>
 				<onclick>Skin.Reset(genre_menu_open)</onclick>
 				<onclick>Skin.Reset(filter_menu_open)</onclick>
+				<onclick>Skin.SetString(genre_command,__all__)</onclick>
 				<onup>9500</onup>
 				<ondown>9500</ondown>
 				<onleft>9502</onleft>

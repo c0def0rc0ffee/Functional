@@ -46,13 +46,19 @@
 			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 		</control>
 
-		<!-- Icon -->
+		<!-- Icon. Kodi sets the file name itself: the caller's icon, or for the
+		     info, warning and error types DefaultIconInfo.png and its siblings,
+		     which neither this skin nor Kodi ships, so those toasts had an empty
+		     icon slot. The texture below is what a toast with no icon at all
+		     gets, and its fallback is what Kodi loads when the named file is
+		     missing. -->
 		<control type="image" id="400">
 			<left>24</left>
 			<top>40</top>
 			<width>70</width>
 			<height>70</height>
 			<aspectratio>keep</aspectratio>
+			<texture fallback="DefaultAddon.png">DefaultAddon.png</texture>
 		</control>
 
 		<!-- Heading -->

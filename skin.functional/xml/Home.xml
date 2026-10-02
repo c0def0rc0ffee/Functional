@@ -300,9 +300,12 @@
 
 		<!-- Weather widget, sits beneath the date, right-aligned in the
 		     same column. Same font_small as the date so the three lines
-		     (time / date / weather) read as one block. -->
+		     (time / date / weather) read as one block. The group's condition
+		     is $EXP[weather_widget_shown] so that navigation can name it:
+		     Control.IsVisible(9006) reads the button's own state, which is
+		     always visible, and says nothing about this group. -->
 		<control type="group">
-			<visible>Skin.HasSetting(show_weather_widget) + Weather.IsFetched</visible>
+			<visible>$EXP[weather_widget_shown]</visible>
 			<control type="label">
 				<right>40</right>
 				<top>118</top>
@@ -323,14 +326,23 @@
 				<texturefocus colordiffuse="40FFFFFF">white.png</texturefocus>
 				<texturenofocus>-</texturenofocus>
 				<onclick>ActivateWindow(Weather)</onclick>
-				<onup>9000</onup>
+				<!-- The widget is one stop in the column of things on the top
+				     edge: the Continue tab above it when that tab is at the top,
+				     and below it whichever of the corner bar and the menu sits
+				     higher. The menu and the bar send Up here in turn, so the
+				     widget is reachable in every layout. -->
+				<onup condition="Control.IsVisible(9211)">9211</onup>
+				<onup condition="Control.IsVisible(9213)">9213</onup>
+				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9100)">9100</ondown>
+				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9110)">9110</ondown>
+				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9120)">9120</ondown>
 				<ondown>9000</ondown>
 			</control>
 		</control>
 
-		<!-- Date / time top-right. Only the time label slides left
-		     when the weather widget is visible, the date stays at
-		     right=40, beneath the weather. -->
+		<!-- Date / time top-right: time at y 40 to 80, date at y 84 to 116,
+		     both right aligned at right=40, with the weather line under
+		     them at y 118 to 150. -->
 		<control type="group">
 			<visible>!Skin.HasSetting(hide_datetime)</visible>
 			<control type="label">
@@ -363,12 +375,35 @@
 			     and of the corner bar when that is at the top (y 180 to 250).
 			     Bottom: y 820 to 960 while the corner bar holds the bottom edge
 			     (y 970 to 1040), the full 440 only once the bar has moved to the
-			     top. Tiles are 220 wide with a 20 gap, so all eight fit in 1900; at
-			     the top, seven or more run under the logo, six or fewer clear
-			     it. Each tile is the HomeTile include below. -->
+			     top. Each tile is the HomeTile include below.
+
+			     TILE-ROW-WIDTH: the row has to stay out of whatever shares its
+			     band, for one to eight tiles. A button's width cannot follow a
+			     condition, so every slot is three buttons of which one shows,
+			     picked by Window(home).Property(Tile.Count) (the number of tiles
+			     showing, from service.py:update_tiles): 220 wide up to six tiles,
+			     188 at seven, 162 with the smaller font at eight. With the 20
+			     gap that is 220, 460, 700, 940, 1180, 1420, 1436, 1436 wide.
+			     Centre: the stats column starts at x 1550, so while any stats
+			     block shows the row is centred on x 775 instead of 960 (slide
+			     185 left) and its widest forms end at x 1493, 57 clear.
+			     Top: up to five tiles span x 370 to 1550 on the screen centre
+			     and need nothing. From six the row is centred on x 880 (slide
+			     80 left): six span x 170 to 1590, seven and eight x 162 to
+			     1598, right of the logo (ends x 160). The date under the
+			     clock is right aligned and starts between x 1580 (the longest
+			     day and month) and x 1650; the last tile's box may reach 18
+			     into the longest one, a built in caption never does.
+			     Bottom: nothing shares the band, the row stays on x 960 and
+			     at its widest spans x 242 to 1678, which just clears the
+			     version line (text ends near x 241) under a top corner bar.
+			     Until the service has published Tile.Count the 220 buttons
+			     show, which is what the row always was. -->
 			<animation effect="slide" end="0,-440" time="0" condition="$EXP[menu_top]">Conditional</animation>
 			<animation effect="slide" end="0,440" time="0" condition="$EXP[menu_bottom] + $EXP[corner_bar_top]">Conditional</animation>
 			<animation effect="slide" end="0,340" time="0" condition="$EXP[menu_bottom] + !$EXP[corner_bar_top]">Conditional</animation>
+			<animation effect="slide" end="-185,0" time="0" condition="!$EXP[menu_top] + !$EXP[menu_bottom] + $EXP[home_stats_shown]">Conditional</animation>
+			<animation effect="slide" end="-80,0" time="0" condition="$EXP[menu_top] + Integer.IsGreater(Window(home).Property(Tile.Count),5)">Conditional</animation>
 			<left>0</left>
 			<top>480</top>
 			<width>1920</width>
@@ -376,41 +411,67 @@
 			<itemgap>20</itemgap>
 			<orientation>horizontal</orientation>
 			<align>center</align>
-			<!-- The Continue Watching tab (9210 bottom, 9211 top) sits on the
-			     edge chosen in Skin Settings; Up reaches the top one. Kodi takes
-			     the first condition that holds, so the tab entry comes first and
-			     the old target stays as the fallback. -->
-			<!-- With the corner bar moved to the top edge it is the nearest
-			     thing above the menu, so it is tried before the tab and the
-			     weather widget. Only one of the three instances is ever
-			     visible, hence the three conditions. -->
-			<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
-			<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
-			<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+			<!-- HOME-VERTICAL-NAV: Kodi takes the first condition that holds.
+			     $EXP[bar_above_menu] is the corner bar on the top edge with the
+			     menu NOT at the top; with both at the top the bar (y 180 to
+			     250) lies below the menu (y 40 to 180), which the plain
+			     corner_bar_top test used to get backwards. Only one of the
+			     three bar instances is ever visible, hence three lines each
+			     time. When the menu is the higher of the two, Up goes to the
+			     weather widget if it shows, then to a Continue tab on the top
+			     edge; the widget's own Up carries on to that tab.
+			     The service focuses the bar when every tile is Off, and these
+			     lines are also what Kodi follows THROUGH this grouplist when it
+			     has no focusable child, so each direction has to end on
+			     something that can take focus or on this id itself. -->
+			<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9100)">9100</onup>
+			<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9110)">9110</onup>
+			<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9120)">9120</onup>
+			<onup condition="$EXP[weather_widget_shown]">9006</onup>
 			<onup condition="Control.IsVisible(9211)">9211</onup>
 			<onup condition="Control.IsVisible(9213)">9213</onup>
-			<onup condition="Control.IsVisible(9006)">9006</onup>
-			<!-- Down reaches the corner bar only while it is at the bottom;
-			     with it at the top, the Continue tab is what lies below. -->
-			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9210)">9210</ondown>
-			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9212)">9212</ondown>
-			<ondown condition="$EXP[corner_bar_top]">9000</ondown>
+			<!-- Down reaches the corner bar whenever it lies below the menu:
+			     on the bottom edge, or on the top edge under a top menu. With
+			     the bar above the menu, a Continue tab on the bottom edge is
+			     what lies below. -->
+			<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9210)">9210</ondown>
+			<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9212)">9212</ondown>
+			<ondown condition="$EXP[bar_above_menu]">9000</ondown>
 			<ondown condition="Control.IsVisible(9110)">9110</ondown>
 			<ondown condition="Control.IsVisible(9120)">9120</ondown>
 			<ondown>9100</ondown>
 
-			<!-- Eight tiles, each a built in screen or any favourite, set on the
+			<!-- Eight slots, each a built in screen or any favourite, set on the
 			     Main Menu settings page; with nothing set they are the menu as it
-			     always was. Ids keep the old numbers (9006 belongs to the weather
-			     widget), so nothing that navigates here changes. -->
-			<include content="HomeTile"><param name="n" value="1" /><param name="id" value="9001" /></include>
-			<include content="HomeTile"><param name="n" value="2" /><param name="id" value="9002" /></include>
-			<include content="HomeTile"><param name="n" value="3" /><param name="id" value="9003" /></include>
-			<include content="HomeTile"><param name="n" value="4" /><param name="id" value="9004" /></include>
-			<include content="HomeTile"><param name="n" value="5" /><param name="id" value="9005" /></include>
-			<include content="HomeTile"><param name="n" value="6" /><param name="id" value="9007" /></include>
-			<include content="HomeTile"><param name="n" value="7" /><param name="id" value="9008" /></include>
-			<include content="HomeTile"><param name="n" value="8" /><param name="id" value="9009" /></include>
+			     always was. Three buttons per slot, one per width (see
+			     TILE-ROW-WIDTH above): the 220 ones keep the old ids (9006
+			     belongs to the weather widget), 9011 to 9018 are the 188 ones
+			     and 9021 to 9028 the 162 ones. Nothing navigates to a tile by
+			     id, only to this grouplist. -->
+			<include content="HomeTile"><param name="n" value="1" /><param name="id" value="9001" /><param name="when" value="$EXP[tiles_wide]" /></include>
+			<include content="HomeTile"><param name="n" value="1" /><param name="id" value="9011" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+			<include content="HomeTile"><param name="n" value="1" /><param name="id" value="9021" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+			<include content="HomeTile"><param name="n" value="2" /><param name="id" value="9002" /><param name="when" value="$EXP[tiles_wide]" /></include>
+			<include content="HomeTile"><param name="n" value="2" /><param name="id" value="9012" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+			<include content="HomeTile"><param name="n" value="2" /><param name="id" value="9022" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+			<include content="HomeTile"><param name="n" value="3" /><param name="id" value="9003" /><param name="when" value="$EXP[tiles_wide]" /></include>
+			<include content="HomeTile"><param name="n" value="3" /><param name="id" value="9013" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+			<include content="HomeTile"><param name="n" value="3" /><param name="id" value="9023" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+			<include content="HomeTile"><param name="n" value="4" /><param name="id" value="9004" /><param name="when" value="$EXP[tiles_wide]" /></include>
+			<include content="HomeTile"><param name="n" value="4" /><param name="id" value="9014" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+			<include content="HomeTile"><param name="n" value="4" /><param name="id" value="9024" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+			<include content="HomeTile"><param name="n" value="5" /><param name="id" value="9005" /><param name="when" value="$EXP[tiles_wide]" /></include>
+			<include content="HomeTile"><param name="n" value="5" /><param name="id" value="9015" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+			<include content="HomeTile"><param name="n" value="5" /><param name="id" value="9025" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+			<include content="HomeTile"><param name="n" value="6" /><param name="id" value="9007" /><param name="when" value="$EXP[tiles_wide]" /></include>
+			<include content="HomeTile"><param name="n" value="6" /><param name="id" value="9016" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+			<include content="HomeTile"><param name="n" value="6" /><param name="id" value="9026" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+			<include content="HomeTile"><param name="n" value="7" /><param name="id" value="9008" /><param name="when" value="$EXP[tiles_wide]" /></include>
+			<include content="HomeTile"><param name="n" value="7" /><param name="id" value="9017" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+			<include content="HomeTile"><param name="n" value="7" /><param name="id" value="9027" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+			<include content="HomeTile"><param name="n" value="8" /><param name="id" value="9009" /><param name="when" value="$EXP[tiles_wide]" /></include>
+			<include content="HomeTile"><param name="n" value="8" /><param name="id" value="9018" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+			<include content="HomeTile"><param name="n" value="8" /><param name="id" value="9028" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
 
 		</control>
 
@@ -421,7 +482,16 @@
 		     anything unrecognised reading as br, where the bar has always sat.
 		     Only one instance is visible at a time. See the HomeCornerBar
 		     include in Includes.xml for why the alignment cannot be a
-		     condition and the vertical offset can. -->
+		     condition and the vertical offset can.
+
+		     Group 9190 wraps the three so that one id means "the corner bar,
+		     whichever instance is showing": SetFocus(9190) lands on the first
+		     focusable button of the visible instance, and the Settings icon
+		     can never be hidden, so the target is always valid. That is what
+		     service.py focuses when every tile is Off. The group has no size
+		     of its own, so it takes the window's and the bars keep their
+		     coordinates. -->
+		<control type="group" id="9190">
 		<include content="HomeCornerBar">
 			<param name="id_bar" value="9100"/>
 			<param name="id_sleep" value="9097"/>
@@ -472,6 +542,7 @@
 			<param name="left" value="260"/>
 			<param name="visible" value="$EXP[corner_bar_centre]"/>
 		</include>
+		</control>
 
 		<!-- Footer hint -->
 		<control type="label">
@@ -537,12 +608,16 @@
 				     the same 320 slide up whether or not the lower part shows. -->
 				<animation effect="slide" end="0,320" time="0" condition="!$EXP[panel_tall] + !$EXP[continue_tab_top]">Conditional</animation>
 				<animation effect="slide" end="0,-320" time="0" condition="$EXP[continue_tab_top]">Conditional</animation>
+				<!-- Both band images are fully opaque (FF, not the F4 they
+				     were). At 96 per cent the version line and the corner bar
+				     icons, which sit under the band on the bottom edge, showed
+				     through the row captions. -->
 				<control type="image">
 					<left>0</left>
 					<top>356</top>
 					<width>1920</width>
 					<height>368</height>
-					<texture colordiffuse="F4181C22">white.png</texture>
+					<texture colordiffuse="FF181C22">white.png</texture>
 				</control>
 				<control type="image">
 					<visible>$EXP[panel_tall]</visible>
@@ -550,7 +625,7 @@
 					<top>724</top>
 					<width>1920</width>
 					<height>320</height>
-					<texture colordiffuse="F4181C22">white.png</texture>
+					<texture colordiffuse="FF181C22">white.png</texture>
 				</control>
 
 				<!-- Page 1: Continue Watching and Next Up. The two pages share
@@ -587,46 +662,73 @@
 						<label>31392</label>
 					</control>
 
+					<!-- POPUP-ROW-INSET: the five rows of this pop-up share one item shape.
+					     A list clips to its own box, so a focus frame drawn at -4,-4
+					     lost its top edge on every item and its left edge on the
+					     first. Each list therefore starts 4px up and left of where
+					     its posters sit and is 4px taller, and everything inside an
+					     item is 4px in: frame 0,0 148x218, poster 4,4 140x210. On
+					     screen nothing moved. Captions are 140 wide at font_small,
+					     about twelve characters, so the focused item's two lines
+					     scroll and an episode line leads with its S and E marker,
+					     the part that must never be the bit cut off. -->
+					<!-- POPUP-CLOSE-NAV: leaving a row (Up, Down or Back) closes the
+					     pop-up and hands focus to a tab. The targets test the tab's
+					     visibility, own page first, and end on the menu, because a
+					     row can empty while it has focus (the last item marked
+					     watched from the press and hold menu) and its tab then
+					     hides. Named by edge alone, as these lines used to be, the
+					     hidden tab has no onback or ondown to follow, the pop-up
+					     slid away and focus stayed on a parked, invisible list. -->
 					<control type="list" id="9201">
 						<visible allowhiddenfocus="true">true</visible>
-						<left>60</left>
-						<top>436</top>
+						<left>56</left>
+						<top>432</top>
 						<width>900</width>
-						<height>270</height>
+						<height>274</height>
 						<orientation>horizontal</orientation>
 						<onup>Skin.Reset(continue_open)</onup>
-						<onup condition="$EXP[continue_tab_top]">9211</onup>
-						<onup condition="!$EXP[continue_tab_top]">9210</onup>
+						<onup condition="Control.IsVisible(9211)">9211</onup>
+						<onup condition="Control.IsVisible(9210)">9210</onup>
+						<onup condition="Control.IsVisible(9213)">9213</onup>
+						<onup condition="Control.IsVisible(9212)">9212</onup>
+						<onup>9000</onup>
 						<ondown condition="!$EXP[nextup_shown]">Skin.Reset(continue_open)</ondown>
 						<ondown condition="$EXP[nextup_shown]">9205</ondown>
-						<ondown condition="$EXP[continue_tab_top]">9211</ondown>
-						<ondown condition="!$EXP[continue_tab_top]">9210</ondown>
+						<ondown condition="Control.IsVisible(9211)">9211</ondown>
+						<ondown condition="Control.IsVisible(9210)">9210</ondown>
+						<ondown condition="Control.IsVisible(9213)">9213</ondown>
+						<ondown condition="Control.IsVisible(9212)">9212</ondown>
+						<ondown>9000</ondown>
 						<onback>Skin.Reset(continue_open)</onback>
-						<onback condition="$EXP[continue_tab_top]">9211</onback>
-						<onback condition="!$EXP[continue_tab_top]">9210</onback>
+						<onback condition="Control.IsVisible(9211)">9211</onback>
+						<onback condition="Control.IsVisible(9210)">9210</onback>
+						<onback condition="Control.IsVisible(9213)">9213</onback>
+						<onback condition="Control.IsVisible(9212)">9212</onback>
+						<onback>9000</onback>
 						<onleft>9201</onleft>
 						<onright>9203</onright>
 						<scrolltime tween="cubic" easing="out">200</scrolltime>
 
-						<itemlayout height="270" width="150">
+						<itemlayout height="274" width="150">
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<texture colordiffuse="grey_mid">white.png</texture>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<aspectratio>scale</aspectratio>
 								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
 							</control>
 							<control type="progress">
-								<left>0</left>
-								<top>202</top>
+								<left>4</left>
+								<top>206</top>
 								<width>140</width>
 								<height>8</height>
 								<info>ListItem.PercentPlayed</info>
@@ -635,8 +737,8 @@
 								<overlaytexture>-</overlaytexture>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>216</top>
+								<left>4</left>
+								<top>220</top>
 								<width>140</width>
 								<height>26</height>
 								<font>font_small</font>
@@ -644,8 +746,8 @@
 								<label>$INFO[ListItem.Label]</label>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>242</top>
+								<left>4</left>
+								<top>246</top>
 								<width>140</width>
 								<height>24</height>
 								<font>font_small</font>
@@ -654,33 +756,33 @@
 							</control>
 						</itemlayout>
 
-						<focusedlayout height="270" width="150">
+						<focusedlayout height="274" width="150">
 							<control type="image">
-								<left>-4</left>
-								<top>-4</top>
+								<left>0</left>
+								<top>0</top>
 								<width>148</width>
 								<height>218</height>
 								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
 								<visible>Control.HasFocus(9201)</visible>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<texture colordiffuse="grey_mid">white.png</texture>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<aspectratio>scale</aspectratio>
 								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
 							</control>
 							<control type="progress">
-								<left>0</left>
-								<top>202</top>
+								<left>4</left>
+								<top>206</top>
 								<width>140</width>
 								<height>8</height>
 								<info>ListItem.PercentPlayed</info>
@@ -689,21 +791,23 @@
 								<overlaytexture>-</overlaytexture>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>216</top>
+								<left>4</left>
+								<top>220</top>
 								<width>140</width>
 								<height>26</height>
 								<font>font_small</font>
 								<textcolor>white</textcolor>
+								<scroll>true</scroll>
 								<label>$INFO[ListItem.Label]</label>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>242</top>
+								<left>4</left>
+								<top>246</top>
 								<width>140</width>
 								<height>24</height>
 								<font>font_small</font>
 								<textcolor>text</textcolor>
+								<scroll>true</scroll>
 								<label>$INFO[ListItem.Year]</label>
 							</control>
 						</focusedlayout>
@@ -712,44 +816,53 @@
 
 					<control type="list" id="9203">
 						<visible allowhiddenfocus="true">true</visible>
-						<left>960</left>
-						<top>436</top>
+						<left>956</left>
+						<top>432</top>
 						<width>900</width>
-						<height>270</height>
+						<height>274</height>
 						<orientation>horizontal</orientation>
 						<onup>Skin.Reset(continue_open)</onup>
-						<onup condition="$EXP[continue_tab_top]">9211</onup>
-						<onup condition="!$EXP[continue_tab_top]">9210</onup>
+						<onup condition="Control.IsVisible(9211)">9211</onup>
+						<onup condition="Control.IsVisible(9210)">9210</onup>
+						<onup condition="Control.IsVisible(9213)">9213</onup>
+						<onup condition="Control.IsVisible(9212)">9212</onup>
+						<onup>9000</onup>
 						<ondown condition="!$EXP[nextup_shown]">Skin.Reset(continue_open)</ondown>
 						<ondown condition="$EXP[nextup_shown]">9205</ondown>
-						<ondown condition="$EXP[continue_tab_top]">9211</ondown>
-						<ondown condition="!$EXP[continue_tab_top]">9210</ondown>
+						<ondown condition="Control.IsVisible(9211)">9211</ondown>
+						<ondown condition="Control.IsVisible(9210)">9210</ondown>
+						<ondown condition="Control.IsVisible(9213)">9213</ondown>
+						<ondown condition="Control.IsVisible(9212)">9212</ondown>
+						<ondown>9000</ondown>
 						<onback>Skin.Reset(continue_open)</onback>
-						<onback condition="$EXP[continue_tab_top]">9211</onback>
-						<onback condition="!$EXP[continue_tab_top]">9210</onback>
+						<onback condition="Control.IsVisible(9211)">9211</onback>
+						<onback condition="Control.IsVisible(9210)">9210</onback>
+						<onback condition="Control.IsVisible(9213)">9213</onback>
+						<onback condition="Control.IsVisible(9212)">9212</onback>
+						<onback>9000</onback>
 						<onleft>9201</onleft>
 						<onright>9203</onright>
 						<scrolltime tween="cubic" easing="out">200</scrolltime>
 
-						<itemlayout height="270" width="150">
+						<itemlayout height="274" width="150">
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<texture colordiffuse="grey_mid">white.png</texture>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<aspectratio>scale</aspectratio>
 								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
 							</control>
 							<control type="progress">
-								<left>0</left>
-								<top>202</top>
+								<left>4</left>
+								<top>206</top>
 								<width>140</width>
 								<height>8</height>
 								<info>ListItem.PercentPlayed</info>
@@ -758,8 +871,8 @@
 								<overlaytexture>-</overlaytexture>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>216</top>
+								<left>4</left>
+								<top>220</top>
 								<width>140</width>
 								<height>26</height>
 								<font>font_small</font>
@@ -767,43 +880,43 @@
 								<label>$INFO[ListItem.Label]</label>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>242</top>
+								<left>4</left>
+								<top>246</top>
 								<width>140</width>
 								<height>24</height>
 								<font>font_small</font>
 								<textcolor>text_dim</textcolor>
-								<label>$INFO[ListItem.TVShowTitle] $INFO[ListItem.Season,S]$INFO[ListItem.Episode,E]</label>
+								<label>$INFO[ListItem.Season,S]$INFO[ListItem.Episode,E, · ]$INFO[ListItem.TVShowTitle]</label>
 							</control>
 						</itemlayout>
 
-						<focusedlayout height="270" width="150">
+						<focusedlayout height="274" width="150">
 							<control type="image">
-								<left>-4</left>
-								<top>-4</top>
+								<left>0</left>
+								<top>0</top>
 								<width>148</width>
 								<height>218</height>
 								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
 								<visible>Control.HasFocus(9203)</visible>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<texture colordiffuse="grey_mid">white.png</texture>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<aspectratio>scale</aspectratio>
 								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
 							</control>
 							<control type="progress">
-								<left>0</left>
-								<top>202</top>
+								<left>4</left>
+								<top>206</top>
 								<width>140</width>
 								<height>8</height>
 								<info>ListItem.PercentPlayed</info>
@@ -812,22 +925,24 @@
 								<overlaytexture>-</overlaytexture>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>216</top>
+								<left>4</left>
+								<top>220</top>
 								<width>140</width>
 								<height>26</height>
 								<font>font_small</font>
 								<textcolor>white</textcolor>
+								<scroll>true</scroll>
 								<label>$INFO[ListItem.Label]</label>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>242</top>
+								<left>4</left>
+								<top>246</top>
 								<width>140</width>
 								<height>24</height>
 								<font>font_small</font>
 								<textcolor>text</textcolor>
-								<label>$INFO[ListItem.TVShowTitle] $INFO[ListItem.Season,S]$INFO[ListItem.Episode,E]</label>
+								<scroll>true</scroll>
+								<label>$INFO[ListItem.Season,S]$INFO[ListItem.Episode,E, · ]$INFO[ListItem.TVShowTitle]</label>
 							</control>
 						</focusedlayout>
 						<content target="videos" limit="12">special://skin/playlists/continue_episodes.xsp</content>
@@ -861,47 +976,56 @@
 					</control>
 					<control type="list" id="9205">
 						<visible allowhiddenfocus="true">$EXP[nextup_shown]</visible>
-						<left>60</left>
-						<top>774</top>
+						<left>56</left>
+						<top>770</top>
 						<width>1800</width>
-						<height>270</height>
+						<height>274</height>
 						<orientation>horizontal</orientation>
 						<!-- Up goes to whichever Continue row has something, else
 						     closes like the other rows do. -->
 						<onup condition="Integer.IsGreater(Container(9201).NumItems,0)">9201</onup>
 						<onup condition="Integer.IsGreater(Container(9203).NumItems,0)">9203</onup>
 						<onup condition="Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0)">Skin.Reset(continue_open)</onup>
-						<onup condition="$EXP[continue_tab_top]">9211</onup>
-						<onup condition="!$EXP[continue_tab_top]">9210</onup>
+						<onup condition="Control.IsVisible(9211)">9211</onup>
+						<onup condition="Control.IsVisible(9210)">9210</onup>
+						<onup condition="Control.IsVisible(9213)">9213</onup>
+						<onup condition="Control.IsVisible(9212)">9212</onup>
+						<onup>9000</onup>
 						<ondown>Skin.Reset(continue_open)</ondown>
-						<ondown condition="$EXP[continue_tab_top]">9211</ondown>
-						<ondown condition="!$EXP[continue_tab_top]">9210</ondown>
+						<ondown condition="Control.IsVisible(9211)">9211</ondown>
+						<ondown condition="Control.IsVisible(9210)">9210</ondown>
+						<ondown condition="Control.IsVisible(9213)">9213</ondown>
+						<ondown condition="Control.IsVisible(9212)">9212</ondown>
+						<ondown>9000</ondown>
 						<onback>Skin.Reset(continue_open)</onback>
-						<onback condition="$EXP[continue_tab_top]">9211</onback>
-						<onback condition="!$EXP[continue_tab_top]">9210</onback>
+						<onback condition="Control.IsVisible(9211)">9211</onback>
+						<onback condition="Control.IsVisible(9210)">9210</onback>
+						<onback condition="Control.IsVisible(9213)">9213</onback>
+						<onback condition="Control.IsVisible(9212)">9212</onback>
+						<onback>9000</onback>
 						<onleft>9205</onleft>
 						<onright>9205</onright>
 						<scrolltime tween="cubic" easing="out">200</scrolltime>
 
-						<itemlayout height="270" width="150">
+						<itemlayout height="274" width="150">
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<texture colordiffuse="grey_mid">white.png</texture>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<aspectratio>scale</aspectratio>
 								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Icon]</texture>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>216</top>
+								<left>4</left>
+								<top>220</top>
 								<width>140</width>
 								<height>26</height>
 								<font>font_small</font>
@@ -909,8 +1033,8 @@
 								<label>$INFO[ListItem.Label]</label>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>242</top>
+								<left>4</left>
+								<top>246</top>
 								<width>140</width>
 								<height>24</height>
 								<font>font_small</font>
@@ -919,46 +1043,48 @@
 							</control>
 						</itemlayout>
 
-						<focusedlayout height="270" width="150">
+						<focusedlayout height="274" width="150">
 							<control type="image">
-								<left>-4</left>
-								<top>-4</top>
+								<left>0</left>
+								<top>0</top>
 								<width>148</width>
 								<height>218</height>
 								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
 								<visible>Control.HasFocus(9205)</visible>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<texture colordiffuse="grey_mid">white.png</texture>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<aspectratio>scale</aspectratio>
 								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Icon]</texture>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>216</top>
+								<left>4</left>
+								<top>220</top>
 								<width>140</width>
 								<height>26</height>
 								<font>font_small</font>
 								<textcolor>white</textcolor>
+								<scroll>true</scroll>
 								<label>$INFO[ListItem.Label]</label>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>242</top>
+								<left>4</left>
+								<top>246</top>
 								<width>140</width>
 								<height>24</height>
 								<font>font_small</font>
 								<textcolor>text</textcolor>
+								<scroll>true</scroll>
 								<label>$INFO[ListItem.Label2]</label>
 							</control>
 						</focusedlayout>
@@ -1001,42 +1127,51 @@
 					</control>
 					<control type="list" id="9221">
 						<visible allowhiddenfocus="true">true</visible>
-						<left>60</left>
-						<top>436</top>
+						<left>56</left>
+						<top>432</top>
 						<width>900</width>
-						<height>270</height>
+						<height>274</height>
 						<orientation>horizontal</orientation>
 						<onup>Skin.Reset(continue_open)</onup>
-						<onup condition="$EXP[continue_tab_top]">9213</onup>
-						<onup condition="!$EXP[continue_tab_top]">9212</onup>
+						<onup condition="Control.IsVisible(9213)">9213</onup>
+						<onup condition="Control.IsVisible(9212)">9212</onup>
+						<onup condition="Control.IsVisible(9211)">9211</onup>
+						<onup condition="Control.IsVisible(9210)">9210</onup>
+						<onup>9000</onup>
 						<ondown>Skin.Reset(continue_open)</ondown>
-						<ondown condition="$EXP[continue_tab_top]">9213</ondown>
-						<ondown condition="!$EXP[continue_tab_top]">9212</ondown>
+						<ondown condition="Control.IsVisible(9213)">9213</ondown>
+						<ondown condition="Control.IsVisible(9212)">9212</ondown>
+						<ondown condition="Control.IsVisible(9211)">9211</ondown>
+						<ondown condition="Control.IsVisible(9210)">9210</ondown>
+						<ondown>9000</ondown>
 						<onback>Skin.Reset(continue_open)</onback>
-						<onback condition="$EXP[continue_tab_top]">9213</onback>
-						<onback condition="!$EXP[continue_tab_top]">9212</onback>
+						<onback condition="Control.IsVisible(9213)">9213</onback>
+						<onback condition="Control.IsVisible(9212)">9212</onback>
+						<onback condition="Control.IsVisible(9211)">9211</onback>
+						<onback condition="Control.IsVisible(9210)">9210</onback>
+						<onback>9000</onback>
 						<onleft>9221</onleft>
 						<onright>9223</onright>
 						<scrolltime tween="cubic" easing="out">200</scrolltime>
-						<itemlayout height="270" width="150">
+						<itemlayout height="274" width="150">
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<texture colordiffuse="grey_mid">white.png</texture>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<aspectratio>scale</aspectratio>
 								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>216</top>
+								<left>4</left>
+								<top>220</top>
 								<width>140</width>
 								<height>26</height>
 								<font>font_small</font>
@@ -1044,8 +1179,8 @@
 								<label>$INFO[ListItem.Label]</label>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>242</top>
+								<left>4</left>
+								<top>246</top>
 								<width>140</width>
 								<height>24</height>
 								<font>font_small</font>
@@ -1053,46 +1188,48 @@
 								<label>$INFO[ListItem.Year]</label>
 							</control>
 						</itemlayout>
-						<focusedlayout height="270" width="150">
+						<focusedlayout height="274" width="150">
 							<control type="image">
-								<left>-4</left>
-								<top>-4</top>
+								<left>0</left>
+								<top>0</top>
 								<width>148</width>
 								<height>218</height>
 								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
 								<visible>Control.HasFocus(9221)</visible>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<texture colordiffuse="grey_mid">white.png</texture>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<aspectratio>scale</aspectratio>
 								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>216</top>
+								<left>4</left>
+								<top>220</top>
 								<width>140</width>
 								<height>26</height>
 								<font>font_small</font>
 								<textcolor>white</textcolor>
+								<scroll>true</scroll>
 								<label>$INFO[ListItem.Label]</label>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>242</top>
+								<left>4</left>
+								<top>246</top>
 								<width>140</width>
 								<height>24</height>
 								<font>font_small</font>
 								<textcolor>text</textcolor>
+								<scroll>true</scroll>
 								<label>$INFO[ListItem.Year]</label>
 							</control>
 						</focusedlayout>
@@ -1100,42 +1237,51 @@
 					</control>
 					<control type="list" id="9223">
 						<visible allowhiddenfocus="true">true</visible>
-						<left>960</left>
-						<top>436</top>
+						<left>956</left>
+						<top>432</top>
 						<width>900</width>
-						<height>270</height>
+						<height>274</height>
 						<orientation>horizontal</orientation>
 						<onup>Skin.Reset(continue_open)</onup>
-						<onup condition="$EXP[continue_tab_top]">9213</onup>
-						<onup condition="!$EXP[continue_tab_top]">9212</onup>
+						<onup condition="Control.IsVisible(9213)">9213</onup>
+						<onup condition="Control.IsVisible(9212)">9212</onup>
+						<onup condition="Control.IsVisible(9211)">9211</onup>
+						<onup condition="Control.IsVisible(9210)">9210</onup>
+						<onup>9000</onup>
 						<ondown>Skin.Reset(continue_open)</ondown>
-						<ondown condition="$EXP[continue_tab_top]">9213</ondown>
-						<ondown condition="!$EXP[continue_tab_top]">9212</ondown>
+						<ondown condition="Control.IsVisible(9213)">9213</ondown>
+						<ondown condition="Control.IsVisible(9212)">9212</ondown>
+						<ondown condition="Control.IsVisible(9211)">9211</ondown>
+						<ondown condition="Control.IsVisible(9210)">9210</ondown>
+						<ondown>9000</ondown>
 						<onback>Skin.Reset(continue_open)</onback>
-						<onback condition="$EXP[continue_tab_top]">9213</onback>
-						<onback condition="!$EXP[continue_tab_top]">9212</onback>
+						<onback condition="Control.IsVisible(9213)">9213</onback>
+						<onback condition="Control.IsVisible(9212)">9212</onback>
+						<onback condition="Control.IsVisible(9211)">9211</onback>
+						<onback condition="Control.IsVisible(9210)">9210</onback>
+						<onback>9000</onback>
 						<onleft>9221</onleft>
 						<onright>9223</onright>
 						<scrolltime tween="cubic" easing="out">200</scrolltime>
-						<itemlayout height="270" width="150">
+						<itemlayout height="274" width="150">
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<texture colordiffuse="grey_mid">white.png</texture>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<aspectratio>scale</aspectratio>
 								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>216</top>
+								<left>4</left>
+								<top>220</top>
 								<width>140</width>
 								<height>26</height>
 								<font>font_small</font>
@@ -1143,56 +1289,58 @@
 								<label>$INFO[ListItem.Label]</label>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>242</top>
+								<left>4</left>
+								<top>246</top>
 								<width>140</width>
 								<height>24</height>
 								<font>font_small</font>
 								<textcolor>text_dim</textcolor>
-								<label>$INFO[ListItem.TVShowTitle] $INFO[ListItem.Season,S]$INFO[ListItem.Episode,E]</label>
+								<label>$INFO[ListItem.Season,S]$INFO[ListItem.Episode,E, · ]$INFO[ListItem.TVShowTitle]</label>
 							</control>
 						</itemlayout>
-						<focusedlayout height="270" width="150">
+						<focusedlayout height="274" width="150">
 							<control type="image">
-								<left>-4</left>
-								<top>-4</top>
+								<left>0</left>
+								<top>0</top>
 								<width>148</width>
 								<height>218</height>
 								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
 								<visible>Control.HasFocus(9223)</visible>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<texture colordiffuse="grey_mid">white.png</texture>
 							</control>
 							<control type="image">
-								<left>0</left>
-								<top>0</top>
+								<left>4</left>
+								<top>4</top>
 								<width>140</width>
 								<height>210</height>
 								<aspectratio>scale</aspectratio>
 								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>216</top>
+								<left>4</left>
+								<top>220</top>
 								<width>140</width>
 								<height>26</height>
 								<font>font_small</font>
 								<textcolor>white</textcolor>
+								<scroll>true</scroll>
 								<label>$INFO[ListItem.Label]</label>
 							</control>
 							<control type="label">
-								<left>0</left>
-								<top>242</top>
+								<left>4</left>
+								<top>246</top>
 								<width>140</width>
 								<height>24</height>
 								<font>font_small</font>
 								<textcolor>text</textcolor>
-								<label>$INFO[ListItem.TVShowTitle] $INFO[ListItem.Season,S]$INFO[ListItem.Episode,E]</label>
+								<scroll>true</scroll>
+								<label>$INFO[ListItem.Season,S]$INFO[ListItem.Episode,E, · ]$INFO[ListItem.TVShowTitle]</label>
 							</control>
 						</focusedlayout>
 						<content target="videos" limit="12">special://skin/playlists/recent_episodes.xsp</content>
@@ -1235,10 +1383,10 @@
 			<onclick condition="!Skin.HasSetting(continue_open) | $EXP[recent_page]">SetFocus(9201)</onclick>
 			<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page]] + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
 			<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page]] + Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0) + $EXP[nextup_shown]">SetFocus(9205)</onclick>
-			<!-- Up from the bottom tab reaches the corner bar when it is on
-			     this edge too, otherwise the menu, which is then the nearest
-			     thing above. -->
-			<onup condition="$EXP[corner_bar_top]">9000</onup>
+			<!-- Up from the bottom tab reaches the nearest thing above: the
+			     menu while the corner bar sits above it, otherwise the bar
+			     (on this edge, or under a top menu). See HOME-VERTICAL-NAV. -->
+			<onup condition="$EXP[bar_above_menu]">9000</onup>
 			<onup condition="Control.IsVisible(9110)">9110</onup>
 			<onup condition="Control.IsVisible(9120)">9120</onup>
 			<onup>9100</onup>
@@ -1275,11 +1423,12 @@
 			<onclick condition="!Skin.HasSetting(continue_open) | $EXP[recent_page]">SetFocus(9201)</onclick>
 			<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page]] + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
 			<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page]] + Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0) + $EXP[nextup_shown]">SetFocus(9205)</onclick>
-			<!-- Down from the top tab lands on the corner bar when that is
-			     also on the top edge, since it sits between tab and menu. -->
-			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</ondown>
-			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</ondown>
-			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</ondown>
+			<!-- Down from the top tab lands on the corner bar only while the
+			     bar sits between tab and menu; with the menu at the top as
+			     well, the menu is what lies under the tab. -->
+			<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9100)">9100</ondown>
+			<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9110)">9110</ondown>
+			<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9120)">9120</ondown>
 			<ondown>9000</ondown>
 			<onright condition="$EXP[recent_tab_shown]">9213</onright>
 		</control>
@@ -1309,7 +1458,7 @@
 			<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsGreater(Container(9221).NumItems,0)">SetFocus(9221)</onclick>
 			<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsEqual(Container(9221).NumItems,0)">SetFocus(9223)</onclick>
 			<onleft condition="$EXP[continue_tab_shown]">9210</onleft>
-			<onup condition="$EXP[corner_bar_top]">9000</onup>
+			<onup condition="$EXP[bar_above_menu]">9000</onup>
 			<onup condition="Control.IsVisible(9110)">9110</onup>
 			<onup condition="Control.IsVisible(9120)">9120</onup>
 			<onup>9100</onup>
@@ -1340,9 +1489,9 @@
 			<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsGreater(Container(9221).NumItems,0)">SetFocus(9221)</onclick>
 			<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsEqual(Container(9221).NumItems,0)">SetFocus(9223)</onclick>
 			<onleft condition="$EXP[continue_tab_shown]">9211</onleft>
-			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</ondown>
-			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</ondown>
-			<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</ondown>
+			<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9100)">9100</ondown>
+			<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9110)">9110</ondown>
+			<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9120)">9120</ondown>
 			<ondown>9000</ondown>
 		</control>
 

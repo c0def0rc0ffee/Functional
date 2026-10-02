@@ -63,7 +63,8 @@
 				<left>40</left>
 				<top>100</top>
 				<width>820</width>
-				<height>200</height>
+				<!-- six 35 px lines of font_reg -->
+				<height>210</height>
 				<font>font_reg</font>
 				<align>center</align>
 				<textcolor>text</textcolor>
@@ -71,13 +72,18 @@
 				<autoscroll time="3000" delay="4000" repeat="5000">true</autoscroll>
 			</control>
 
-			<!-- Optional progress bar (id 20), used by some yesno calls -->
+			<!-- Progress bar (id 20): the progress dialog shares this file. The
+			     textures are stated because Defaults.xml is inert, and a progress
+			     control without them draws nothing. -->
 			<control type="progress" id="20">
 				<left>40</left>
-				<top>305</top>
+				<top>318</top>
 				<width>820</width>
 				<height>10</height>
 				<info>System.Progressbar</info>
+				<texturebg colordiffuse="20FFFFFF">white.png</texturebg>
+				<midtexture colordiffuse="$VAR[AccentColor]">white.png</midtexture>
+				<overlaytexture>-</overlaytexture>
 			</control>
 
 			<!-- Action buttons. Kodi populates labels on 10 (No / OK), 11 (Yes), 12 (Cancel). -->

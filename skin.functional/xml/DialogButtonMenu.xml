@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
   <summary>
-  Power menu: a vertical grouplist 9000 of Kodi's fixed id buttons
-  (shutdown, restart, quit and the rest) over a dimmed background.
+  Power menu: panel 9000 of static rows (quit, power off, suspend,
+  hibernate, reboot, log off and the sleep timer rows), each with its
+  own action and visibility, over a dimmed background. The panel shows
+  eight rows; scrollbar 60 appears when there are more.
   </summary>
 -->
 <window type="dialog">
@@ -43,13 +45,20 @@
 			<label>31040</label>
 		</control>
 
-		<!-- Panel: Kodi populates with item entries from this skin's content list -->
+		<!-- Panel: Kodi populates with item entries from this skin's content list.
+		     480 high is eight rows. A box that can power down, suspend,
+		     hibernate and reboot, with the exit row on and a sleep timer
+		     armed during a film, has nine, and ten with more than one
+		     profile; the row that fell off the foot was "Cancel Sleep
+		     Timer". The rows always scrolled with the focus; the scrollbar
+		     is the sign that there are more. -->
 		<control type="panel" id="9000">
 			<left>40</left>
 			<top>80</top>
 			<width>520</width>
 			<height>480</height>
 			<orientation>vertical</orientation>
+			<pagecontrol>60</pagecontrol>
 			<onleft>9000</onleft>
 			<onright>9000</onright>
 			<itemlayout height="60" width="520">
@@ -132,20 +141,21 @@
 					<onclick>Skin.SetString(sleep_command,set)</onclick>
 					<visible>!Skin.HasSetting(hide_sleep_timer)</visible>
 				</item>
-				<!-- The two episode counted forms, only while something plays:
+				<!-- The two episode counted forms, only while VIDEO plays:
 				     they count natural playback ends, so with nothing playing
-				     there is nothing to count. -->
+				     there is nothing to count, and gapless music never
+				     produces the ends they wait for. -->
 				<item>
 					<label>31470</label>
 					<onclick>Dialog.Close(shutdownmenu)</onclick>
 					<onclick>Skin.SetString(sleep_command,episode)</onclick>
-					<visible>!Skin.HasSetting(hide_sleep_timer) + Player.HasMedia</visible>
+					<visible>!Skin.HasSetting(hide_sleep_timer) + Player.HasVideo</visible>
 				</item>
 				<item>
 					<label>31471</label>
 					<onclick>Dialog.Close(shutdownmenu)</onclick>
 					<onclick>Skin.SetString(sleep_command,episodes)</onclick>
-					<visible>!Skin.HasSetting(hide_sleep_timer) + Player.HasMedia</visible>
+					<visible>!Skin.HasSetting(hide_sleep_timer) + Player.HasVideo</visible>
 				</item>
 				<item>
 					<label>31425</label>
@@ -154,6 +164,22 @@
 					<visible>!Skin.HasSetting(hide_sleep_timer) + $EXP[sleep_armed]</visible>
 				</item>
 			</content>
+		</control>
+
+		<!-- Mouse only: the panel's Left and Right point at itself, so
+		     nothing navigates here, and these lead straight back. -->
+		<control type="scrollbar" id="60">
+			<left>568</left>
+			<top>80</top>
+			<width>8</width>
+			<height>480</height>
+			<orientation>vertical</orientation>
+			<showonepage>false</showonepage>
+			<onleft>9000</onleft>
+			<onright>9000</onright>
+			<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+			<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+			<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
 		</control>
 
 	</controls>

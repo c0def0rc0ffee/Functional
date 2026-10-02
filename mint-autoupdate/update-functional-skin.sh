@@ -12,6 +12,10 @@
 # swap on disk while Kodi is NOT running avoids Kodi's in-place skin reinstall,
 # which black-screens the Flatpak build (GL context teardown on live reload).
 #
+# It refuses to swap the skin while Kodi is running, and after an interrupted
+# update it puts the previous skin back rather than leaving the box without
+# one.
+#
 # Drop folder can be overridden with:  SKIN_DROP_DIR=/path ./update-functional-skin.sh
 # </remarks>
 #
@@ -52,6 +56,23 @@ ver_gt() {
     [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -1)" = "$1" ]
 }
 
+# <summary>Succeed when a Kodi process is running, as far as can be told cheaply.</summary>
+# <remarks>
+# Asks pgrep for the exact process names Kodi runs under: kodi.bin (most
+# builds, the Flatpak included) and kodi-x11, kodi-wayland and kodi-gbm (the
+# windowing specific binaries of newer packages). A box without pgrep gives
+# no answer, which is read as not running so that a minimal system still
+# updates; the swap is then only as safe as running this before Kodi starts.
+# </remarks>
+kodi_running() {
+    command -v pgrep >/dev/null 2>&1 || return 1
+    local name
+    for name in kodi.bin kodi-x11 kodi-wayland kodi-gbm; do
+        pgrep -x "$name" >/dev/null 2>&1 && return 0
+    done
+    return 1
+}
+
 # --- locate Kodi's addons directory (Flatpak / Snap / native) ---
 ADDONS=""
 # Flatpak builds differ: some keep the profile under data/.kodi, the current
@@ -74,10 +95,35 @@ fi
 # into .skin.functional.staging.*; a run killed mid-way (power cut at boot)
 # leaves those behind, and their names are unique so no later run would
 # ever remove them. Nothing else creates dot-folders with these names.
-for stale in "$ADDONS/.${ADDON_ID}.old."* "$ADDONS/.${ADDON_ID}.staging."*; do
+#
+# A staging folder is a half finished unpack and is always safe to remove.
+# A parked old skin is not: if the run died between moving the old skin
+# aside and moving the new one in, that folder is the only copy of the skin left
+# on the box, so it is put back, never deleted. Parked copies are cleared
+# only once a skin is installed again.
+for stale in "$ADDONS/.${ADDON_ID}.staging."*; do
     [ -d "$stale" ] || continue
     rm -rf "$stale" && log "removed leftover $(basename "$stale")"
 done
+newest=""
+for stale in "$ADDONS/.${ADDON_ID}.old."*; do
+    [ -d "$stale" ] || continue
+    if [ -z "$newest" ] || [ "$stale" -nt "$newest" ]; then newest="$stale"; fi
+done
+if [ -n "$newest" ] && [ ! -d "$ADDONS/$ADDON_ID" ]; then
+    if mv "$newest" "$ADDONS/$ADDON_ID"; then
+        log "restored the previous skin from $(basename "$newest"): an earlier update was interrupted"
+    else
+        log "ERROR: the skin folder is missing and $(basename "$newest") could not be moved back; left where it is"
+        exit 1
+    fi
+fi
+if [ -d "$ADDONS/$ADDON_ID" ]; then
+    for stale in "$ADDONS/.${ADDON_ID}.old."*; do
+        [ -d "$stale" ] || continue
+        rm -rf "$stale" && log "removed leftover $(basename "$stale")"
+    done
+fi
 
 # --- installed version ---
 inst="0"
@@ -111,9 +157,22 @@ fi
 # Every ERROR path sets status=1 so the exit code reports the failure (the
 # systemd oneshot variant in the README shows it; start-kodi.sh ignores it
 # on purpose and launches Kodi regardless).
+# Never under a running Kodi: swapping the skin folder while it is loaded
+# is the black screen this script exists to avoid. The zip stays in the
+# drop folder, so the next run before Kodi starts applies it.
+if kodi_running; then
+    log "ERROR: Kodi is running, skin not swapped (installed $inst, available $bestv); it will be applied the next time this runs before Kodi starts"
+    exit 1
+fi
+# An unchecked mktemp failure used to leave tmp empty, and unzip then
+# unpacked into whatever folder this was started from and reported success.
+tmp="$(mktemp -d "$ADDONS/.${ADDON_ID}.staging.XXXXXX")" || tmp=""
+if [ -z "$tmp" ] || [ ! -d "$tmp" ]; then
+    log "ERROR: could not create a staging folder in $ADDONS (read only, or full?); nothing changed"
+    exit 1
+fi
 log "updating $inst -> $bestv from $(basename "$best")"
 status=0
-tmp="$(mktemp -d "$ADDONS/.${ADDON_ID}.staging.XXXXXX")"
 old="$ADDONS/.${ADDON_ID}.old.$$"
 if unzip -q -o "$best" "$ADDON_ID/*" -d "$tmp" && [ -d "$tmp/$ADDON_ID" ]; then
     if [ -d "$ADDONS/$ADDON_ID" ] && ! mv "$ADDONS/$ADDON_ID" "$old"; then

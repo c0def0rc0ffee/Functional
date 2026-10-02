@@ -1,12 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
   <summary>
-  Album and artist info dialog. Publishes the item's fanart to Home as
-  infobackground while open; grouplist 9000 holds the action buttons.
+  Album, artist and song info dialog (Kodi serves all three from this
+  file). Publishes the item's fanart to Home as infobackground while
+  open; grouplist 9000 holds the action buttons.
   </summary>
+  <remarks>
+  Default focus is the grouplist, not a button: Kodi hides Refresh (6)
+  for song info and hides 7 and 12 for artist info, and a default that
+  names a hidden button leaves the dialog with no focus at all. The
+  grouplist hands focus to its first visible button.
+
+  Kodi's ids: 6 Refresh, 7 Set my rating, 8 Play, 10 Choose art, 12 Artist
+  or Album information. Kodi writes most of the labels; the ones stated
+  here are fallbacks for the dialog that does not. List 50 (album tracks,
+  artist discography) is not provided.
+  </remarks>
 -->
 <window>
-	<defaultcontrol always="true">6</defaultcontrol>
+	<defaultcontrol always="true">9000</defaultcontrol>
 	<onload>SetProperty(infobackground,$ESCINFO[ListItem.Art(fanart)],home)</onload>
 	<onunload>ClearProperty(infobackground,home)</onunload>
 	<controls>
@@ -67,6 +79,10 @@
 			<label>$INFO[ListItem.Artist]</label>
 		</control>
 
+		<!-- Year, genre and duration. Three alternates, one per first field
+		     that exists: a single label put its separator in front of Genre
+		     whenever Year was empty (every artist), so the line began with a
+		     stray dot. -->
 		<control type="label">
 			<left>720</left>
 			<top>200</top>
@@ -75,6 +91,27 @@
 			<font>font_reg</font>
 			<textcolor>text_dim</textcolor>
 			<label>$INFO[ListItem.Year]$INFO[ListItem.Genre,  ·  ,]$INFO[ListItem.Duration,  ·  ,]</label>
+			<visible>!String.IsEmpty(ListItem.Year)</visible>
+		</control>
+		<control type="label">
+			<left>720</left>
+			<top>200</top>
+			<right>80</right>
+			<height>30</height>
+			<font>font_reg</font>
+			<textcolor>text_dim</textcolor>
+			<label>$INFO[ListItem.Genre]$INFO[ListItem.Duration,  ·  ,]</label>
+			<visible>String.IsEmpty(ListItem.Year) + !String.IsEmpty(ListItem.Genre)</visible>
+		</control>
+		<control type="label">
+			<left>720</left>
+			<top>200</top>
+			<right>80</right>
+			<height>30</height>
+			<font>font_reg</font>
+			<textcolor>text_dim</textcolor>
+			<label>$INFO[ListItem.Duration]</label>
+			<visible>String.IsEmpty(ListItem.Year) + String.IsEmpty(ListItem.Genre)</visible>
 		</control>
 
 		<control type="label">
@@ -85,7 +122,19 @@
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
 			<label>★ $INFO[ListItem.Rating]$INFO[ListItem.UserRating,    $LOCALIZE[31055] ,]</label>
-			<visible>!String.IsEmpty(ListItem.Rating) | !String.IsEmpty(ListItem.UserRating)</visible>
+			<visible>!String.IsEmpty(ListItem.Rating)</visible>
+		</control>
+		<!-- Only a user rating: the star belongs to the scraped rating, so
+		     this line leaves it out instead of showing a star with no number. -->
+		<control type="label">
+			<left>720</left>
+			<top>240</top>
+			<right>80</right>
+			<height>34</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<label>$LOCALIZE[31055] $INFO[ListItem.UserRating]</label>
+			<visible>String.IsEmpty(ListItem.Rating) + !String.IsEmpty(ListItem.UserRating)</visible>
 		</control>
 
 		<!-- Description / review -->
@@ -93,7 +142,8 @@
 			<left>720</left>
 			<top>290</top>
 			<right>80</right>
-			<height>380</height>
+			<!-- eleven 35 px lines of font_reg -->
+			<height>385</height>
 			<font>font_reg</font>
 			<textcolor>text</textcolor>
 			<label>$INFO[ListItem.Property(Album_Description)]$INFO[ListItem.Property(Artist_Description)]$INFO[ListItem.Comment]</label>
@@ -110,8 +160,12 @@
 			<itemgap>10</itemgap>
 			<align>center</align>
 
+			<!-- Buttons are 260 wide: Kodi writes "Album information" (231 px in
+			     font_reg) and "Artist information" (217 px) into 12, which a 200 px
+			     button cut short. Five of them and four 10 px gaps are 1340 of the
+			     1760 px row. -->
 			<control type="button" id="6">
-				<width>200</width>
+				<width>260</width>
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -122,9 +176,10 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[184]</label>
 			</control>
 			<control type="button" id="8">
-				<width>200</width>
+				<width>260</width>
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -135,9 +190,26 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[208]</label>
+			</control>
+			<!-- 7 = Set my rating. Kodi hides it for artists and disables it for
+			     songs that come from a plugin. -->
+			<control type="button" id="7">
+				<width>260</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsetx>0</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[38023]</label>
 			</control>
 			<control type="button" id="10">
-				<width>200</width>
+				<width>260</width>
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -148,9 +220,10 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[13511]</label>
 			</control>
 			<control type="button" id="12">
-				<width>200</width>
+				<width>260</width>
 				<height>70</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
