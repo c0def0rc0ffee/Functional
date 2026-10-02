@@ -11,6 +11,27 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.13.0 (02/10/2026)
+
+- A fix release after a full review of the skin and its helper.
+- Screens that could trap or lose focus no longer do: the Lists action row
+  with an empty list selected, Favourites with nothing in a category, Home
+  on a cold start, the genre picker's scrollbar and the subtitle search.
+- Settings dialogs show their button row, the volume pop-up shows its
+  level, the queue's highlighted row shows its title, progress dialogs
+  have a bar and add-on information fits all of its buttons.
+- The settings backup no longer rewrites itself every twenty seconds, and
+  a settings reset can no longer replace the backup or grey out Restore.
+- Lists are safer: an unreadable lists file is never overwritten, the
+  previous copy is kept, and an import checks each item against this
+  library.
+- A sleep timer set on the clock now replaces an episode count, the music
+  queue end time counts from the track playing, the Duration field switch
+  works, and cancelling the search keyboard leaves the list alone.
+- Picking a genre keeps an age or search filter, and a sort the list does
+  not offer no longer reverses it.
+- Home tiles keep clear of the stats column with up to eight tiles.
+
 ## 0.12.16 (27/09/2026)
 
 - Remove Watched, a switch each list has on the Lists screen. Turned on,

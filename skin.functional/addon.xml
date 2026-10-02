@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.12.16" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.13.0" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,14 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>Remove Watched, a switch each list has on the Lists screen. Turned on, anything on that list that gets watched leaves it, with a notification saying which list it left. Finishing a film or episode counts, as does marking it watched by hand; a stream or file counts once it has played past nine tenths. Other lists holding the same item keep it.</news>
+		<news>A fix release after a full review of the skin and its helper.
+Screens that could trap or lose focus no longer do: the Lists action row with an empty list selected, Favourites with nothing in a category, Home on a cold start, the genre picker's scrollbar and the subtitle search.
+Settings dialogs show their button row, the volume pop-up shows its level, the queue's highlighted row shows its title, progress dialogs have a bar and add-on information fits all of its buttons.
+The settings backup no longer rewrites itself every twenty seconds, and a settings reset can no longer replace the backup or grey out Restore.
+Lists are safer: an unreadable lists file is never overwritten, the previous copy is kept, and an import checks each item against this library.
+A sleep timer set on the clock now replaces an episode count, the music queue end time counts from the track playing, the Duration field switch works, and cancelling the search keyboard leaves the list alone.
+Picking a genre keeps an age or search filter, and a sort the list does not offer no longer reverses it.
+Home tiles keep clear of the stats column with up to eight tiles.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
