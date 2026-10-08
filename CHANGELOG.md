@@ -11,6 +11,29 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.14.0 (08/10/2026)
+
+- A new volume pop-up: a large ring in the middle of the screen with the
+  volume percent at its centre, filling clockwise as the volume rises.
+  Muted greys the ring and says so.
+- Show when last watched, a Background setting. The caption under the
+  title gains the date the film or show was last played, in the
+  recently watched, random and genre modes.
+- Unwatched films only, a Background setting for random mode. Only films
+  never watched are picked, and TV shows are left out.
+- Move and remove buttons on list items, a Lists and Favourites setting.
+  The highlighted row on the Lists screen shows up, down and remove;
+  Right and Left pick one and OK uses it. Remove asks first.
+- Shuffle List in List Options puts a list in a new random order for
+  good, after asking.
+- Remove from Radarr: one list can be tied to a Radarr server on the new
+  Radarr settings page, and its List Options then offer to remove that
+  list's films from Radarr, deleting their files and blocking them from
+  being added again. It asks first, starts in dry run, which only logs
+  what would happen, and does nothing until an address, API key and
+  list are set. The List Options drop down itself is new, holding
+  Rename, Remove List and Remove Watched.
+
 ## 0.13.0 (02/10/2026)
 
 - A fix release after a full review of the skin and its helper.
