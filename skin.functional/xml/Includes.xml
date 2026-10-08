@@ -161,7 +161,7 @@
 				<textcolor>white</textcolor>
 				<shadowcolor>FF000000</shadowcolor>
 				<scroll>true</scroll>
-				<label>$INFO[Window(home).Property(home_bg_label)]</label>
+				<label>$VAR[BgCaptionText]</label>
 				<visible>!String.IsEmpty(Window(home).Property(home_bg_label)) + String.IsEqual(Skin.String(bg_label_position),$PARAM[pos])</visible>
 				<animation effect="fade" time="400">VisibleChange</animation>
 				<animation effect="slide" end="$PARAM[by1]" time="0" condition="$PARAM[shift1]">Conditional</animation>
@@ -169,6 +169,228 @@
 			</control>
 		</definition>
 	</include>
+	<!-- VOLUME-RING: Player.Volume as a whole percent, 0 to 100. As text
+	     Kodi reports Player.Volume in dB, but as a number (which is what
+	     Integer.IsGreaterOrEqual reads) it is the percent the slider uses,
+	     so the first test that passes, counting down, is the value. Picks
+	     the ring frame in DialogVolumeBar.xml and is the number shown in
+	     its centre. -->
+	<variable name="VolumePercent">
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,100)">100</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,99)">99</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,98)">98</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,97)">97</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,96)">96</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,95)">95</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,94)">94</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,93)">93</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,92)">92</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,91)">91</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,90)">90</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,89)">89</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,88)">88</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,87)">87</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,86)">86</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,85)">85</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,84)">84</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,83)">83</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,82)">82</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,81)">81</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,80)">80</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,79)">79</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,78)">78</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,77)">77</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,76)">76</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,75)">75</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,74)">74</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,73)">73</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,72)">72</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,71)">71</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,70)">70</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,69)">69</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,68)">68</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,67)">67</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,66)">66</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,65)">65</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,64)">64</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,63)">63</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,62)">62</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,61)">61</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,60)">60</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,59)">59</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,58)">58</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,57)">57</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,56)">56</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,55)">55</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,54)">54</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,53)">53</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,52)">52</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,51)">51</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,50)">50</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,49)">49</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,48)">48</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,47)">47</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,46)">46</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,45)">45</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,44)">44</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,43)">43</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,42)">42</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,41)">41</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,40)">40</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,39)">39</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,38)">38</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,37)">37</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,36)">36</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,35)">35</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,34)">34</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,33)">33</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,32)">32</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,31)">31</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,30)">30</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,29)">29</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,28)">28</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,27)">27</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,26)">26</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,25)">25</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,24)">24</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,23)">23</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,22)">22</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,21)">21</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,20)">20</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,19)">19</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,18)">18</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,17)">17</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,16)">16</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,15)">15</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,14)">14</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,13)">13</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,12)">12</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,11)">11</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,10)">10</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,9)">9</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,8)">8</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,7)">7</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,6)">6</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,5)">5</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,4)">4</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,3)">3</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,2)">2</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,1)">1</value>
+		<value>0</value>
+	</variable>
+	<variable name="VolumeRingFrame">
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,100)">volume/ring_100.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,99)">volume/ring_099.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,98)">volume/ring_098.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,97)">volume/ring_097.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,96)">volume/ring_096.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,95)">volume/ring_095.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,94)">volume/ring_094.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,93)">volume/ring_093.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,92)">volume/ring_092.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,91)">volume/ring_091.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,90)">volume/ring_090.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,89)">volume/ring_089.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,88)">volume/ring_088.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,87)">volume/ring_087.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,86)">volume/ring_086.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,85)">volume/ring_085.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,84)">volume/ring_084.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,83)">volume/ring_083.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,82)">volume/ring_082.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,81)">volume/ring_081.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,80)">volume/ring_080.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,79)">volume/ring_079.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,78)">volume/ring_078.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,77)">volume/ring_077.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,76)">volume/ring_076.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,75)">volume/ring_075.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,74)">volume/ring_074.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,73)">volume/ring_073.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,72)">volume/ring_072.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,71)">volume/ring_071.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,70)">volume/ring_070.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,69)">volume/ring_069.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,68)">volume/ring_068.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,67)">volume/ring_067.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,66)">volume/ring_066.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,65)">volume/ring_065.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,64)">volume/ring_064.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,63)">volume/ring_063.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,62)">volume/ring_062.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,61)">volume/ring_061.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,60)">volume/ring_060.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,59)">volume/ring_059.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,58)">volume/ring_058.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,57)">volume/ring_057.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,56)">volume/ring_056.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,55)">volume/ring_055.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,54)">volume/ring_054.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,53)">volume/ring_053.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,52)">volume/ring_052.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,51)">volume/ring_051.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,50)">volume/ring_050.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,49)">volume/ring_049.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,48)">volume/ring_048.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,47)">volume/ring_047.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,46)">volume/ring_046.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,45)">volume/ring_045.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,44)">volume/ring_044.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,43)">volume/ring_043.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,42)">volume/ring_042.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,41)">volume/ring_041.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,40)">volume/ring_040.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,39)">volume/ring_039.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,38)">volume/ring_038.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,37)">volume/ring_037.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,36)">volume/ring_036.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,35)">volume/ring_035.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,34)">volume/ring_034.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,33)">volume/ring_033.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,32)">volume/ring_032.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,31)">volume/ring_031.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,30)">volume/ring_030.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,29)">volume/ring_029.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,28)">volume/ring_028.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,27)">volume/ring_027.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,26)">volume/ring_026.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,25)">volume/ring_025.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,24)">volume/ring_024.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,23)">volume/ring_023.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,22)">volume/ring_022.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,21)">volume/ring_021.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,20)">volume/ring_020.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,19)">volume/ring_019.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,18)">volume/ring_018.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,17)">volume/ring_017.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,16)">volume/ring_016.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,15)">volume/ring_015.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,14)">volume/ring_014.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,13)">volume/ring_013.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,12)">volume/ring_012.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,11)">volume/ring_011.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,10)">volume/ring_010.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,9)">volume/ring_009.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,8)">volume/ring_008.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,7)">volume/ring_007.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,6)">volume/ring_006.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,5)">volume/ring_005.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,4)">volume/ring_004.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,3)">volume/ring_003.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,2)">volume/ring_002.png</value>
+		<value condition="Integer.IsGreaterOrEqual(Player.Volume,1)">volume/ring_001.png</value>
+		<value>volume/ring_000.png</value>
+	</variable>
+
+	<!-- BG-LASTPLAYED: the caption, with "Last watched dd/mm/yyyy" after
+	     the title while Skin.String(bg_lastplayed) is set and the item on
+	     screen has been played. home_bg_watched is published by
+	     service.py:_set_bg_props for every library mode and is empty for an
+	     item never played, a static image or a folder. -->
+	<variable name="BgCaptionText">
+		<value condition="!String.IsEmpty(Skin.String(bg_lastplayed)) + !String.IsEmpty(Window(home).Property(home_bg_watched))">$INFO[Window(home).Property(home_bg_label)]  ·  $INFO[Window(home).Property(home_bg_watched)]</value>
+		<value>$INFO[Window(home).Property(home_bg_label)]</value>
+	</variable>
 	<variable name="BgLabelPositionLabel">
 		<value condition="String.IsEqual(Skin.String(bg_label_position),topleft)">$LOCALIZE[31106]</value>
 		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">$LOCALIZE[31107]</value>
@@ -1544,7 +1766,9 @@
 	<!-- <summary>One right-column row: an item of the selected list.</summary>
 	     <param name="n">Slot number, 1 to 200.</param>
 	     <remarks>Clicking asks the service for the row's action menu (play
-	     now, move up, move down, remove).</remarks> -->
+	     now, move up, move down, remove), or, with a quick button picked
+	     (LISTS-QUICK, Window(home).Property(Lists.Quick)), moves the row
+	     or asks to remove it.</remarks> -->
 	<include name="ListsItemRow">
 		<param name="n" />
 		<definition>
@@ -1553,7 +1777,10 @@
 				<label2>$INFO[Window(home).Property(LI.$PARAM[n].Sub)]</label2>
 				<icon>$INFO[Window(home).Property(LI.$PARAM[n].Thumb)]</icon>
 				<property name="kind">$INFO[Window(home).Property(LI.$PARAM[n].Kind)]</property>
-				<onclick>Skin.SetString(list_command,item:$PARAM[n])</onclick>
+				<onclick condition="!Skin.HasSetting(lists_quick_buttons) | String.IsEmpty(Window(home).Property(Lists.Quick))">Skin.SetString(list_command,item:$PARAM[n])</onclick>
+				<onclick condition="Skin.HasSetting(lists_quick_buttons) + String.IsEqual(Window(home).Property(Lists.Quick),up)">Skin.SetString(list_command,item_up:$PARAM[n])</onclick>
+				<onclick condition="Skin.HasSetting(lists_quick_buttons) + String.IsEqual(Window(home).Property(Lists.Quick),down)">Skin.SetString(list_command,item_down:$PARAM[n])</onclick>
+				<onclick condition="Skin.HasSetting(lists_quick_buttons) + String.IsEqual(Window(home).Property(Lists.Quick),del)">Skin.SetString(list_command,item_del:$PARAM[n])</onclick>
 				<visible>!String.IsEmpty(Window(home).Property(LI.$PARAM[n].Label))</visible>
 			</item>
 		</definition>

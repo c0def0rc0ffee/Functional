@@ -56,6 +56,10 @@ update_home_bg()
     via JSON-RPC, then rotates URL + caption on Home as window properties:
         home_bg_fanart        e.g. "image://https%3a%2f%2f...fanart.jpg"
         home_bg_label         e.g. "The Mysterious Dr. Fu Manchu (1929)"
+        home_bg_watched       e.g. "Last watched 12/09/2026", empty when
+                              the item has never been played
+    Skin.String(bg_lastplayed) adds home_bg_watched to the caption, and
+    Skin.String(bg_unwatched) narrows "random" to films never watched.
     Cadence is read from Skin.String(bg_slideshow_interval), defaults to
     BG_INTERVAL seconds when unset. The list itself is re-fetched every
     BG_LIST_REFRESH seconds (or on VideoLibrary.OnUpdate).
@@ -152,6 +156,12 @@ update_lists()
     Lists.N.* / LI.N.* Home properties for the screen's static lists.
     "Porting" copies a list into the video and/or music queue, in order
     or shuffled, and starts it playing.
+    One list can be tied to a Radarr server (the Radarr settings page);
+    its Remove from Radarr button asks Radarr to remove the list's films,
+    delete their files and block them from being added again, after a
+    confirm, in dry run until that is switched off. Settings in
+    addon_data/skin.functional/radarr.json, every outcome appended to
+    radarr-log.txt beside it. See the RADARR-REMOVE block.
 
 Future handlers
 ---------------
@@ -165,7 +175,9 @@ Future handlers
 import json
 from collections import deque
 import os
+import urllib.error
 import urllib.parse
+import urllib.request
 import random
 import re
 import threading
@@ -558,7 +570,7 @@ class FunctionalHelper(xbmc.Monitor):
         # Year sources of the focused list item as last seen by
         # update_focused_age, so the label is only rebuilt on a real change.
         self._focused_age_key = None
-        self._bg_items = []        # list of (fanart_url, label_string)
+        self._bg_items = []        # list of (fanart_url, label, watched_text)
         self._bg_idx = -1
         self._bg_last_change = 0.0
         self._bg_last_fetch = 0.0
@@ -666,6 +678,9 @@ class FunctionalHelper(xbmc.Monitor):
         self._lists_watched_q = deque()  # records seen watched, drained by the loop
         self._lists_playing = None   # what the tracker saw playing last tick
         self._lists_watch_ignore = {}  # (dbtype, dbid) -> expiry, service's own writes
+        # Radarr (RADARR-REMOVE, see _radarr_remove_list): radarr.json is
+        # read on first use
+        self._radarr = None          # {url, key, dry_run}, None = not loaded
         # Sleep timer (see update_sleep_timer). Deliberately not persisted:
         # a timer has nothing to say once the box it was going to switch off
         # has been switched off.
@@ -2247,8 +2262,14 @@ class FunctionalHelper(xbmc.Monitor):
                 return
             source = "genre:{0}:{1}".format(
                 xbmc.getInfoLabel("Skin.String(bg_genre_type)") or "movies", genre)
+        elif mode == "random":
+            # BG-UNWATCHED: the filter is part of the key, so switching it
+            # refetches through the source changed path below.
+            source = ("random:unwatched"
+                      if xbmc.getInfoLabel("Skin.String(bg_unwatched)")
+                      else "random")
         else:
-            source = mode if mode in ("recent", "random") else None
+            source = mode if mode == "recent" else None
 
         if source is None:
             # image or off, never any slideshow fanart here. Always clear it
@@ -2314,25 +2335,33 @@ class FunctionalHelper(xbmc.Monitor):
         if (now - self._bg_last_change) >= interval:
             self._bg_idx = (self._bg_idx + 1) % len(bg_items)
             self._bg_last_change = now
-            url, label = bg_items[self._bg_idx]
-            self._set_bg_props(url, label)
+            url, label, watched = bg_items[self._bg_idx]
+            self._set_bg_props(url, label, watched)
             _dlog("bg rotate -> {0} | {1}".format(label, url[:120]), xbmc.LOGDEBUG)
 
     @staticmethod
-    def _set_bg_props(fanart, label):
+    def _set_bg_props(fanart, label, watched=""):
         """
         <summary>
-        Write the two Home background properties, skipping writes that
+        Write the Home background properties, skipping writes that
         wouldn't change anything: several callers run once per slow tick
         forever, and bursts of redundant Window(home) writes are implicated
         in the startup SIGABRT (see run()).
         </summary>
+        <param name="fanart">Image URL, empty for none.</param>
+        <param name="label">Caption, empty for none.</param>
+        <param name="watched">"Last watched" text for the caption, empty
+        when the item was never played or the mode has no library item.
+        BgCaptionText in Includes.xml only shows it while
+        Skin.String(bg_lastplayed) is set.</param>
         """
         win = xbmcgui.Window(HOME_WINDOW_ID)
         if win.getProperty("home_bg_fanart") != fanart:
             win.setProperty("home_bg_fanart", fanart)
         if win.getProperty("home_bg_label") != label:
             win.setProperty("home_bg_label", label)
+        if win.getProperty("home_bg_watched") != watched:
+            win.setProperty("home_bg_watched", watched)
 
     def _bg_fetch_worker(self, source):
         """
@@ -2346,8 +2375,9 @@ class FunctionalHelper(xbmc.Monitor):
             elif source.startswith("genre:"):
                 _, gtype, gname = source.split(":", 2)
                 items = self._fetch_genre_library(gname, gtype)
-            else:  # random
-                items = self._fetch_random_library()
+            else:  # random or random:unwatched
+                items = self._fetch_random_library(
+                    unwatched=source == "random:unwatched")
         except LookupError as exc:
             # The library did not answer. Keep whatever list is showing; an
             # empty one retries on the short backoff, a full one on the
@@ -3042,6 +3072,9 @@ class FunctionalHelper(xbmc.Monitor):
         the dialog opens on LIST_FILL_DEFAULT, and it is clamped because
         _parse_hhmm tops out at 23:59. "autoremove" is the per list Remove
         Watched switch; a file written before it existed reads as off.
+        "radarr" marks the one list whose films Remove from Radarr acts on,
+        see _radarr_pick_list; it also reads as off when missing, and only
+        the first list carrying it keeps it.
         </remarks>
         """
         if not (text or "").strip():
@@ -3067,10 +3100,13 @@ class FunctionalHelper(xbmc.Monitor):
                 fill = int(entry.get("fill") or 0)
             except (TypeError, ValueError):
                 fill = 0
+            radarr = bool(entry.get("radarr")) and not any(
+                l["radarr"] for l in lists)
             lists.append({"name": name,
                           "items": [it for it in items if it],
                           "fill": min(max(fill, 0), 23 * 60 + 59),
-                          "autoremove": bool(entry.get("autoremove"))})
+                          "autoremove": bool(entry.get("autoremove")),
+                          "radarr": radarr})
         return lists, str(data.get("last", "") or "")
 
     def _lists_export(self, folder=""):
@@ -3151,8 +3187,10 @@ class FunctionalHelper(xbmc.Monitor):
                 if target is None:
                     if len(lists) >= self.LISTS_MAX:
                         continue
+                    # "radarr" is never carried over: which list sends
+                    # films to be deleted is chosen on this box, not by a file.
                     target = {"name": entry["name"], "items": [], "fill": entry["fill"],
-                              "autoremove": entry["autoremove"]}
+                              "autoremove": entry["autoremove"], "radarr": False}
                     lists.append(target)
                     new_lists += 1
                 for item in entry["items"]:
@@ -3402,6 +3440,8 @@ class FunctionalHelper(xbmc.Monitor):
                     sub += " · " + self._fmt_secs(total)
                 if lst.get("autoremove"):
                     sub += " · " + _L(31505)
+                if lst.get("radarr"):
+                    sub += " · " + _L(31581)
                 win.setProperty("Lists.%d.Name" % n, lst["name"])
                 win.setProperty("Lists.%d.Sub" % n, sub)
             else:
@@ -3411,6 +3451,9 @@ class FunctionalHelper(xbmc.Monitor):
         # Every change to the lists ends up here, so this is where the
         # playback tracker learns whether it has anything to watch for.
         self._lists_autoremove_any = any(l.get("autoremove") for l in lists)
+        # The Radarr settings page shows the tied list by name, and a rename
+        # or a removal lands here like every other change.
+        self._radarr_publish(lists)
         # The selection may now point past the end (a delete) or at a
         # different list (an insert), so redo the right column regardless.
         self._lists_sel_pub = None
@@ -3456,6 +3499,10 @@ class FunctionalHelper(xbmc.Monitor):
         win.setProperty("Lists.Sel.AutoRemove",
                         (_L(31503) if lst.get("autoremove") else _L(31504))
                         if lst else "")
+        # "1" on the list tied to Radarr: its List Options drop down
+        # gains Remove from Radarr.
+        win.setProperty("Lists.Sel.Radarr",
+                        "1" if lst and lst.get("radarr") else "")
         used_before = self._list_item_slots_used
         for i in range(max(len(items), used_before)):
             n = i + 1
@@ -3478,8 +3525,14 @@ class FunctionalHelper(xbmc.Monitor):
         <remarks>Commands: add_last, add_pick (item in list_item_* Home
         properties); new, rename, delete, port, port_shuffle, port_time
         (act on the selected list); autoremove (flip the selected list's
-        Remove Watched switch); item:N (action menu for row N of the
-        selected list); save_queue (the open queue window becomes a new
+        Remove Watched switch); radarr_remove (send the selected list's
+        films to Radarr to be removed) and the Radarr settings page's
+        radarr_url, radarr_key, radarr_list, radarr_dryrun, radarr_test and
+        radarr_log; item:N (action menu for row N of the
+        selected list); item_up:N, item_down:N and item_del:N (the row's
+        quick buttons, LISTS-QUICK in Custom_1151_Lists.xml; remove asks
+        first); shuffle (put the selected list in a random order, after a
+        confirm); save_queue (the open queue window becomes a new
         list). Each tick also runs the Remove Watched tracker, whatever
         window is up, because watching happens away from this screen.
         A command arriving while another dialog is up is dropped, as with
@@ -3527,8 +3580,26 @@ class FunctionalHelper(xbmc.Monitor):
             self._lists_port_time()
         elif cmd == "autoremove":
             self._lists_toggle_autoremove()
+        elif cmd == "radarr_remove":
+            self._radarr_remove_list()
+        elif cmd == "radarr_url":
+            self._radarr_ask_url()
+        elif cmd == "radarr_key":
+            self._radarr_ask_key()
+        elif cmd == "radarr_list":
+            self._radarr_pick_list()
+        elif cmd == "radarr_dryrun":
+            self._radarr_toggle_dry_run()
+        elif cmd == "radarr_test":
+            self._radarr_test()
+        elif cmd == "radarr_log":
+            self._radarr_view_log()
         elif cmd.startswith("item:"):
             self._lists_item_menu(cmd[5:])
+        elif cmd.startswith(("item_up:", "item_down:", "item_del:")):
+            self._lists_item_quick(*cmd.split(":", 1))
+        elif cmd == "shuffle":
+            self._lists_shuffle()
         elif cmd == "save_queue":
             self._lists_save_queue()
         elif cmd == "export":
@@ -3608,7 +3679,8 @@ class FunctionalHelper(xbmc.Monitor):
                 idx = 0
             else:
                 self._lists.append({"name": name, "items": list(items or []),
-                                    "fill": 0, "autoremove": False})
+                                    "fill": 0, "autoremove": False,
+                                    "radarr": False})
                 idx = len(self._lists)
                 self._lists_last = name
         if not idx:
@@ -3883,24 +3955,57 @@ class FunctionalHelper(xbmc.Monitor):
             return
         if choice < 0:
             return
+        self._lists_item_apply(lst, pos, it, {1: "up", 2: "down", 3: "del"}[choice])
+
+    def _lists_item_quick(self, cmd, row):
+        """<summary>One of a row's quick buttons (LISTS-QUICK): move it up,
+        move it down, or remove it once the user has said yes.</summary>
+        <param name="cmd">item_up, item_down or item_del.</param>
+        <param name="row">1-based row number as a string.</param>"""
+        try:
+            pos = int(row) - 1
+        except ValueError:
+            return
+        idx, lst = self._lists_selected()
+        if not lst or not (0 <= pos < len(lst["items"])):
+            return
+        it = lst["items"][pos]
+        action = cmd[5:]
+        if action == "del" and not xbmcgui.Dialog().yesno(
+                lst["name"], _L(31623) % it.get("label", "")):
+            return
+        _dlog("list quick %s: row %d of %s" % (action, pos + 1, lst["name"]))
+        self._lists_item_apply(lst, pos, it, action)
+
+    def _lists_item_apply(self, lst, pos, it, action):
+        """<summary>Move a row up or down, or remove it, save, and put the
+        cursor where the user will want it next.</summary>
+        <param name="lst">The list the row belongs to.</param>
+        <param name="pos">0-based row index the caller saw.</param>
+        <param name="it">The item the caller saw at pos; nothing happens
+        when the row no longer holds it.</param>
+        <param name="action">up, down or del.</param>
+        <remarks>The cursor follows a moved row, and after a removal stays
+        where the next item slid in. Shared by the action menu and the
+        quick buttons.</remarks>"""
         with self._lists_lock:
             items = lst["items"]
-            # Remove Watched can take a row out while this menu is open,
-            # which would leave pos pointing at a neighbour.
+            # Remove Watched can take a row out while a menu or confirm is
+            # open, which would leave pos pointing at a neighbour.
             if pos >= len(items) or items[pos] is not it:
                 return
-            if choice == 1 and pos > 0:
+            if action == "up" and pos > 0:
                 items[pos - 1], items[pos] = items[pos], items[pos - 1]
-            elif choice == 2 and pos < len(items) - 1:
+            elif action == "down" and pos < len(items) - 1:
                 items[pos + 1], items[pos] = items[pos], items[pos + 1]
-            elif choice == 3:
+            elif action == "del":
                 items.pop(pos)
             else:
                 return
         self._lists_save()
         # Keep the cursor on the row the item moved to; a removal leaves it
         # where the next item slid into.
-        target = {1: pos, 2: pos + 2, 3: pos + 1}[choice]
+        target = {"up": pos, "down": pos + 2, "del": pos + 1}[action]
         remaining = len(lst["items"])
         if not remaining:
             # The last item has gone. List 51 is empty and cannot take
@@ -3982,6 +4087,24 @@ class FunctionalHelper(xbmc.Monitor):
     # </remarks>
     LIST_WATCHED_PCT = 90
     LIST_WATCH_TYPES = ("movie", "episode", "musicvideo")
+
+    def _lists_shuffle(self):
+        """<summary>Put the selected list's items in a random order for
+        good, after a yes/no, since the order it had cannot be got back.</summary>
+        <remarks>Unlike Port Shuffled, which jumbles only the copy sent to
+        the queue, this rewrites lists.json. The cursor goes back to the
+        first row.</remarks>"""
+        idx, lst = self._lists_selected()
+        if not lst or len(lst["items"]) < 2:
+            return
+        if not xbmcgui.Dialog().yesno(_L(31621), _L(31622) % lst["name"]):
+            return
+        with self._lists_lock:
+            random.shuffle(lst["items"])
+        self._lists_save()
+        _dlog("list %s: shuffled %d items" % (lst["name"], len(lst["items"])))
+        self._lists_notify(_L(31624) % lst["name"])
+        xbmc.executebuiltin("SetFocus(51,0,absolute)")
 
     def _lists_toggle_autoremove(self):
         """<summary>Flip Remove Watched on the selected list and say which
@@ -4109,6 +4232,541 @@ class FunctionalHelper(xbmc.Monitor):
         if rec["dbid"]:
             return it["dbtype"] == rec["dbtype"] and it["dbid"] == rec["dbid"]
         return bool(it["file"]) and it["file"] == rec["file"]
+
+    # ---- Radarr: remove a list's films from Radarr (RADARR-REMOVE) ---------
+    #
+    # <summary>
+    # One list can be tied to a Radarr server. Its Remove from Radarr
+    # button asks Radarr to remove every film on it, delete the files and
+    # add an import exclusion so Radarr never fetches the film again, then
+    # takes the films Radarr confirmed gone off the list.
+    # </summary>
+    # <remarks>
+    # Nothing here runs on its own: the only trigger is the button, and the
+    # button always asks first. The intent is spelt out at every level (the
+    # command is radarr_remove, the functions say remove, each log line
+    # carries "intent: remove") because other Radarr requests may be added
+    # later and a removal must never be mistaken for one of them.
+    #
+    # Dry run is on until it is switched off on the settings page, and an
+    # unreadable radarr.json reads as dry run too: the whole flow runs,
+    # the log says what would have been removed, and no DELETE is sent.
+    #
+    # A film is only ever matched by id. Kodi's library gives the TMDB and
+    # IMDb ids, Radarr's own film list is searched for exactly those, and a
+    # list item whose library id no longer names the file it was captured
+    # with is skipped: after a library rebuild id 12 can be another film.
+    # Anything that cannot be matched that way stays on the list and the
+    # log says why. Title matching is deliberately absent.
+    #
+    # The address and API key live in radarr.json in this skin's add-on
+    # data folder, never in a skin string: skin strings are copied into the
+    # settings backup and shown by the skin, and the key is full control of
+    # the Radarr server. The key is never logged and never published.
+    # </remarks>
+    RADARR_FILE = "special://profile/addon_data/skin.functional/radarr.json"
+    # Append only, one line per film per run, see _radarr_log.
+    RADARR_LOG_FILE = "special://profile/addon_data/skin.functional/radarr-log.txt"
+    RADARR_TIMEOUT = 20          # seconds per request
+    RADARR_LOG_VIEW_LINES = 300  # newest lines shown by View Log
+    RADARR_CONFIRM_TITLES = 8    # titles named in the confirm before "and N more"
+
+    def _radarr_config(self, force=False):
+        """
+        <summary>
+        The Radarr settings, read from radarr.json once.
+        </summary>
+        <param name="force">Re-read even if already loaded.</param>
+        <returns>A dict with url (no trailing slash), key and dry_run.</returns>
+        <remarks>
+        A missing or unreadable file is "not set up, dry run on", the safe
+        reading. dry_run is only False when the file says exactly false.
+        </remarks>
+        """
+        if self._radarr is not None and not force:
+            return self._radarr
+        cfg = {"url": "", "key": "", "dry_run": True}
+        path = xbmcvfs.translatePath(self.RADARR_FILE)
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as fh:
+                    data = json.load(fh)
+                if isinstance(data, dict):
+                    cfg["url"] = str(data.get("url") or "").strip().rstrip("/")
+                    cfg["key"] = str(data.get("key") or "").strip()
+                    cfg["dry_run"] = data.get("dry_run") is not False
+            except Exception:  # noqa: BLE001
+                _dlog("radarr.json unreadable:\n" + traceback.format_exc(),
+                      xbmc.LOGWARNING)
+        self._radarr = cfg
+        return cfg
+
+    def _radarr_save(self):
+        """
+        <summary>
+        Write the Radarr settings back to radarr.json and republish them.
+        </summary>
+        <returns>True when the file was written.</returns>
+        <remarks>
+        Created readable by its owner only where the platform honours
+        that, because it holds the API key. Temp file then rename, as
+        lists.json is written.
+        </remarks>
+        """
+        cfg = self._radarr_config()
+        self._lists_path()  # creates the add-on data folder when missing
+        path = xbmcvfs.translatePath(self.RADARR_FILE)
+        tmp = path + ".tmp"
+        try:
+            fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                json.dump({"version": 1, "url": cfg["url"], "key": cfg["key"],
+                           "dry_run": bool(cfg["dry_run"])}, fh, indent=1)
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(tmp, path)
+        except OSError:
+            _dlog("radarr.json write failed:\n" + traceback.format_exc(),
+                  xbmc.LOGERROR)
+            self._lists_notify(_L(31616), True)
+            return False
+        self._radarr_publish()
+        return True
+
+    def _radarr_publish(self, lists=None):
+        """
+        <summary>
+        Publish the Radarr settings page's readouts as Home properties.
+        </summary>
+        <param name="lists">The lists to find the tied one in; read under the lock when omitted.</param>
+        <remarks>
+        Radarr.Url, Radarr.Key (the words Set or Not set, never the key),
+        Radarr.List (the tied list's name, or None) and Radarr.DryRun
+        (On or Off).
+        </remarks>
+        """
+        cfg = self._radarr_config()
+        if lists is None:
+            with self._lists_lock:
+                lists = list(self._lists or [])
+        tied = next((l["name"] for l in lists if l.get("radarr")), "")
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        win.setProperty("Radarr.Url", cfg["url"] or _L(31586))
+        win.setProperty("Radarr.Key", _L(31585) if cfg["key"] else _L(31586))
+        win.setProperty("Radarr.List", tied or _L(31588))
+        win.setProperty("Radarr.DryRun",
+                        _L(31503) if cfg["dry_run"] else _L(31504))
+
+    def _radarr_log(self, cfg, list_name, title, result, ids=""):
+        """
+        <summary>
+        Append one line to the Radarr log, the record of every removal
+        asked for, made, skipped or failed.
+        </summary>
+        <param name="cfg">The settings in force, for the DRY RUN or LIVE tag.</param>
+        <param name="list_name">The list the request came from.</param>
+        <param name="title">The film, or "" for a line about the whole run.</param>
+        <param name="result">What happened, in plain words.</param>
+        <param name="ids">The ids the match was made on, when there are any.</param>
+        <remarks>
+        Plain text, one line per film per run, never trimmed or rewritten.
+        The date is day first because this file is for reading. A line
+        that cannot be written is still in the debug log.
+        </remarks>
+        """
+        fields = [time.strftime("%d/%m/%Y %H:%M:%S"),
+                  xbmc.getInfoLabel("System.FriendlyName") or "Kodi",
+                  "DRY RUN" if cfg["dry_run"] else "LIVE",
+                  "intent: remove",
+                  "list: " + list_name]
+        if title:
+            fields.append(title)
+        if ids:
+            fields.append(ids)
+        fields.append("result: " + result)
+        line = " | ".join(fields)
+        _dlog("radarr: " + line)
+        self._lists_path()  # creates the add-on data folder when missing
+        try:
+            with open(xbmcvfs.translatePath(self.RADARR_LOG_FILE), "a",
+                      encoding="utf-8") as fh:
+                fh.write(line + "\n")
+        except OSError:
+            _dlog("radarr log write failed:\n" + traceback.format_exc(),
+                  xbmc.LOGERROR)
+
+    def _radarr_request(self, cfg, method, path, query=None):
+        """
+        <summary>
+        One call to Radarr's v3 API.
+        </summary>
+        <param name="cfg">The settings: url and key.</param>
+        <param name="method">GET or DELETE.</param>
+        <param name="path">Path under /api/v3/, such as "movie" or "movie/12".</param>
+        <param name="query">Query parameters as a dict, or None.</param>
+        <returns>The decoded JSON reply, or None for an empty body.</returns>
+        <exception cref="RuntimeError">
+        Anything other than a clean answer: no connection, a timeout, an
+        HTTP error, a reply that is not JSON (a proxy's login page). The
+        message is safe to show and to log; the key travels in a header
+        and is in neither the address nor the message.
+        </exception>
+        <remarks>
+        This is transport only and knows nothing about intent. Callers
+        such as _radarr_remove_movie say what the request is for.
+        </remarks>
+        """
+        if not cfg["url"].lower().startswith(("http://", "https://")):
+            raise RuntimeError("the address is not http or https")
+        url = cfg["url"] + "/api/v3/" + path
+        if query:
+            url += "?" + urllib.parse.urlencode(query)
+        req = urllib.request.Request(
+            url, method=method,
+            headers={"X-Api-Key": cfg["key"], "Accept": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=self.RADARR_TIMEOUT) as resp:
+                body = resp.read()
+        except urllib.error.HTTPError as exc:
+            raise RuntimeError("HTTP %d%s" % (
+                exc.code, ", API key refused" if exc.code == 401 else ""))
+        except Exception as exc:  # noqa: BLE001
+            raise RuntimeError(
+                str(getattr(exc, "reason", "") or exc) or exc.__class__.__name__)
+        if not body.strip():
+            return None
+        try:
+            return json.loads(body.decode("utf-8"))
+        except ValueError:
+            raise RuntimeError("the reply was not JSON, is the address right?")
+
+    def _radarr_movies(self, cfg):
+        """
+        <summary>
+        Every film Radarr manages, indexed by the ids a match is made on.
+        </summary>
+        <param name="cfg">The settings: url and key.</param>
+        <returns>(by_tmdb, by_imdb): Radarr film records keyed by TMDB id (int) and by IMDb id (str).</returns>
+        <exception cref="RuntimeError">The request failed or did not return a list of films.</exception>
+        <remarks>One request for the whole run rather than one per film.</remarks>
+        """
+        rows = self._radarr_request(cfg, "GET", "movie")
+        if not isinstance(rows, list):
+            raise RuntimeError("the reply was not a list of films")
+        by_tmdb, by_imdb = {}, {}
+        for row in rows:
+            if not isinstance(row, dict) or self._safe_int(row.get("id"), 0) <= 0:
+                continue
+            tmdb = self._safe_int(row.get("tmdbId"), 0)
+            if tmdb > 0:
+                by_tmdb[tmdb] = row
+            imdb = str(row.get("imdbId") or "")
+            if imdb.startswith("tt"):
+                by_imdb[imdb] = row
+        return by_tmdb, by_imdb
+
+    def _radarr_remove_movie(self, cfg, movie):
+        """
+        <summary>
+        Ask Radarr to remove one film, delete its files and exclude it
+        from being added again, then check that it has gone.
+        </summary>
+        <param name="cfg">The settings: url and key.</param>
+        <param name="movie">The film's record from _radarr_movies.</param>
+        <returns>True when Radarr no longer lists the film afterwards.</returns>
+        <exception cref="RuntimeError">The removal or the check after it failed.</exception>
+        <remarks>
+        Irreversible: the files are deleted from disk by Radarr. Never
+        called in dry run, see _radarr_remove_list, and refuses on its own
+        account as a second guard.
+        </remarks>
+        """
+        if cfg["dry_run"]:
+            raise RuntimeError("dry run is on, no removal is sent")
+        rid = self._safe_int(movie.get("id"), 0)
+        self._radarr_request(cfg, "DELETE", "movie/%d" % rid,
+                             {"deleteFiles": "true",
+                              "addImportExclusion": "true"})
+        left = self._radarr_request(cfg, "GET", "movie",
+                                    {"tmdbId": movie.get("tmdbId")})
+        return not any(isinstance(row, dict)
+                       and self._safe_int(row.get("id"), 0) == rid
+                       for row in left or [])
+
+    def _radarr_identify(self, it):
+        """
+        <summary>
+        Work out which film a list item is, from Kodi's library, in a form
+        Radarr can be searched for.
+        </summary>
+        <param name="it">A stored list item.</param>
+        <returns>
+        (film, reason): film is a dict with title (with its year), tmdb
+        (int, 0 when unknown) and imdb ("" when unknown); when the item
+        cannot be identified safely film is None and reason says why.
+        </returns>
+        <remarks>
+        The item's library id is only trusted when the library still has
+        the same file under it (or, for an item stored with no path, the
+        same title), the test _list_item_localise applies to an import.
+        imdbnumber is used only when it is an IMDb id; with a TMDB scraper
+        it holds a bare number that could be either.
+        </remarks>
+        """
+        if it["dbtype"] != "movie" or not it["dbid"]:
+            return None, "skipped, not a film from the library"
+        resp = _jsonrpc("VideoLibrary.GetMovieDetails", {
+            "movieid": it["dbid"],
+            "properties": ["title", "year", "file", "uniqueid", "imdbnumber"]})
+        details = ((resp or {}).get("result") or {}).get("moviedetails") or {}
+        if not details:
+            return None, "skipped, the library no longer has this film"
+        if it["file"]:
+            if (details.get("file") or "") != it["file"]:
+                return None, ("skipped, the library id now names a "
+                              "different file")
+        elif (details.get("label") or details.get("title") or "") != it["label"]:
+            return None, "skipped, the library id now names a different film"
+        unique = details.get("uniqueid") or {}
+        tmdb = self._safe_int(unique.get("tmdb"), 0)
+        imdb = str(unique.get("imdb") or "")
+        if not imdb.startswith("tt"):
+            imdb = str(details.get("imdbnumber") or "")
+        if not imdb.startswith("tt"):
+            imdb = ""
+        if tmdb <= 0 and not imdb:
+            return None, "skipped, the library has no TMDB or IMDb id for it"
+        title = details.get("title") or it["label"]
+        if details.get("year"):
+            title += " (%s)" % details["year"]
+        return {"title": title, "tmdb": max(tmdb, 0), "imdb": imdb}, ""
+
+    def _radarr_remove_list(self):
+        """
+        <summary>
+        The Remove from Radarr button: after a confirm, send every film on
+        the selected list to Radarr to be removed, log each outcome and
+        take the removed films off the list.
+        </summary>
+        <remarks>
+        Dialog thread. Only acts on the list tied to Radarr, and only on
+        items that were on it when the button was pressed. In dry run the
+        same lookups are made and logged but nothing is removed anywhere.
+        A film leaves the list only once Radarr has been seen to no longer
+        hold it; skipped and failed films stay where they are. Kodi's own
+        library is not touched: the entry goes at the next library clean.
+        </remarks>
+        """
+        idx, lst = self._lists_selected()
+        if not lst or not lst.get("radarr"):
+            return
+        cfg = dict(self._radarr_config())
+        name = lst["name"]
+        dry = cfg["dry_run"]
+        heading = _L(31609) if dry else _L(31582)
+        if not cfg["url"] or not cfg["key"]:
+            self._lists_notify(_L(31598), True)
+            return
+        with self._lists_lock:
+            items = list(lst["items"])
+        films, skips = [], []   # (list item, identity), (label, reason)
+        for it in items:
+            film, reason = self._radarr_identify(it)
+            if film is None:
+                skips.append((it["label"], reason))
+            else:
+                films.append((it, film))
+        skipped = len(skips)
+        if not films:
+            for label, reason in skips:
+                self._radarr_log(cfg, name, label, reason)
+            xbmcgui.Dialog().ok(heading, _L(31608) % name)
+            return
+        titles = [film["title"] for _it, film in films]
+        shown = titles[:self.RADARR_CONFIRM_TITLES]
+        if len(titles) > len(shown):
+            shown.append(_L(31605) % (len(titles) - len(shown)))
+        if dry:
+            question = _L(31604) % "[CR]".join(shown)
+        elif len(films) == 1:
+            question = _L(31603) % "[CR]".join(shown)
+        else:
+            question = _L(31602) % (len(films), "[CR]".join(shown))
+        if not xbmcgui.Dialog().yesno(heading, question):
+            self._radarr_log(cfg, name, "", "cancelled at the confirm, "
+                             "%d film(s) left alone" % len(films))
+            return
+        for label, reason in skips:
+            self._radarr_log(cfg, name, label, reason)
+        try:
+            by_tmdb, by_imdb = self._radarr_movies(cfg)
+        except RuntimeError as exc:
+            self._radarr_log(cfg, name, "",
+                             "failed, Radarr's film list could not be read: %s" % exc)
+            self._lists_notify(_L(31597) % exc, True)
+            return
+        removed, failed, gone = 0, 0, []
+        progress = xbmcgui.DialogProgress()
+        progress.create(heading, "")
+        try:
+            for n, (it, film) in enumerate(films):
+                if progress.iscanceled():
+                    self._radarr_log(cfg, name, "", "stopped by hand, "
+                                     "%d film(s) not reached" % (len(films) - n))
+                    skipped += len(films) - n
+                    break
+                progress.update(int(100 * n / len(films)), film["title"])
+                movie = by_tmdb.get(film["tmdb"]) if film["tmdb"] else None
+                if movie is None and film["imdb"]:
+                    movie = by_imdb.get(film["imdb"])
+                ids = "tmdb %s, imdb %s" % (film["tmdb"] or "none",
+                                            film["imdb"] or "none")
+                if movie is None:
+                    skipped += 1
+                    self._radarr_log(cfg, name, film["title"],
+                                     "skipped, Radarr does not have this film", ids)
+                    continue
+                ids += ", radarr id %s, %.1f GB on disk" % (
+                    movie.get("id"),
+                    self._safe_int(movie.get("sizeOnDisk"), 0) / 1073741824.0)
+                if dry:
+                    removed += 1
+                    self._radarr_log(cfg, name, film["title"],
+                                     "would be removed, files deleted and "
+                                     "blocked from being added again", ids)
+                    continue
+                try:
+                    confirmed = self._radarr_remove_movie(cfg, movie)
+                except RuntimeError as exc:
+                    failed += 1
+                    self._radarr_log(cfg, name, film["title"],
+                                     "failed: %s" % exc, ids)
+                    continue
+                if confirmed:
+                    removed += 1
+                    gone.append(it)
+                    self._radarr_log(cfg, name, film["title"],
+                                     "removed, files deleted and blocked "
+                                     "from being added again", ids)
+                else:
+                    failed += 1
+                    self._radarr_log(cfg, name, film["title"],
+                                     "failed, Radarr accepted the removal "
+                                     "but still lists the film", ids)
+        finally:
+            progress.close()
+        if gone:
+            with self._lists_lock:
+                lst["items"] = [it for it in lst["items"]
+                                if not any(it is done for done in gone)]
+            self._lists_save()
+        if dry:
+            xbmcgui.Dialog().ok(heading, _L(31607) % (removed, skipped))
+        else:
+            xbmcgui.Dialog().ok(heading, _L(31606) % (removed, skipped, failed))
+
+    def _radarr_ask_url(self):
+        """<summary>Settings page: keyboard prompt for Radarr's address.</summary>
+        <remarks>An empty answer leaves the address as it was; anything
+        that is not http or https is refused with a toast.</remarks>"""
+        cfg = self._radarr_config()
+        url = xbmcgui.Dialog().input(_L(31593), cfg["url"],
+                                     type=xbmcgui.INPUT_ALPHANUM).strip().rstrip("/")
+        if not url or url == cfg["url"]:
+            return
+        if not url.lower().startswith(("http://", "https://")):
+            self._lists_notify(_L(31595), True)
+            return
+        cfg["url"] = url
+        self._radarr_save()
+
+    def _radarr_ask_key(self):
+        """<summary>Settings page: hidden keyboard prompt for Radarr's API
+        key.</summary>
+        <remarks>The stored key is never offered back as the default, so
+        it cannot be read off the screen; an empty answer keeps it.</remarks>"""
+        cfg = self._radarr_config()
+        key = xbmcgui.Dialog().input(_L(31594), "", type=xbmcgui.INPUT_ALPHANUM,
+                                     option=xbmcgui.ALPHANUM_HIDE_INPUT).strip()
+        if not key:
+            return
+        cfg["key"] = key
+        self._radarr_save()
+
+    def _radarr_pick_list(self):
+        """
+        <summary>
+        Settings page: choose which one list Remove from Radarr acts on,
+        or none.
+        </summary>
+        <remarks>
+        Exactly one list carries the flag. Its Remove Watched switch is
+        left as it is: with that on, a film watched before the button is
+        pressed has already left the list and is not removed.
+        </remarks>
+        """
+        with self._lists_lock:
+            names = [l["name"] for l in self._lists or []]
+            current = next((i for i, l in enumerate(self._lists or [])
+                            if l.get("radarr")), -1)
+        choice = xbmcgui.Dialog().select(_L(31615), [_L(31588)] + names,
+                                         preselect=current + 1)
+        if choice < 0 or choice - 1 == current:
+            return
+        tied = ""
+        with self._lists_lock:
+            for i, l in enumerate(self._lists or []):
+                # By name as well as position: the lists can change while
+                # the picker is open.
+                l["radarr"] = (i == choice - 1 and l["name"] == names[i])
+                if l["radarr"]:
+                    tied = l["name"]
+        self._lists_save()
+        _dlog("radarr: list tied: %s" % (tied or "none"))
+        self._lists_notify(_L(31611) % tied if tied else _L(31612))
+
+    def _radarr_toggle_dry_run(self):
+        """<summary>Settings page: flip dry run, asking first before
+        turning it off since removals are then real.</summary>"""
+        cfg = self._radarr_config()
+        if cfg["dry_run"] and not xbmcgui.Dialog().yesno(_L(31580), _L(31601)):
+            return
+        cfg["dry_run"] = not cfg["dry_run"]
+        if self._radarr_save():
+            self._lists_notify(_L(31613) if cfg["dry_run"] else _L(31614))
+
+    def _radarr_test(self):
+        """<summary>Settings page: ask Radarr for its status and say whether
+        the address and key work. Reads only.</summary>"""
+        cfg = dict(self._radarr_config())
+        if not cfg["url"] or not cfg["key"]:
+            self._lists_notify(_L(31598), True)
+            return
+        try:
+            status = self._radarr_request(cfg, "GET", "system/status")
+            if not isinstance(status, dict) or not status.get("version"):
+                raise RuntimeError("the reply was not Radarr's status")
+        except RuntimeError as exc:
+            self._lists_notify(_L(31597) % exc, True)
+            return
+        self._lists_notify(_L(31596) % status["version"])
+
+    def _radarr_view_log(self):
+        """<summary>Settings page: show the newest lines of the Radarr log,
+        newest first.</summary>"""
+        lines = []
+        try:
+            with open(xbmcvfs.translatePath(self.RADARR_LOG_FILE), "r",
+                      encoding="utf-8") as fh:
+                lines = [line.rstrip("\n") for line in fh if line.strip()]
+        except OSError:
+            lines = []
+        if not lines:
+            self._lists_notify(_L(31599))
+            return
+        lines = lines[-self.RADARR_LOG_VIEW_LINES:]
+        lines.reverse()
+        xbmcgui.Dialog().textviewer(_L(31600), "[CR][CR]".join(lines))
 
     # ---- Video nav: genre label + per-content default sort ----------------
     #
@@ -5863,6 +6521,8 @@ class FunctionalHelper(xbmc.Monitor):
         "dim": "bg_dim",
         "interval": "bg_slideshow_interval",
         "label_position": "bg_label_position",
+        "unwatched": "bg_unwatched",
+        "lastplayed": "bg_lastplayed",
     }
     BG_SCHED_MAX_SLOTS = 4
     # Start times seeded when a slot first comes into existence.
@@ -6198,26 +6858,34 @@ class FunctionalHelper(xbmc.Monitor):
             "limits": {"start": 0, "end": self.BG_COUNT},
             "sort": {"order": "descending", "method": "lastplayed"},
             "filter": {"field": "playcount", "operator": "greaterthan", "value": "0"},
-            "properties": ["art", "title", "year"],
+            "properties": ["art", "title", "year", "lastplayed"],
         }
-        movies = _result_rows(_jsonrpc("VideoLibrary.GetMovies", params), "movies")
-        items = []
-        for m in movies:
-            fanart = (m.get("art", {}) or {}).get("fanart", "")
-            if not fanart:
-                continue
-            title = m.get("title", "") or ""
-            year = m.get("year", 0)
-            label = "{0} ({1})".format(title, year) if year else title
-            items.append((fanart, label))
-        return items
+        return self._fanart_items(_result_rows(
+            _jsonrpc("VideoLibrary.GetMovies", params), "movies"))
+
+    @staticmethod
+    def _watched_text(lastplayed):
+        """
+        <summary>
+        Turn a library lastplayed stamp into the caption's "Last watched"
+        text, en-GB date order.
+        </summary>
+        <param name="lastplayed">Kodi's "YYYY-MM-DD HH:MM:SS", or empty.</param>
+        <returns>"Last watched 12/09/2026", or "" when never played or the
+        stamp does not parse.</returns>
+        """
+        m = re.match(r"(\d{4})-(\d{2})-(\d{2})", lastplayed or "")
+        if not m or m.group(1) == "0000":
+            return ""
+        return _L(31620) % "{0}/{1}/{2}".format(m.group(3), m.group(2), m.group(1))
 
     @staticmethod
     def _fanart_items(rows, with_year=True):
         """
         <summary>
-        (fanart_url, label) pairs from JSON-RPC rows carrying art/title/year.
-        Rows with no fanart are skipped, they would render as a blank background.
+        (fanart_url, label, watched_text) triples from JSON-RPC rows carrying
+        art/title/year and, when asked for, lastplayed. Rows with no fanart
+        are skipped, they would render as a blank background.
         </summary>
         """
         items = []
@@ -6227,7 +6895,9 @@ class FunctionalHelper(xbmc.Monitor):
                 continue
             title = row.get("title", "") or ""
             year = row.get("year", 0) if with_year else 0
-            items.append((fanart, "{0} ({1})".format(title, year) if year else title))
+            items.append((fanart,
+                          "{0} ({1})".format(title, year) if year else title,
+                          FunctionalHelper._watched_text(row.get("lastplayed"))))
         return items
 
     def _fetch_genre_library(self, genre, gtype):
@@ -6245,7 +6915,7 @@ class FunctionalHelper(xbmc.Monitor):
         params = {
             "limits": {"start": 0, "end": self.BG_COUNT},
             "sort": {"order": "ascending", "method": "random"},
-            "properties": ["art", "title", "year"],
+            "properties": ["art", "title", "year", "lastplayed"],
             "filter": {"field": "genre", "operator": "is", "value": genre},
         }
         items = []
@@ -6260,39 +6930,39 @@ class FunctionalHelper(xbmc.Monitor):
         random.shuffle(items)
         return items[:self.BG_COUNT]
 
-    def _fetch_random_library(self):
+    def _fetch_random_library(self, unwatched=False):
         """
         <summary>
         Up to BG_COUNT random fanart entries from the movie + TV-show library.
         </summary>
-        <returns>(fanart_url, label) pairs, shuffled so films and shows interleave.</returns>
+        <param name="unwatched">Films never watched only, and no TV shows
+        (BG-UNWATCHED, Skin.String(bg_unwatched)). Asked for as "only films
+        I have not seen", so a show is left out rather than judged by its
+        episodes.</param>
+        <returns>(fanart_url, label, watched_text) triples, shuffled so films and shows interleave.</returns>
         <exception cref="LookupError">The library did not answer, see _result_rows.</exception>
         """
-        items = []
         movie_params = {
             "limits": {"start": 0, "end": self.BG_COUNT},
             "sort": {"order": "ascending", "method": "random"},
-            "properties": ["art", "title", "year"],
+            "properties": ["art", "title", "year", "lastplayed"],
         }
-        for m in _result_rows(_jsonrpc("VideoLibrary.GetMovies", movie_params), "movies"):
-            fanart = (m.get("art", {}) or {}).get("fanart", "")
-            if not fanart:
-                continue
-            title = m.get("title", "") or ""
-            year = m.get("year", 0)
-            label = "{0} ({1})".format(title, year) if year else title
-            items.append((fanart, label))
+        if unwatched:
+            movie_params["filter"] = {
+                "field": "playcount", "operator": "is", "value": "0"}
+        items = self._fanart_items(_result_rows(
+            _jsonrpc("VideoLibrary.GetMovies", movie_params), "movies"))
+        if unwatched:
+            random.shuffle(items)
+            return items[:self.BG_COUNT]
         show_params = {
             "limits": {"start": 0, "end": self.BG_COUNT},
             "sort": {"order": "ascending", "method": "random"},
-            "properties": ["art", "title", "year"],
+            "properties": ["art", "title", "year", "lastplayed"],
         }
-        for s in _result_rows(_jsonrpc("VideoLibrary.GetTVShows", show_params), "tvshows"):
-            fanart = (s.get("art", {}) or {}).get("fanart", "")
-            if not fanart:
-                continue
-            label = s.get("title", "") or ""
-            items.append((fanart, label))
+        items += self._fanart_items(_result_rows(
+            _jsonrpc("VideoLibrary.GetTVShows", show_params), "tvshows"),
+            with_year=False)
         # Shuffle so movies and shows interleave.
         random.shuffle(items)
         return items[:self.BG_COUNT]

@@ -2061,3 +2061,186 @@ msgstr ""
 msgctxt "#31530"
 msgid "Played"
 msgstr ""
+
+# Radarr: one list's films removed from Radarr (ids 31580 to 31616).
+msgctxt "#31580"
+msgid "Radarr"
+msgstr ""
+
+msgctxt "#31581"
+msgid "Radarr list"
+msgstr ""
+
+msgctxt "#31582"
+msgid "Remove from Radarr"
+msgstr ""
+
+msgctxt "#31583"
+msgid "Address:"
+msgstr ""
+
+msgctxt "#31584"
+msgid "API key:"
+msgstr ""
+
+msgctxt "#31585"
+msgid "Set"
+msgstr ""
+
+msgctxt "#31586"
+msgid "Not set"
+msgstr ""
+
+msgctxt "#31587"
+msgid "List to remove from:"
+msgstr ""
+
+msgctxt "#31588"
+msgid "None"
+msgstr ""
+
+msgctxt "#31589"
+msgid "Dry run:"
+msgstr ""
+
+msgctxt "#31590"
+msgid "Test Connection"
+msgstr ""
+
+msgctxt "#31591"
+msgid "View Log"
+msgstr ""
+
+msgctxt "#31592"
+msgid "The chosen list gets a Remove from Radarr button on the Lists screen. It asks first, then Radarr removes every film on that list, deletes the files and blocks the films from being added again. While dry run is on nothing is removed and the log records what would have happened."
+msgstr ""
+
+msgctxt "#31593"
+msgid "Radarr address, such as http://radarr.example:7878"
+msgstr ""
+
+msgctxt "#31594"
+msgid "Radarr API key"
+msgstr ""
+
+msgctxt "#31595"
+msgid "The address must start with http:// or https://"
+msgstr ""
+
+msgctxt "#31596"
+msgid "Connected to Radarr %s"
+msgstr ""
+
+msgctxt "#31597"
+msgid "Radarr did not answer: %s"
+msgstr ""
+
+msgctxt "#31598"
+msgid "Set the Radarr address and API key in Skin Settings first"
+msgstr ""
+
+msgctxt "#31599"
+msgid "The Radarr log is empty"
+msgstr ""
+
+msgctxt "#31600"
+msgid "Radarr log"
+msgstr ""
+
+msgctxt "#31601"
+msgid "Turn dry run off? Remove from Radarr will then delete files for real."
+msgstr ""
+
+msgctxt "#31602"
+msgid "Remove these %d films from Radarr, delete their files and block them from being added again?[CR][CR]%s"
+msgstr ""
+
+msgctxt "#31603"
+msgid "Remove this film from Radarr, delete its files and block it from being added again?[CR][CR]%s"
+msgstr ""
+
+msgctxt "#31604"
+msgid "Dry run, nothing will be removed. Check these against Radarr and log what would happen?[CR][CR]%s"
+msgstr ""
+
+msgctxt "#31605"
+msgid "and %d more"
+msgstr ""
+
+msgctxt "#31606"
+msgid "Removed %d, skipped %d, failed %d. View Log on the Radarr settings page has the detail."
+msgstr ""
+
+msgctxt "#31607"
+msgid "Dry run: %d would be removed, %d skipped. View Log on the Radarr settings page has the detail."
+msgstr ""
+
+msgctxt "#31608"
+msgid "Nothing on %s can be sent to Radarr. View Log on the Radarr settings page says why."
+msgstr ""
+
+msgctxt "#31609"
+msgid "Remove from Radarr, dry run"
+msgstr ""
+
+msgctxt "#31610"
+msgid "List Options"
+msgstr ""
+
+msgctxt "#31611"
+msgid "Remove from Radarr now acts on %s"
+msgstr ""
+
+msgctxt "#31612"
+msgid "No list is tied to Radarr now"
+msgstr ""
+
+msgctxt "#31613"
+msgid "Dry run is on, nothing will be removed"
+msgstr ""
+
+msgctxt "#31614"
+msgid "Dry run is off, removals are real"
+msgstr ""
+
+msgctxt "#31615"
+msgid "List to remove from Radarr"
+msgstr ""
+
+msgctxt "#31616"
+msgid "Could not save the Radarr settings"
+msgstr ""
+
+# Background last watched, unwatched only random, Lists quick buttons and
+# Shuffle List (ids 31617 to 31624).
+msgctxt "#31617"
+msgid "Unwatched films only"
+msgstr ""
+
+msgctxt "#31618"
+msgid "Show when last watched"
+msgstr ""
+
+msgctxt "#31619"
+msgid "Move and remove buttons on list items"
+msgstr ""
+
+msgctxt "#31620"
+msgid "Last watched %s"
+msgstr ""
+
+msgctxt "#31621"
+msgid "Shuffle List"
+msgstr ""
+
+msgctxt "#31622"
+msgid "Put %s in a random order? The order it has now cannot be got back."
+msgstr ""
+
+msgctxt "#31623"
+msgid "Remove this from the list?[CR][CR]%s"
+msgstr ""
+
+msgctxt "#31624"
+msgid "%s shuffled"
+msgstr ""

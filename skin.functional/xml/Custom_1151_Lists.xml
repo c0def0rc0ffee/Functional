@@ -16,8 +16,13 @@
   window is up, so moving the cursor fills the right column; clicking a row
   jumps into its items. Clicking an item asks the service for its action
   menu (play now, move up, move down, remove). The footer buttons act on the
-  selected list through Skin.String(list_command): new, rename, delete,
-  port, port_shuffle, port_time, autoremove (the Remove Watched switch).
+  selected list through Skin.String(list_command): new, port, port_shuffle
+  and port_time on the row itself, and rename, delete and autoremove (the
+  Remove Watched switch) in the List Options drop down that button 9009
+  opens, see LISTS-OPTIONS-MENU. On the one list tied to Radarr (Skin
+  Settings, Radarr) the drop down also holds Remove from Radarr,
+  list_command radarr_remove, which asks before anything is sent
+  (service.py, RADARR-REMOVE).
 
   The action row sits on a 120px band at the foot of the screen, or at the
   top just under the header when Skin.HasSetting(lists_actions_top) is on
@@ -27,6 +32,13 @@
   needs no second wiring because up and down out of either list already
   land on the grouplist, and the grouplist returns to the list, whichever
   side of the columns it is on.
+
+  LISTS-QUICK (Skin.HasSetting(lists_quick_buttons), Lists and Favourites
+  settings): the focused item row shows up, down and remove buttons at its
+  right end. Right and left step along them, OK on one moves the row or,
+  for remove, asks first. A list row is a single focusable thing in Kodi,
+  so the buttons are drawn in the focused layout and the pick lives in
+  Window(home).Property(Lists.Quick).
 
   Porting copies the list into Kodi's video and/or music queue and starts it
   playing. Shuffled means the order is randomised before queueing, so the
@@ -43,6 +55,7 @@
 	<!-- With no lists yet list 50 has nothing focusable, so land on the
 	     footer where New List lives. -->
 	<onload condition="String.IsEmpty(Window(home).Property(Lists.Count)) | String.IsEqual(Window(home).Property(Lists.Count),0)">SetFocus(9000)</onload>
+	<onload>ClearProperty(Lists.Quick,home)</onload>
 	<controls>
 
 		<include content="WindowBackground"/>
@@ -186,9 +199,28 @@
 				<top>150</top>
 				<width>1180</width>
 				<height>770</height>
-				<onleft>50</onleft>
-				<onright>60</onright>
+				<!-- LISTS-QUICK: with the switch on, left and right walk the
+				     focused row's quick buttons (Window(home).Property(
+				     Lists.Quick): empty for the row, then up, down, del)
+				     before leaving the list. Each line's condition excludes
+				     the others. -->
+				<onleft condition="!Skin.HasSetting(lists_quick_buttons) | String.IsEmpty(Window(home).Property(Lists.Quick))">50</onleft>
+				<onleft condition="Skin.HasSetting(lists_quick_buttons) + String.IsEqual(Window(home).Property(Lists.Quick),up)">ClearProperty(Lists.Quick,home)</onleft>
+				<onleft condition="Skin.HasSetting(lists_quick_buttons) + String.IsEqual(Window(home).Property(Lists.Quick),down)">SetProperty(Lists.Quick,up,home)</onleft>
+				<onleft condition="Skin.HasSetting(lists_quick_buttons) + String.IsEqual(Window(home).Property(Lists.Quick),del)">SetProperty(Lists.Quick,down,home)</onleft>
+				<onright condition="!Skin.HasSetting(lists_quick_buttons) | String.IsEqual(Window(home).Property(Lists.Quick),del)">60</onright>
+				<onright condition="Skin.HasSetting(lists_quick_buttons) + String.IsEqual(Window(home).Property(Lists.Quick),del)">ClearProperty(Lists.Quick,home)</onright>
+				<onright condition="Skin.HasSetting(lists_quick_buttons) + String.IsEmpty(Window(home).Property(Lists.Quick))">SetProperty(Lists.Quick,up,home)</onright>
+				<onright condition="Skin.HasSetting(lists_quick_buttons) + String.IsEqual(Window(home).Property(Lists.Quick),up)">SetProperty(Lists.Quick,down,home)</onright>
+				<onright condition="Skin.HasSetting(lists_quick_buttons) + String.IsEqual(Window(home).Property(Lists.Quick),down)">SetProperty(Lists.Quick,del,home)</onright>
+				<!-- Leaving the column puts the pick back on the row. That
+				     is done on each way out rather than in onunfocus: the
+				     service's SetFocus after a move counts as an unfocus,
+				     and the pick has to survive it so OK can be pressed
+				     again to keep moving the same row. -->
+				<ondown>ClearProperty(Lists.Quick,home)</ondown>
 				<ondown>9000</ondown>
+				<onup>ClearProperty(Lists.Quick,home)</onup>
 				<onup>9000</onup>
 				<pagecontrol>60</pagecontrol>
 				<scrolltime tween="cubic" easing="out">200</scrolltime>
@@ -286,6 +318,7 @@
 						<selectedcolor>white</selectedcolor>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label]</label>
+						<visible>!Skin.HasSetting(lists_quick_buttons) | !Control.HasFocus(51)</visible>
 					</control>
 					<control type="label">
 						<left>210</left>
@@ -297,6 +330,135 @@
 						<selectedcolor>white</selectedcolor>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label2]</label>
+						<visible>!Skin.HasSetting(lists_quick_buttons) | !Control.HasFocus(51)</visible>
+					</control>
+					<control type="label">
+						<left>210</left>
+						<top>4</top>
+						<width>720</width>
+						<height>36</height>
+						<font>font_reg</font>
+						<textcolor>white</textcolor>
+						<selectedcolor>white</selectedcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+						<visible>Skin.HasSetting(lists_quick_buttons) + Control.HasFocus(51)</visible>
+					</control>
+					<control type="label">
+						<left>210</left>
+						<top>38</top>
+						<width>720</width>
+						<height>28</height>
+						<font>font_small</font>
+						<textcolor>white</textcolor>
+						<selectedcolor>white</selectedcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label2]</label>
+						<visible>Skin.HasSetting(lists_quick_buttons) + Control.HasFocus(51)</visible>
+					</control>
+					<!-- LISTS-QUICK: up, down and remove at the right end of the
+					     focused row. Right steps along them, left steps back to
+					     the row itself; the one picked is white, and OK acts on
+					     it (Includes.xml, ListsItemRow). The labels stop short
+					     of the buttons while the switch is on. -->
+					<control type="group">
+						<visible>Skin.HasSetting(lists_quick_buttons) + Control.HasFocus(51)</visible>
+					<control type="image">
+						<left>950</left>
+						<top>5</top>
+						<width>60</width>
+						<height>60</height>
+						<texture colordiffuse="white">white.png</texture>
+						<visible>String.IsEqual(Window(home).Property(Lists.Quick),up)</visible>
+					</control>
+					<control type="image">
+						<left>950</left>
+						<top>5</top>
+						<width>60</width>
+						<height>60</height>
+						<texture colordiffuse="40000000">white.png</texture>
+						<visible>!String.IsEqual(Window(home).Property(Lists.Quick),up)</visible>
+					</control>
+					<control type="image">
+						<left>960</left>
+						<top>15</top>
+						<width>40</width>
+						<height>40</height>
+						<texture colordiffuse="$VAR[AccentColor]">icons/list_up.png</texture>
+						<visible>String.IsEqual(Window(home).Property(Lists.Quick),up)</visible>
+					</control>
+					<control type="image">
+						<left>960</left>
+						<top>15</top>
+						<width>40</width>
+						<height>40</height>
+						<texture colordiffuse="white">icons/list_up.png</texture>
+						<visible>!String.IsEqual(Window(home).Property(Lists.Quick),up)</visible>
+					</control>
+					<control type="image">
+						<left>1032</left>
+						<top>5</top>
+						<width>60</width>
+						<height>60</height>
+						<texture colordiffuse="white">white.png</texture>
+						<visible>String.IsEqual(Window(home).Property(Lists.Quick),down)</visible>
+					</control>
+					<control type="image">
+						<left>1032</left>
+						<top>5</top>
+						<width>60</width>
+						<height>60</height>
+						<texture colordiffuse="40000000">white.png</texture>
+						<visible>!String.IsEqual(Window(home).Property(Lists.Quick),down)</visible>
+					</control>
+					<control type="image">
+						<left>1042</left>
+						<top>15</top>
+						<width>40</width>
+						<height>40</height>
+						<texture colordiffuse="$VAR[AccentColor]">icons/list_down.png</texture>
+						<visible>String.IsEqual(Window(home).Property(Lists.Quick),down)</visible>
+					</control>
+					<control type="image">
+						<left>1042</left>
+						<top>15</top>
+						<width>40</width>
+						<height>40</height>
+						<texture colordiffuse="white">icons/list_down.png</texture>
+						<visible>!String.IsEqual(Window(home).Property(Lists.Quick),down)</visible>
+					</control>
+					<control type="image">
+						<left>1114</left>
+						<top>5</top>
+						<width>60</width>
+						<height>60</height>
+						<texture colordiffuse="white">white.png</texture>
+						<visible>String.IsEqual(Window(home).Property(Lists.Quick),del)</visible>
+					</control>
+					<control type="image">
+						<left>1114</left>
+						<top>5</top>
+						<width>60</width>
+						<height>60</height>
+						<texture colordiffuse="40000000">white.png</texture>
+						<visible>!String.IsEqual(Window(home).Property(Lists.Quick),del)</visible>
+					</control>
+					<control type="image">
+						<left>1124</left>
+						<top>15</top>
+						<width>40</width>
+						<height>40</height>
+						<texture colordiffuse="$VAR[AccentColor]">icons/list_remove.png</texture>
+						<visible>String.IsEqual(Window(home).Property(Lists.Quick),del)</visible>
+					</control>
+					<control type="image">
+						<left>1124</left>
+						<top>15</top>
+						<width>40</width>
+						<height>40</height>
+						<texture colordiffuse="white">icons/list_remove.png</texture>
+						<visible>!String.IsEqual(Window(home).Property(Lists.Quick),del)</visible>
+					</control>
 					</control>
 				</focusedlayout>
 
@@ -404,9 +566,14 @@
 				<onclick>Skin.SetString(list_command,new)</onclick>
 			</control>
 
-			<control type="button" id="9002">
+			<!-- LISTS-OPTIONS-MENU: opens the drop down (9100, below this
+			     grouplist) holding the actions on the list itself. Second
+			     in the row, straight after the one button that is always
+			     there, so it never moves and the menu can sit at a fixed
+			     spot under it. -->
+			<control type="button" id="9009">
 				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Idx),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
-				<width>200</width>
+				<width>240</width>
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -417,26 +584,16 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>31020</label>
-				<onclick>Skin.SetString(list_command,rename)</onclick>
+				<label>31610</label>
+				<!-- The first row by id, not the grouplist: a grouplist
+				     goes back to the row it last had focused, and when
+				     that was Remove from Radarr and the list selected now
+				     is another one the row is hidden, the focus fails and
+				     Kodi falls back to the window's default control. -->
+				<onclick>SetFocus(9002)</onclick>
 			</control>
 
-			<control type="button" id="9003">
-				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Idx),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
-				<width>200</width>
-				<height>60</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>31021</label>
-				<onclick>Skin.SetString(list_command,delete)</onclick>
-			</control>
+
 
 			<control type="button" id="9004">
 				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Count),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
@@ -493,25 +650,170 @@
 				<onclick>Skin.SetString(list_command,port_time)</onclick>
 			</control>
 
-			<!-- Remove Watched: the selected list's own switch. On, anything
-			     on it that gets watched leaves the list with a toast. -->
-			<control type="button" id="9007">
-				<visible>!String.IsEqual(Window(home).Property(Lists.Sel.Idx),0) + !String.IsEmpty(Window(home).Property(Lists.Sel.Name))</visible>
-				<width>300</width>
-				<height>60</height>
-				<font>font_reg</font>
-				<textcolor>text</textcolor>
-				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
-				<align>center</align>
-				<aligny>center</aligny>
-				<textoffsetx>0</textoffsetx>
-				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>$LOCALIZE[31502]  $INFO[Window(home).Property(Lists.Sel.AutoRemove)]</label>
-				<onclick>Skin.SetString(list_command,autoremove)</onclick>
-			</control>
 
+
+		</control>
+
+		<!-- ===== List Options drop down (LISTS-OPTIONS-MENU) =====
+		     Rename, Remove List, the Remove Watched switch, Shuffle List
+		     and, on the list tied to Radarr, Remove from Radarr. Button 9009 hands
+		     focus to the first row of grouplist 9100; group 9101 is only visible while that
+		     grouplist holds focus (allowhiddenfocus lets it take focus
+		     while still hidden), so leaving in any direction, or Back,
+		     closes it. It unrolls downwards from its top edge and rolls
+		     back up: a vertical zoom about that edge with a fade.
+
+		     The rows that open a dialog give focus back to 9009 first, or
+		     the menu would stay open behind the dialog. Remove Watched
+		     opens nothing, so the menu stays and its label flips in place.
+
+		     Placed for five rows ending just above the button when the
+		     action row is at the foot of the screen. Shuffle List (two
+		     items or more) and Remove from Radarr can each be hidden, and
+		     each one hidden drops the rest 62px to stay against the
+		     button. With the action row at the top the whole menu moves
+		     up 480 to hang just under the button instead, and the drops
+		     do not apply. The slides are on the outer group so the
+		     zoom's centre, given in screen coordinates, moves with them. -->
+		<control type="group">
+			<animation effect="slide" end="0,-480" time="0" condition="Skin.HasSetting(lists_actions_top)">Conditional</animation>
+			<animation effect="slide" end="0,62" time="0" condition="!Skin.HasSetting(lists_actions_top) + ![String.IsEqual(Window(home).Property(Lists.Sel.Radarr),1) + !String.IsEqual(Window(home).Property(Lists.Sel.Count),0)]">Conditional</animation>
+			<animation effect="slide" end="0,62" time="0" condition="!Skin.HasSetting(lists_actions_top) + !Integer.IsGreater(Window(home).Property(Lists.Sel.Count),1)">Conditional</animation>
+			<control type="group" id="9101">
+				<visible allowhiddenfocus="true">ControlGroup(9100).HasFocus</visible>
+				<animation type="Visible" reversible="false">
+					<effect type="zoom" start="100,0" end="100,100" center="254,672" time="220" tween="cubic" easing="out"/>
+					<effect type="fade" start="0" end="100" time="160"/>
+				</animation>
+				<animation type="Hidden" reversible="false">
+					<effect type="zoom" start="100,100" end="100,0" center="254,672" time="180" tween="cubic" easing="in"/>
+					<effect type="fade" start="100" end="0" time="180"/>
+				</animation>
+				<!-- Backing: a panel with an accent edge, one size each for
+				     five, four and three rows. -->
+				<control type="image">
+					<visible>[String.IsEqual(Window(home).Property(Lists.Sel.Radarr),1) + !String.IsEqual(Window(home).Property(Lists.Sel.Count),0)] + Integer.IsGreater(Window(home).Property(Lists.Sel.Count),1)</visible>
+					<left>250</left>
+					<top>672</top>
+					<width>348</width>
+					<height>316</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="image">
+					<visible>[[String.IsEqual(Window(home).Property(Lists.Sel.Radarr),1) + !String.IsEqual(Window(home).Property(Lists.Sel.Count),0)] + !Integer.IsGreater(Window(home).Property(Lists.Sel.Count),1)] | [![String.IsEqual(Window(home).Property(Lists.Sel.Radarr),1) + !String.IsEqual(Window(home).Property(Lists.Sel.Count),0)] + Integer.IsGreater(Window(home).Property(Lists.Sel.Count),1)]</visible>
+					<left>250</left>
+					<top>672</top>
+					<width>348</width>
+					<height>254</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="image">
+					<visible>![String.IsEqual(Window(home).Property(Lists.Sel.Radarr),1) + !String.IsEqual(Window(home).Property(Lists.Sel.Count),0)] + !Integer.IsGreater(Window(home).Property(Lists.Sel.Count),1)</visible>
+					<left>250</left>
+					<top>672</top>
+					<width>348</width>
+					<height>192</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="grouplist" id="9100">
+					<left>254</left>
+					<top>676</top>
+					<width>340</width>
+					<height>308</height>
+					<orientation>vertical</orientation>
+					<itemgap>2</itemgap>
+					<onleft>9009</onleft>
+					<onright>9009</onright>
+					<onup>9009</onup>
+					<ondown>9009</ondown>
+					<onback>9009</onback>
+
+					<control type="button" id="9002">
+						<width>340</width>
+						<height>60</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<disabledcolor>disabled</disabledcolor>
+						<focusedcolor>white</focusedcolor>
+						<align>left</align>
+						<aligny>center</aligny>
+						<textoffsetx>20</textoffsetx>
+						<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+						<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+						<label>31020</label>
+						<onclick>SetFocus(9009)</onclick>
+						<onclick>Skin.SetString(list_command,rename)</onclick>
+					</control>
+					<control type="button" id="9003">
+						<width>340</width>
+						<height>60</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<disabledcolor>disabled</disabledcolor>
+						<focusedcolor>white</focusedcolor>
+						<align>left</align>
+						<aligny>center</aligny>
+						<textoffsetx>20</textoffsetx>
+						<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+						<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+						<label>31021</label>
+						<onclick>SetFocus(9009)</onclick>
+						<onclick>Skin.SetString(list_command,delete)</onclick>
+					</control>
+					<control type="button" id="9007">
+						<width>340</width>
+						<height>60</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<disabledcolor>disabled</disabledcolor>
+						<focusedcolor>white</focusedcolor>
+						<align>left</align>
+						<aligny>center</aligny>
+						<textoffsetx>20</textoffsetx>
+						<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+						<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+						<label>$LOCALIZE[31502]  $INFO[Window(home).Property(Lists.Sel.AutoRemove)]</label>
+						<onclick>Skin.SetString(list_command,autoremove)</onclick>
+					</control>
+					<!-- Shuffle List: a new order kept for good, after a
+					     confirm (service.py, _lists_shuffle). Needs two items
+					     to mean anything. -->
+					<control type="button" id="9010">
+						<visible>Integer.IsGreater(Window(home).Property(Lists.Sel.Count),1)</visible>
+						<width>340</width>
+						<height>60</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<disabledcolor>disabled</disabledcolor>
+						<focusedcolor>white</focusedcolor>
+						<align>left</align>
+						<aligny>center</aligny>
+						<textoffsetx>20</textoffsetx>
+						<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+						<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+						<label>31621</label>
+						<onclick>SetFocus(9009)</onclick>
+						<onclick>Skin.SetString(list_command,shuffle)</onclick>
+					</control>
+					<control type="button" id="9008">
+						<visible>String.IsEqual(Window(home).Property(Lists.Sel.Radarr),1) + !String.IsEqual(Window(home).Property(Lists.Sel.Count),0)</visible>
+						<width>340</width>
+						<height>60</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<disabledcolor>disabled</disabledcolor>
+						<focusedcolor>white</focusedcolor>
+						<align>left</align>
+						<aligny>center</aligny>
+						<textoffsetx>20</textoffsetx>
+						<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+						<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+						<label>31582</label>
+						<onclick>SetFocus(9009)</onclick>
+						<onclick>Skin.SetString(list_command,radarr_remove)</onclick>
+					</control>
+				</control>
+			</control>
 		</control>
 
 	</controls>

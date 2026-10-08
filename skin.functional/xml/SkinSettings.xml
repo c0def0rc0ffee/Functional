@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
   <summary>
-  Skin Settings window: category buttons 7001 to 7007 (Overall, Main
+  Skin Settings window: category buttons 7001 to 7008 (Overall, Main
   Menu, Home Screen, Background, Library, Lists and Favourites,
-  Playback) down the left, each showing its page of toggles, pickers
+  Playback, Radarr) down the left, each showing its page of toggles, pickers
   and readouts on the right. The
   values are Skin.Strings and Skin.Settings read by the windows and by
   service.py. Default control 7000 is set without always, so the last
@@ -56,7 +56,7 @@
 			<itemgap>4</itemgap>
 			<orientation>vertical</orientation>
 
-			<!-- Seven pages. The stored value under settings_category is the
+			<!-- Eight pages. The stored value under settings_category is the
 			     original name where a page was renamed (media = Library,
 			     video = Playback) so a saved choice still opens a page. -->
 			<control type="button" id="7003">
@@ -192,6 +192,25 @@
 				<onclick>Skin.Reset(settings_reload)</onclick>
 				<onclick>Skin.SetString(settings_category,video)</onclick>
 				<onright>7302</onright>
+			</control>
+
+			<control type="button" id="7008">
+				<width>360</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>31580</label>
+				<onfocus condition="!Skin.HasSetting(settings_reload)">Skin.SetString(settings_category,radarr)</onfocus>
+				<onclick>Skin.Reset(settings_reload)</onclick>
+				<onclick>Skin.SetString(settings_category,radarr)</onclick>
+				<onright>7400</onright>
 			</control>
 
 		</control>
@@ -2629,6 +2648,33 @@
 				<onclick>Skin.ToggleSetting(lists_actions_top)</onclick>
 				<onleft>7000</onleft>
 				<onup>7234</onup>
+				<ondown>7238</ondown>
+			</control>
+			<!-- LISTS-QUICK: up, down and remove buttons on the focused
+			     item row of the Lists screen (Custom_1151_Lists.xml). -->
+			<control type="radiobutton" id="7238">
+				<left>440</left>
+				<top>440</top>
+				<width>900</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31619</label>
+				<selected>Skin.HasSetting(lists_quick_buttons)</selected>
+				<onclick>Skin.ToggleSetting(lists_quick_buttons)</onclick>
+				<onleft>7000</onleft>
+				<onup>7235</onup>
 				<ondown>7236</ondown>
 			</control>
 			<!-- Lists on another box: export copies lists.json to a folder Kodi
@@ -2636,7 +2682,7 @@
 			     (service.py:_lists_export, _lists_import). -->
 			<control type="button" id="7236">
 				<left>440</left>
-				<top>440</top>
+				<top>510</top>
 				<width>440</width>
 				<height>60</height>
 				<font>font_reg</font>
@@ -2652,12 +2698,12 @@
 				<onclick>Skin.SetString(list_command,export)</onclick>
 				<onleft>7000</onleft>
 				<onright>7237</onright>
-				<onup>7235</onup>
+				<onup>7238</onup>
 				<ondown>7124</ondown>
 			</control>
 			<control type="button" id="7237">
 				<left>900</left>
-				<top>440</top>
+				<top>510</top>
 				<width>440</width>
 				<height>60</height>
 				<font>font_reg</font>
@@ -2673,14 +2719,14 @@
 				<onclick>Skin.SetString(list_command,import)</onclick>
 				<onleft>7236</onleft>
 				<onright>7237</onright>
-				<onup>7235</onup>
+				<onup>7238</onup>
 				<ondown>7124</ondown>
 			</control>
 
 			<!-- ===== FAVOURITES ===== -->
 			<control type="label">
 				<left>440</left>
-				<top>520</top>
+				<top>590</top>
 				<width>900</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -2692,7 +2738,7 @@
 			     from. Cycle: All, Movies, TV, Music, Apps, Other. -->
 			<control type="button" id="7124">
 				<left>440</left>
-				<top>560</top>
+				<top>630</top>
 				<width>900</width>
 				<height>60</height>
 				<font>font_reg</font>
@@ -2718,13 +2764,174 @@
 
 			<control type="label">
 				<left>440</left>
-				<top>630</top>
+				<top>700</top>
 				<width>900</width>
 				<height>60</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
 				<wrapmultiline>true</wrapmultiline>
 				<label>31441</label>
+			</control>
+		</control>
+
+		<!-- ========== RADARR CATEGORY ==========
+		     One list's films can be sent to Radarr to be removed. Every row
+		     here goes through Skin.String(list_command) to service.py (the
+		     RADARR-REMOVE block): the address and API key are kept in
+		     radarr.json in the add-on data folder, not in skin strings, so
+		     the readouts are Home properties (Radarr.Url, Radarr.Key which
+		     only ever says Set or Not set, Radarr.List, Radarr.DryRun). -->
+		<control type="group" id="9007">
+			<visible>String.IsEqual(Skin.String(settings_category),radarr)</visible>
+
+			<control type="label">
+				<left>440</left>
+				<top>120</top>
+				<width>1400</width>
+				<height>50</height>
+				<font>font_med</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>31580</label>
+			</control>
+			<control type="image">
+				<left>440</left>
+				<top>166</top>
+				<width>1400</width>
+				<height>2</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+
+			<control type="grouplist" id="7026">
+				<left>440</left>
+				<top>190</top>
+				<width>900</width>
+				<height>470</height>
+				<itemgap>10</itemgap>
+				<orientation>vertical</orientation>
+				<pagecontrol>7056</pagecontrol>
+				<onleft>7000</onleft>
+
+				<control type="button" id="7400">
+					<width>900</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31583] $INFO[Window(home).Property(Radarr.Url)]</label>
+					<onleft>7000</onleft>
+					<onclick>Skin.SetString(list_command,radarr_url)</onclick>
+				</control>
+				<control type="button" id="7401">
+					<width>900</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31584] $INFO[Window(home).Property(Radarr.Key)]</label>
+					<onleft>7000</onleft>
+					<onclick>Skin.SetString(list_command,radarr_key)</onclick>
+				</control>
+				<control type="button" id="7402">
+					<width>900</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31587] $INFO[Window(home).Property(Radarr.List)]</label>
+					<onleft>7000</onleft>
+					<onclick>Skin.SetString(list_command,radarr_list)</onclick>
+				</control>
+				<control type="button" id="7403">
+					<width>900</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31589] $INFO[Window(home).Property(Radarr.DryRun)]</label>
+					<onleft>7000</onleft>
+					<onclick>Skin.SetString(list_command,radarr_dryrun)</onclick>
+				</control>
+				<control type="button" id="7404">
+					<width>900</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>31590</label>
+					<onleft>7000</onleft>
+					<onclick>Skin.SetString(list_command,radarr_test)</onclick>
+				</control>
+				<control type="button" id="7405">
+					<width>900</width>
+					<height>70</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>31591</label>
+					<onleft>7000</onleft>
+					<onclick>Skin.SetString(list_command,radarr_log)</onclick>
+				</control>
+			</control>
+			<control type="scrollbar" id="7056">
+				<left>1352</left>
+				<top>190</top>
+				<width>8</width>
+				<height>470</height>
+				<orientation>vertical</orientation>
+				<showonepage>false</showonepage>
+				<onleft>7026</onleft>
+				<onright>7026</onright>
+				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
+			</control>
+
+			<control type="label">
+				<left>440</left>
+				<top>680</top>
+				<width>900</width>
+				<height>160</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<wrapmultiline>true</wrapmultiline>
+				<aligny>top</aligny>
+				<label>31592</label>
 			</control>
 		</control>
 
@@ -2963,6 +3170,33 @@
 					<onclick>Skin.SetString(bg_command,pick_genre)</onclick>
 				</control>
 
+				<!-- BG-UNWATCHED: random mode draws only films never watched,
+				     no TV shows. A skin string rather than a setting so each
+				     schedule slot keeps its own (BG_SCHED_LIVE). -->
+				<control type="radiobutton" id="7145">
+					<visible>String.IsEqual(Skin.String(bg_mode),random)</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31617</label>
+					<selected>!String.IsEmpty(Skin.String(bg_unwatched))</selected>
+					<onclick condition="String.IsEmpty(Skin.String(bg_unwatched))">Skin.SetString(bg_unwatched,1)</onclick>
+					<onclick condition="!String.IsEmpty(Skin.String(bg_unwatched))">Skin.Reset(bg_unwatched)</onclick>
+					<onleft>7000</onleft>
+				</control>
+
 				<!-- Dim, applies to any non-off background -->
 				<control type="button" id="7114">
 					<visible>!String.IsEmpty(Skin.String(bg_mode))</visible>
@@ -3118,6 +3352,31 @@
 					<onclick condition="String.IsEqual(Skin.String(bg_label_position),bottomleft)">Skin.SetString(bg_label_position,bottomright)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(bg_label_position),bottomright)">Skin.SetString(bg_label_position,bottomcenter)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(bg_label_position),bottomcenter)">Skin.SetString(bg_label_position,off)</onclick>
+				</control>
+				<!-- BG-LASTPLAYED: "Last watched" date after the caption, for
+				     the library modes, only while a caption is showing. -->
+				<control type="radiobutton" id="7146">
+					<visible>[String.IsEqual(Skin.String(bg_mode),recent) | String.IsEqual(Skin.String(bg_mode),random) | String.IsEqual(Skin.String(bg_mode),genre)] + !String.IsEmpty(Skin.String(bg_label_position)) + !String.IsEqual(Skin.String(bg_label_position),off)</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31618</label>
+					<selected>!String.IsEmpty(Skin.String(bg_lastplayed))</selected>
+					<onclick condition="String.IsEmpty(Skin.String(bg_lastplayed))">Skin.SetString(bg_lastplayed,1)</onclick>
+					<onclick condition="!String.IsEmpty(Skin.String(bg_lastplayed))">Skin.Reset(bg_lastplayed)</onclick>
+					<onleft>7000</onleft>
 				</control>
 			</control>
 			<control type="scrollbar" id="7055">
