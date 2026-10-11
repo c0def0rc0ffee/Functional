@@ -11,6 +11,14 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.17.0 (11/10/2026)
+
+- Coming up, a Home Screen setting offered when the Engage add-on is
+  installed. The stats column gains a block with the next Engage watch
+  slot, its episode or film and when it is due; OK on it opens Engage.
+  It shows once an Engage release publishes the slot; until then
+  nothing appears.
+
 ## 0.16.0 (11/10/2026)
 
 - Collections, a Library setting. The side menu's filter section gains a

@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.16.0" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.17.0" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>Collections, a Library setting. The side menu's filter section gains a Collections row that opens Kodi's film collections, one entry each; a collection opens like any other list of films. A Show row there cycles All, Unfinished (some films watched, some not) and Not started, and Search at that level finds collections by name; the two stack. The context menu on a film in a collection gains Collection: &lt;name&gt;, which opens it. Kodi only lists a collection holding a single film when its own "Include sets containing a single movie" setting is on.</news>
+		<news>Coming up, a Home Screen setting offered when the Engage add-on is installed. The stats column gains a block with the next Engage watch slot, its episode or film and when it is due; OK on it opens Engage. It shows once an Engage release publishes the slot; until then nothing appears.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
