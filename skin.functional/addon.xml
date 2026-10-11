@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.15.0" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.16.0" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,8 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>Add To List on the background, a Background setting. The caption gains a button after the title that puts the film on a list, or on a new one, the same picker the context menu uses.
-Previous and next buttons at the screen edges, a Background setting. Left and Right from the menu row reach them; Back steps through what has been shown, Next goes forward and then on to a fresh picture, and the timer carries on from there. They work on the picture folder slideshow as well as the library ones.</news>
+		<news>Collections, a Library setting. The side menu's filter section gains a Collections row that opens Kodi's film collections, one entry each; a collection opens like any other list of films. A Show row there cycles All, Unfinished (some films watched, some not) and Not started, and Search at that level finds collections by name; the two stack. The context menu on a film in a collection gains Collection: &lt;name&gt;, which opens it. Kodi only lists a collection holding a single film when its own "Include sets containing a single movie" setting is on.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

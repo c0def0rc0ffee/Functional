@@ -11,6 +11,17 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.16.0 (11/10/2026)
+
+- Collections, a Library setting. The side menu's filter section gains a
+  Collections row that opens Kodi's film collections, one entry each; a
+  collection opens like any other list of films. A Show row there cycles
+  All, Unfinished (some films watched, some not) and Not started, and
+  Search at that level finds collections by name; the two stack. The
+  context menu on a film in a collection gains Collection: <name>, which
+  opens it. Kodi only lists a collection holding a single film when its
+  own "Include sets containing a single movie" setting is on.
+
 ## 0.15.0 (11/10/2026)
 
 - Add To List on the background, a Background setting. The caption
