@@ -83,7 +83,15 @@
 	<expression name="weather_widget_shown">Skin.HasSetting(show_weather_widget) + Weather.IsFetched</expression>
 	<!-- Any block of the stats column on the right of Home is showing, in
 	     which case a centred menu row moves left to stay clear of it. -->
-	<expression name="home_stats_shown">!Skin.HasSetting(hide_movies_count) | !Skin.HasSetting(hide_tvshows_count) | [!Skin.HasSetting(hide_jellystat) + System.HasAddon(script.jellystat) + !String.IsEmpty(Window(home).Property(JellyStat.AllTime.Hours))]</expression>
+	<!-- The two add-on blocks of the Home stats column. Each is gated on
+	     its setting, the add-on being installed and the add-on having
+	     published something, so an add-on that is installed but not yet
+	     reporting shows nothing rather than blanks. ENGAGE-NEXT: Engage
+	     (service.engage) publishes Window(home).Property(Engage.Next.*)
+	     from its own service; the skin reads and never computes. -->
+	<expression name="jellystat_block_shown">!Skin.HasSetting(hide_jellystat) + System.HasAddon(script.jellystat) + !String.IsEmpty(Window(home).Property(JellyStat.AllTime.Hours))</expression>
+	<expression name="engage_block_shown">Skin.HasSetting(show_engage) + System.HasAddon(service.engage) + !String.IsEmpty(Window(home).Property(Engage.Next.Label))</expression>
+	<expression name="home_stats_shown">!Skin.HasSetting(hide_movies_count) | !Skin.HasSetting(hide_tvshows_count) | $EXP[jellystat_block_shown] | $EXP[engage_block_shown]</expression>
 	<!-- Which of a menu slot's three button widths shows, from the number of
 	     tiles on screen (Tile.Count, service.py:update_tiles). An empty count
 	     reads as zero, so before the service's first tick the wide ones show. -->
@@ -264,6 +272,8 @@
 	     that wrap exactly as it was. 9001 and 9028 are the first and
 	     last children of the row; a hidden tile variant passes focus
 	     along to the next one the same way. Inwards is the row itself.
+	     The right button's outward target is the Engage block (9320,
+	     ENGAGE-NEXT) first, which hands on to 9001 while it is hidden.
 	     The button repeats the group's visibility so Control.IsVisible on
 	     it is honest: a child of a hidden group otherwise reads visible. -->
 	<include name="BgStepButton">
@@ -310,7 +320,7 @@
 			<visible>Skin.HasSetting(bg_step_buttons) + !String.IsEmpty(Window(home).Property(home_bg_fanart)) + !$EXP[bg_video_showing]</visible>
 			<animation effect="fade" time="400">VisibleChange</animation>
 			<include content="BgStepButton"><param name="id" value="9310"/><param name="left" value="0"/><param name="command" value="bg_prev"/><param name="icon" value="prev.png"/><param name="onleft" value="9028"/><param name="onright" value="9000"/></include>
-			<include content="BgStepButton"><param name="id" value="9311"/><param name="left" value="1870"/><param name="command" value="bg_next"/><param name="icon" value="next.png"/><param name="onleft" value="9000"/><param name="onright" value="9001"/></include>
+			<include content="BgStepButton"><param name="id" value="9311"/><param name="left" value="1870"/><param name="command" value="bg_next"/><param name="icon" value="next.png"/><param name="onleft" value="9000"/><param name="onright" value="9320"/></include>
 		</control>
 	</include>
 	<!-- VOLUME-RING: Player.Volume as a whole percent, 0 to 100. As text

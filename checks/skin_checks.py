@@ -49,7 +49,7 @@ MEDIA = os.path.join(SKIN, "media")
 # one per position of the bar.
 ALLOW_DUPLICATE_IDS = {("DialogSeekBar.xml", "23")}
 # Home properties another add-on writes; the skin only reads them.
-ALLOW_PROPERTY_PREFIXES = ("JellyStat.",)
+ALLOW_PROPERTY_PREFIXES = ("JellyStat.", "Engage.")
 # Kodi's own "no texture" marker.
 ALLOW_TEXTURES = {"-"}
 # Focusable controls that may go without disabledcolor: none today. Add

@@ -2276,3 +2276,11 @@ msgstr ""
 msgctxt "#31632"
 msgid "Show: Not started"
 msgstr ""
+
+msgctxt "#31633"
+msgid "Next Engage slot under the stats"
+msgstr ""
+
+msgctxt "#31634"
+msgid "COMING UP"
+msgstr ""

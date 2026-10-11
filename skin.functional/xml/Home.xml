@@ -290,6 +290,78 @@
 				</control>
 			</control>
 
+
+			<!-- ENGAGE section (ENGAGE-NEXT): the next watch slot the Engage
+			     add-on (service.engage) publishes as
+			     Window(home).Property(Engage.Next.*) from its own service: the
+			     slot label, the episode or film line, and when it is due in
+			     words ("Tonight 19:00"). The skin reads and never computes.
+			     Gated by engage_block_shown (setting, add-on installed, label
+			     present). The block is one button, 9320: OK opens Engage's own
+			     launcher menu. Reached by Right from the right edge button,
+			     or straight from the last tile while that button is hidden;
+			     Right again wraps to the first tile. Packs up one slot for
+			     each of the three blocks above that is hidden (the slides
+			     stack). 650 to 780 here is 830 to 960 on screen, 10 clear of
+			     a corner bar on the bottom edge. -->
+			<control type="group">
+				<visible>$EXP[engage_block_shown]</visible>
+				<animation effect="slide" end="0,-220" time="0" condition="Skin.HasSetting(hide_movies_count)">Conditional</animation>
+				<animation effect="slide" end="0,-220" time="0" condition="Skin.HasSetting(hide_tvshows_count)">Conditional</animation>
+				<animation effect="slide" end="0,-220" time="0" condition="!$EXP[jellystat_block_shown]">Conditional</animation>
+				<control type="button" id="9320">
+					<left>-10</left>
+					<top>646</top>
+					<width>330</width>
+					<height>138</height>
+					<texturefocus colordiffuse="33FFFFFF">white.png</texturefocus>
+					<texturenofocus>-</texturenofocus>
+					<disabledcolor>disabled</disabledcolor>
+					<label></label>
+					<visible>$EXP[engage_block_shown]</visible>
+					<onclick>RunScript(service.engage)</onclick>
+					<onleft>9311</onleft>
+					<onright>9001</onright>
+					<onup>9000</onup>
+					<ondown>9000</ondown>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>650</top>
+					<width>310</width>
+					<height>40</height>
+					<font>font_med</font>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>31634</label>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>694</top>
+					<width>310</width>
+					<height>2</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>706</top>
+					<width>310</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<scroll>true</scroll>
+					<label>$INFO[Window(home).Property(Engage.Next.Label)]$INFO[Window(home).Property(Engage.Next.Episode), · ,]</label>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>744</top>
+					<width>310</width>
+					<height>34</height>
+					<font>font_reg</font>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>$INFO[Window(home).Property(Engage.Next.When)]</label>
+				</control>
+			</control>
+
 		</control>
 
 		<!-- Functional logo top-left -->
