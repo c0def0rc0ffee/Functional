@@ -20,8 +20,13 @@
 		     every window including this one, so this copy stands down. -->
 		<include content="SkinBackground">
 			<param name="visible" value="!$EXP[bg_windows_active]"/>
-			<param name="captions" value="true"/>
 		</include>
+		<!-- BG-ADD / BG-STEP: the caption rows with their Add To List
+		     button (9300 to 9304, one per position) and the previous and
+		     next buttons at the edges (9310, 9311). Drawn here, above both
+		     background copies, so each id exists once in this window. -->
+		<include content="BgCaptions"/>
+		<include content="BgStepButtons"/>
 
 		<!-- Right-side fixed stats panel (always visible) -->
 		<control type="group">
@@ -424,6 +429,12 @@
 			     lines are also what Kodi follows THROUGH this grouplist when it
 			     has no focusable child, so each direction has to end on
 			     something that can take focus or on this id itself. -->
+			<!-- BG-ADD: a caption's Add To List button on the top edge is
+			     the nearest thing above, on the bottom edge the nearest
+			     below; BG-STEP: the edge buttons are what lies left and
+			     right of the row. -->
+			<onup condition="Control.IsVisible(9300)">9300</onup>
+			<onup condition="Control.IsVisible(9301)">9301</onup>
 			<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9100)">9100</onup>
 			<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9110)">9110</onup>
 			<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9120)">9120</onup>
@@ -434,12 +445,23 @@
 			     on the bottom edge, or on the top edge under a top menu. With
 			     the bar above the menu, a Continue tab on the bottom edge is
 			     what lies below. -->
+			<ondown condition="Control.IsVisible(9302)">9302</ondown>
+			<ondown condition="Control.IsVisible(9303)">9303</ondown>
+			<ondown condition="Control.IsVisible(9304)">9304</ondown>
 			<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9210)">9210</ondown>
 			<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9212)">9212</ondown>
 			<ondown condition="$EXP[bar_above_menu]">9000</ondown>
 			<ondown condition="Control.IsVisible(9110)">9110</ondown>
 			<ondown condition="Control.IsVisible(9120)">9120</ondown>
 			<ondown>9100</ondown>
+			<!-- Unconditional on purpose: a grouplist's end of row targets
+			     are fixed when the window loads (AddControl wires the last
+			     tile back to the first when the row's own action has no
+			     condition that holds then), and the edge buttons are never
+			     visible that early. While they are hidden Kodi falls
+			     through to their own onleft/onright, which point back here. -->
+			<onleft>9310</onleft>
+			<onright>9311</onright>
 
 			<!-- Eight slots, each a built in screen or any favourite, set on the
 			     Main Menu settings page; with nothing set they are the menu as it

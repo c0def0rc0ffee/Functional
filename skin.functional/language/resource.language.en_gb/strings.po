@@ -2244,3 +2244,11 @@ msgstr ""
 msgctxt "#31624"
 msgid "%s shuffled"
 msgstr ""
+
+msgctxt "#31625"
+msgid "Add To List button beside the title"
+msgstr ""
+
+msgctxt "#31626"
+msgid "Previous and next buttons at the screen edges"
+msgstr ""

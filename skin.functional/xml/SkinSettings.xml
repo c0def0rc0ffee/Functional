@@ -3378,6 +3378,57 @@
 					<onclick condition="!String.IsEmpty(Skin.String(bg_lastplayed))">Skin.Reset(bg_lastplayed)</onclick>
 					<onleft>7000</onleft>
 				</control>
+				<!-- BG-ADD: Add To List beside the caption. Needs a caption to sit
+				     beside, so it hides with the position set to Off, like the
+				     last watched toggle above. Structural, not a schedule slot
+				     key. -->
+				<control type="radiobutton" id="7147">
+					<visible>[String.IsEqual(Skin.String(bg_mode),recent) | String.IsEqual(Skin.String(bg_mode),random) | String.IsEqual(Skin.String(bg_mode),genre)] + !String.IsEmpty(Skin.String(bg_label_position)) + !String.IsEqual(Skin.String(bg_label_position),off)</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31625</label>
+					<selected>Skin.HasSetting(bg_add_button)</selected>
+					<onclick>Skin.ToggleSetting(bg_add_button)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<!-- BG-STEP: previous and next at the screen edges. Folder mode is
+				     included: with this on the service lists the folder instead
+				     of the multiimage drawing it. Not a schedule slot key. -->
+				<control type="radiobutton" id="7148">
+					<visible>[String.IsEqual(Skin.String(bg_mode),recent) | String.IsEqual(Skin.String(bg_mode),random) | String.IsEqual(Skin.String(bg_mode),genre) | String.IsEqual(Skin.String(bg_mode),folder)]</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31626</label>
+					<selected>Skin.HasSetting(bg_step_buttons)</selected>
+					<onclick>Skin.ToggleSetting(bg_step_buttons)</onclick>
+					<onleft>7000</onleft>
+				</control>
 			</control>
 			<control type="scrollbar" id="7055">
 				<left>1352</left>

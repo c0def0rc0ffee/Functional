@@ -141,8 +141,19 @@
 	     is not. shift1 and shift2 are the conditions, by1 and by2 the "x,y"
 	     offsets; a caller that passes two must make them exclusive, because
 	     slides stack. -->
+	<!-- BG-ADD: each caption is a horizontal grouplist, the title label at
+	     its natural width and then the Add To List button, so the button
+	     sits right after the text whatever the alignment. One button id
+	     per position ('id'), so Control.IsVisible on Home can tell which
+	     one is up; the button repeats the row's own visibility for the
+	     same reason. The label no longer scrolls: an auto width label
+	     cannot, so the max width truncates a very long caption instead.
+	     The button copies the home_bg_* fields service.py publishes into
+	     the list_item_* properties the context menu row writes, then
+	     sends add_pick, so service.py:_lists_add needs nothing new. -->
 	<include name="BgCaption">
 		<param name="pos" />
+		<param name="id" />
 		<param name="top" />
 		<param name="align" />
 		<param name="shift1" default="false" />
@@ -150,24 +161,157 @@
 		<param name="shift2" default="false" />
 		<param name="by2" default="0,0" />
 		<definition>
-			<control type="label">
+			<control type="grouplist">
 				<left>60</left>
 				<top>$PARAM[top]</top>
-				<right>60</right>
+				<width>1800</width>
 				<height>40</height>
-				<font>font_med</font>
+				<orientation>horizontal</orientation>
 				<align>$PARAM[align]</align>
-				<aligny>center</aligny>
-				<textcolor>white</textcolor>
-				<shadowcolor>FF000000</shadowcolor>
-				<scroll>true</scroll>
-				<label>$VAR[BgCaptionText]</label>
+				<itemgap>20</itemgap>
+				<onup>9000</onup>
+				<ondown>9000</ondown>
+				<!-- Unconditional, see the menu row in Home.xml: a hidden
+				     edge button falls through to 9000. -->
+				<onleft>9310</onleft>
+				<onright>9311</onright>
 				<visible>!String.IsEmpty(Window(home).Property(home_bg_label)) + String.IsEqual(Skin.String(bg_label_position),$PARAM[pos])</visible>
 				<animation effect="fade" time="400">VisibleChange</animation>
 				<animation effect="slide" end="$PARAM[by1]" time="0" condition="$PARAM[shift1]">Conditional</animation>
 				<animation effect="slide" end="$PARAM[by2]" time="0" condition="$PARAM[shift2]">Conditional</animation>
+				<control type="label">
+					<width min="0" max="1500">auto</width>
+					<height>40</height>
+					<font>font_med</font>
+					<aligny>center</aligny>
+					<textcolor>white</textcolor>
+					<shadowcolor>FF000000</shadowcolor>
+					<label>$VAR[BgCaptionText]</label>
+				</control>
+				<control type="button" id="$PARAM[id]">
+					<width>230</width>
+					<height>40</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
+					<label>31049</label>
+					<visible>Skin.HasSetting(bg_add_button) + String.IsEqual(Window(home).Property(home_bg_dbtype),movie) + !String.IsEmpty(Window(home).Property(home_bg_label)) + String.IsEqual(Skin.String(bg_label_position),$PARAM[pos])</visible>
+					<onclick>SetProperty(list_item_label,$ESCINFO[Window(home).Property(home_bg_title)],10000)</onclick>
+					<onclick>SetProperty(list_item_file,$ESCINFO[Window(home).Property(home_bg_file)],10000)</onclick>
+					<onclick>SetProperty(list_item_dbtype,$ESCINFO[Window(home).Property(home_bg_dbtype)],10000)</onclick>
+					<onclick>SetProperty(list_item_dbid,$ESCINFO[Window(home).Property(home_bg_dbid)],10000)</onclick>
+					<onclick>SetProperty(list_item_thumb,$ESCINFO[Window(home).Property(home_bg_thumb)],10000)</onclick>
+					<onclick>SetProperty(list_item_duration,$ESCINFO[Window(home).Property(home_bg_duration)],10000)</onclick>
+					<onclick>SetProperty(list_item_year,$ESCINFO[Window(home).Property(home_bg_year)],10000)</onclick>
+					<onclick>SetProperty(list_item_kind,video,10000)</onclick>
+					<onclick>Skin.SetString(list_command,add_pick)</onclick>
+				</control>
 			</control>
 		</definition>
+	</include>
+
+	<!-- The five caption rows, one per position choice, Home only (off
+	     Home a caption would collide with HeaderBar). Lifted out of
+	     SkinBackground so the button ids exist exactly once in Home,
+	     whichever of Home's two background copies is drawing. Where each
+	     one lands on Home, caption box 40 tall, text about 32 (see
+	     BG-CAPTION-SHIFT):
+	     Top Left: y 40 to 80, text from x 180 beside the logo (x 40 to
+	     160), from x 60 with the logo hidden.
+	     Top Right: y 40 to 80, text ending x 1620, left of the clock
+	     (its text starts at x 1690 or later), ending x 1860 with
+	     the clock hidden.
+	     Bottom rows: y 920 to 960, above the corner bar (y 970 to
+	     1040) and the version line (y 1000 to 1040) whenever either
+	     is down there, else y 980 to 1020. Bottom Left goes to y 870
+	     to 910 with the bar at bottom left, because the version
+	     line has itself moved up to y 920 to 960 by then. -->
+	<include name="BgCaptions">
+		<control type="group">
+			<visible>!$EXP[bg_video_showing]</visible>
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<include content="BgCaption"><param name="pos" value="topleft"/><param name="id" value="9300"/><param name="top" value="40"/><param name="align" value="left"/><param name="shift1" value="!Skin.HasSetting(hide_logo)"/><param name="by1" value="120,0"/></include>
+			<include content="BgCaption"><param name="pos" value="topright"/><param name="id" value="9301"/><param name="top" value="40"/><param name="align" value="right"/><param name="shift1" value="!Skin.HasSetting(hide_datetime)"/><param name="by1" value="-240,0"/></include>
+			<include content="BgCaption"><param name="pos" value="bottomleft"/><param name="id" value="9302"/><param name="top" value="980"/><param name="align" value="left"/><param name="shift1" value="$EXP[corner_bar_bottom_left]"/><param name="by1" value="0,-110"/><param name="shift2" value="!$EXP[corner_bar_bottom_left] + [!Skin.HasSetting(hide_version) | !$EXP[corner_bar_top]]"/><param name="by2" value="0,-60"/></include>
+			<include content="BgCaption"><param name="pos" value="bottomright"/><param name="id" value="9303"/><param name="top" value="980"/><param name="align" value="right"/><param name="shift1" value="!$EXP[corner_bar_top]"/><param name="by1" value="0,-60"/></include>
+			<include content="BgCaption"><param name="pos" value="bottomcenter"/><param name="id" value="9304"/><param name="top" value="980"/><param name="align" value="center"/><param name="shift1" value="!$EXP[corner_bar_top]"/><param name="by1" value="0,-60"/></include>
+		</control>
+	</include>
+
+	<!-- BG-STEP: previous and next at the screen edges, centred on the
+	     menu band (y 470 to 630), 50 wide at x 0 and x 1870. The right one
+	     clears the stats column, which ends at x 1860. Each click sets
+	     bg_command and service.py:_bg_step changes the picture on its next
+	     tick; the fade is the feedback. Shown only while a service driven
+	     picture is up, so the native folder multiimage (which cannot be
+	     stepped) and a static image get no buttons. A button cannot hold
+	     an image, so the glyph is a separate image over each one, the
+	     pattern the video OSD transport row uses. -->
+	<!-- Navigation: the menu row's unconditional onleft/onright land here
+	     (see Home.xml). Outwards (Left on the left button, Right on the
+	     right one) the target is the far end of the tile row: the row
+	     used to wrap last tile to first, and with a hidden button Kodi
+	     follows its navigation on through (CGUIWindow::OnMove walks
+	     unfocusable controls), so pointing at the opposite end keeps
+	     that wrap exactly as it was. 9001 and 9028 are the first and
+	     last children of the row; a hidden tile variant passes focus
+	     along to the next one the same way. Inwards is the row itself.
+	     The button repeats the group's visibility so Control.IsVisible on
+	     it is honest: a child of a hidden group otherwise reads visible. -->
+	<include name="BgStepButton">
+		<param name="id" />
+		<param name="left" />
+		<param name="command" />
+		<param name="icon" />
+		<param name="onleft" />
+		<param name="onright" />
+		<definition>
+			<control type="button" id="$PARAM[id]">
+				<left>$PARAM[left]</left>
+				<top>470</top>
+				<width>50</width>
+				<height>160</height>
+				<disabledcolor>disabled</disabledcolor>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
+				<label></label>
+				<visible>Skin.HasSetting(bg_step_buttons) + !String.IsEmpty(Window(home).Property(home_bg_fanart)) + !$EXP[bg_video_showing]</visible>
+				<onclick>Skin.SetString(bg_command,$PARAM[command])</onclick>
+				<onleft>$PARAM[onleft]</onleft>
+				<onright>$PARAM[onright]</onright>
+				<onup condition="Control.IsVisible(9300)">9300</onup>
+				<onup condition="Control.IsVisible(9301)">9301</onup>
+				<onup>9000</onup>
+				<ondown condition="Control.IsVisible(9302)">9302</ondown>
+				<ondown condition="Control.IsVisible(9303)">9303</ondown>
+				<ondown condition="Control.IsVisible(9304)">9304</ondown>
+				<ondown>9000</ondown>
+			</control>
+			<control type="image">
+				<left>$PARAM[left]</left>
+				<top>530</top>
+				<width>50</width>
+				<height>40</height>
+				<aspectratio>keep</aspectratio>
+				<texture colordiffuse="white">icons/$PARAM[icon]</texture>
+			</control>
+		</definition>
+	</include>
+	<include name="BgStepButtons">
+		<control type="group">
+			<visible>Skin.HasSetting(bg_step_buttons) + !String.IsEmpty(Window(home).Property(home_bg_fanart)) + !$EXP[bg_video_showing]</visible>
+			<animation effect="fade" time="400">VisibleChange</animation>
+			<include content="BgStepButton"><param name="id" value="9310"/><param name="left" value="0"/><param name="command" value="bg_prev"/><param name="icon" value="prev.png"/><param name="onleft" value="9028"/><param name="onright" value="9000"/></include>
+			<include content="BgStepButton"><param name="id" value="9311"/><param name="left" value="1870"/><param name="command" value="bg_next"/><param name="icon" value="next.png"/><param name="onleft" value="9000"/><param name="onright" value="9001"/></include>
+		</control>
 	</include>
 	<!-- VOLUME-RING: Player.Volume as a whole percent, 0 to 100. As text
 	     Kodi reports Player.Volume in dB, but as a number (which is what
@@ -1188,24 +1332,19 @@
 		</control>
 		<include content="SkinBackground">
 			<param name="visible" value="$EXP[bg_windows_active]"/>
-			<!-- Home's own SkinBackground stands down while this one is on, so
-			     the caption has to come from here when Home is the window. -->
-			<param name="captions" value="Window.IsActive(home)"/>
 		</include>
 	</include>
 
 	<!-- The configurable background (slideshow / static image / folder
-	     slideshow, plus caption and dim overlay). Lifted out of Home.xml so
+	     slideshow, plus the dim overlay). Lifted out of Home.xml so
 	     WindowBackground can render the same thing on every other window
 	     when bg_all_windows is on. Exactly one caller shows it at a time:
 	     WindowBackground when the setting is on, Home.xml when it is off.
+	     The caption rows are BgCaptions, which Home.xml draws itself.
 
-	     'visible'  : condition gating the whole block.
-	     'captions' : the slideshow title label. Home only by default; off
-	                  the home screen it would collide with HeaderBar. -->
+	     'visible'  : condition gating the whole block. -->
 	<include name="SkinBackground">
 		<param name="visible" default="true"/>
-		<param name="captions" default="false"/>
 		<definition>
 			<control type="group">
 				<visible>$PARAM[visible]</visible>
@@ -1269,32 +1408,6 @@
 				<include content="FolderSlideshow"><param name="ms" value="120000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),120)"/></include>
 				<include content="FolderSlideshow"><param name="ms" value="300000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),300)"/></include>
 
-				<!-- Slideshow caption (Title (Year)); one label per position choice,
-				     since coordinates can't take $VAR (see BgCaption in Includes).
-				     Where each one lands on Home, caption box 40 tall, text
-				     about 32 (see BG-CAPTION-SHIFT):
-				     Top Left: y 40 to 80, text from x 180 beside the logo (x 40 to
-				     160), from x 60 with the logo hidden.
-				     Top Right: y 40 to 80, text ending x 1620, left of the clock
-				     (its text starts at x 1690 or later), ending x 1860 with
-				     the clock hidden.
-				     Bottom rows: y 920 to 960, above the corner bar (y 970 to
-				     1040) and the version line (y 1000 to 1040) whenever either
-				     is down there, else y 980 to 1020. Bottom Left goes to y 870
-				     to 910 with the bar at bottom left, because the version
-				     line has itself moved up to y 920 to 960 by then. -->
-				<control type="group">
-					<visible>[$PARAM[captions]] + !$EXP[bg_video_showing]</visible>
-					<left>0</left>
-					<top>0</top>
-					<width>1920</width>
-					<height>1080</height>
-					<include content="BgCaption"><param name="pos" value="topleft"/><param name="top" value="40"/><param name="align" value="left"/><param name="shift1" value="!Skin.HasSetting(hide_logo)"/><param name="by1" value="120,0"/></include>
-					<include content="BgCaption"><param name="pos" value="topright"/><param name="top" value="40"/><param name="align" value="right"/><param name="shift1" value="!Skin.HasSetting(hide_datetime)"/><param name="by1" value="-240,0"/></include>
-					<include content="BgCaption"><param name="pos" value="bottomleft"/><param name="top" value="980"/><param name="align" value="left"/><param name="shift1" value="$EXP[corner_bar_bottom_left]"/><param name="by1" value="0,-110"/><param name="shift2" value="!$EXP[corner_bar_bottom_left] + [!Skin.HasSetting(hide_version) | !$EXP[corner_bar_top]]"/><param name="by2" value="0,-60"/></include>
-					<include content="BgCaption"><param name="pos" value="bottomright"/><param name="top" value="980"/><param name="align" value="right"/><param name="shift1" value="!$EXP[corner_bar_top]"/><param name="by1" value="0,-60"/></include>
-					<include content="BgCaption"><param name="pos" value="bottomcenter"/><param name="top" value="980"/><param name="align" value="center"/><param name="shift1" value="!$EXP[corner_bar_top]"/><param name="by1" value="0,-60"/></include>
-				</control>
 
 				<!-- Dim overlay over whichever background is showing -->
 				<control type="image">
@@ -1493,7 +1606,11 @@
 				     doesn't reliably cover a background multiimage). -->
 				<colordiffuse>$VAR[BgImageDiffuse]</colordiffuse>
 				<imagepath background="true">$INFO[Skin.String(bg_slideshow_dir)]</imagepath>
-				<visible>[String.IsEqual(Skin.String(bg_mode),folder) + !String.IsEmpty(Skin.String(bg_slideshow_dir)) + [$PARAM[when]]] + !$EXP[bg_video_showing]</visible>
+				<!-- BG-STEP: while the edge buttons are on the service lists
+				     the folder and publishes each picture as home_bg_fanart,
+				     so this stands down; if that listing comes back empty
+				     the property stays empty and this takes over again. -->
+				<visible>[String.IsEqual(Skin.String(bg_mode),folder) + !String.IsEmpty(Skin.String(bg_slideshow_dir)) + [$PARAM[when]]] + !$EXP[bg_video_showing] + [!Skin.HasSetting(bg_step_buttons) | String.IsEmpty(Window(home).Property(home_bg_fanart))]</visible>
 			</control>
 		</definition>
 	</include>

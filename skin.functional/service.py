@@ -52,17 +52,26 @@ update_layout_command()
 update_home_bg()
     Slideshow of library fanart on the Home background. Skin.String(bg_mode)
     picks the source: "recent" (recently watched movies), "random" (anything
-    in the library), "genre" (one genre only, see below). Pulls up to 30 items
-    via JSON-RPC, then rotates URL + caption on Home as window properties:
+    in the library), "genre" (one genre only, see below), and "folder" while
+    the step buttons are on (otherwise the skin's own multiimage draws the
+    folder). Pulls up to 30 items via JSON-RPC, then rotates URL + caption
+    on Home as window properties:
         home_bg_fanart        e.g. "image://https%3a%2f%2f...fanart.jpg"
         home_bg_label         e.g. "The Mysterious Dr. Fu Manchu (1929)"
         home_bg_watched       e.g. "Last watched 12/09/2026", empty when
                               the item has never been played
+        home_bg_title, home_bg_year, home_bg_dbtype, home_bg_dbid,
+        home_bg_file, home_bg_thumb, home_bg_duration
+                              the library item behind the picture, empty
+                              for a folder picture; the Add To List button
+                              on the caption copies them into list_item_*
     Skin.String(bg_lastplayed) adds home_bg_watched to the caption, and
     Skin.String(bg_unwatched) narrows "random" to films never watched.
     Cadence is read from Skin.String(bg_slideshow_interval), defaults to
     BG_INTERVAL seconds when unset. The list itself is re-fetched every
-    BG_LIST_REFRESH seconds (or on VideoLibrary.OnUpdate).
+    BG_LIST_REFRESH seconds (or on VideoLibrary.OnUpdate). Every picture
+    shown goes into a history so the edge buttons can step back and forth
+    (bg_command bg_prev / bg_next, see _bg_step).
 
 update_bg_command()
     Watches Skin.String(bg_command). "pick_genre" opens a select dialog of the
@@ -72,6 +81,7 @@ update_bg_command()
     skin XML has no way to enumerate genres. "pick_time" opens a numeric time
     dialog for the currently-edited schedule slot's start time. Both run on a
     daemon thread so the blocking dialog doesn't stall the polling loop.
+    "bg_prev" and "bg_next" step the slideshow (BG-STEP) and run inline.
 
 update_bg_schedule()
     Time-of-day background schedule. When Skin.String(bg_schedule_slots) is
@@ -497,6 +507,13 @@ class FunctionalHelper(xbmc.Monitor):
     BG_LIST_REFRESH = 600  # seconds before re-fetching the recent-watched list
     BG_EMPTY_RETRY = 15  # retry cadence when the last fetch returned nothing
     BG_COUNT = 30  # how many recent movies to cycle through
+    BG_HISTORY = 50  # pictures the previous button can walk back through
+    BG_FOLDER_MAX = 500  # most pictures taken from a folder per listing
+    # Fields of a slideshow item published beside the picture as
+    # home_bg_<name>, in this order. dbtype is "movie" or "tvshow" for a
+    # library picture and empty for one from a folder.
+    BG_ITEM_PROPS = ("title", "year", "dbtype", "dbid", "file", "thumb",
+                     "duration")
 
     # Live-tunable info-bar clearance via +/− buttons in MyVideoNav's side menu
     # 140 is the most the library views have room for: the list groups are
@@ -570,8 +587,12 @@ class FunctionalHelper(xbmc.Monitor):
         # Year sources of the focused list item as last seen by
         # update_focused_age, so the label is only rebuilt on a real change.
         self._focused_age_key = None
-        self._bg_items = []        # list of (fanart_url, label, watched_text)
+        self._bg_items = []        # list of item dicts, see _fanart_items
         self._bg_idx = -1
+        # BG-STEP: what has been shown, oldest first, and how far back the
+        # previous button has walked (0 = the live picture). See _bg_step.
+        self._bg_history = deque(maxlen=self.BG_HISTORY)
+        self._bg_hist_pos = 0
         self._bg_last_change = 0.0
         self._bg_last_fetch = 0.0
         self._bg_source = ""
@@ -2225,6 +2246,14 @@ class FunctionalHelper(xbmc.Monitor):
         Skin.String(bg_slideshow_interval) in seconds, falling back to
         BG_INTERVAL when empty/unset.
         </summary>
+        <remarks>
+        BG-STEP: folder mode is normally a native multiimage in the skin,
+        which cannot be stepped, so while Skin.HasSetting(bg_step_buttons)
+        is on the folder is listed here instead and rotated like the
+        library modes. An empty listing publishes nothing, and the skin's
+        multiimage shows whenever home_bg_fanart is empty, so a folder
+        Python cannot read still gets its slideshow, just without buttons.
+        </remarks>
         """
         # Unified selector: bg_mode is one of off(empty)/image/recent/
         # random/genre/folder. Only the slideshow modes drive this handler;
@@ -2232,32 +2261,35 @@ class FunctionalHelper(xbmc.Monitor):
         # nothing) shows with no conflict.
         mode = xbmc.getInfoLabel("Skin.String(bg_mode)")
 
-        # FOLDER mode is rendered natively by a <multiimage> in Home.xml, far
-        # more reliable for local/sandboxed paths than fetching the listing
-        # ourselves. We only resolve the picked picture to its folder and
-        # publish it as Skin.String(bg_slideshow_dir) for that control.
+        source = None
         if mode == "folder":
+            # FOLDER mode is rendered natively by a <multiimage> in Home.xml,
+            # far more reliable for local/sandboxed paths than fetching the
+            # listing ourselves. We resolve the picked picture to its folder
+            # and publish it as Skin.String(bg_slideshow_dir) for that
+            # control, and only list it ourselves when the step buttons
+            # need to know what is on screen.
             folder = _derive_folder(xbmc.getInfoLabel("Skin.String(bg_slideshow_folder)"))
             if folder != xbmc.getInfoLabel("Skin.String(bg_slideshow_dir)"):
                 _set_skin_string("bg_slideshow_dir", folder)
                 _dlog("folder slideshow dir -> {0!r}".format(folder))
-            # Make sure the service-driven slideshow image isn't also showing.
-            if self._bg_source:
-                self._bg_source = ""
-                self._bg_idx = -1
-            self._set_bg_props("", "")
-            return
-
-        # GENRE mode keys its source on the genre + media type as well as the
-        # mode, so changing either forces a re-fetch through the same
-        # source-changed path the other modes use.
-        if mode == "genre":
+            if folder and xbmc.getCondVisibility("Skin.HasSetting(bg_step_buttons)"):
+                source = "folder:" + folder
+            else:
+                # Make sure the service-driven slideshow image isn't also
+                # showing.
+                self._bg_reset_source()
+                self._set_bg_props("", "")
+                return
+        elif mode == "genre":
+            # GENRE mode keys its source on the genre + media type as well
+            # as the mode, so changing either forces a re-fetch through the
+            # same source-changed path the other modes use.
             genre = xbmc.getInfoLabel("Skin.String(bg_genre)")
             if not genre:
                 # Mode selected but no genre picked yet: show nothing rather
                 # than silently falling back to the whole library.
-                self._bg_idx = -1
-                self._bg_source = ""
+                self._bg_reset_source()
                 self._set_bg_props("", "")
                 return
             source = "genre:{0}:{1}".format(
@@ -2268,14 +2300,13 @@ class FunctionalHelper(xbmc.Monitor):
             source = ("random:unwatched"
                       if xbmc.getInfoLabel("Skin.String(bg_unwatched)")
                       else "random")
-        else:
-            source = mode if mode == "recent" else None
+        elif mode == "recent":
+            source = "recent"
 
         if source is None:
             # image or off, never any slideshow fanart here. Always clear it
             # so a previous slideshow's backdrop can't linger.
-            self._bg_idx = -1
-            self._bg_source = ""
+            self._bg_reset_source()
             # In image mode, surface the chosen file's name as the caption
             # (same as folder/library captions). Off = no caption.
             label = (_basename_no_ext(xbmc.getInfoLabel(
@@ -2288,12 +2319,13 @@ class FunctionalHelper(xbmc.Monitor):
         # If the user switched source, force a re-fetch AND drop the current
         # backdrop immediately so the previous mode's image doesn't linger
         # while the new list is fetched (this was the "folder still shows
-        # movies" bug).
+        # movies" bug). The history goes too: Back must never resurrect a
+        # picture from the mode that was just left.
         if getattr(self, "_bg_source", "") != source:
+            self._bg_reset_source()
             self._bg_source = source
             self._bg_items = []
             self._bg_last_fetch = 0.0
-            self._bg_idx = -1
             self._bg_last_change = 0.0
             self._set_bg_props("", "")
 
@@ -2333,14 +2365,93 @@ class FunctionalHelper(xbmc.Monitor):
             interval = self.BG_INTERVAL
 
         if (now - self._bg_last_change) >= interval:
-            self._bg_idx = (self._bg_idx + 1) % len(bg_items)
+            self._bg_advance(bg_items, now)
+
+    def _bg_reset_source(self):
+        """
+        <summary>
+        Forget the slideshow source, its position and the shown history,
+        the state every "nothing to rotate" path and a source change share.
+        </summary>
+        """
+        self._bg_source = ""
+        self._bg_idx = -1
+        self._bg_history.clear()
+        self._bg_hist_pos = 0
+
+    def _bg_advance(self, bg_items, now):
+        """
+        <summary>
+        Move the slideshow one picture forward: through the shown history
+        while the previous button has walked back, else on to the next item
+        of the list, which is then recorded in the history.
+        </summary>
+        <param name="bg_items">The current list, read once by the caller;
+        must be non empty unless the history is being walked.</param>
+        <param name="now">time.time() of this tick; restarts the interval.</param>
+        <remarks>
+        Called by the timer and by bg_next, so a manual step and a timed
+        one are the same move and the clock restarts either way.
+        </remarks>
+        """
+        self._bg_last_change = now
+        if self._bg_hist_pos > 0:
+            self._bg_hist_pos -= 1
+            self._bg_show(self._bg_history[-1 - self._bg_hist_pos])
+            return
+        self._bg_idx = (self._bg_idx + 1) % len(bg_items)
+        item = bg_items[self._bg_idx]
+        self._bg_history.append(item)
+        self._bg_show(item)
+        _dlog("bg rotate -> {0} | {1}".format(item["label"], item["fanart"][:120]),
+              xbmc.LOGDEBUG)
+
+    def _bg_step(self, cmd):
+        """
+        <summary>
+        BG-STEP: the edge buttons. "bg_prev" shows the picture before the
+        one on screen, as far back as the history goes; "bg_next" walks
+        forward through the history or, at the live end, advances the
+        list exactly as the timer would.
+        </summary>
+        <param name="cmd">"bg_prev" or "bg_next".</param>
+        <remarks>
+        Ignored while no service driven slideshow is up (image or off, or
+        folder mode with the buttons off), and at the oldest picture. The
+        history holds what was shown, not list positions, so a list
+        refresh that reshuffles the items cannot change what Back returns
+        to. Runs on the loop thread: property writes only, nothing that
+        blocks.
+        </remarks>
+        """
+        if not self._bg_source:
+            return
+        now = time.time()
+        if cmd == "bg_prev":
+            if self._bg_hist_pos + 1 >= len(self._bg_history):
+                _dlog("bg step: nothing earlier to show", xbmc.LOGDEBUG)
+                return
+            self._bg_hist_pos += 1
             self._bg_last_change = now
-            url, label, watched = bg_items[self._bg_idx]
-            self._set_bg_props(url, label, watched)
-            _dlog("bg rotate -> {0} | {1}".format(label, url[:120]), xbmc.LOGDEBUG)
+            self._bg_show(self._bg_history[-1 - self._bg_hist_pos])
+            return
+        bg_items = self._bg_items
+        if self._bg_hist_pos == 0 and not bg_items:
+            return
+        self._bg_advance(bg_items, now)
+
+    def _bg_show(self, item):
+        """
+        <summary>
+        Put one slideshow item on Home: picture, caption, last watched
+        text and the library fields behind the Add To List button.
+        </summary>
+        <param name="item">A dict from _fanart_items or _fetch_folder_images.</param>
+        """
+        self._set_bg_props(item["fanart"], item["label"], item.get("watched", ""), item)
 
     @staticmethod
-    def _set_bg_props(fanart, label, watched=""):
+    def _set_bg_props(fanart, label, watched="", item=None):
         """
         <summary>
         Write the Home background properties, skipping writes that
@@ -2354,6 +2465,11 @@ class FunctionalHelper(xbmc.Monitor):
         when the item was never played or the mode has no library item.
         BgCaptionText in Includes.xml only shows it while
         Skin.String(bg_lastplayed) is set.</param>
+        <param name="item">The slideshow item, whose BG_ITEM_PROPS fields
+        are published as home_bg_&lt;name&gt;; None clears them all, which
+        is what every "nothing to show" path passes. A dbid of 0 is
+        written as empty so the XML's String.IsEmpty test reads it as no
+        library item.</param>
         """
         win = xbmcgui.Window(HOME_WINDOW_ID)
         if win.getProperty("home_bg_fanart") != fanart:
@@ -2362,12 +2478,24 @@ class FunctionalHelper(xbmc.Monitor):
             win.setProperty("home_bg_label", label)
         if win.getProperty("home_bg_watched") != watched:
             win.setProperty("home_bg_watched", watched)
+        for key in FunctionalHelper.BG_ITEM_PROPS:
+            value = (item or {}).get(key, "")
+            value = "" if value in (0, None) else str(value)
+            prop = "home_bg_{0}".format(key)
+            if win.getProperty(prop) != value:
+                win.setProperty(prop, value)
 
     def _bg_fetch_worker(self, source):
         """
         <summary>
         Resolve the slideshow item list for *source* (daemon thread).
         </summary>
+        <remarks>
+        Sources: "recent", "random", "random:unwatched", "genre:type:name"
+        and "folder:path" (BG-STEP, the path as _derive_folder left it,
+        separator and all, so a path with a colon in it is safe because
+        only the first seven characters are the tag).
+        </remarks>
         """
         try:
             if source == "recent":
@@ -2375,6 +2503,8 @@ class FunctionalHelper(xbmc.Monitor):
             elif source.startswith("genre:"):
                 _, gtype, gname = source.split(":", 2)
                 items = self._fetch_genre_library(gname, gtype)
+            elif source.startswith("folder:"):
+                items = self._fetch_folder_images(source[7:])
             else:  # random or random:unwatched
                 items = self._fetch_random_library(
                     unwatched=source == "random:unwatched")
@@ -5767,11 +5897,16 @@ class FunctionalHelper(xbmc.Monitor):
         Watch Skin.String(bg_command). Commands set by the Background
         section of skin settings that need Python: "pick_genre" (skins can't
         enumerate library genres) and "pick_time" (numeric time dialog for a
-        schedule slot's start time).
+        schedule slot's start time), plus "bg_prev" and "bg_next" from the
+        edge buttons on Home (BG-STEP, see _bg_step).
         </summary>
         """
         cmd = self._take_command("bg_command")
         if not cmd:
+            return
+        if cmd in ("bg_prev", "bg_next"):
+            # BG-STEP: property writes only, so no dialog thread.
+            self._bg_step(cmd)
             return
 
         worker = {"pick_genre": self._pick_genre,
@@ -6846,22 +6981,65 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("bg schedule: slot {0} start -> {1:02d}:{2:02d}".format(
             slot, minutes // 60, minutes % 60))
 
+    # What the library is asked for per slideshow row. Movies carry the
+    # fields the Add To List button needs (BG-ADD); a show only needs what
+    # the caption shows, there is no button for one.
+    BG_MOVIE_PROPS = ["art", "title", "year", "lastplayed", "file", "runtime"]
+    BG_SHOW_PROPS = ["art", "title", "year", "lastplayed", "file"]
+
     def _fetch_recent_movies(self):
         """
         <summary>
-        Up to BG_COUNT recently watched movies; returns (fanart_url, 'Title (year)') tuples.
+        Up to BG_COUNT recently watched movies as slideshow item dicts.
         </summary>
-        <returns>The pairs, newest played first; empty when nothing has been watched.</returns>
+        <returns>The items, newest played first; empty when nothing has been watched.</returns>
         <exception cref="LookupError">The library did not answer, see _result_rows.</exception>
         """
         params = {
             "limits": {"start": 0, "end": self.BG_COUNT},
             "sort": {"order": "descending", "method": "lastplayed"},
             "filter": {"field": "playcount", "operator": "greaterthan", "value": "0"},
-            "properties": ["art", "title", "year", "lastplayed"],
+            "properties": self.BG_MOVIE_PROPS,
         }
         return self._fanart_items(_result_rows(
-            _jsonrpc("VideoLibrary.GetMovies", params), "movies"))
+            _jsonrpc("VideoLibrary.GetMovies", params), "movies"), "movie")
+
+    def _fetch_folder_images(self, folder):
+        """
+        <summary>
+        BG-STEP: the pictures in a folder as slideshow item dicts, shuffled
+        and capped at BG_FOLDER_MAX, for the service driven folder mode.
+        </summary>
+        <param name="folder">The folder as _derive_folder returns it, ending
+        in its separator, so the file name is appended straight on.</param>
+        <returns>Items with the file name as the caption and no library
+        fields; empty when the folder holds no picture.</returns>
+        <exception cref="LookupError">The folder could not be listed, which
+        the worker treats like a library that did not answer: the empty
+        list stays and is retried on the short backoff.</exception>
+        <remarks>
+        Not recursive, matching the multiimage it stands in for. The
+        listing goes through xbmcvfs so special:// and network paths work
+        the same as the picker that chose them.
+        </remarks>
+        """
+        try:
+            _dirs, files = xbmcvfs.listdir(folder)
+        except Exception as exc:  # noqa: BLE001
+            raise LookupError("could not list {0!r}: {1}".format(folder, exc))
+        items = []
+        for name in files:
+            if not name.lower().endswith(IMAGE_EXTS):
+                continue
+            items.append({
+                "fanart": folder + name,
+                "label": _basename_no_ext(name),
+                "watched": "",
+                "title": "", "year": "", "dbtype": "", "dbid": 0,
+                "file": "", "thumb": "", "duration": 0,
+            })
+        random.shuffle(items)
+        return items[:self.BG_FOLDER_MAX]
 
     @staticmethod
     def _watched_text(lastplayed):
@@ -6880,24 +7058,40 @@ class FunctionalHelper(xbmc.Monitor):
         return _L(31620) % "{0}/{1}/{2}".format(m.group(3), m.group(2), m.group(1))
 
     @staticmethod
-    def _fanart_items(rows, with_year=True):
+    def _fanart_items(rows, kind):
         """
         <summary>
-        (fanart_url, label, watched_text) triples from JSON-RPC rows carrying
-        art/title/year and, when asked for, lastplayed. Rows with no fanart
-        are skipped, they would render as a blank background.
+        Slideshow item dicts from JSON-RPC rows carrying art, title, year,
+        lastplayed and (movies) file and runtime. Rows with no fanart are
+        skipped, they would render as a blank background.
         </summary>
+        <param name="rows">The movies or tvshows list from the reply.</param>
+        <param name="kind">"movie" or "tvshow": picks the id field and
+        becomes the item's dbtype, the value the Add To List button stores
+        as list_item_dbtype. A show's year is left out of the caption.</param>
+        <returns>Dicts with fanart, label, watched and the BG_ITEM_PROPS
+        fields; duration is the runtime in seconds, thumb the poster.</returns>
         """
         items = []
         for row in rows:
-            fanart = (row.get("art", {}) or {}).get("fanart", "")
+            art = row.get("art", {}) or {}
+            fanart = art.get("fanart", "")
             if not fanart:
                 continue
             title = row.get("title", "") or ""
-            year = row.get("year", 0) if with_year else 0
-            items.append((fanart,
-                          "{0} ({1})".format(title, year) if year else title,
-                          FunctionalHelper._watched_text(row.get("lastplayed"))))
+            year = (row.get("year", 0) or 0) if kind == "movie" else 0
+            items.append({
+                "fanart": fanart,
+                "label": "{0} ({1})".format(title, year) if year else title,
+                "watched": FunctionalHelper._watched_text(row.get("lastplayed")),
+                "title": title,
+                "year": year or "",
+                "dbtype": kind,
+                "dbid": row.get("movieid" if kind == "movie" else "tvshowid", 0) or 0,
+                "file": row.get("file", "") or "",
+                "thumb": art.get("poster") or art.get("thumb") or "",
+                "duration": row.get("runtime", 0) or 0,
+            })
         return items
 
     def _fetch_genre_library(self, genre, gtype):
@@ -6907,7 +7101,7 @@ class FunctionalHelper(xbmc.Monitor):
         </summary>
         <param name="genre">Genre name exactly as the library holds it.</param>
         <param name="gtype">movies, tvshows or both; anything else falls back to movies.</param>
-        <returns>(fanart_url, label) pairs, shuffled.</returns>
+        <returns>Slideshow item dicts, shuffled.</returns>
         <exception cref="LookupError">The library did not answer, see _result_rows.</exception>
         """
         if gtype not in ("movies", "tvshows", "both"):
@@ -6915,17 +7109,17 @@ class FunctionalHelper(xbmc.Monitor):
         params = {
             "limits": {"start": 0, "end": self.BG_COUNT},
             "sort": {"order": "ascending", "method": "random"},
-            "properties": ["art", "title", "year", "lastplayed"],
             "filter": {"field": "genre", "operator": "is", "value": genre},
         }
         items = []
         if gtype in ("movies", "both"):
-            items += self._fanart_items(_result_rows(
-                _jsonrpc("VideoLibrary.GetMovies", params), "movies"))
+            items += self._fanart_items(_result_rows(_jsonrpc(
+                "VideoLibrary.GetMovies",
+                dict(params, properties=self.BG_MOVIE_PROPS)), "movies"), "movie")
         if gtype in ("tvshows", "both"):
-            items += self._fanart_items(_result_rows(
-                _jsonrpc("VideoLibrary.GetTVShows", params), "tvshows"),
-                with_year=False)
+            items += self._fanart_items(_result_rows(_jsonrpc(
+                "VideoLibrary.GetTVShows",
+                dict(params, properties=self.BG_SHOW_PROPS)), "tvshows"), "tvshow")
         # Interleave movies and shows in "both" mode.
         random.shuffle(items)
         return items[:self.BG_COUNT]
@@ -6939,30 +7133,29 @@ class FunctionalHelper(xbmc.Monitor):
         (BG-UNWATCHED, Skin.String(bg_unwatched)). Asked for as "only films
         I have not seen", so a show is left out rather than judged by its
         episodes.</param>
-        <returns>(fanart_url, label, watched_text) triples, shuffled so films and shows interleave.</returns>
+        <returns>Slideshow item dicts, shuffled so films and shows interleave.</returns>
         <exception cref="LookupError">The library did not answer, see _result_rows.</exception>
         """
         movie_params = {
             "limits": {"start": 0, "end": self.BG_COUNT},
             "sort": {"order": "ascending", "method": "random"},
-            "properties": ["art", "title", "year", "lastplayed"],
+            "properties": self.BG_MOVIE_PROPS,
         }
         if unwatched:
             movie_params["filter"] = {
                 "field": "playcount", "operator": "is", "value": "0"}
         items = self._fanart_items(_result_rows(
-            _jsonrpc("VideoLibrary.GetMovies", movie_params), "movies"))
+            _jsonrpc("VideoLibrary.GetMovies", movie_params), "movies"), "movie")
         if unwatched:
             random.shuffle(items)
             return items[:self.BG_COUNT]
         show_params = {
             "limits": {"start": 0, "end": self.BG_COUNT},
             "sort": {"order": "ascending", "method": "random"},
-            "properties": ["art", "title", "year", "lastplayed"],
+            "properties": self.BG_SHOW_PROPS,
         }
         items += self._fanart_items(_result_rows(
-            _jsonrpc("VideoLibrary.GetTVShows", show_params), "tvshows"),
-            with_year=False)
+            _jsonrpc("VideoLibrary.GetTVShows", show_params), "tvshows"), "tvshow")
         # Shuffle so movies and shows interleave.
         random.shuffle(items)
         return items[:self.BG_COUNT]
