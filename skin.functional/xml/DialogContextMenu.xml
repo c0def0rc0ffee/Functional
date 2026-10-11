@@ -14,6 +14,7 @@
 	     menu, say) Kodi's stock focus on the grouplist stands. -->
 	<onload condition="Control.IsVisible(951) + !Control.IsVisible(950)">SetFocus(951)</onload>
 	<onload condition="Control.IsVisible(950)">SetFocus(950)</onload>
+	<onload condition="Control.IsVisible(952) + !Control.IsVisible(950) + !Control.IsVisible(951)">SetFocus(952)</onload>
 	<!-- Continue Watching rows (960 to 962) replace Kodi's list entirely. -->
 	<onload condition="Control.IsVisible(960)">SetFocus(960)</onload>
 	<animation effect="fade" time="150">WindowOpen</animation>
@@ -122,8 +123,19 @@
 				<param name="label" value="$LOCALIZE[31049]" />
 				<param name="command" value="add_pick" />
 				<param name="onup" value="950" />
-				<param name="ondown" value="996" />
+				<param name="ondown" value="952" />
 				<param name="shift" value="Control.IsVisible(950)" />
+			</include>
+			<!-- LIB-COLLECTIONS: "Collection: <name>" for a film in one, under
+			     the Lists rows. Kodi's grouplist follows 952's own onup when
+			     it is hidden, which reaches 951 as before. -->
+			<include content="CollectionContextButton">
+				<param name="id" value="952" />
+				<param name="top" value="110" />
+				<param name="onup" value="951" />
+				<param name="ondown" value="996" />
+				<param name="shift1" value="Control.IsVisible(950)" />
+				<param name="shift2" value="Control.IsVisible(951)" />
 			</include>
 
 			<!-- Continue Watching (Home pop-up): three skin rows stand in for
@@ -169,6 +181,7 @@
 				<visible>!$EXP[continue_menu]</visible>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(951)">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(952)">Conditional</animation>
 			</control>
 
 			<!-- The actual menu items grouplist (Kodi clones button id=1000 into here) -->
@@ -188,6 +201,7 @@
 				<itemgap>0</itemgap>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(951)">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(952)">Conditional</animation>
 				<onleft>996</onleft>
 				<onright>996</onright>
 				<!-- Plain, not conditional: a condition on a grouplist's onup is
@@ -197,7 +211,7 @@
 				     Lists rows are hidden Kodi follows 951's own onup, reaches
 				     950 pointing at itself and stops, so Up at the top of the
 				     menu simply holds. -->
-				<onup>951</onup>
+				<onup>952</onup>
 			</control>
 
 		</control>

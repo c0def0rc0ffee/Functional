@@ -2252,3 +2252,27 @@ msgstr ""
 msgctxt "#31626"
 msgid "Previous and next buttons at the screen edges"
 msgstr ""
+
+msgctxt "#31627"
+msgid "Collections"
+msgstr ""
+
+msgctxt "#31628"
+msgid "Collection:"
+msgstr ""
+
+msgctxt "#31629"
+msgid "Collections in the library side menu"
+msgstr ""
+
+msgctxt "#31630"
+msgid "Show: All"
+msgstr ""
+
+msgctxt "#31631"
+msgid "Show: Unfinished"
+msgstr ""
+
+msgctxt "#31632"
+msgid "Show: Not started"
+msgstr ""

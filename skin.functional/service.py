@@ -83,6 +83,18 @@ update_bg_command()
     daemon thread so the blocking dialog doesn't stall the polling loop.
     "bg_prev" and "bg_next" step the slideshow (BG-STEP) and run inline.
 
+update_collections_command()
+    LIB-COLLECTIONS. Watches Skin.String(collections_command): "cycle" moves
+    the collections node on screen through Show: All, Unfinished (some films
+    watched, some not) and Not started (none watched). Kodi's sets node
+    ignores every play count rule, so the names of the collections in a
+    state are worked out here from one VideoLibrary.GetMovies call and
+    named in a "set is" rule on a playlist grouped by sets, which the node
+    does honour. The search row at that level puts a "set contains" rule
+    beside it (_search_apply). The state on screen is read back from the
+    playlist's name into Skin.String(collections_state), and the text into
+    search_active, the same way the age and search rows are kept honest.
+
 update_bg_schedule()
     Time-of-day background schedule. When Skin.String(bg_schedule_slots) is
     2-4, every background option also exists per slot (bg_slot{n}_mode etc.,
@@ -6126,10 +6138,172 @@ class FunctionalHelper(xbmc.Monitor):
         if xbmc.getInfoLabel("Skin.String(age_filter)").strip() != want:
             _set_skin_string("age_filter", want)
         # Same idea for the search text: the menu row shows what the node on
-        # screen is actually filtered by, not what was last typed.
+        # screen is actually filtered by, not what was last typed. At the
+        # collections level the text is the "set contains" rule and the Show
+        # state is the playlist's name (LIB-COLLECTIONS).
         text = self._age_rule_from_path(path, "title", kinds)
+        state = ""
+        if path.startswith(self.SETS_NODE):
+            text, state = self._sets_filter_from_path(path)
         if xbmc.getInfoLabel("Skin.String(search_active)").strip() != text:
             _set_skin_string("search_active", text)
+        if xbmc.getInfoLabel("Skin.String(collections_state)").strip() != state:
+            _set_skin_string("collections_state", state)
+
+    # ---- Collections (LIB-COLLECTIONS) ------------------------------------
+    SETS_NODE = "videodb://movies/sets/"
+    # Show states in cycle order; "" is All.
+    COLLECTION_STATES = ("", "unfinished", "notstarted")
+
+    @staticmethod
+    def _xsp_from_path(path):
+        """
+        <summary>
+        The playlist dict a videodb URL carries in its xsp parameter.
+        </summary>
+        <param name="path">Container.FolderPath.</param>
+        <returns>The decoded playlist, or an empty dict when there is none or it does not parse.</returns>
+        """
+        if "xsp=" not in (path or ""):
+            return {}
+        try:
+            raw = urllib.parse.parse_qs(urllib.parse.urlparse(path).query).get("xsp", [""])[0]
+            playlist = json.loads(raw)
+        except (ValueError, TypeError, AttributeError):
+            return {}
+        return playlist if isinstance(playlist, dict) else {}
+
+    @classmethod
+    def _sets_filter_from_path(cls, path):
+        """
+        <summary>
+        What the collections node on screen is filtered by.
+        </summary>
+        <param name="path">Container.FolderPath.</param>
+        <returns>(text, state): the "set contains" text and the Show state,
+        each "" when absent. The state is the playlist's name, which
+        _sets_node writes for exactly this purpose; the "set is" names
+        rule is not read back, the names would be stale by then.</returns>
+        """
+        if not (path or "").startswith(cls.SETS_NODE):
+            return "", ""
+        playlist = cls._xsp_from_path(path)
+        state = playlist.get("name", "")
+        if state not in cls.COLLECTION_STATES:
+            state = ""
+        text = ""
+        for rule in (playlist.get("rules") or {}).get("and") or []:
+            if (isinstance(rule, dict) and rule.get("field") == "set"
+                    and rule.get("operator") == "contains"):
+                values = rule.get("value") or []
+                text = str(values[0]) if values else ""
+        return text, state
+
+    @classmethod
+    def _at_collections(cls, path):
+        """
+        <summary>
+        True on the collections node itself, filtered or not, and not
+        inside a collection, whose content is plain movies.
+        </summary>
+        """
+        return path.startswith(cls.SETS_NODE) and xbmc.getCondVisibility("Container.Content(sets)")
+
+    def _collection_names(self, state):
+        """
+        <summary>
+        Names of the collections in a Show state.
+        </summary>
+        <param name="state">"unfinished" (some films watched, some not) or
+        "notstarted" (none watched); anything else gives no names.</param>
+        <returns>Sorted names; empty when no collection is in that state.</returns>
+        <exception cref="LookupError">The library did not answer, see _result_rows.</exception>
+        <remarks>
+        One VideoLibrary.GetMovies over the whole library with two
+        properties, which is cheap even for thousands of films and avoids
+        a call per collection. Films in no collection are skipped.
+        </remarks>
+        """
+        rows = _result_rows(_jsonrpc("VideoLibrary.GetMovies", {
+            "properties": ["set", "playcount"]}), "movies")
+        counts = {}
+        for row in rows:
+            name = row.get("set") or ""
+            if not name:
+                continue
+            total, watched = counts.get(name, (0, 0))
+            counts[name] = (total + 1, watched + (1 if (row.get("playcount") or 0) > 0 else 0))
+        if state == "unfinished":
+            return sorted(n for n, (t, w) in counts.items() if 0 < w < t)
+        if state == "notstarted":
+            return sorted(n for n, (t, w) in counts.items() if w == 0)
+        return []
+
+    def _sets_node(self, text, state):
+        """
+        <summary>
+        The collections node filtered by a name search and a Show state.
+        </summary>
+        <param name="text">Text the collection name must contain, "" for none.</param>
+        <param name="state">A COLLECTION_STATES value, "" for All.</param>
+        <returns>The plain sets node with neither, else the node with a
+        playlist grouped by sets: Kodi only applies a playlist to the sets
+        node when its group is sets (as an object with a type, the JSON
+        form its loader reads), and even then ignores play count rules,
+        hence the state as a list of names. A state with no collection in
+        it names one that cannot exist, so the screen shows an empty list
+        rather than everything.</returns>
+        <exception cref="LookupError">The library did not answer, see _result_rows.</exception>
+        """
+        rules = []
+        if text:
+            rules.append({"field": "set", "operator": "contains", "value": [text]})
+        if state:
+            rules.append({"field": "set", "operator": "is",
+                          "value": self._collection_names(state) or ["\u0001"]})
+        if not rules:
+            return self.SETS_NODE
+        xsp = {"name": state or "search", "type": "movies",
+               "group": {"type": "sets", "mixed": False}, "rules": {"and": rules}}
+        return self.SETS_NODE + "?xsp=" + urllib.parse.quote(
+            json.dumps(xsp, separators=(",", ":")))
+
+    def update_collections_command(self):
+        """
+        <summary>
+        Watch Skin.String(collections_command): "cycle" steps the Show
+        state of the collections node on screen (see the module notes).
+        </summary>
+        <remarks>
+        Runs through _spawn_dialog although it opens no dialog: the names
+        come from the library, which must never be queried on the loop.
+        </remarks>
+        """
+        cmd = self._take_command("collections_command", lower=True)
+        if cmd == "cycle":
+            self._spawn_dialog(self._collections_cycle)
+
+    def _collections_cycle(self):
+        """
+        <summary>
+        Worker: reload the collections node with the next Show state,
+        keeping any name search in force. Ignored off that node.
+        </summary>
+        """
+        path = (xbmc.getInfoLabel("Container.FolderPath") or "").strip()
+        if not self._at_collections(path):
+            return
+        text, state = self._sets_filter_from_path(path)
+        state = self.COLLECTION_STATES[
+            (self.COLLECTION_STATES.index(state) + 1) % len(self.COLLECTION_STATES)]
+        try:
+            target = self._sets_node(text, state)
+        except LookupError as exc:
+            _dlog("collections: {0}".format(exc), xbmc.LOGWARNING)
+            return
+        _dlog("collections: show {0!r} search {1!r} -> {2}".format(state or "all", text, target[:100]))
+        xbmc.executebuiltin("Container.Update({0})".format(target))
+        self._age_last_path = None
 
     # ---- Home tiles (the main menu, eight configurable slots) --------------
     TILE_SLOTS = 8
@@ -6442,7 +6616,9 @@ class FunctionalHelper(xbmc.Monitor):
         if cmd == "prompt":
             self._spawn_dialog(self._search_prompt)
         elif cmd == "clear":
-            self._search_apply("")
+            # Off the loop as well: at the collections level a clear can
+            # need the library (the names of the state still in force).
+            self._spawn_dialog(lambda: self._search_apply(""))
 
     def _search_prompt(self):
         """
@@ -6485,7 +6661,11 @@ class FunctionalHelper(xbmc.Monitor):
         if not path.startswith("videodb://"):
             _dlog("search: not a library node, ignored: {0}".format(path[:80]))
             return
-        if xbmc.getCondVisibility("Container.Content(episodes)"):
+        if self._at_collections(path):
+            # LIB-COLLECTIONS: a "set contains" rule, keeping the Show state.
+            _, state = self._sets_filter_from_path(path)
+            target = self._sets_node(text, state)
+        elif xbmc.getCondVisibility("Container.Content(episodes)"):
             parts = urllib.parse.urlsplit(path)
             query = [(k, v) for k, v in urllib.parse.parse_qsl(parts.query, keep_blank_values=True)
                      if k != "xsp"]
@@ -7226,6 +7406,7 @@ def run():
         helper.update_age_command,
         helper.update_genre_command,
         helper.update_search_command,
+        helper.update_collections_command,
         helper.update_accent,
         helper.update_startup_fallback,
         helper.update_tiles,

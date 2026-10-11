@@ -1144,6 +1144,69 @@
 					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
 					<onright>51</onright>
 					<onup>8006</onup>
+					<ondown>8012</ondown>
+				</control>
+
+				<!-- LIB-COLLECTIONS: Kodi's own sets node, which the skin never
+				     linked to. Collections (8012) opens videodb://movies/sets/,
+				     one poster per collection, and a collection opens as a
+				     plain movies node so view, sort and the info bar carry on;
+				     the All button is the way back to titles. At the sets level
+				     Container.Content is "sets", which is why 8012 stays while
+				     Genre, Play Random and Age (gated on movies) step aside.
+				     Show (8014) cycles All, Unfinished and Not started at the
+				     collections level through service.py:update_collections_command,
+				     and the Search row works there too, on collection names.
+				     The highlighted film's own collection is a context menu row
+				     (DialogContextMenu 952), not a side menu row: in the gallery
+				     Left walks across the posters before it reaches this menu,
+				     so by then the highlighted film is whatever sat in the first
+				     column. All of it is off unless the Library page's
+				     Collections switch is on. -->
+				<control type="button" id="8012">
+					<visible>Skin.HasSetting(filter_menu_open) + Skin.HasSetting(library_collections) + String.StartsWith(Container.FolderPath,videodb://) + [Container.Content(movies) | Container.Content(sets)]</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31627]</label>
+					<onclick>Container.Update(videodb://movies/sets/)</onclick>
+					<!-- Browsing is the point of the click, so focus goes to
+					     whichever view is up, as the genre picker does. -->
+					<onclick condition="Control.IsVisible(50)">SetFocus(50)</onclick>
+					<onclick condition="!Control.IsVisible(50)">SetFocus(51)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8007</onup>
+					<ondown>8014</ondown>
+				</control>
+				<control type="button" id="8014">
+					<visible>Skin.HasSetting(filter_menu_open) + Skin.HasSetting(library_collections) + Container.Content(sets) + String.StartsWith(Container.FolderPath,videodb://movies/sets/)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$VAR[CollectionsShowLabel]</label>
+					<onclick>Skin.SetString(collections_command,cycle)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8012</onup>
 					<ondown>8010</ondown>
 				</control>
 
@@ -1157,7 +1220,7 @@
 				     Clear row shows only while one is in force and falls through
 				     to the queue row otherwise. -->
 				<control type="button" id="8010">
-					<visible>Skin.HasSetting(filter_menu_open) + [Container.Content(movies) | Container.Content(tvshows) | Container.Content(episodes)] + String.StartsWith(Container.FolderPath,videodb://)</visible>
+					<visible>Skin.HasSetting(filter_menu_open) + [Container.Content(movies) | Container.Content(tvshows) | Container.Content(episodes) | [Container.Content(sets) + Skin.HasSetting(library_collections)]] + String.StartsWith(Container.FolderPath,videodb://)</visible>
 					<width>380</width>
 					<height>50</height>
 					<font>font_reg</font>
@@ -1174,7 +1237,7 @@
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
 					<onright>51</onright>
-					<onup>8007</onup>
+					<onup>8014</onup>
 					<ondown>8011</ondown>
 				</control>
 				<control type="button" id="8011">

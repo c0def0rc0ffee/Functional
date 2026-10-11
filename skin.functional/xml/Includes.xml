@@ -535,6 +535,13 @@
 		<value condition="!String.IsEmpty(Skin.String(bg_lastplayed)) + !String.IsEmpty(Window(home).Property(home_bg_watched))">$INFO[Window(home).Property(home_bg_label)]  ·  $INFO[Window(home).Property(home_bg_watched)]</value>
 		<value>$INFO[Window(home).Property(home_bg_label)]</value>
 	</variable>
+	<!-- LIB-COLLECTIONS: the Show row at the collections level, keyed on
+	     the state service.py reads back from the node on screen. -->
+	<variable name="CollectionsShowLabel">
+		<value condition="String.IsEqual(Skin.String(collections_state),unfinished)">$LOCALIZE[31631]</value>
+		<value condition="String.IsEqual(Skin.String(collections_state),notstarted)">$LOCALIZE[31632]</value>
+		<value>$LOCALIZE[31630]</value>
+	</variable>
 	<variable name="BgLabelPositionLabel">
 		<value condition="String.IsEqual(Skin.String(bg_label_position),topleft)">$LOCALIZE[31106]</value>
 		<value condition="String.IsEqual(Skin.String(bg_label_position),topright)">$LOCALIZE[31107]</value>
@@ -2340,6 +2347,55 @@
 				<onclick condition="Window.IsActive(music) | Window.IsActive(musicplaylist)">SetProperty(list_item_kind,music,10000)</onclick>
 				<onclick condition="!Window.IsActive(music) + !Window.IsActive(musicplaylist)">SetProperty(list_item_kind,video,10000)</onclick>
 				<onclick>Skin.SetString(list_command,$PARAM[command])</onclick>
+				<onclick>Action(Close)</onclick>
+			</control>
+		</definition>
+	</include>
+
+	<!-- LIB-COLLECTIONS: the context menu row that opens the highlighted
+	     film's own collection. Same placement rules as ListsContextButton
+	     (outside grouplist 996, slid down a slot for each Lists row that
+	     shows). Container.Update acts on the window under the dialog, so
+	     the library moves to the collection as the menu closes. -->
+	<include name="CollectionContextButton">
+		<param name="id" />
+		<param name="top" />
+		<param name="onup" />
+		<param name="ondown" />
+		<param name="shift1" default="false" />
+		<param name="shift2" default="false" />
+		<definition>
+			<control type="image">
+				<left>0</left>
+				<top>$PARAM[top]</top>
+				<width>600</width>
+				<height>60</height>
+				<texture colordiffuse="bg_panel">white.png</texture>
+				<visible>Control.IsVisible($PARAM[id])</visible>
+				<animation effect="slide" end="0,60" time="0" condition="$PARAM[shift1]">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="$PARAM[shift2]">Conditional</animation>
+			</control>
+			<control type="button" id="$PARAM[id]">
+				<left>0</left>
+				<top>$PARAM[top]</top>
+				<width>600</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>30</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<label>$LOCALIZE[31628] $INFO[ListItem.Set]</label>
+				<visible>Skin.HasSetting(library_collections) + Window.IsActive(videos) + !String.IsEmpty(ListItem.SetId) + !ListItem.IsParentFolder + !String.StartsWith(Container.FolderPath,videodb://movies/sets/)</visible>
+				<animation effect="slide" end="0,60" time="0" condition="$PARAM[shift1]">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="$PARAM[shift2]">Conditional</animation>
+				<onup>$PARAM[onup]</onup>
+				<ondown>$PARAM[ondown]</ondown>
+				<onclick>Container.Update(videodb://movies/sets/$INFO[ListItem.SetId]/)</onclick>
 				<onclick>Action(Close)</onclick>
 			</control>
 		</definition>
