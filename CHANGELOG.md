@@ -11,6 +11,17 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.15.0 (11/10/2026)
+
+- Add To List on the background, a Background setting. The caption
+  gains a button after the title that puts the film on a list, or on a
+  new one, the same picker the context menu uses.
+- Previous and next buttons at the screen edges, a Background setting.
+  Left and Right from the menu row reach them; Back steps through what
+  has been shown, Next goes forward and then on to a fresh picture, and
+  the timer carries on from there. They work on the picture folder
+  slideshow as well as the library ones.
+
 ## 0.14.0 (08/10/2026)
 
 - A new volume pop-up: a large ring in the middle of the screen with the
