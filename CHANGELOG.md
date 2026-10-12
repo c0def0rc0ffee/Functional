@@ -11,6 +11,23 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.21.0 (12/10/2026)
+
+- Christmas, a new seasonal theme. Cream on deep evergreen with a holly
+  red accent and gold highlights, snow drifting down and frost in the
+  corners. With no background picture of your own, a snowy village at
+  night: a tree with twinkling lights and a star, a church, a robin on
+  the fence, and a couple of things for those who look closely. With a
+  picture, a soft night wash over it with the snow and frost on top.
+  Santa's sleigh crosses the moon now and then.
+- Christmas Eve, the night of 24 December: the village is always up and
+  the sleigh comes round far more often. At midnight it lands on a
+  rooftop and stays parked there all Christmas Day.
+- Both come on by themselves from the first Saturday of December to the
+  end of Boxing Day. The new setting Christmas every year switches that
+  off without touching Halloween, and the Theme row picks either one by
+  hand at any time.
+
 ## 0.20.0 (12/10/2026)
 
 - Halloween has company: spiders scuttling across the screen, fast and

@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.20.0" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.21.0" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,8 +27,9 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>Halloween has company: spiders scuttling across the screen, fast and slow, one now and then letting itself down a thread; a witch on her broomstick crossing the sky; and ghosts drifting past. The red tint over your background stays as it was, and Devil's Night is unchanged.
-The first time each year that Halloween comes on by itself, it starts with the red tint alone. After a while a spider shoots across, then another, then the witch, and it builds up from there, the fog rolling in and the lightning starting, until after about half an hour all of it is running. Every other time, after a restart or with the theme picked by hand, it starts with everything at once.</news>
+		<news>Christmas, a new seasonal theme. Cream on deep evergreen with a holly red accent and gold highlights, snow drifting down and frost in the corners. With no background picture of your own, a snowy village at night: a tree with twinkling lights and a star, a church, a robin on the fence, and a couple of things for those who look closely. With a picture, a soft night wash over it with the snow and frost on top. Santa's sleigh crosses the moon now and then.
+Christmas Eve, the night of 24 December: the village is always up and the sleigh comes round far more often. At midnight it lands on a rooftop and stays parked there all Christmas Day.
+Both come on by themselves from the first Saturday of December to the end of Boxing Day. The new setting Christmas every year switches that off without touching Halloween, and the Theme row picks either one by hand at any time.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
