@@ -294,7 +294,8 @@
 			<!-- ENGAGE section (ENGAGE-NEXT): the next watch slot the Engage
 			     add-on (service.engage) publishes as
 			     Window(home).Property(Engage.Next.*) from its own service: the
-			     slot label and when it is due in words ("Tonight 19:00"). The
+			     slot label and when it is due in words ("Tonight 19:00"), both
+			     in white; only the heading and its rule take the accent. The
 			     episode line Engage also publishes is deliberately not shown:
 			     a show's slot reads as the show's name alone (asked for on
 			     12/10/2026, shipped in 0.18.1).
@@ -360,7 +361,7 @@
 					<width>310</width>
 					<height>34</height>
 					<font>font_reg</font>
-					<textcolor>$VAR[AccentColor]</textcolor>
+					<textcolor>text</textcolor>
 					<label>$INFO[Window(home).Property(Engage.Next.When)]</label>
 				</control>
 			</control>

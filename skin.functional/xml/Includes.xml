@@ -370,8 +370,10 @@
 		</control>
 	</include>
 	<!-- ENGAGE-LIST: one row of the Coming up list on the left of Home
-	     (Home.xml). 80 tall: the slot's label, scrolling, in font_med,
-	     then when it is due in the accent; no episode line, a show reads
+	     (Home.xml). 80 tall: the slot's label, scrolling, then when it
+	     is due, both font_reg in white like the stats column's figures
+	     and the small block (only the panel heading takes the accent,
+	     12/10/2026); no episode line, a show reads
 	     as its name alone. Slot n is Window(home).Property(Engage.Next.n.*),
 	     published by Engage; the row shows while that slot's label is
 	     present and 'when' holds, and hides with the panel. The button
@@ -414,19 +416,19 @@
 					<left>0</left>
 					<top>0</top>
 					<width>480</width>
-					<height>40</height>
-					<font>font_med</font>
+					<height>34</height>
+					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<scroll>true</scroll>
 					<label>$INFO[Window(home).Property(Engage.Next.$PARAM[n].Label)]</label>
 				</control>
 				<control type="label">
 					<left>0</left>
-					<top>40</top>
+					<top>38</top>
 					<width>480</width>
-					<height>32</height>
+					<height>34</height>
 					<font>font_reg</font>
-					<textcolor>$VAR[AccentColor]</textcolor>
+					<textcolor>text</textcolor>
 					<label>$INFO[Window(home).Property(Engage.Next.$PARAM[n].When)]</label>
 				</control>
 			</control>
