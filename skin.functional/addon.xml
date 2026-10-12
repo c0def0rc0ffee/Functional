@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.21.2" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.21.3" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,8 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>Coming up reads in white. The slots in the Coming up block and the list down the left now show their names and times in white like the rest of the stats column, with only the headings in the accent colour, and the list's names use the same size as its times.</news>
+		<news>The Coming up list on the left has separators: a faint line between slots on the same day, and a heavier one where the day changes.
+With the logo hidden and only the background caption in the top left, the Coming up list now starts just under the caption instead of well below it, which fits one more slot.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

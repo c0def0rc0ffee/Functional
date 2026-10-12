@@ -11,6 +11,14 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.21.3 (12/10/2026)
+
+- The Coming up list on the left has separators: a faint line between
+  slots on the same day, and a heavier one where the day changes.
+- With the logo hidden and only the background caption in the top left,
+  the Coming up list now starts just under the caption instead of well
+  below it, which fits one more slot.
+
 ## 0.21.2 (12/10/2026)
 
 - Coming up reads in white. The slots in the Coming up block and the
