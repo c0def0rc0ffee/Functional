@@ -11,6 +11,13 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.21.2 (12/10/2026)
+
+- Coming up reads in white. The slots in the Coming up block and the
+  list down the left now show their names and times in white like the
+  rest of the stats column, with only the headings in the accent colour,
+  and the list's names use the same size as its times.
+
 ## 0.21.1 (12/10/2026)
 
 - No more lightning. The flash is gone from Halloween and from Devil's
