@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.18.0" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.18.1" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,8 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>Coming up list, a Home Screen setting offered when the Engage add-on is installed, beside the Coming up block and independent of it. The next Engage slots run down the left of Home, each with its episode or film and when it is due; OK on a row opens Engage. The list starts under the logo and a top menu and grows down as far as the layout allows, up to eleven rows with the logo hidden and the menu out of its way; a wide menu row across the centre ends it above the row. It shows once an Engage release publishes the slots; until then nothing appears.
-A centred menu row of up to four tiles now sits on the screen centre beside the stats column instead of being pushed left with the wider rows.</news>
+		<news>Coming up shows a slot's name alone. The block in the stats column no longer adds the episode after it, so a show reads as just its name, the same as the rows of the list on the left.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

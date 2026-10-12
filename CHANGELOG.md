@@ -11,6 +11,12 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.18.1 (12/10/2026)
+
+- Coming up shows a slot's name alone. The block in the stats column no
+  longer adds the episode after it, so a show reads as just its name,
+  the same as the rows of the list on the left.
+
 ## 0.18.0 (12/10/2026)
 
 - Coming up list, a Home Screen setting offered when the Engage add-on
