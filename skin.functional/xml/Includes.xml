@@ -134,6 +134,14 @@
 	     top left caption (y 40 to 80, from x 60 with the logo hidden) is
 	     showing. -->
 	<expression name="engage_list_rise">Skin.HasSetting(hide_logo) + !$EXP[menu_top] + !$EXP[corner_bar_top] + ![String.IsEqual(Skin.String(bg_label_position),topleft) + !String.IsEmpty(Window(home).Property(home_bg_label)) + !$EXP[bg_video_showing]]</expression>
+	<!-- engage_list_lift (COMING-UP-LIFT, asked for on 12/10/2026): the
+	     top left holds nothing but the background caption (logo hidden,
+	     no top menu, no top corner bar, a top left caption showing). The
+	     caption takes y 40 to 80, so the panel starts one row higher, at
+	     y 100, instead of leaving 100 pixels empty at y 180. One row
+	     pitch exactly, so the cuts still land on whole rows, and one more
+	     row fits at the foot. Never true together with engage_list_rise. -->
+	<expression name="engage_list_lift">Skin.HasSetting(hide_logo) + !$EXP[menu_top] + !$EXP[corner_bar_top] + [String.IsEqual(Skin.String(bg_label_position),topleft) + !String.IsEmpty(Window(home).Property(home_bg_label)) + !$EXP[bg_video_showing]]</expression>
 	<expression name="engage_list_foot">[String.IsEqual(Skin.String(bg_label_position),bottomleft) + !String.IsEmpty(Window(home).Property(home_bg_label)) + !$EXP[bg_video_showing]] | [$EXP[corner_bar_bottom_left] + !Skin.HasSetting(hide_version)]</expression>
 	<expression name="home_stats_shown">!Skin.HasSetting(hide_movies_count) | !Skin.HasSetting(hide_tvshows_count) | $EXP[jellystat_block_shown] | $EXP[engage_block_shown]</expression>
 	<!-- Which of a menu slot's three button widths shows, from the number of
@@ -396,6 +404,29 @@
 				<top>$PARAM[top]</top>
 				<width>480</width>
 				<height>80</height>
+				<!-- COMING-UP-SEP: a separator in the 8 pixel gap above the
+				     row, never above row 1. A faint hairline between two
+				     slots on the same day, a thicker, brighter rule where the
+				     day changes; service.py:update_coming_up_days says which
+				     in Window(home).Property(ComingUp.N.Sep). Both sit inside
+				     the gap, so no row moves and the list keeps its 80 pixel
+				     pitch, which the cut, rise and foot rules depend on. -->
+				<control type="image">
+					<left>0</left>
+					<top>-5</top>
+					<width>480</width>
+					<height>1</height>
+					<texture colordiffuse="33FFFFFF">white.png</texture>
+					<visible>String.IsEqual(Window(home).Property(ComingUp.$PARAM[n].Sep),slot)</visible>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>-6</top>
+					<width>480</width>
+					<height>3</height>
+					<texture colordiffuse="80FFFFFF">white.png</texture>
+					<visible>String.IsEqual(Window(home).Property(ComingUp.$PARAM[n].Sep),day)</visible>
+				</control>
 				<control type="button" id="$PARAM[id]">
 					<left>-10</left>
 					<top>-8</top>

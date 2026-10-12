@@ -185,6 +185,11 @@ update_lists()
     addon_data/skin.functional/radarr.json, every outcome appended to
     radarr-log.txt beside it. See the RADARR-REMOVE block.
 
+update_coming_up_days()
+    Publishes ComingUp.N.Sep ("slot" or "day") for the rows of the Coming
+    up list, from the day part of each Engage.Next.N.When, so the list
+    draws a heavier separator where the day changes.
+
 update_theme()
     Seasonal themes. Picks Halloween from 29 to 31 October (Devil's Night
     on the 30th) and Christmas from the first Saturday of December to
@@ -2966,6 +2971,42 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("continue command ignored: %r" % cmd)
 
     # ---- Next Up (the next unwatched episode per show in progress) --------
+
+    ENGAGE_LIST_ROWS = 11  # Engage.Next.1.* to .11.*, the rows of the Coming up list
+
+    def update_coming_up_days(self):
+        """
+        <summary>
+        Mark which rows of the Coming up list start a new day, so the list
+        can draw a heavier separator there.
+        </summary>
+        <remarks>
+        COMING-UP-SEP, asked for on 12/10/2026: a small separator between
+        the list's rows and a slightly larger one between days. Slow tick.
+        Engage publishes Engage.Next.N.When as "Tonight 19:00", "Tomorrow
+        20:00", "Wednesday 19:30" or, from a week out, "Wednesday 21/10/2026
+        19:30"; today always reads Tonight, so everything before the time
+        names the day exactly. For each row N from 2 this publishes
+        Window(home).Property(ComingUp.N.Sep): "day" when its day differs
+        from row N-1's, "slot" when it is the same day, and nothing when
+        either row is empty. Row 1 never has one. Written only on a change.
+        </remarks>
+        """
+        home = xbmcgui.Window(HOME_WINDOW_ID)
+        prev_day = None
+        for n in range(1, self.ENGAGE_LIST_ROWS + 1):
+            when = home.getProperty("Engage.Next.{0}.When".format(n)).strip()
+            day = when.rsplit(" ", 1)[0] if " " in when else when
+            sep = ""
+            if n > 1 and when and prev_day:
+                sep = "day" if day != prev_day else "slot"
+            key = "ComingUp.{0}.Sep".format(n)
+            if home.getProperty(key) != sep:
+                if sep:
+                    home.setProperty(key, sep)
+                else:
+                    home.clearProperty(key)
+            prev_day = day if when else None
 
     def update_next_up(self):
         """
@@ -7947,6 +7988,8 @@ def run():
         # held back until nothing is playing, and the crow's next move.
         helper.update_theme,
         helper.maybe_refresh_stats,
+        # Once a second: Engage rewrites its rows on its own schedule.
+        helper.update_coming_up_days,
         helper.normalize_clearance,
     )
     failures = {}

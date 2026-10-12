@@ -382,28 +382,33 @@
 		     menu, dropping 80 under a corner bar on the top edge, and
 		     rising 160 to y 20 when nothing at all is up there
 		     ($EXP[engage_list_rise]: logo hidden, no top menu, no top bar,
-		     no top left caption). Rows are 80 apart from y 228 (row N
-		     spans 228 + 80(N-1) to 308 + 80(N-1); 160 less when risen) and
-		     the list grows down as far as the layout allows: nine rows to
-		     y 948 at most, eleven when risen. Both shifts are multiples of
-		     the row pitch, so every cut below lands on whole rows.
+		     no top left caption), and rising 80 to y 100 when the only
+		     thing up there is a top left caption ($EXP[engage_list_lift],
+		     COMING-UP-LIFT, added 12/10/2026). Rows are 80 apart from y 228
+		     (row N spans 228 + 80(N-1) to 308 + 80(N-1); 160 less when
+		     risen, 80 less when lifted) and the list grows down as far as
+		     the layout allows: nine rows to y 948 at most, ten when lifted,
+		     eleven when risen. Every shift is a multiple of the row pitch,
+		     so every cut below lands on whole rows.
 		     What cuts it, each row carrying its own 'when':
 		     - the menu row across the centre (y 480 to 620) when it is wide
 		       enough to reach this column ($EXP[engage_list_cut], four or
 		       more tiles): the rows at and below the band hide, so the
 		       list ends at y 468: that is rows 4 and up at y 180, rows 3
-		       and up under a top bar, rows 6 and up when risen. Up to three
+		       and up under a top bar, rows 5 and up when lifted, rows 6 and
+		       up when risen. Up to three
 		       tiles stay right of x 610 and the list runs on past the band;
 		     - the menu at the bottom (y 820 to 960, or 920 to 1060 under a
 		       top bar): the rows reaching y 788 and below hide, rows 8 and
-		       9 at y 180 or under a top bar, rows 10 and 11 when risen;
+		       9 at y 180 or under a top bar, rows 9 and 10 when lifted,
+		       rows 10 and 11 when risen;
 		     - a top bar alone: row 9 would end at y 1028, so it hides;
 		     - a bottom left caption or the version line lifted above a
 		       bottom left bar ($EXP[engage_list_foot], y 870 to 960): the
-		       row reaching y 948 hides, row 9 at y 180, row 11 when risen,
-		       and row 8 under a top bar;
-		     - rows 10 and 11 only exist risen; they would end at y 1028
-		       and 1108 otherwise.
+		       row reaching y 948 hides, row 9 at y 180, row 10 when
+		       lifted, row 11 when risen, and row 8 under a top bar;
+		     - row 10 only exists lifted or risen and row 11 only risen;
+		       otherwise they would end at y 1028 and 1108.
 		     Each row is a button, 9321 to 9331, the EngageListRow include:
 		     OK opens Engage's own launcher. Left from the left edge button
 		     9310, or straight from the first tile while that button is
@@ -415,6 +420,7 @@
 			<visible>$EXP[engage_list_shown]</visible>
 			<animation effect="slide" end="0,80" time="0" condition="$EXP[corner_bar_top]">Conditional</animation>
 			<animation effect="slide" end="0,-160" time="0" condition="$EXP[engage_list_rise]">Conditional</animation>
+			<animation effect="slide" end="0,-80" time="0" condition="$EXP[engage_list_lift]">Conditional</animation>
 			<left>60</left>
 			<top>180</top>
 			<width>480</width>
@@ -437,13 +443,13 @@
 			<include content="EngageListRow"><param name="n" value="1"/><param name="id" value="9321"/><param name="top" value="56"/><param name="onup" value="9000"/><param name="ondown" value="9322"/></include>
 			<include content="EngageListRow"><param name="n" value="2"/><param name="id" value="9322"/><param name="top" value="136"/><param name="onup" value="9321"/><param name="ondown" value="9323"/></include>
 			<include content="EngageListRow"><param name="n" value="3"/><param name="id" value="9323"/><param name="top" value="216"/><param name="onup" value="9322"/><param name="ondown" value="9324"/><param name="when" value="![$EXP[engage_list_cut] + $EXP[corner_bar_top]]"/></include>
-			<include content="EngageListRow"><param name="n" value="4"/><param name="id" value="9324"/><param name="top" value="296"/><param name="onup" value="9323"/><param name="ondown" value="9325"/><param name="when" value="![$EXP[engage_list_cut] + !$EXP[engage_list_rise]]"/></include>
+			<include content="EngageListRow"><param name="n" value="4"/><param name="id" value="9324"/><param name="top" value="296"/><param name="onup" value="9323"/><param name="ondown" value="9325"/><param name="when" value="![$EXP[engage_list_cut] + !$EXP[engage_list_rise] + !$EXP[engage_list_lift]]"/></include>
 			<include content="EngageListRow"><param name="n" value="5"/><param name="id" value="9325"/><param name="top" value="376"/><param name="onup" value="9324"/><param name="ondown" value="9326"/><param name="when" value="![$EXP[engage_list_cut] + !$EXP[engage_list_rise]]"/></include>
 			<include content="EngageListRow"><param name="n" value="6"/><param name="id" value="9326"/><param name="top" value="456"/><param name="onup" value="9325"/><param name="ondown" value="9327"/><param name="when" value="!$EXP[engage_list_cut]"/></include>
 			<include content="EngageListRow"><param name="n" value="7"/><param name="id" value="9327"/><param name="top" value="536"/><param name="onup" value="9326"/><param name="ondown" value="9328"/><param name="when" value="!$EXP[engage_list_cut]"/></include>
-			<include content="EngageListRow"><param name="n" value="8"/><param name="id" value="9328"/><param name="top" value="616"/><param name="onup" value="9327"/><param name="ondown" value="9329"/><param name="when" value="!$EXP[engage_list_cut] + ![$EXP[menu_bottom] + !$EXP[engage_list_rise]] + ![$EXP[corner_bar_top] + $EXP[engage_list_foot]]"/></include>
-			<include content="EngageListRow"><param name="n" value="9"/><param name="id" value="9329"/><param name="top" value="696"/><param name="onup" value="9328"/><param name="ondown" value="9330"/><param name="when" value="!$EXP[engage_list_cut] + ![$EXP[menu_bottom] + !$EXP[engage_list_rise]] + !$EXP[corner_bar_top] + ![$EXP[engage_list_foot] + !$EXP[engage_list_rise]]"/></include>
-			<include content="EngageListRow"><param name="n" value="10"/><param name="id" value="9330"/><param name="top" value="776"/><param name="onup" value="9329"/><param name="ondown" value="9331"/><param name="when" value="$EXP[engage_list_rise] + !$EXP[engage_list_cut] + !$EXP[menu_bottom]"/></include>
+			<include content="EngageListRow"><param name="n" value="8"/><param name="id" value="9328"/><param name="top" value="616"/><param name="onup" value="9327"/><param name="ondown" value="9329"/><param name="when" value="!$EXP[engage_list_cut] + ![$EXP[menu_bottom] + !$EXP[engage_list_rise] + !$EXP[engage_list_lift]] + ![$EXP[corner_bar_top] + $EXP[engage_list_foot]]"/></include>
+			<include content="EngageListRow"><param name="n" value="9"/><param name="id" value="9329"/><param name="top" value="696"/><param name="onup" value="9328"/><param name="ondown" value="9330"/><param name="when" value="!$EXP[engage_list_cut] + ![$EXP[menu_bottom] + !$EXP[engage_list_rise]] + !$EXP[corner_bar_top] + ![$EXP[engage_list_foot] + !$EXP[engage_list_rise] + !$EXP[engage_list_lift]]"/></include>
+			<include content="EngageListRow"><param name="n" value="10"/><param name="id" value="9330"/><param name="top" value="776"/><param name="onup" value="9329"/><param name="ondown" value="9331"/><param name="when" value="[$EXP[engage_list_rise] | $EXP[engage_list_lift]] + !$EXP[engage_list_cut] + !$EXP[menu_bottom] + ![$EXP[engage_list_lift] + $EXP[engage_list_foot]]"/></include>
 			<include content="EngageListRow"><param name="n" value="11"/><param name="id" value="9331"/><param name="top" value="856"/><param name="onup" value="9330"/><param name="ondown" value="9000"/><param name="when" value="$EXP[engage_list_rise] + !$EXP[engage_list_cut] + !$EXP[menu_bottom] + !$EXP[engage_list_foot]"/></include>
 		</control>
 
