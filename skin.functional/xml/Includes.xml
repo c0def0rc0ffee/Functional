@@ -3586,7 +3586,6 @@
 	     service.py:update_theme writes about once a second:
 	       theme_crow   landing, perched, tap, caw, leaving or away
 	       theme_bats   set while a flight of bats crosses
-	       theme_flash  set for a moment for a lightning flash
 	     Loops (fog, rain, the lantern flicker) run on Kodi's own animation
 	     clock and cost the service nothing.
 
@@ -3680,20 +3679,8 @@
 					<include content="ThemeBat"><param name="top" value="100"/><param name="size" value="50"/><param name="start" value="2100,30"/><param name="end" value="-200,10"/><param name="delay" value="1100"/></include>
 				</control>
 
-				<!-- Lightning: a white flash that snaps on and dies away. The
-				     two fades multiply: the first rises to 70 percent, the
-				     second holds at full until its delay runs out and then
-				     takes the whole thing back to nothing. -->
-				<control type="image">
-					<left>0</left>
-					<top>0</top>
-					<width>1920</width>
-					<height>1080</height>
-					<texture colordiffuse="CCE6E8FF">white.png</texture>
-					<visible>!String.IsEmpty(Window(home).Property(theme_flash))</visible>
-					<animation effect="fade" start="0" end="55" time="60">Visible</animation>
-					<animation effect="fade" start="100" end="0" delay="120" time="600">Visible</animation>
-				</control>
+				<!-- There was a lightning flash here; it was taken out of
+				     every theme when asked on 12/10/2026. -->
 
 				<control type="image">
 					<left>0</left>

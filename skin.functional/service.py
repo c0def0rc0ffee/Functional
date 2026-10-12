@@ -191,7 +191,8 @@ update_theme()
     Boxing Day (Christmas Eve on the 24th), each unless switched off,
     otherwise the theme chosen in Skin Settings; publishes theme_name and theme_seasonal on Home, switches
     Kodi's skin colour setting to colors/halloween.xml and back, and steps
-    the crow, bats and lightning (theme_crow, theme_bats, theme_flash).
+    the crow, the creatures and Santa's sleigh (theme_crow, theme_bats and
+    the rest; see _theme_motion).
 
 Future handlers
 ---------------
@@ -744,7 +745,6 @@ class FunctionalHelper(xbmc.Monitor):
         self._crow_state = None          # None = no crow; else as in _crow_set
         self._crow_until = 0.0
         self._crow_leave_at = 0.0
-        self._flash_next = self._flash_until = 0.0
         # Creatures (THEME-CREATURES, see _theme_motion): property name ->
         # (value, monotonic time it is done); next due time per kind.
         self._creatures = {}
@@ -6672,7 +6672,7 @@ class FunctionalHelper(xbmc.Monitor):
             theme_seasonal  halloween or christmas while the calendar is the reason
             theme_level     0 to 3, the yearly build-up, see _theme_intro_check
             theme_crow, theme_spider1/2, theme_witch, theme_ghosts,
-            theme_bats, theme_flash   see _theme_motion
+            theme_bats      see _theme_motion
             theme_sleigh    see _theme_sleigh
         The colours are Kodi's own lookandfeel.skincolors setting, see
         _theme_colours. Everything else is the XML reading theme_name.
@@ -6795,9 +6795,10 @@ class FunctionalHelper(xbmc.Monitor):
     # once a year, the first time the season switches Halloween on by
     # itself; see _theme_intro. "level" moves Window(home).Property
     # (theme_level): 0 the red tint and nothing else, 1 the fog and dark
-    # corners roll in, 2 lightning starts, 3 everything at random. Nine
-    # minutes of nothing first, then it gathers pace over about half an
-    # hour.
+    # corners roll in, 3 everything at random. Nine minutes of nothing
+    # first, then it gathers pace over about half an hour. Level 2 used to
+    # start the lightning; no theme has had any since it was asked to go
+    # on 12/10/2026, so the build-up steps from 1 to 3.
     INTRO = (
         (0, "level", 0),
         (540, "spider", "a_fast"),
@@ -6810,7 +6811,6 @@ class FunctionalHelper(xbmc.Monitor):
         (1350, "spider", "drop_slow"),
         (1360, "spider", "a_fast"),
         (1470, "bats", "1"),
-        (1560, "level", 2),
         (1590, "witch", "ltr"),
         (1680, "spider", "b_slow"),
         (1690, "spider", "c_fast"),
@@ -6822,7 +6822,7 @@ class FunctionalHelper(xbmc.Monitor):
     def _theme_motion(self, theme):
         """
         <summary>
-        Step the crow, the creatures and the lightning for the theme in force.
+        Step the crow, the creatures and the sleigh for the theme in force.
         </summary>
         <param name="theme">The theme update_theme settled on.</param>
         <remarks>
@@ -6831,9 +6831,8 @@ class FunctionalHelper(xbmc.Monitor):
         and every four to seven minutes flies off and comes back a little
         later. Spiders, the witch, ghosts and bats are Halloween only:
         scripted by INTRO during the yearly build-up, at random after it
-        (_theme_creatures_random). Lightning comes every forty seconds to
-        two minutes once the level allows it, more often on Devil's
-        Night, which is a storm. Outside a Halloween theme every property
+        (_theme_creatures_random). No theme has lightning: it was taken
+        out of all of them when asked on 12/10/2026. Outside a Halloween theme every property
         is cleared and the timers start over, so the crow lands afresh
         when Devil's Night begins. Monotonic time throughout, so a clock
         step does not freeze or rush a state.
@@ -6847,7 +6846,7 @@ class FunctionalHelper(xbmc.Monitor):
                 self._intro_start = None
                 self._creatures = {}
                 self._sleigh = ("", 0.0)
-                for key in ("theme_crow", "theme_flash", "theme_level", "theme_sleigh") + self.CREATURE_KEYS:
+                for key in ("theme_crow", "theme_level", "theme_sleigh") + self.CREATURE_KEYS:
                     self._theme_prop(key, "")
             return
         if not self._theme_motion_live:
@@ -6858,8 +6857,6 @@ class FunctionalHelper(xbmc.Monitor):
                 "ghosts": now + random.uniform(40, 90),
                 "bats": now + random.uniform(20, 60),
             }
-            self._flash_next = now + random.uniform(15, 40)
-            self._flash_until = 0.0
 
         level = 3
         if theme != "halloween":
@@ -6881,12 +6878,6 @@ class FunctionalHelper(xbmc.Monitor):
             self._theme_prop(key, value if theme == "halloween" and now < until else "")
 
         self._theme_sleigh(theme, now)
-
-        # Lightning is Halloween's; Christmas has none (THEME-CHRISTMAS).
-        if theme in self.HALLOWEEN_THEMES and level >= 2 and now >= self._flash_next:
-            self._flash_until = now + 1.2
-            self._flash_next = now + (random.uniform(25, 70) if theme == "devilsnight" else random.uniform(40, 120))
-        self._theme_prop("theme_flash", "1" if theme in self.HALLOWEEN_THEMES and now < self._flash_until else "")
 
     def _theme_sleigh(self, theme, now):
         """
@@ -6918,6 +6909,12 @@ class FunctionalHelper(xbmc.Monitor):
         christmas_day = lt.tm_mon == 12 and lt.tm_mday == 25
         touchdown = (lt.tm_mon == 12 and lt.tm_mday == 24 and lt.tm_hour == 23
                      and lt.tm_min == 59 and lt.tm_sec >= 40)
+        # No crossing may start in the last twenty seconds before touchdown:
+        # one started at 23:59:38 was cut short by the landing and the
+        # sleigh jumped. A crossing takes SLEIGH_SECS, so one started by
+        # 23:59:20 is gone before 23:59:40.
+        quiet = (lt.tm_mon == 12 and lt.tm_mday == 24 and lt.tm_hour == 23
+                 and lt.tm_min == 59 and lt.tm_sec >= 20)
         if touchdown and state not in ("landing", "parked"):
             self._sleigh = ("landing", now + self.SLEIGH_LAND_SECS)
             _dlog("theme: Santa is landing")
@@ -6930,7 +6927,7 @@ class FunctionalHelper(xbmc.Monitor):
         elif not state or now >= until:
             if not state and self._sleigh_next == 0.0:
                 self._sleigh_next = now + random.uniform(20, 60)
-            if now >= until + 1.0 and now >= self._sleigh_next:
+            if now >= until + 1.0 and now >= self._sleigh_next and not quiet:
                 self._sleigh = (random.choice(("rtl", "ltr")), now + self.SLEIGH_SECS)
                 gap = (60, 150) if theme == "christmaseve" else (360, 720)
                 self._sleigh_next = now + self.SLEIGH_SECS + random.uniform(*gap)
