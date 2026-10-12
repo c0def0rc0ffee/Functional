@@ -1570,7 +1570,7 @@
 				<label>$LOCALIZE[31261] $VAR[AccentColorLabel]</label>
 				<onleft>7000</onleft>
 				<onright>7310</onright>
-				<onup>7331</onup>
+				<onup>7332</onup>
 				<ondown>7320</ondown>
 				<onclick condition="String.IsEmpty(Skin.String(accent_color)) | String.IsEqual(Skin.String(accent_color),blue)">Skin.SetString(accent_color,red)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(accent_color),red)">Skin.SetString(accent_color,green)</onclick>
@@ -1728,11 +1728,14 @@
 				<onright>7310</onright>
 				<onup>7301</onup>
 				<ondown>7331</ondown>
-				<!-- Cycle: off, Halloween, Devil's Night, off. The conditions
-				     are exact opposites, so one click moves one step. -->
+				<!-- Cycle: off, Halloween, Devil's Night, Christmas, Christmas
+				     Eve, off. The conditions are exact opposites, so one click
+				     moves one step. -->
 				<onclick condition="String.IsEmpty(Skin.String(theme))">Skin.SetString(theme,halloween)</onclick>
 				<onclick condition="String.IsEqual(Skin.String(theme),halloween)">Skin.SetString(theme,devilsnight)</onclick>
-				<onclick condition="!String.IsEmpty(Skin.String(theme)) + !String.IsEqual(Skin.String(theme),halloween)">Skin.Reset(theme)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(theme),devilsnight)">Skin.SetString(theme,christmas)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(theme),christmas)">Skin.SetString(theme,christmaseve)</onclick>
+				<onclick condition="!String.IsEmpty(Skin.String(theme)) + !String.IsEqual(Skin.String(theme),halloween) + !String.IsEqual(Skin.String(theme),devilsnight) + !String.IsEqual(Skin.String(theme),christmas)">Skin.Reset(theme)</onclick>
 			</control>
 
 			<control type="radiobutton" id="7331">
@@ -1759,19 +1762,60 @@
 				<onleft>7000</onleft>
 				<onright>7310</onright>
 				<onup>7330</onup>
+				<ondown>7332</ondown>
+			</control>
+
+			<!-- THEME-CHRISTMAS: the same for Christmas, its own switch so
+			     one season can be off and the other on. -->
+			<control type="radiobutton" id="7332">
+				<left>440</left>
+				<top>780</top>
+				<width>900</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31645</label>
+				<selected>!Skin.HasSetting(theme_christmas_off)</selected>
+				<onclick>Skin.ToggleSetting(theme_christmas_off)</onclick>
+				<onleft>7000</onleft>
+				<onright>7310</onright>
+				<onup>7331</onup>
 				<ondown>7300</ondown>
 			</control>
-			<!-- Said while the season is overriding the pick, so a pick that
-			     seems to do nothing in late October explains itself. -->
+			<!-- Said while a season is overriding the pick, so a pick that
+			     seems to do nothing in late October or December explains
+			     itself. Window(home).Property(theme_seasonal) names the
+			     season. -->
 			<control type="label">
 				<left>460</left>
-				<top>775</top>
+				<top>855</top>
 				<width>880</width>
 				<height>40</height>
 				<font>font_small</font>
 				<textcolor>$VAR[AccentHiColor]</textcolor>
 				<label>31642</label>
-				<visible>!String.IsEmpty(Window(home).Property(theme_seasonal))</visible>
+				<visible>String.IsEqual(Window(home).Property(theme_seasonal),halloween)</visible>
+			</control>
+			<control type="label">
+				<left>460</left>
+				<top>855</top>
+				<width>880</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>$VAR[AccentHiColor]</textcolor>
+				<label>31646</label>
+				<visible>String.IsEqual(Window(home).Property(theme_seasonal),christmas)</visible>
 			</control>
 
 			<!-- ===== Right column: DIAGNOSTICS ===== -->

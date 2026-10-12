@@ -54,6 +54,10 @@
 	     manual pick; the XML only reads the result. -->
 	<expression name="theme_halloween">String.IsEqual(Window(home).Property(theme_name),halloween) | String.IsEqual(Window(home).Property(theme_name),devilsnight)</expression>
 	<expression name="theme_devils_night">String.IsEqual(Window(home).Property(theme_name),devilsnight)</expression>
+	<!-- THEME-CHRISTMAS: Christmas, with Christmas Eve on 24 December as
+	     Santa's night, which takes the Christmas colours and adds to them. -->
+	<expression name="theme_christmas">String.IsEqual(Window(home).Property(theme_name),christmas) | String.IsEqual(Window(home).Property(theme_name),christmaseve)</expression>
+	<expression name="theme_christmas_eve">String.IsEqual(Window(home).Property(theme_name),christmaseve)</expression>
 	<!-- THEME-CREATURES: the fog and dark corners are in. Always on
 	     Devil's Night; for Halloween once Window(home).Property(theme_level)
 	     reaches 1. The level only climbs during the yearly build-up (see
@@ -1264,6 +1268,7 @@
 	<variable name="AccentColor">
 		<!-- THEME-SEASON: a Halloween theme wins over any accent picked. -->
 		<value condition="$EXP[theme_halloween]">FFA3101B</value>
+		<value condition="$EXP[theme_christmas]">FFC62828</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),custom) + !String.IsEmpty(Skin.String(accent_custom))">$INFO[Skin.String(accent_custom)]</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),red)">FFE53935</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),green)">FF43A047</value>
@@ -1284,10 +1289,13 @@
 	<variable name="ThemeLabel">
 		<value condition="String.IsEqual(Skin.String(theme),halloween)">$LOCALIZE[31639]</value>
 		<value condition="String.IsEqual(Skin.String(theme),devilsnight)">$LOCALIZE[31640]</value>
+		<value condition="String.IsEqual(Skin.String(theme),christmas)">$LOCALIZE[31643]</value>
+		<value condition="String.IsEqual(Skin.String(theme),christmaseve)">$LOCALIZE[31644]</value>
 		<value>$LOCALIZE[31638]</value>
 	</variable>
 	<variable name="AccentHiColor">
 		<value condition="$EXP[theme_halloween]">FFD32F2F</value>
+		<value condition="$EXP[theme_christmas]">FFE8B84A</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),custom) + !String.IsEmpty(Skin.String(accent_custom_hi))">$INFO[Skin.String(accent_custom_hi)]</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),red)">FFEF5350</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),green)">FF66BB6A</value>
@@ -1472,6 +1480,10 @@
 			<param name="visible" value="!$EXP[bg_windows_active] + !Window.IsActive(home)"/>
 			<param name="picture" value="false"/>
 		</include>
+		<include content="ChristmasLayers">
+			<param name="visible" value="!$EXP[bg_windows_active] + !Window.IsActive(home)"/>
+			<param name="picture" value="false"/>
+		</include>
 	</include>
 
 	<!-- The configurable background (slideshow / static image / folder
@@ -1563,6 +1575,10 @@
 				<!-- THEME-SEASON: last, so the cemetery covers whatever
 				     background is set and the fog and vignette sit over it. -->
 				<include content="ThemeLayers">
+					<param name="visible" value="true"/>
+					<param name="picture" value="$EXP[bg_picture_showing]"/>
+				</include>
+				<include content="ChristmasLayers">
 					<param name="visible" value="true"/>
 					<param name="picture" value="$EXP[bg_picture_showing]"/>
 				</include>
@@ -4005,6 +4021,206 @@
 			<texture>themes/crow_caw.png</texture>
 			<visible>String.IsEqual(Window(home).Property(theme_crow),caw)</visible>
 		</control>
+	</include>
+
+	<!-- ===== THEME-CHRISTMAS: the Christmas and Christmas Eve layers =====
+	     Drawn behind every window beside ThemeLayers, from the same two
+	     places and under the same rule, so exactly one copy draws. The art
+	     comes from build_theme_art.py; the tree lights, the robin and the
+	     parked sleigh sit on points that script fixes (XMAS_TREE,
+	     XMAS_ROBIN, XMAS_RIDGE).
+
+	     Christmas over the user's own picture: a night wash, the snow and
+	     the frost. With no picture, or on Christmas Eve: the village, its
+	     tree twinkling and the robin on the fence. Santa's sleigh is
+	     Window(home).Property(theme_sleigh), stepped by
+	     service.py:_theme_sleigh: rtl or ltr crossing the sky, landing on
+	     the long roof at midnight going into Christmas Day, then parked.
+
+	     'visible' : gates the whole block.
+	     'picture' : a background picture of the user's own is under these
+	                 layers. -->
+	<include name="ChristmasLayers">
+		<param name="visible" default="true"/>
+		<param name="picture" default="false"/>
+		<definition>
+			<control type="group">
+				<left>0</left>
+				<top>0</top>
+				<width>1920</width>
+				<height>1080</height>
+				<visible>[$PARAM[visible]] + $EXP[theme_christmas] + !$EXP[bg_video_showing]</visible>
+
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<texture colordiffuse="50061026">white.png</texture>
+					<visible>[$PARAM[picture]] + !$EXP[theme_christmas_eve]</visible>
+				</control>
+
+				<control type="group">
+					<visible>![$PARAM[picture]] | $EXP[theme_christmas_eve]</visible>
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>1920</width>
+						<height>1080</height>
+						<aspectratio>scale</aspectratio>
+						<texture>themes/christmas_scene.jpg</texture>
+					</control>
+					<include content="XmasLight"><param name="left" value="294"/><param name="top" value="578"/><param name="size" value="72"/><param name="diffuse" value="FFFFD36A"/><param name="ms" value="900"/></include>
+					<include content="XmasLight"><param name="left" value="293"/><param name="top" value="649"/><param name="size" value="40"/><param name="diffuse" value="FFFF4A3A"/><param name="ms" value="1300"/></include>
+					<include content="XmasLight"><param name="left" value="316"/><param name="top" value="652"/><param name="size" value="40"/><param name="diffuse" value="FFFFD36A"/><param name="ms" value="700"/></include>
+					<include content="XmasLight"><param name="left" value="321"/><param name="top" value="644"/><param name="size" value="40"/><param name="diffuse" value="FF5CE07A"/><param name="ms" value="1700"/></include>
+					<include content="XmasLight"><param name="left" value="273"/><param name="top" value="703"/><param name="size" value="40"/><param name="diffuse" value="FFFFD36A"/><param name="ms" value="1100"/></include>
+					<include content="XmasLight"><param name="left" value="308"/><param name="top" value="702"/><param name="size" value="40"/><param name="diffuse" value="FF5CE07A"/><param name="ms" value="1500"/></include>
+					<include content="XmasLight"><param name="left" value="342"/><param name="top" value="704"/><param name="size" value="40"/><param name="diffuse" value="FF6AA8FF"/><param name="ms" value="800"/></include>
+					<include content="XmasLight"><param name="left" value="258"/><param name="top" value="753"/><param name="size" value="40"/><param name="diffuse" value="FF5CE07A"/><param name="ms" value="1900"/></include>
+					<include content="XmasLight"><param name="left" value="298"/><param name="top" value="763"/><param name="size" value="40"/><param name="diffuse" value="FF6AA8FF"/><param name="ms" value="1000"/></include>
+					<include content="XmasLight"><param name="left" value="330"/><param name="top" value="764"/><param name="size" value="40"/><param name="diffuse" value="FFFF4A3A"/><param name="ms" value="1400"/></include>
+					<include content="XmasLight"><param name="left" value="365"/><param name="top" value="761"/><param name="size" value="40"/><param name="diffuse" value="FFFFD36A"/><param name="ms" value="900"/></include>
+					<include content="XmasLight"><param name="left" value="243"/><param name="top" value="806"/><param name="size" value="40"/><param name="diffuse" value="FF6AA8FF"/><param name="ms" value="1300"/></include>
+					<include content="XmasLight"><param name="left" value="285"/><param name="top" value="806"/><param name="size" value="40"/><param name="diffuse" value="FFFF4A3A"/><param name="ms" value="700"/></include>
+					<include content="XmasLight"><param name="left" value="332"/><param name="top" value="811"/><param name="size" value="40"/><param name="diffuse" value="FFFFD36A"/><param name="ms" value="1700"/></include>
+					<include content="XmasLight"><param name="left" value="387"/><param name="top" value="819"/><param name="size" value="40"/><param name="diffuse" value="FF5CE07A"/><param name="ms" value="1100"/></include>
+					<include content="XmasLight"><param name="left" value="214"/><param name="top" value="863"/><param name="size" value="40"/><param name="diffuse" value="FFFF4A3A"/><param name="ms" value="1500"/></include>
+					<include content="XmasLight"><param name="left" value="259"/><param name="top" value="874"/><param name="size" value="40"/><param name="diffuse" value="FFFFD36A"/><param name="ms" value="800"/></include>
+					<include content="XmasLight"><param name="left" value="302"/><param name="top" value="869"/><param name="size" value="40"/><param name="diffuse" value="FF5CE07A"/><param name="ms" value="1900"/></include>
+					<include content="XmasLight"><param name="left" value="353"/><param name="top" value="862"/><param name="size" value="40"/><param name="diffuse" value="FF6AA8FF"/><param name="ms" value="1000"/></include>
+					<include content="XmasLight"><param name="left" value="402"/><param name="top" value="872"/><param name="size" value="40"/><param name="diffuse" value="FFFF4A3A"/><param name="ms" value="1400"/></include>
+					<!-- the robin on the fence post, cocking its head now and then -->
+					<control type="multiimage">
+						<left>1453</left>
+						<top>838</top>
+						<width>64</width>
+						<height>64</height>
+						<imagepath>special://skin/media/themes/robin/</imagepath>
+						<timeperimage>2600</timeperimage>
+						<fadetime>0</fadetime>
+						<loop>yes</loop>
+						<randomize>false</randomize>
+					</control>
+					<!-- Santa's sleigh on the roof, from midnight on Christmas Eve -->
+					<control type="image">
+						<left>1020</left>
+						<top>572</top>
+						<width>240</width>
+						<height>80</height>
+						<texture>themes/sleigh_parked.png</texture>
+						<visible>String.IsEqual(Window(home).Property(theme_sleigh),parked)</visible>
+						<animation effect="fade" time="600">Visible</animation>
+					</control>
+				</control>
+
+				<include content="XmasSleigh"><param name="dir" value="rtl"/><param name="start" value="2000,220"/><param name="end" value="-600,90"/></include>
+				<include content="XmasSleigh"><param name="dir" value="ltr"/><param name="start" value="-600,110"/><param name="end" value="2000,240"/></include>
+				<!-- Landing: in from the top right, shrinking as it comes down
+				     onto the long roof, ending where the parked sleigh shows. -->
+				<control type="multiimage">
+					<left>880</left>
+					<top>542</top>
+					<width>520</width>
+					<height>150</height>
+					<imagepath>special://skin/media/themes/sleigh_rtl/</imagepath>
+					<timeperimage>110</timeperimage>
+					<fadetime>0</fadetime>
+					<loop>yes</loop>
+					<randomize>false</randomize>
+					<visible>String.IsEqual(Window(home).Property(theme_sleigh),landing)</visible>
+					<animation effect="slide" start="1000,-460" end="0,0" time="20000" tween="sine" easing="out">Visible</animation>
+					<animation effect="zoom" start="100" end="46" center="1140,617" time="20000" tween="sine" easing="out">Visible</animation>
+				</control>
+
+				<include content="ThemeSnow"><param name="texture" value="themes/snow_far.png"/><param name="ms" value="16000"/><param name="sway" value="30"/><param name="swayms" value="3400"/></include>
+				<include content="ThemeSnow"><param name="texture" value="themes/snow_near.png"/><param name="ms" value="9000"/><param name="sway" value="50"/><param name="swayms" value="2600"/></include>
+
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<!-- kept faint: the clock, date and version line sit in the corners -->
+					<texture colordiffuse="B3FFFFFF">themes/frost.png</texture>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- One tree light, twinkling on its own period. -->
+	<include name="XmasLight">
+		<param name="left"/>
+		<param name="top"/>
+		<param name="size"/>
+		<param name="diffuse"/>
+		<param name="ms"/>
+		<definition>
+			<control type="image">
+				<left>$PARAM[left]</left>
+				<top>$PARAM[top]</top>
+				<width>$PARAM[size]</width>
+				<height>$PARAM[size]</height>
+				<texture colordiffuse="$PARAM[diffuse]">themes/light_glow.png</texture>
+				<animation effect="fade" start="100" end="25" time="$PARAM[ms]" pulse="true" condition="true">Conditional</animation>
+			</control>
+		</definition>
+	</include>
+
+	<!-- Santa's sleigh crossing the sky, 16 seconds (SLEIGH_SECS in
+	     service.py), rising and dipping as the team gallops. -->
+	<include name="XmasSleigh">
+		<param name="dir"/>
+		<param name="start"/>
+		<param name="end"/>
+		<definition>
+			<control type="multiimage">
+				<left>0</left>
+				<top>0</top>
+				<width>520</width>
+				<height>150</height>
+				<imagepath>special://skin/media/themes/sleigh_$PARAM[dir]/</imagepath>
+				<timeperimage>110</timeperimage>
+				<fadetime>0</fadetime>
+				<loop>yes</loop>
+				<randomize>false</randomize>
+				<visible>String.IsEqual(Window(home).Property(theme_sleigh),$PARAM[dir])</visible>
+				<animation effect="slide" start="$PARAM[start]" end="$PARAM[end]" time="16000">Visible</animation>
+				<animation effect="slide" start="0,0" end="0,-14" time="440" pulse="true" condition="String.IsEqual(Window(home).Property(theme_sleigh),$PARAM[dir])">Conditional</animation>
+			</control>
+		</definition>
+	</include>
+
+	<!-- A screen of snow: like ThemeRain, two copies of a tile that wraps
+	     top to bottom slid down by one screen height in a loop, with a
+	     slow sideways sway on top so it drifts rather than drops. -->
+	<include name="ThemeSnow">
+		<param name="texture"/>
+		<param name="ms"/>
+		<param name="sway"/>
+		<param name="swayms"/>
+		<definition>
+			<control type="group">
+				<left>0</left>
+				<top>0</top>
+				<animation effect="slide" start="0,-1080" end="0,0" time="$PARAM[ms]" loop="true" condition="true">Conditional</animation>
+				<animation effect="slide" start="-$PARAM[sway],0" end="$PARAM[sway],0" time="$PARAM[swayms]" tween="sine" pulse="true" condition="true">Conditional</animation>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<texture>$PARAM[texture]</texture>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>1080</top>
+					<width>1920</width>
+					<height>1080</height>
+					<texture>$PARAM[texture]</texture>
+				</control>
+			</control>
+		</definition>
 	</include>
 
 </includes>

@@ -22,6 +22,10 @@ Two scenes and the sprites that move over them:
   * spider_PATH/NN.png     a spider's gait, turned for each crawl path.
   * witch_rtl/, witch_ltr/ a witch on a broomstick, both ways.
   * ghost/NN.png           a sheet ghost with a waving hem.
+  * christmas_scene.jpg    the snowy village for Christmas, tree, church
+    and the long roof the sleigh lands on (XMAS_RIDGE).
+  * sleigh_rtl/, sleigh_ltr/, sleigh_parked.png  Santa and four reindeer.
+  * robin/NN.png, snow_far.png, snow_near.png, frost.png, light_glow.png
   * pumpkin_glow.png       the lantern glow that flickers over the hill.
 
 Photographic artwork is JPEG under the house rules, so the two scenes are
@@ -33,6 +37,7 @@ A random seed is fixed so a rerun gives the same pictures.
 """
 import math
 import random
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -952,6 +957,469 @@ def ghosts():
         save_png(ghost_frame(i * 2 * math.pi / 3), OUT / "ghost" / "{0:02d}.png".format(i))
 
 
+# ===== Christmas =====
+# Positions the skin repeats: ChristmasLayers in Includes.xml puts the
+# tree lights, the robin and the parked sleigh on these points.
+XMAS_MOON = (1230, 190)
+XMAS_RIDGE = (1140, 652)          # centre of the long roof's ridge, where the sleigh parks
+XMAS_TREE = (330, 960, 340)       # trunk foot x, y and height
+XMAS_ROBIN = (1480, 902)          # top of the fence post the robin sits on
+
+
+def xmas_tree_lights():
+    """
+    <summary>Where the lights hang on the tree, with each one's colour name.</summary>
+    <returns>List of (x, y, colour) in screen pixels, top to bottom; the first is the star.</returns>
+    <remarks>Fixed by a seed so the art and the XML agree; print them with
+    --lights and copy them into ChristmasLayers when the tree moves.</remarks>
+    """
+    rng = random.Random(1225)
+    x0, base, height = XMAS_TREE
+    top = base - height
+    lights = [(x0, top - 6, "gold")]
+    colours = ("red", "gold", "green", "blue")
+    for tier in range(5):
+        y = top + 50 + tier * 54
+        half = 22 + tier * 24
+        for k in range(3 + tier // 2):
+            frac = (k + 0.5) / (3 + tier // 2)
+            x = x0 - half + frac * 2 * half + rng.uniform(-8, 8)
+            lights.append((int(x), int(y + rng.uniform(-6, 10)), colours[(tier + k) % 4]))
+    return lights
+
+
+def snowy_roof_house(draw, x, base, w, wall_h, roof_h, colour, snow, window, rng, chimney=False, ridge=0):
+    """
+    <summary>A village house with a snow capped roof and lit windows.</summary>
+    <param name="draw">ImageDraw on a supersampled canvas.</param>
+    <param name="x">Left wall, supersampled pixels.</param>
+    <param name="base">Ground line, supersampled pixels.</param>
+    <param name="w">Width.</param>
+    <param name="wall_h">Wall height.</param>
+    <param name="roof_h">Roof height.</param>
+    <param name="colour">Wall and roof colour.</param>
+    <param name="snow">Snow colour.</param>
+    <param name="window">Lit window colour.</param>
+    <param name="rng">Random source for the windows.</param>
+    <param name="chimney">Add a chimney at the right end of the roof.</param>
+    <param name="ridge">Length of a flat ridge; 0 gives a plain gable.</param>
+    """
+    top = base - wall_h
+    draw.rectangle([x, top, x + w, base], fill=colour)
+    cx = x + w / 2
+    over = w * 0.08
+    draw.polygon([(x - over, top), (cx - ridge / 2, top - roof_h), (cx + ridge / 2, top - roof_h), (x + w + over, top)], fill=colour)
+    # snow lying along the roof, thicker on the ridge
+    t = max(6, int(w * 0.05))
+    draw.polygon([(x - over, top), (cx - ridge / 2, top - roof_h), (cx + ridge / 2, top - roof_h), (x + w + over, top),
+                  (x + w + over - t, top + t * 0.6), (cx + ridge / 2, top - roof_h + t * 1.4),
+                  (cx - ridge / 2, top - roof_h + t * 1.4), (x - over + t, top + t * 0.6)], fill=snow)
+    if chimney:
+        chx = cx + ridge / 2 + w * 0.12
+        draw.rectangle([chx, top - roof_h - w * 0.06, chx + w * 0.09, top - roof_h * 0.45], fill=colour)
+        draw.rectangle([chx - w * 0.01, top - roof_h - w * 0.075, chx + w * 0.1, top - roof_h - w * 0.05], fill=snow)
+    cols = max(2, int(w / (55 * SS)))
+    for c in range(cols):
+        wx = x + (c + 0.5) * w / cols - 9 * SS
+        for r in range(max(1, int(wall_h / (60 * SS)))):
+            wy = top + 18 * SS + r * 52 * SS
+            lit = rng.random() < 0.75
+            draw.rectangle([wx, wy, wx + 18 * SS, wy + 24 * SS], fill=window if lit else (30, 34, 52, 255))
+            draw.line([(wx + 9 * SS, wy), (wx + 9 * SS, wy + 24 * SS)], fill=colour, width=SS)
+            draw.line([(wx, wy + 12 * SS), (wx + 18 * SS, wy + 12 * SS)], fill=colour, width=SS)
+    draw.rectangle([cx - 10 * SS, base - 36 * SS, cx + 10 * SS, base], fill=(60, 30, 20, 255))
+
+
+def christmas_tree(draw, x0, base, height, rng):
+    """
+    <summary>A snowy fir in tiers with a star on top; the lights are separate glows.</summary>
+    <param name="draw">ImageDraw on a supersampled canvas.</param>
+    <param name="x0">Trunk centre, supersampled pixels.</param>
+    <param name="base">Foot of the trunk.</param>
+    <param name="height">Height to the top.</param>
+    <param name="rng">Random source for the snow lumps.</param>
+    """
+    green = (16, 62, 34, 255)
+    dark = (10, 42, 24, 255)
+    snow = (226, 234, 246, 255)
+    draw.rectangle([x0 - 14 * SS, base - 30 * SS, x0 + 14 * SS, base], fill=(58, 34, 20, 255))
+    top = base - height
+    tiers = 5
+    for t in range(tiers):
+        ty = top + t * height * 0.16
+        half = (40 + t * 30) * SS
+        by = ty + height * 0.30
+        draw.polygon([(x0, ty), (x0 + half, by), (x0 - half, by)], fill=dark if t % 2 else green)
+        for k in range(5):
+            sx = x0 - half * 0.8 + k * half * 0.4 + rng.uniform(-4, 4) * SS
+            sy = by - (abs(sx - x0) / half) * 6 * SS - 4 * SS
+            draw.ellipse([sx - 10 * SS, sy - 4 * SS, sx + 10 * SS, sy + 4 * SS], fill=snow)
+    star = []
+    for i in range(10):
+        r = (18 if i % 2 == 0 else 8) * SS
+        a = math.radians(-90 + i * 36)
+        star.append((x0 + r * math.cos(a), top - 6 * SS + r * math.sin(a)))
+    draw.polygon(star, fill=(255, 214, 90, 255))
+
+
+def office_tower(draw, x, base, w, h, rng):
+    """
+    <summary>A lone glass office tower far off on the horizon, a quiet nod to Die Hard.</summary>
+    <param name="draw">ImageDraw on the full size scene.</param>
+    <param name="x">Left edge.</param>
+    <param name="base">Where it meets the far hills.</param>
+    <param name="w">Width.</param>
+    <param name="h">Height.</param>
+    <param name="rng">Random source for the lit windows.</param>
+    <remarks>Asked for on 12/10/2026 as a subtle reference. Ordinary office
+    lights on most floors, one floor near the top having its Christmas
+    party in coloured lights, and two windows on it glowing orange as if
+    something has just gone off. No name, no lettering.</remarks>
+    """
+    top = base - h
+    draw.rectangle([x, top, x + w, base], fill=(22, 26, 44))
+    draw.rectangle([x + w * 0.3, top - 16, x + w * 0.7, top], fill=(22, 26, 44))
+    draw.line([(x + w / 2, top - 16), (x + w / 2, top - 40)], fill=(22, 26, 44), width=2)
+    draw.ellipse([x + w / 2 - 2, top - 43, x + w / 2 + 2, top - 39], fill=(220, 40, 40))
+    floors = int(h / 9)
+    party = 4
+    for f in range(floors):
+        fy = top + 6 + f * 9
+        for c in range(int(w / 7)):
+            wx = x + 3 + c * 7
+            if f == party:
+                colour = ((230, 60, 60), (60, 200, 90), (250, 210, 80), (90, 140, 255))[c % 4]
+                if c in (2, 3):
+                    colour = (255, 140, 30)
+                draw.rectangle([wx, fy, wx + 3, fy + 4], fill=colour)
+            elif rng.random() < 0.28:
+                draw.rectangle([wx, fy, wx + 3, fy + 4], fill=(150, 160, 120))
+    return (x + 3 + 2.5 * 7, top + 6 + party * 9 + 2)
+
+
+def window_boy(draw, x, y, w, h):
+    """
+    <summary>A lit window with a small boy inside, hands pressed to his cheeks, a quiet nod to Home Alone.</summary>
+    <param name="draw">ImageDraw on a supersampled canvas.</param>
+    <param name="x">Left of the window.</param>
+    <param name="y">Top of the window.</param>
+    <param name="w">Width.</param>
+    <param name="h">Height.</param>
+    <remarks>Asked for on 12/10/2026 as a subtle reference: just the pose,
+    in silhouette against the light, nothing written.</remarks>
+    """
+    draw.rectangle([x, y, x + w, y + h], fill=(255, 200, 100, 255))
+    ink = (40, 26, 22, 255)
+    cx = x + w / 2
+    hr = w * 0.17
+    hy = y + h * 0.36
+    draw.ellipse([cx - hr, hy - hr, cx + hr, hy + hr], fill=ink)                       # head
+    draw.rectangle([cx - w * 0.2, hy + hr * 0.8, cx + w * 0.2, y + h], fill=ink)        # shoulders down
+    for side in (-1, 1):
+        ex = cx + side * w * 0.34
+        draw.line([(cx + side * w * 0.2, hy + hr * 1.6), (ex, hy + hr * 1.2), (cx + side * hr * 0.95, hy + hr * 0.1)],
+                  fill=ink, width=max(2, int(w * 0.09)))
+        draw.ellipse([cx + side * hr * 0.95 - w * 0.07, hy - w * 0.04, cx + side * hr * 0.95 + w * 0.07, hy + w * 0.12],
+                     fill=ink)                                                           # hands on the cheeks
+    draw.line([(cx, y), (cx, y + h)], fill=(40, 30, 34, 255), width=max(1, int(w * 0.04)))
+    draw.line([(x, y + h * 0.5), (x + w, y + h * 0.5)], fill=(40, 30, 34, 120), width=max(1, int(w * 0.03)))
+
+
+def christmas_scene():
+    """
+    <summary>The Christmas village at night: stars, a moon, snowy hills, houses, a church, the tree and a fence.</summary>
+    <remarks>Kept in the open band below the menu row, like the
+    cemetery. The long house at XMAS_RIDGE is where the sleigh lands on
+    Christmas Eve, the tree at XMAS_TREE carries the twinkling lights and
+    the robin sits on the fence post at XMAS_ROBIN.</remarks>
+    """
+    rng = random.Random(2512)
+    img = vertical_gradient((6, 10, 30), (36, 52, 92))
+    sky = ImageDraw.Draw(img)
+    for _ in range(260):
+        x, y = rng.uniform(0, W), rng.uniform(0, 640)
+        b = rng.randint(120, 255)
+        r = rng.choice((0.6, 0.8, 1.2))
+        sky.ellipse([x - r, y - r, x + r, y + r], fill=(b, b, min(255, b + 20)))
+    clouds(img, (70, 84, 120), 0.35, 81, 0, 600, 160)
+    moon(img, XMAS_MOON, 62, (238, 236, 224), 82)
+    # far on the left horizon, behind the hills
+    party = office_tower(ImageDraw.Draw(img), 96, 820, 62, 330, rng)
+    paste_glow(img, 40, (int(party[0]), int(party[1])), (255, 140, 30), 0.5, 2.0)
+
+    hills = Image.new("L", (W * SS, H * SS), 0)
+    hd = ImageDraw.Draw(hills)
+    far = [(x, (800 - 40 * math.sin(x / SS / 300 + 1.2) - 30 * math.sin(x / SS / 130)) * SS) for x in range(0, W * SS + 1, 8)]
+    hd.polygon(far + [(W * SS, H * SS), (0, H * SS)], fill=255)
+    img.paste(Image.new("RGB", (W, H), (120, 136, 176)), (0, 0), hills.resize((W, H), Image.LANCZOS))
+
+    art = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 0))
+    ad = ImageDraw.Draw(art)
+    wall = (40, 30, 34, 255)
+    snow = (232, 238, 248, 255)
+    window = (255, 196, 92, 255)
+    # church with a spire, behind
+    cx, cb = 880 * SS, 870 * SS
+    ad.rectangle([cx - 60 * SS, cb - 150 * SS, cx + 60 * SS, cb], fill=(34, 28, 36, 255))
+    ad.polygon([(cx - 70 * SS, cb - 150 * SS), (cx, cb - 210 * SS), (cx + 70 * SS, cb - 150 * SS)], fill=(34, 28, 36, 255))
+    ad.rectangle([cx - 22 * SS, cb - 290 * SS, cx + 22 * SS, cb - 150 * SS], fill=(34, 28, 36, 255))
+    ad.polygon([(cx - 26 * SS, cb - 290 * SS), (cx, cb - 360 * SS), (cx + 26 * SS, cb - 290 * SS)], fill=(34, 28, 36, 255))
+    ad.ellipse([cx - 12 * SS, cb - 260 * SS, cx + 12 * SS, cb - 236 * SS], fill=window)
+    for wx in (-36, 24):
+        ad.rounded_rectangle([cx + wx * SS, cb - 120 * SS, cx + (wx + 14) * SS, cb - 76 * SS], 6 * SS, fill=window)
+    # houses, the long one in the middle with the flat ridge and chimney
+    snowy_roof_house(ad, 600 * SS, 890 * SS, 150 * SS, 110 * SS, 70 * SS, wall, snow, window, rng)
+    window_boy(ad, 704 * SS, 796 * SS, 34 * SS, 42 * SS)
+    ridge_w = 130
+    rx, ry = XMAS_RIDGE
+    snowy_roof_house(ad, (rx - 115) * SS, 900 * SS, 230 * SS, 150 * SS, (ry and (900 - 150 - ry)) * SS, wall, snow, window, rng,
+                     chimney=True, ridge=ridge_w * SS)
+    snowy_roof_house(ad, 1300 * SS, 905 * SS, 130 * SS, 100 * SS, 60 * SS, wall, snow, window, rng)
+    snowy_roof_house(ad, 1660 * SS, 895 * SS, 170 * SS, 120 * SS, 70 * SS, wall, snow, window, rng, chimney=True)
+    x0, base, height = XMAS_TREE
+    christmas_tree(ad, x0 * SS, base * SS, height * SS, rng)
+    # a wooden fence along the front with snow on the rails
+    fx0, fx1, fy = 1360, 1560, XMAS_ROBIN[1]
+    for x in range(fx0, fx1 + 1, 40):
+        ad.rectangle([x * SS, fy * SS, (x + 10) * SS, (fy + 70) * SS], fill=(70, 46, 30, 255))
+        ad.ellipse([(x - 2) * SS, (fy - 5) * SS, (x + 12) * SS, (fy + 4) * SS], fill=snow)
+    for ry_ in (fy + 18, fy + 46):
+        ad.rectangle([fx0 * SS, ry_ * SS, (fx1 + 10) * SS, (ry_ + 7) * SS], fill=(70, 46, 30, 255))
+        ad.rectangle([fx0 * SS, (ry_ - 3) * SS, (fx1 + 10) * SS, ry_ * SS], fill=snow)
+    art = art.resize((W, H), Image.LANCZOS)
+    img.paste(art, (0, 0), art)
+    # window glow
+    for x, y in ((675, 840), (1140, 820), (1365, 860), (1745, 840)):
+        paste_glow(img, 160, (x, y), (255, 170, 70), 0.25, 2.0)
+
+    # deep snow in front, gently rolling, with a blue shadow along its top
+    front = Image.new("L", (W * SS, H * SS), 0)
+    fd = ImageDraw.Draw(front)
+    pts = [(x, (930 + 14 * math.sin(x / SS / 210 + 0.4) + 8 * math.sin(x / SS / 70)) * SS) for x in range(0, W * SS + 1, 8)]
+    fd.polygon(pts + [(W * SS, H * SS), (0, H * SS)], fill=255)
+    front = front.resize((W, H), Image.LANCZOS)
+    # moonlit, not daylight white: Home's version line and corner bar
+    # sit on this snow in light grey and must still read
+    shade = vertical_gradient((104, 118, 156), (70, 80, 112))
+    img.paste(shade, (0, 0), front)
+    arr = np.asarray(img, np.float32) * vignette_array(0.55)[..., None]
+    img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGB")
+    img.save(OUT / "christmas_scene.jpg", "JPEG", quality=88, optimize=True, progressive=True)
+
+
+def reindeer(draw, x, y, s, phase, colour, nose=None):
+    """
+    <summary>One reindeer facing left, galloping or standing.</summary>
+    <param name="draw">ImageDraw on a supersampled canvas.</param>
+    <param name="x">Body centre x.</param>
+    <param name="y">Body centre y.</param>
+    <param name="s">Pixels per unit; the body is about 40 units long.</param>
+    <param name="phase">Gallop phase in radians, or None to stand.</param>
+    <param name="colour">Silhouette colour.</param>
+    <param name="nose">RGB for a glowing nose, or None.</param>
+    """
+    def P(u, v):
+        return (x + u * s, y + v * s)
+
+    d = draw
+    d.ellipse([P(-20, -8), P(20, 8)], fill=colour)
+    d.polygon([P(-16, -4), P(-26, -20), P(-20, -22), P(-10, -6)], fill=colour)        # neck
+    d.ellipse([P(-34, -26), P(-20, -16)], fill=colour)                                 # head
+    d.polygon([P(-32, -22), P(-40, -19), P(-32, -17)], fill=colour)                    # muzzle
+    for ax, lean in ((-26, -1), (-22, 1)):                                             # antlers
+        tip = P(ax + lean * 6, -38)
+        d.line([P(ax, -25), tip], fill=colour, width=max(1, int(1.6 * s)))
+        d.line([P(ax + lean * 2, -31), P(ax + lean * 2 - 5, -34)], fill=colour, width=max(1, int(1.2 * s)))
+        d.line([P(ax + lean * 4, -35), P(ax + lean * 4 + 4, -39)], fill=colour, width=max(1, int(1.2 * s)))
+    d.polygon([P(18, -5), P(25, -9), P(22, -2)], fill=colour)                          # tail
+    for i, hx in enumerate((-14, -9, 11, 16)):
+        if phase is None:
+            dx = 0
+        else:
+            front = i < 2
+            dx = 9 * math.sin(phase + (0 if front else math.pi) + i * 0.4)
+        d.line([P(hx, 5), P(hx + dx, 22)], fill=colour, width=max(1, int(2.2 * s)))
+    if nose:
+        d.ellipse([P(-43, -21), P(-38, -16)], fill=nose)
+
+
+def sleigh_frame(phase, parked=False):
+    """
+    <summary>Santa's sleigh and four reindeer facing left, as a silhouette.</summary>
+    <param name="phase">Gallop phase in radians.</param>
+    <param name="parked">Standing reindeer and an empty sleigh with a sack,
+    for the rooftop; Santa is down the chimney.</param>
+    <returns>RGBA, 520 by 150 flying, 240 by 80 parked.</returns>
+    """
+    w, h = 520, 150
+    img = Image.new("RGBA", (w * SS, h * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    ink = (12, 14, 30, 255)
+    s = 1.6 * SS
+    base_y = 80 * SS
+    for k in range(4):
+        rx = (70 + k * 78) * SS
+        bob = 0 if parked else 4 * SS * math.sin(phase + k * 0.9)
+        reindeer(d, rx, base_y + bob, s, None if parked else phase + k * 0.9, ink,
+                 nose=(235, 30, 30, 255) if k == 0 else None)
+    # reins from the team to the sleigh
+    d.line([(70 * SS, base_y - 4 * SS), (395 * SS, base_y + 6 * SS)], fill=ink, width=SS)
+    # the sleigh: a curled front, a box and a runner
+    sx = 380 * SS
+    d.polygon([(sx, 70 * SS), (sx + 20 * SS, 52 * SS), (sx + 26 * SS, 60 * SS), (sx + 16 * SS, 74 * SS),
+               (sx + 110 * SS, 74 * SS), (sx + 118 * SS, 40 * SS), (sx + 130 * SS, 40 * SS), (sx + 124 * SS, 104 * SS),
+               (sx + 14 * SS, 104 * SS)], fill=ink)
+    d.line([(sx - 4 * SS, 118 * SS), (sx + 132 * SS, 118 * SS)], fill=ink, width=3 * SS)
+    d.arc([(sx - 22 * SS, 100 * SS), (sx + 6 * SS, 128 * SS)], 90, 270, fill=ink, width=3 * SS)
+    for px in (sx + 20 * SS, sx + 104 * SS):
+        d.line([(px, 104 * SS), (px, 118 * SS)], fill=ink, width=2 * SS)
+    # the sack
+    d.ellipse([sx + 66 * SS, 34 * SS, sx + 118 * SS, 78 * SS], fill=ink)
+    d.polygon([(sx + 86 * SS, 38 * SS), (sx + 92 * SS, 24 * SS), (sx + 100 * SS, 38 * SS)], fill=ink)
+    if not parked:
+        # Santa: body, arm out with the reins, bobble hat
+        d.ellipse([sx + 30 * SS, 34 * SS, sx + 74 * SS, 82 * SS], fill=ink)
+        d.ellipse([sx + 34 * SS, 14 * SS, sx + 56 * SS, 38 * SS], fill=ink)
+        d.polygon([(sx + 34 * SS, 22 * SS), (sx + 50 * SS, 4 * SS), (sx + 66 * SS, 12 * SS), (sx + 56 * SS, 22 * SS)], fill=ink)
+        d.ellipse([sx + 62 * SS, 6 * SS, sx + 72 * SS, 16 * SS], fill=ink)
+        d.line([(sx + 36 * SS, 50 * SS), (sx + 10 * SS, 64 * SS)], fill=ink, width=4 * SS)
+    out = img.resize((w, h), Image.LANCZOS)
+    if not parked:
+        # A faint moonlit halo, so the dark team still shows against the
+        # dark sky away from the moon.
+        halo_a = out.getchannel("A").filter(ImageFilter.GaussianBlur(5)).point(lambda v: int(v * 0.45))
+        halo = Image.new("RGBA", (w, h), (200, 214, 245, 0))
+        halo.putalpha(halo_a)
+        halo.alpha_composite(out)
+        out = halo
+    if parked:
+        out = out.resize((240, 70), Image.LANCZOS)
+        canvas = Image.new("RGBA", (240, 80), (0, 0, 0, 0))
+        canvas.paste(out, (0, 10), out)
+        return canvas
+    return out
+
+
+def sleighs():
+    """
+    <summary>Four gallop frames of the sleigh both ways, and the parked sleigh.</summary>
+    <remarks>sleigh_rtl/ flies right to left, sleigh_ltr/ is the same
+    frames mirrored. sleigh_parked.png is 240 by 80 with the runners on
+    its bottom edge, set on XMAS_RIDGE by ChristmasLayers.</remarks>
+    """
+    for i in range(4):
+        f = sleigh_frame(i * math.pi / 2)
+        save_png(f, OUT / "sleigh_rtl" / "{0:02d}.png".format(i))
+        save_png(f.transpose(Image.FLIP_LEFT_RIGHT), OUT / "sleigh_ltr" / "{0:02d}.png".format(i))
+    save_png(sleigh_frame(0, parked=True), OUT / "sleigh_parked.png")
+
+
+def robin_frame(tilt):
+    """
+    <summary>A robin perched facing left, 64 square, feet at the bottom centre.</summary>
+    <param name="tilt">Head tilt and tail flick, 0 or 1.</param>
+    <returns>The image.</returns>
+    """
+    s = SS
+    img = Image.new("RGBA", (64 * s, 64 * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    brown = (110, 78, 50, 255)
+    breast = (222, 92, 40, 255)
+
+    def P(x, y):
+        return (x * s, y * s)
+
+    d.polygon([P(40, 40), P(60, 30 - 6 * tilt), P(62, 36 - 6 * tilt), P(44, 46)], fill=brown)       # tail
+    d.ellipse([P(14, 24), P(48, 56)], fill=brown)                                                   # body
+    d.ellipse([P(16, 32), P(36, 56)], fill=(236, 228, 214, 255))                                    # belly
+    d.ellipse([P(13, 26), P(33, 48)], fill=breast)                                                  # breast
+    hy = 18 - 2 * tilt
+    d.ellipse([P(12, hy), P(32, hy + 18)], fill=brown)                                              # head
+    d.ellipse([P(13, hy + 7), P(25, hy + 18)], fill=breast)                                         # face
+    d.polygon([P(13, hy + 8 + tilt), P(4, hy + 10 + 2 * tilt), P(13, hy + 11 + tilt)], fill=(40, 30, 24, 255))
+    d.ellipse([P(18, hy + 5), P(22, hy + 9)], fill=(10, 8, 8, 255))
+    for lx in (28, 34):
+        d.line([P(lx, 54), P(lx, 63)], fill=(60, 40, 30, 255), width=s)
+    return img.resize((64, 64), Image.LANCZOS)
+
+
+def robins():
+    """
+    <summary>Two frames of the robin, still and with its head cocked, played slowly by Kodi.</summary>
+    """
+    save_png(robin_frame(0), OUT / "robin" / "00.png")
+    save_png(robin_frame(1), OUT / "robin" / "01.png")
+
+
+def snow(name, count, rmin, rmax, alpha, seed):
+    """
+    <summary>A 960 by 540 snowfall tile that wraps top to bottom, scaled up 2x by Kodi.</summary>
+    <param name="name">Output file name.</param>
+    <param name="count">Number of flakes.</param>
+    <param name="rmin">Smallest flake radius in tile pixels.</param>
+    <param name="rmax">Largest flake radius.</param>
+    <param name="alpha">Peak flake opacity.</param>
+    <param name="seed">Seed.</param>
+    """
+    tw, th = 960, 540
+    rng = random.Random(seed)
+    img = Image.new("RGBA", (tw * SS, th * SS), (255, 255, 255, 0))
+    d = ImageDraw.Draw(img)
+    for _ in range(count):
+        x, y = rng.uniform(0, tw) * SS, rng.uniform(0, th) * SS
+        r = rng.uniform(rmin, rmax) * SS
+        a = rng.randint(alpha // 2, alpha)
+        for oy in (0, -th * SS, th * SS):
+            d.ellipse([x - r, y + oy - r, x + r, y + oy + r], fill=(255, 255, 255, a))
+    img = img.resize((tw, th), Image.LANCZOS).filter(ImageFilter.GaussianBlur(0.6))
+    save_png(img, OUT / name)
+
+
+def frost():
+    """
+    <summary>Frost creeping in from the corners, 960 by 540, stretched to the screen by Kodi.</summary>
+    <remarks>Branching ice needles grown out of each corner over a soft
+    white haze, transparent in the middle.</remarks>
+    """
+    tw, th = 960, 540
+    rng = random.Random(1201)
+    img = Image.new("RGBA", (tw * SS, th * SS), (230, 240, 255, 0))
+    d = ImageDraw.Draw(img)
+
+    def needle(x, y, ang, length, depth):
+        if depth == 0 or length < 3 * SS:
+            return
+        x2 = x + math.cos(ang) * length
+        y2 = y + math.sin(ang) * length
+        d.line([(x, y), (x2, y2)], fill=(235, 244, 255, 90 + 15 * depth), width=max(1, depth * SS // 2))
+        for side in (-1, 1):
+            if rng.random() < 0.8:
+                t = rng.uniform(0.3, 0.8)
+                needle(x + (x2 - x) * t, y + (y2 - y) * t, ang + side * math.radians(rng.uniform(45, 65)),
+                       length * rng.uniform(0.35, 0.55), depth - 1)
+        needle(x2, y2, ang + math.radians(rng.uniform(-15, 15)), length * 0.7, depth - 1)
+
+    corners = ((0, 0, 0.25 * math.pi), (tw, 0, 0.75 * math.pi), (0, th, -0.25 * math.pi), (tw, th, -0.75 * math.pi))
+    for cx, cy, ang in corners:
+        for _ in range(9):
+            needle(cx * SS, cy * SS, ang + math.radians(rng.uniform(-40, 40)), rng.uniform(22, 48) * SS, 4)
+    img = img.resize((tw, th), Image.LANCZOS)
+    y, x = np.mgrid[0:th, 0:tw]
+    r = np.hypot((x - tw / 2) / (tw / 2), (y - th / 2) / (th / 2)) / math.sqrt(2)
+    haze = np.clip((r - 0.55) / 0.45, 0, 1) ** 2 * 120
+    a = np.maximum(np.asarray(img.getchannel("A"), np.float32), haze)
+    img.putalpha(Image.fromarray(a.astype(np.uint8)))
+    save_png(img, OUT / "frost.png")
+
+
+def light_glow():
+    """
+    <summary>A white point of light with a soft halo, coloured by Kodi for each tree light.</summary>
+    """
+    g = radial_glow(48, (255, 255, 255), 2.6)
+    save_png(g, OUT / "light_glow.png")
+
+
 def main():
     """
     <summary>Draw every theme image.</summary>
@@ -971,6 +1439,16 @@ def main():
     spiders()
     witches()
     ghosts()
+    christmas_scene()
+    sleighs()
+    robins()
+    snow("snow_far.png", 700, 0.8, 1.6, 170, 91)
+    snow("snow_near.png", 160, 1.8, 3.4, 230, 92)
+    frost()
+    light_glow()
+    if "--lights" in sys.argv:
+        for light in xmas_tree_lights():
+            print(light)
     for path in sorted(OUT.rglob("*")):
         if path.is_file():
             print("{0:>9,}  {1}".format(path.stat().st_size, path.relative_to(OUT.parent.parent)))

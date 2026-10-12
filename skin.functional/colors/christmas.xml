@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  The Christmas colour set: the same names as defaults.xml, recoloured
+  cream on deep evergreen with a holly red accent and gold highlights.
+  </summary>
+  <remarks>
+  Laid over defaults.xml by Kodi when lookandfeel.skincolors is
+  "christmas", which service.py:update_theme sets for the Christmas
+  themes and puts back afterwards, exactly as halloween.xml is handled.
+  The accent fills come from $VAR[AccentColor] and $VAR[AccentHiColor],
+  which have their own Christmas branch in Includes.xml.
+  </remarks>
+-->
+<colors>
+	<color name="grey">FF7E7A68</color>
+	<color name="grey_dark">FF132019</color>
+	<color name="grey_mid">FF1E3327</color>
+	<color name="accent">FFC62828</color>
+	<color name="accent_hi">FFE8B84A</color>
+	<color name="text">FFF5EFE0</color>
+	<color name="text_dim">FFC9BFA8</color>
+	<color name="bg">FF07120D</color>
+	<color name="bg_panel">CC0E1E16</color>
+	<color name="bg_dialog">FF0E1E16</color>
+	<color name="selected">FFC62828</color>
+</colors>

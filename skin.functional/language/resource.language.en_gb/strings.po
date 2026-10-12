@@ -2316,3 +2316,19 @@ msgstr ""
 msgctxt "#31642"
 msgid "Halloween is on for the season until 1 November"
 msgstr ""
+
+msgctxt "#31643"
+msgid "Christmas"
+msgstr ""
+
+msgctxt "#31644"
+msgid "Christmas Eve"
+msgstr ""
+
+msgctxt "#31645"
+msgid "Christmas every year, first Saturday of December to Boxing Day"
+msgstr ""
+
+msgctxt "#31646"
+msgid "Christmas is on for the season until the end of Boxing Day"
+msgstr ""

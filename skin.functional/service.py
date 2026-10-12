@@ -187,8 +187,9 @@ update_lists()
 
 update_theme()
     Seasonal themes. Picks Halloween from 29 to 31 October (Devil's Night
-    on the 30th) unless switched off, otherwise the theme chosen in Skin
-    Settings; publishes theme_name and theme_seasonal on Home, switches
+    on the 30th) and Christmas from the first Saturday of December to
+    Boxing Day (Christmas Eve on the 24th), each unless switched off,
+    otherwise the theme chosen in Skin Settings; publishes theme_name and theme_seasonal on Home, switches
     Kodi's skin colour setting to colors/halloween.xml and back, and steps
     the crow, bats and lightning (theme_crow, theme_bats, theme_flash).
 
@@ -201,6 +202,7 @@ Future handlers
 </remarks>
 """
 
+import datetime
 import json
 from collections import deque
 import os
@@ -751,6 +753,9 @@ class FunctionalHelper(xbmc.Monitor):
         self._intro_step = 0
         self._intro_level = 0
         self._season_seen = False        # this run has already met the season
+        # Santa's sleigh (THEME-CHRISTMAS, see _theme_sleigh)
+        self._sleigh = ("", 0.0)         # (state, monotonic time it ends)
+        self._sleigh_next = 0.0          # next crossing due; 0 = not scheduled yet
         self._bootstrap_layout_defaults()
         self._migrate_bg_mode()
         _dlog("helper ready")
@@ -6583,28 +6588,47 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("accent: custom {0} -> highlight {1}".format(value, value[:2] + lighter))
 
     # THEME-SEASON. Seasonal themes: see update_theme.
-    THEME_NAMES = ("halloween", "devilsnight")
-    THEME_COLOURS = "halloween"        # colors/halloween.xml, by Kodi's name for it
+    THEME_NAMES = ("halloween", "devilsnight", "christmas", "christmaseve")
+    HALLOWEEN_THEMES = ("halloween", "devilsnight")
+    CHRISTMAS_THEMES = ("christmas", "christmaseve")
+    # colors/<name>.xml for each theme, by Kodi's name for the set
+    THEME_COLOURS = {"halloween": "halloween", "devilsnight": "halloween",
+                     "christmas": "christmas", "christmaseve": "christmas"}
     THEME_COLOURS_DEFAULT = "SKINDEFAULT"
+    SLEIGH_SECS = 16.5                 # XmasSleigh's crossing is 16 s
+    SLEIGH_LAND_SECS = 20.5            # and the landing 20 s
     THEME_LOOK_EVERY = 30.0            # seconds between reads of Kodi's colour setting
     CROW_LAND_SECS = 6.5               # ThemeCrow's landing slide is 6 s
     CROW_LEAVE_SECS = 5.5              # and its take off 5 s
 
     @classmethod
-    def _season_theme(cls, now):
+    def _season_theme(cls, now, halloween=True, christmas=True):
         """
         <summary>
-        The theme the calendar asks for on the given local date, or "".
+        The theme the calendar asks for at the given local time, or "".
         </summary>
         <param name="now">A time.struct_time in local time.</param>
-        <returns>"devilsnight" on 30 October, "halloween" on 29 and 31 October, otherwise "".</returns>
+        <param name="halloween">Let the Halloween season count.</param>
+        <param name="christmas">Let the Christmas season count.</param>
+        <returns>"devilsnight" on 30 October, "halloween" on 29 and 31
+        October; "christmaseve" on 24 December, "christmas" from the first
+        Saturday of December to the end of 26 December; otherwise "".</returns>
         <remarks>
-        Local time on purpose: the season starts and ends at the box's own
-        midnight, so Halloween is over at 00:00 on 1 November where the TV is.
+        Local time on purpose: a season starts and ends at the box's own
+        midnight. One exception: Christmas Eve runs on until ten past
+        midnight, so Santa's sleigh, which sets off at 23:59:40, finishes
+        landing on the roof before the theme turns to Christmas Day. The
+        two flags are the two "every year" switches in Skin Settings.
         </remarks>
         """
-        if now.tm_mon == 10 and now.tm_mday >= 29:
+        if halloween and now.tm_mon == 10 and now.tm_mday >= 29:
             return "devilsnight" if now.tm_mday == 30 else "halloween"
+        if christmas and now.tm_mon == 12:
+            first_saturday = 1 + (5 - datetime.date(now.tm_year, 12, 1).weekday()) % 7
+            if now.tm_mday == 24 or (now.tm_mday == 25 and now.tm_hour == 0 and now.tm_min < 10):
+                return "christmaseve"
+            if first_saturday <= now.tm_mday <= 26:
+                return "christmas"
         return ""
 
     @staticmethod
@@ -6637,16 +6661,19 @@ class FunctionalHelper(xbmc.Monitor):
         </summary>
         <remarks>
         Slow tick. The pick in Skin Settings is Skin.String(theme): empty,
-        halloween or devilsnight. From 29 to 31 October the calendar wins
-        over the pick (Halloween, and Devil's Night on the 30th) unless
-        Skin.HasSetting(theme_seasonal_off) is on; the season ends at local
-        midnight going into 1 November. The result goes out as Home
-        properties:
-            theme_name      halloween, devilsnight or empty
-            theme_seasonal  "1" while the calendar is the reason
+        halloween, devilsnight, christmas or christmaseve. In season the
+        calendar wins over the pick: from 29 to 31 October (Halloween, and
+        Devil's Night on the 30th) unless Skin.HasSetting(theme_seasonal_off)
+        is on, and from the first Saturday of December to the end of Boxing
+        Day (Christmas, and Christmas Eve on the 24th) unless
+        Skin.HasSetting(theme_christmas_off) is on. The result goes out as
+        Home properties:
+            theme_name      halloween, devilsnight, christmas, christmaseve or empty
+            theme_seasonal  halloween or christmas while the calendar is the reason
             theme_level     0 to 3, the yearly build-up, see _theme_intro_check
             theme_crow, theme_spider1/2, theme_witch, theme_ghosts,
             theme_bats, theme_flash   see _theme_motion
+            theme_sleigh    see _theme_sleigh
         The colours are Kodi's own lookandfeel.skincolors setting, see
         _theme_colours. Everything else is the XML reading theme_name.
         </remarks>
@@ -6654,18 +6681,23 @@ class FunctionalHelper(xbmc.Monitor):
         manual = xbmc.getInfoLabel("Skin.String(theme)").strip()
         if manual not in self.THEME_NAMES:
             manual = ""
-        seasonal = ""
-        if not xbmc.getCondVisibility("Skin.HasSetting(theme_seasonal_off)"):
-            seasonal = self._season_theme(time.localtime())
+        seasonal = self._season_theme(
+            time.localtime(),
+            halloween=not xbmc.getCondVisibility("Skin.HasSetting(theme_seasonal_off)"),
+            christmas=not xbmc.getCondVisibility("Skin.HasSetting(theme_christmas_off)"))
         want = seasonal or manual
-        self._theme_intro_check(seasonal, manual)
+        # The yearly build-up is Halloween's alone (THEME-CHRISTMAS).
+        self._theme_intro_check(seasonal if seasonal in self.HALLOWEEN_THEMES else "", manual)
         if want != self._theme_seen:
             _dlog("theme: {0} (season {1}, pick {2})".format(
                 want or "none", seasonal or "none", manual or "none"))
             self._theme_seen = want
         self._theme_prop("theme_name", want)
-        self._theme_prop("theme_seasonal", "1" if seasonal else "")
-        self._theme_colours(self.THEME_COLOURS if want else self.THEME_COLOURS_DEFAULT)
+        season = ""
+        if seasonal:
+            season = "halloween" if seasonal in self.HALLOWEEN_THEMES else "christmas"
+        self._theme_prop("theme_seasonal", season)
+        self._theme_colours(self.THEME_COLOURS.get(want, self.THEME_COLOURS_DEFAULT))
         self._theme_motion(want)
 
     def _theme_intro_check(self, seasonal, manual):
@@ -6712,7 +6744,7 @@ class FunctionalHelper(xbmc.Monitor):
         Bring Kodi's skin colour setting to the given colour set when it is
         safe to reload the skin.
         </summary>
-        <param name="colours">THEME_COLOURS or THEME_COLOURS_DEFAULT.</param>
+        <param name="colours">A value of THEME_COLOURS, or THEME_COLOURS_DEFAULT.</param>
         <remarks>
         Changing lookandfeel.skincolors makes Kodi reload the skin, which
         flashes the screen and drops focus to the window's default, so the
@@ -6732,7 +6764,8 @@ class FunctionalHelper(xbmc.Monitor):
         if current is None:
             self._theme_colours_at = now
             return
-        if current == colours or (colours == self.THEME_COLOURS_DEFAULT and current != self.THEME_COLOURS):
+        ours = set(self.THEME_COLOURS.values())
+        if current == colours or (colours == self.THEME_COLOURS_DEFAULT and current not in ours):
             self._theme_colours_ok = colours
             self._theme_colours_at = now
             return
@@ -6813,7 +6846,8 @@ class FunctionalHelper(xbmc.Monitor):
                 self._theme_motion_live = False
                 self._intro_start = None
                 self._creatures = {}
-                for key in ("theme_crow", "theme_flash", "theme_level") + self.CREATURE_KEYS:
+                self._sleigh = ("", 0.0)
+                for key in ("theme_crow", "theme_flash", "theme_level", "theme_sleigh") + self.CREATURE_KEYS:
                     self._theme_prop(key, "")
             return
         if not self._theme_motion_live:
@@ -6846,10 +6880,63 @@ class FunctionalHelper(xbmc.Monitor):
             value, until = self._creatures.get(key, ("", 0.0))
             self._theme_prop(key, value if theme == "halloween" and now < until else "")
 
-        if level >= 2 and now >= self._flash_next:
+        self._theme_sleigh(theme, now)
+
+        # Lightning is Halloween's; Christmas has none (THEME-CHRISTMAS).
+        if theme in self.HALLOWEEN_THEMES and level >= 2 and now >= self._flash_next:
             self._flash_until = now + 1.2
             self._flash_next = now + (random.uniform(25, 70) if theme == "devilsnight" else random.uniform(40, 120))
-        self._theme_prop("theme_flash", "1" if now < self._flash_until else "")
+        self._theme_prop("theme_flash", "1" if theme in self.HALLOWEEN_THEMES and now < self._flash_until else "")
+
+    def _theme_sleigh(self, theme, now):
+        """
+        <summary>
+        Step Santa's sleigh for the Christmas themes and publish it.
+        </summary>
+        <param name="theme">The theme in force.</param>
+        <param name="now">time.monotonic() of this tick.</param>
+        <remarks>
+        THEME-CHRISTMAS. Window(home).Property(theme_sleigh) is rtl or ltr
+        while it crosses the sky, landing while it comes down on the long
+        roof, parked once it is there. It crosses every six to twelve
+        minutes at Christmas and every one to two and a half minutes on
+        Christmas Eve. At 23:59:40 on 24 December it sets off to land, so
+        it touches down at midnight, and on Christmas Day it stays parked
+        on the roof all day (Santa is down the chimney); on Boxing Day it
+        crosses again. The landing goes by the wall clock, so it only
+        happens on the real night, never for a Christmas Eve picked by hand.
+        </remarks>
+        """
+        if theme not in self.CHRISTMAS_THEMES:
+            self._sleigh_next = 0.0
+            if self._sleigh[0]:
+                self._sleigh = ("", 0.0)
+                self._theme_prop("theme_sleigh", "")
+            return
+        state, until = self._sleigh
+        lt = time.localtime()
+        christmas_day = lt.tm_mon == 12 and lt.tm_mday == 25
+        touchdown = (lt.tm_mon == 12 and lt.tm_mday == 24 and lt.tm_hour == 23
+                     and lt.tm_min == 59 and lt.tm_sec >= 40)
+        if touchdown and state not in ("landing", "parked"):
+            self._sleigh = ("landing", now + self.SLEIGH_LAND_SECS)
+            _dlog("theme: Santa is landing")
+        elif state == "landing" and now < until:
+            pass  # still coming down; it lands just after midnight
+        elif christmas_day:
+            self._sleigh = ("parked", now + 3600)
+        elif state in ("landing", "parked"):
+            self._sleigh = ("", 0.0)
+        elif not state or now >= until:
+            if not state and self._sleigh_next == 0.0:
+                self._sleigh_next = now + random.uniform(20, 60)
+            if now >= until + 1.0 and now >= self._sleigh_next:
+                self._sleigh = (random.choice(("rtl", "ltr")), now + self.SLEIGH_SECS)
+                gap = (60, 150) if theme == "christmaseve" else (360, 720)
+                self._sleigh_next = now + self.SLEIGH_SECS + random.uniform(*gap)
+        state, until = self._sleigh
+        shown = state if state in ("landing", "parked") or now < until else ""
+        self._theme_prop("theme_sleigh", shown)
 
     def _theme_intro(self, now):
         """
