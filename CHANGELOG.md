@@ -11,6 +11,27 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.19.0 (12/10/2026)
+
+- Seasonal themes, in a new Seasonal Themes section on the Overall
+  settings page. Halloween turns the whole skin over to horror: bone
+  text on near black, a blood red accent, window titles in a dripping
+  horror lettering, fog drifting along the foot of every screen, dark
+  corners, the odd flash of lightning and bats crossing the sky. With no
+  background picture of your own, a haunted house stands on a hill under
+  a blood moon with flickering jack o'lanterns; with one, the picture is
+  washed red instead.
+- Devil's Night, the night of 30 October, sets a cemetery in the rain
+  behind every screen, with two headstones, Eric Draven and Shelly
+  Webster. A crow flies in and lands on Eric's stone, taps it and caws,
+  and every few minutes flies off and comes back.
+- Both come on by themselves each year: Halloween on 29 and 31 October,
+  Devil's Night on the 30th, until midnight going into 1 November. The
+  setting Halloween every year can switch that off, and the Theme row
+  picks either one by hand at any time of year. The colours change
+  through Kodi's own skin colour setting, so the screen reloads once as
+  a theme starts or ends; that waits until nothing is playing.
+
 ## 0.18.1 (12/10/2026)
 
 - Coming up shows a slot's name alone. The block in the stats column no

@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.18.1" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.19.0" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,9 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>Coming up shows a slot's name alone. The block in the stats column no longer adds the episode after it, so a show reads as just its name, the same as the rows of the list on the left.</news>
+		<news>Seasonal themes, in a new Seasonal Themes section on the Overall settings page. Halloween turns the whole skin over to horror: bone text on near black, a blood red accent, window titles in a dripping horror lettering, fog drifting along the foot of every screen, dark corners, the odd flash of lightning and bats crossing the sky. With no background picture of your own, a haunted house stands on a hill under a blood moon with flickering jack o'lanterns; with one, the picture is washed red instead.
+Devil's Night, the night of 30 October, sets a cemetery in the rain behind every screen, with two headstones, Eric Draven and Shelly Webster. A crow flies in and lands on Eric's stone, taps it and caws, and every few minutes flies off and comes back.
+Both come on by themselves each year: Halloween on 29 and 31 October, Devil's Night on the 30th, until midnight going into 1 November. The setting Halloween every year can switch that off, and the Theme row picks either one by hand at any time of year. The colours change through Kodi's own skin colour setting, so the screen reloads once as a theme starts or ends; that waits until nothing is playing.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
