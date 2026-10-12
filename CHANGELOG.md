@@ -11,6 +11,21 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.18.0 (12/10/2026)
+
+- Coming up list, a Home Screen setting offered when the Engage add-on
+  is installed, beside the Coming up block and independent of it. The
+  next Engage slots run down the left of Home, each with its episode or
+  film and when it is due; OK on a row opens Engage. The list starts
+  under the logo and a top menu and grows down as far as the layout
+  allows, up to eleven rows with the logo hidden and the menu out of its
+  way; a wide menu row across the centre ends it above the row. It
+  shows once an Engage release publishes the slots; until then nothing
+  appears.
+- A centred menu row of up to four tiles now sits on the screen centre
+  beside the stats column instead of being pushed left with the wider
+  rows.
+
 ## 0.17.0 (11/10/2026)
 
 - Coming up, a Home Screen setting offered when the Engage add-on is
