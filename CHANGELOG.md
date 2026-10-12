@@ -11,6 +11,13 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.21.1 (12/10/2026)
+
+- No more lightning. The flash is gone from Halloween and from Devil's
+  Night; the rain, fog and creatures stay as they were.
+- On Christmas Eve the sleigh no longer jumps if it happens to be
+  crossing the sky just before it comes in to land at midnight.
+
 ## 0.21.0 (12/10/2026)
 
 - Christmas, a new seasonal theme. Cream on deep evergreen with a holly
