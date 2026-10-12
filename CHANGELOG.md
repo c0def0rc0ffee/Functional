@@ -11,6 +11,19 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.20.0 (12/10/2026)
+
+- Halloween has company: spiders scuttling across the screen, fast and
+  slow, one now and then letting itself down a thread; a witch on her
+  broomstick crossing the sky; and ghosts drifting past. The red tint
+  over your background stays as it was, and Devil's Night is unchanged.
+- The first time each year that Halloween comes on by itself, it starts
+  with the red tint alone. After a while a spider shoots across, then
+  another, then the witch, and it builds up from there, the fog rolling
+  in and the lightning starting, until after about half an hour all of
+  it is running. Every other time, after a restart or with the theme
+  picked by hand, it starts with everything at once.
+
 ## 0.19.0 (12/10/2026)
 
 - Seasonal themes, in a new Seasonal Themes section on the Overall
