@@ -294,8 +294,11 @@
 			<!-- ENGAGE section (ENGAGE-NEXT): the next watch slot the Engage
 			     add-on (service.engage) publishes as
 			     Window(home).Property(Engage.Next.*) from its own service: the
-			     slot label, the episode or film line, and when it is due in
-			     words ("Tonight 19:00"). The skin reads and never computes.
+			     slot label and when it is due in words ("Tonight 19:00"). The
+			     episode line Engage also publishes is deliberately not shown:
+			     a show's slot reads as the show's name alone (asked for on
+			     12/10/2026, shipped in 0.18.1).
+			     The skin reads and never computes.
 			     Gated by engage_block_shown (setting, add-on installed, label
 			     present). The block is one button, 9320: OK opens Engage's own
 			     launcher menu. Reached by Right from the right edge button,
@@ -349,7 +352,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<scroll>true</scroll>
-					<label>$INFO[Window(home).Property(Engage.Next.Label)]$INFO[Window(home).Property(Engage.Next.Episode), · ,]</label>
+					<label>$INFO[Window(home).Property(Engage.Next.Label)]</label>
 				</control>
 				<control type="label">
 					<left>0</left>
@@ -368,9 +371,11 @@
 		     the screen, the larger companion of the COMING UP block in the
 		     stats column (ENGAGE-NEXT above). Its own setting,
 		     show_engage_list; the two are independent. Engage publishes the
-		     slots as Window(home).Property(Engage.Next.N.*) for N 1 to 11,
-		     1 being the slot the small block shows; the skin reads and never
-		     computes, and the panel stays invisible until Engage publishes.
+		     slots as Window(home).Property(Engage.Next.N.Label) and .When
+		     for N 1 to 11, 1 being the slot the small block shows; a row is
+		     the slot's name and when it is due, never an episode line. The
+		     skin reads and never computes, and the panel stays invisible
+		     until Engage publishes.
 		     Anchored at the top of the left column like the stats column on
 		     the right: x 60 to 540 from y 180, under the logo and a top
 		     menu, dropping 80 under a corner bar on the top edge, and

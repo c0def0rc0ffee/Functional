@@ -347,9 +347,9 @@
 		</control>
 	</include>
 	<!-- ENGAGE-LIST: one row of the Coming up list on the left of Home
-	     (Home.xml). 80 tall: the slot's label with the episode or film
-	     line after a dot, scrolling, in font_med, then when it is due in
-	     the accent. Slot n is Window(home).Property(Engage.Next.n.*),
+	     (Home.xml). 80 tall: the slot's label, scrolling, in font_med,
+	     then when it is due in the accent; no episode line, a show reads
+	     as its name alone. Slot n is Window(home).Property(Engage.Next.n.*),
 	     published by Engage; the row shows while that slot's label is
 	     present and 'when' holds, and hides with the panel. The button
 	     repeats the group's visibility so Control.IsVisible on it is
@@ -395,7 +395,7 @@
 					<font>font_med</font>
 					<textcolor>text</textcolor>
 					<scroll>true</scroll>
-					<label>$INFO[Window(home).Property(Engage.Next.$PARAM[n].Label)]$INFO[Window(home).Property(Engage.Next.$PARAM[n].Episode), · ,]</label>
+					<label>$INFO[Window(home).Property(Engage.Next.$PARAM[n].Label)]</label>
 				</control>
 				<control type="label">
 					<left>0</left>
