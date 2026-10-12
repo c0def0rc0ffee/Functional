@@ -2288,3 +2288,31 @@ msgstr ""
 msgctxt "#31635"
 msgid "Next few Engage slots down the left"
 msgstr ""
+
+msgctxt "#31636"
+msgid "SEASONAL THEMES"
+msgstr ""
+
+msgctxt "#31637"
+msgid "Theme:"
+msgstr ""
+
+msgctxt "#31638"
+msgid "Off"
+msgstr ""
+
+msgctxt "#31639"
+msgid "Halloween"
+msgstr ""
+
+msgctxt "#31640"
+msgid "Devil's Night"
+msgstr ""
+
+msgctxt "#31641"
+msgid "Halloween every year, 29 to 31 October"
+msgstr ""
+
+msgctxt "#31642"
+msgid "Halloween is on for the season until 1 November"
+msgstr ""

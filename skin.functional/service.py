@@ -185,6 +185,13 @@ update_lists()
     addon_data/skin.functional/radarr.json, every outcome appended to
     radarr-log.txt beside it. See the RADARR-REMOVE block.
 
+update_theme()
+    Seasonal themes. Picks Halloween from 29 to 31 October (Devil's Night
+    on the 30th) unless switched off, otherwise the theme chosen in Skin
+    Settings; publishes theme_name and theme_seasonal on Home, switches
+    Kodi's skin colour setting to colors/halloween.xml and back, and steps
+    the crow, bats and lightning (theme_crow, theme_bats, theme_flash).
+
 Future handlers
 ---------------
 - update_focused_filesize(), tried twice and withdrawn: nothing inside Kodi
@@ -727,6 +734,16 @@ class FunctionalHelper(xbmc.Monitor):
         self._sleep_warned = False    # the one-minute toast has been shown
         self._sleep_published = ""    # countdown label currently on screen
         self._list_item_slots_used = 0  # LI.N.* slots written last publish
+        # Seasonal themes (THEME-SEASON, see update_theme)
+        self._theme_seen = None          # theme last logged
+        self._theme_colours_ok = None    # colour set last confirmed in Kodi's setting
+        self._theme_colours_at = 0.0     # monotonic time of that read
+        self._theme_motion_live = False  # bat and lightning timers are running
+        self._crow_state = None          # None = no crow; else as in _crow_set
+        self._crow_until = 0.0
+        self._crow_leave_at = 0.0
+        self._bats_next = self._bats_until = 0.0
+        self._flash_next = self._flash_until = 0.0
         self._bootstrap_layout_defaults()
         self._migrate_bg_mode()
         _dlog("helper ready")
@@ -6558,6 +6575,214 @@ class FunctionalHelper(xbmc.Monitor):
         _set_skin_string("accent_custom_hi", value[:2] + lighter)
         _dlog("accent: custom {0} -> highlight {1}".format(value, value[:2] + lighter))
 
+    # THEME-SEASON. Seasonal themes: see update_theme.
+    THEME_NAMES = ("halloween", "devilsnight")
+    THEME_COLOURS = "halloween"        # colors/halloween.xml, by Kodi's name for it
+    THEME_COLOURS_DEFAULT = "SKINDEFAULT"
+    THEME_LOOK_EVERY = 30.0            # seconds between reads of Kodi's colour setting
+    CROW_LAND_SECS = 6.5               # ThemeCrow's landing slide is 6 s
+    CROW_LEAVE_SECS = 5.5              # and its take off 5 s
+
+    @classmethod
+    def _season_theme(cls, now):
+        """
+        <summary>
+        The theme the calendar asks for on the given local date, or "".
+        </summary>
+        <param name="now">A time.struct_time in local time.</param>
+        <returns>"devilsnight" on 30 October, "halloween" on 29 and 31 October, otherwise "".</returns>
+        <remarks>
+        Local time on purpose: the season starts and ends at the box's own
+        midnight, so Halloween is over at 00:00 on 1 November where the TV is.
+        </remarks>
+        """
+        if now.tm_mon == 10 and now.tm_mday >= 29:
+            return "devilsnight" if now.tm_mday == 30 else "halloween"
+        return ""
+
+    @staticmethod
+    def _theme_prop(key, value):
+        """
+        <summary>
+        Write a Home property only when it differs from what is there.
+        </summary>
+        <param name="key">Property name.</param>
+        <param name="value">New value; "" clears it.</param>
+        <remarks>
+        Compared against the window rather than a cached copy, so a property
+        lost to a skin reload (the colour switch causes one) is put back on
+        the next tick instead of waiting for the theme to change.
+        </remarks>
+        """
+        home = xbmcgui.Window(HOME_WINDOW_ID)
+        if home.getProperty(key) == value:
+            return
+        if value:
+            home.setProperty(key, value)
+        else:
+            home.clearProperty(key)
+
+    def update_theme(self):
+        """
+        <summary>
+        Work out the theme in force, publish it for the XML, keep Kodi's
+        colour set in step with it, and drive the theme's moving parts.
+        </summary>
+        <remarks>
+        Slow tick. The pick in Skin Settings is Skin.String(theme): empty,
+        halloween or devilsnight. From 29 to 31 October the calendar wins
+        over the pick (Halloween, and Devil's Night on the 30th) unless
+        Skin.HasSetting(theme_seasonal_off) is on; the season ends at local
+        midnight going into 1 November. The result goes out as Home
+        properties:
+            theme_name      halloween, devilsnight or empty
+            theme_seasonal  "1" while the calendar is the reason
+            theme_crow / theme_bats / theme_flash   see _theme_motion
+        The colours are Kodi's own lookandfeel.skincolors setting, see
+        _theme_colours. Everything else is the XML reading theme_name.
+        </remarks>
+        """
+        manual = xbmc.getInfoLabel("Skin.String(theme)").strip()
+        if manual not in self.THEME_NAMES:
+            manual = ""
+        seasonal = ""
+        if not xbmc.getCondVisibility("Skin.HasSetting(theme_seasonal_off)"):
+            seasonal = self._season_theme(time.localtime())
+        want = seasonal or manual
+        if want != self._theme_seen:
+            _dlog("theme: {0} (season {1}, pick {2})".format(
+                want or "none", seasonal or "none", manual or "none"))
+            self._theme_seen = want
+        self._theme_prop("theme_name", want)
+        self._theme_prop("theme_seasonal", "1" if seasonal else "")
+        self._theme_colours(self.THEME_COLOURS if want else self.THEME_COLOURS_DEFAULT)
+        self._theme_motion(want)
+
+    def _theme_colours(self, colours):
+        """
+        <summary>
+        Bring Kodi's skin colour setting to the given colour set when it is
+        safe to reload the skin.
+        </summary>
+        <param name="colours">THEME_COLOURS or THEME_COLOURS_DEFAULT.</param>
+        <remarks>
+        Changing lookandfeel.skincolors makes Kodi reload the skin, which
+        flashes the screen and drops focus to the window's default, so the
+        change waits while anything is playing, a modal dialog is up or
+        Skin Settings is open; it lands the first quiet second after. The
+        setting is read at most every THEME_LOOK_EVERY seconds once it
+        matches. Going back to the default only happens from our own set:
+        a colour set somebody picked by hand in Kodi's settings is left be.
+        A failed read or write is logged and tried again on the next round.
+        </remarks>
+        """
+        now = time.monotonic()
+        if colours == self._theme_colours_ok and now - self._theme_colours_at < self.THEME_LOOK_EVERY:
+            return
+        reply = _jsonrpc("Settings.GetSettingValue", {"setting": "lookandfeel.skincolors"})
+        current = ((reply or {}).get("result") or {}).get("value")
+        if current is None:
+            self._theme_colours_at = now
+            return
+        if current == colours or (colours == self.THEME_COLOURS_DEFAULT and current != self.THEME_COLOURS):
+            self._theme_colours_ok = colours
+            self._theme_colours_at = now
+            return
+        if xbmc.getCondVisibility(
+                "Player.HasMedia | System.HasModalDialog | Window.IsActive(skinsettings) | Window.IsActive(startup)"):
+            return
+        _dlog("theme: skin colours {0} -> {1}, Kodi reloads the skin".format(current, colours))
+        reply = _jsonrpc("Settings.SetSettingValue", {"setting": "lookandfeel.skincolors", "value": colours})
+        if (reply or {}).get("result") is not True:
+            _dlog("theme: setting the skin colours failed: {0}".format(reply), xbmc.LOGWARNING)
+        self._theme_colours_ok = None
+        self._theme_colours_at = now
+
+    def _theme_motion(self, theme):
+        """
+        <summary>
+        Step the crow, the bats and the lightning for the theme in force.
+        </summary>
+        <param name="theme">The theme update_theme settled on.</param>
+        <remarks>
+        Called once a second. The crow only exists on Devil's Night: it
+        lands on Eric's stone, sits, now and then taps the stone or caws,
+        and every four to seven minutes flies off and comes back a little
+        later. Bats cross every one to three minutes in Halloween proper.
+        Lightning comes every forty seconds to two minutes, more often on
+        Devil's Night, which is a storm. Outside a Halloween theme every
+        property is cleared and the timers start over, so the crow lands
+        afresh when Devil's Night begins. Monotonic time throughout, so a
+        clock step does not freeze or rush a state.
+        </remarks>
+        """
+        now = time.monotonic()
+        if theme not in self.THEME_NAMES:
+            if self._crow_state is not None or self._theme_motion_live:
+                self._crow_state = None
+                self._theme_motion_live = False
+                for key in ("theme_crow", "theme_bats", "theme_flash"):
+                    self._theme_prop(key, "")
+            return
+        if not self._theme_motion_live:
+            self._theme_motion_live = True
+            self._bats_next = now + random.uniform(20, 60)
+            self._flash_next = now + random.uniform(15, 40)
+            self._bats_until = self._flash_until = 0.0
+
+        if theme == "devilsnight":
+            if self._crow_state is None:
+                self._crow_set("landing", now, self.CROW_LAND_SECS)
+                self._crow_leave_at = now + random.uniform(240, 420)
+            elif now >= self._crow_until:
+                state = self._crow_state
+                if state == "landing" or state in ("tap", "caw"):
+                    self._crow_set("perched", now, random.uniform(6, 15))
+                elif state == "perched":
+                    if now >= self._crow_leave_at:
+                        self._crow_set("leaving", now, self.CROW_LEAVE_SECS)
+                    else:
+                        roll = random.random()
+                        if roll < 0.45:
+                            self._crow_set("tap", now, 1.6)
+                        elif roll < 0.8:
+                            self._crow_set("caw", now, 1.4)
+                        else:
+                            self._crow_set("perched", now, random.uniform(5, 12))
+                elif state == "leaving":
+                    self._crow_set("away", now, random.uniform(20, 45))
+                else:
+                    self._crow_set("landing", now, self.CROW_LAND_SECS)
+                    self._crow_leave_at = now + random.uniform(240, 420)
+            # Every tick, not only on a change: a skin reload can drop it.
+            self._theme_prop("theme_crow", self._crow_state)
+        elif self._crow_state is not None:
+            self._crow_state = None
+            self._theme_prop("theme_crow", "")
+
+        if theme == "halloween" and now >= self._bats_next:
+            self._bats_until = now + 9
+            self._bats_next = now + random.uniform(60, 180)
+        self._theme_prop("theme_bats", "1" if theme == "halloween" and now < self._bats_until else "")
+
+        if now >= self._flash_next:
+            self._flash_until = now + 1.2
+            self._flash_next = now + (random.uniform(25, 70) if theme == "devilsnight" else random.uniform(40, 120))
+        self._theme_prop("theme_flash", "1" if now < self._flash_until else "")
+
+    def _crow_set(self, state, now, secs):
+        """
+        <summary>
+        Move the crow to a state for a number of seconds and publish it.
+        </summary>
+        <param name="state">landing, perched, tap, caw, leaving or away.</param>
+        <param name="now">time.monotonic() of this tick.</param>
+        <param name="secs">How long the state lasts.</param>
+        """
+        self._crow_state = state
+        self._crow_until = now + secs
+        self._theme_prop("theme_crow", state)
+
     GENRE_ALL = "__all__"  # genre_command value for the picker's "All" row
 
     def update_genre_command(self):
@@ -7433,6 +7658,9 @@ def run():
         helper.update_buffer_stats,
         helper.update_bg_schedule,
         helper.update_home_bg,
+        # Once a second is plenty: the date, a reload of the skin colours
+        # held back until nothing is playing, and the crow's next move.
+        helper.update_theme,
         helper.maybe_refresh_stats,
         helper.normalize_clearance,
     )

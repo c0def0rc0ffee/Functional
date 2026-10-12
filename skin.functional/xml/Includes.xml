@@ -46,6 +46,20 @@
 
 	<expression name="bg_windows_active">Skin.HasSetting(bg_all_windows) | [Skin.HasSetting(bg_video_behind) + Player.HasVideo + !Slideshow.IsActive]</expression>
 
+	<!-- THEME-SEASON. The theme in force, as service.py:update_theme
+	     publishes it in Window(home).Property(theme_name): "halloween", or
+	     "devilsnight" for 30 October. Devil's Night is a Halloween theme as
+	     well, so it takes the Halloween colours, accent and title font and
+	     adds the cemetery on top. The service decides the season and the
+	     manual pick; the XML only reads the result. -->
+	<expression name="theme_halloween">String.IsEqual(Window(home).Property(theme_name),halloween) | String.IsEqual(Window(home).Property(theme_name),devilsnight)</expression>
+	<expression name="theme_devils_night">String.IsEqual(Window(home).Property(theme_name),devilsnight)</expression>
+	<!-- A background picture of the user's own is on screen in
+	     SkinBackground: the slideshow, the static image or the folder
+	     slideshow. The Halloween hill only fills in where none is, and
+	     tints one that is. -->
+	<expression name="bg_picture_showing">[!String.IsEmpty(Window(home).Property(home_bg_fanart)) | [String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))] | [String.IsEqual(Skin.String(bg_mode),folder) + !String.IsEmpty(Skin.String(bg_slideshow_dir))]] + !$EXP[bg_video_showing]</expression>
+
 	<!-- Which corner or edge centre the Home corner bar (now playing banner,
 	     queue button and the round icons) sits in. Skin.String(corner_bar_position)
 	     takes the same six values as notification_position: tl, tc, tr, bl, bc, br.
@@ -1243,6 +1257,8 @@
 	     (Skin.SetColor from the Overall settings page); with nothing picked
 	     yet it falls through to blue like an unset name does. -->
 	<variable name="AccentColor">
+		<!-- THEME-SEASON: a Halloween theme wins over any accent picked. -->
+		<value condition="$EXP[theme_halloween]">FFA3101B</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),custom) + !String.IsEmpty(Skin.String(accent_custom))">$INFO[Skin.String(accent_custom)]</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),red)">FFE53935</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),green)">FF43A047</value>
@@ -1259,7 +1275,14 @@
 	     the way to white into Skin.String(accent_custom_hi). Until 22/09/2026
 	     every use was the fixed colour name accent_hi, so a red accent had
 	     blue highlights. -->
+	<!-- THEME-SEASON: the Theme row's value, from Skin.String(theme). -->
+	<variable name="ThemeLabel">
+		<value condition="String.IsEqual(Skin.String(theme),halloween)">$LOCALIZE[31639]</value>
+		<value condition="String.IsEqual(Skin.String(theme),devilsnight)">$LOCALIZE[31640]</value>
+		<value>$LOCALIZE[31638]</value>
+	</variable>
 	<variable name="AccentHiColor">
+		<value condition="$EXP[theme_halloween]">FFD32F2F</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),custom) + !String.IsEmpty(Skin.String(accent_custom_hi))">$INFO[Skin.String(accent_custom_hi)]</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),red)">FFEF5350</value>
 		<value condition="String.IsEqual(Skin.String(accent_color),green)">FF66BB6A</value>
@@ -1436,6 +1459,14 @@
 		<include content="SkinBackground">
 			<param name="visible" value="$EXP[bg_windows_active]"/>
 		</include>
+		<!-- THEME-SEASON: with no background drawn here, the theme still
+		     dresses the window. SkinBackground carries its own copy, which
+		     covers Home and every window where it is drawn, so this one
+		     stands down there and the layers are drawn exactly once. -->
+		<include content="ThemeLayers">
+			<param name="visible" value="!$EXP[bg_windows_active] + !Window.IsActive(home)"/>
+			<param name="picture" value="false"/>
+		</include>
 	</include>
 
 	<!-- The configurable background (slideshow / static image / folder
@@ -1523,6 +1554,13 @@
 					<texture colordiffuse="$VAR[BgOverlayColor]">white.png</texture>
 					<visible>[!String.IsEmpty(Window(home).Property(home_bg_fanart)) | [String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))]] + !$EXP[bg_video_showing]</visible>
 				</control>
+
+				<!-- THEME-SEASON: last, so the cemetery covers whatever
+				     background is set and the fog and vignette sit over it. -->
+				<include content="ThemeLayers">
+					<param name="visible" value="true"/>
+					<param name="picture" value="$EXP[bg_picture_showing]"/>
+				</include>
 			</control>
 		</definition>
 	</include>
@@ -1552,6 +1590,24 @@
 					<align>left</align>
 					<aligny>center</aligny>
 					<label>$PARAM[title]</label>
+					<visible>!$EXP[theme_halloween]</visible>
+				</control>
+				<!-- THEME-SEASON: the same title in Creepster. A font cannot
+				     be switched by condition, so the title is drawn twice and
+				     one copy shows. Only the header titles take it: they are
+				     the skin's own English strings, and Creepster has no
+				     accented letters for a film or show name. -->
+				<control type="label">
+					<left>60</left>
+					<top>0</top>
+					<width>1800</width>
+					<height>90</height>
+					<font>font_creepy</font>
+					<textcolor>$VAR[AccentHiColor]</textcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<label>$PARAM[title]</label>
+					<visible>$EXP[theme_halloween]</visible>
 				</control>
 				<control type="label">
 					<right>60</right>
@@ -3496,6 +3552,288 @@
 				<label>$INFO[Window(home).Property(sleep_remaining)]</label>
 			</control>
 		</definition>
+	</include>
+
+	<!-- ===== THEME-SEASON: the Halloween and Devil's Night layers =====
+	     Drawn behind every window by SkinBackground and WindowBackground
+	     (see the notes there for which copy shows). The art comes from
+	     build_theme_art.py in the project root, and the positions below
+	     must match the numbers in that script: the stones, the crow's perch
+	     and the lanterns.
+
+	     The moving parts are driven by Home properties that
+	     service.py:update_theme writes about once a second:
+	       theme_crow   landing, perched, tap, caw, leaving or away
+	       theme_bats   set while a flight of bats crosses
+	       theme_flash  set for a moment for a lightning flash
+	     Loops (fog, rain, the lantern flicker) run on Kodi's own animation
+	     clock and cost the service nothing.
+
+	     'visible' : gates the whole block.
+	     'picture' : a background picture of the user's own is on screen
+	                 under these layers; the Halloween hill then stands down
+	                 and the picture is tinted instead. -->
+	<include name="ThemeLayers">
+		<param name="visible" default="true"/>
+		<param name="picture" default="false"/>
+		<definition>
+			<control type="group">
+				<left>0</left>
+				<top>0</top>
+				<width>1920</width>
+				<height>1080</height>
+				<visible>[$PARAM[visible]] + $EXP[theme_halloween] + !$EXP[bg_video_showing]</visible>
+
+				<!-- Halloween over the user's own picture: a blood red wash. -->
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<texture colordiffuse="66400008">white.png</texture>
+					<visible>[$PARAM[picture]] + !$EXP[theme_devils_night]</visible>
+				</control>
+
+				<!-- Halloween with nothing else behind: the haunted hill and
+				     its lanterns. -->
+				<control type="group">
+					<visible>![$PARAM[picture]] + !$EXP[theme_devils_night]</visible>
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>1920</width>
+						<height>1080</height>
+						<aspectratio>scale</aspectratio>
+						<texture>themes/halloween_scene.jpg</texture>
+					</control>
+					<include content="ThemeLantern"><param name="left" value="250"/><param name="top" value="725"/><param name="size" value="360"/><param name="ms" value="230"/></include>
+					<include content="ThemeLantern"><param name="left" value="1186"/><param name="top" value="781"/><param name="size" value="288"/><param name="ms" value="310"/></include>
+					<include content="ThemeLantern"><param name="left" value="452"/><param name="top" value="852"/><param name="size" value="216"/><param name="ms" value="410"/></include>
+				</control>
+
+				<!-- Devil's Night: the cemetery replaces any background, with
+				     rain falling either side of the crow for depth. -->
+				<control type="group">
+					<visible>$EXP[theme_devils_night]</visible>
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>1920</width>
+						<height>1080</height>
+						<aspectratio>scale</aspectratio>
+						<texture>themes/devilsnight_scene.jpg</texture>
+					</control>
+					<include content="ThemeRain"><param name="texture" value="themes/rain_far.png"/><param name="ms" value="1500"/><param name="diffuse" value="77FFFFFF"/></include>
+					<include content="ThemeCrow"/>
+					<include content="ThemeRain"><param name="texture" value="themes/rain_near.png"/><param name="ms" value="800"/><param name="diffuse" value="80FFFFFF"/></include>
+				</control>
+
+				<!-- Two fog banks drifting opposite ways at different speeds.
+				     Each is two copies of a tile that wraps left to right,
+				     slid by exactly one tile width and looped, so there is
+				     no seam and no jump. -->
+				<include content="ThemeFog"><param name="top" value="800"/><param name="start" value="0"/><param name="end" value="-1920"/><param name="ms" value="90000"/><param name="diffuse" value="99FFFFFF"/></include>
+				<include content="ThemeFog"><param name="top" value="860"/><param name="start" value="-1920"/><param name="end" value="0"/><param name="ms" value="140000"/><param name="diffuse" value="66FFFFFF"/></include>
+
+				<!-- A flight of three bats across the top, Halloween only.
+				     Each bat carries the condition itself (see ThemeBat). -->
+				<control type="group">
+					<include content="ThemeBat"><param name="top" value="140"/><param name="size" value="100"/><param name="start" value="2000,40"/><param name="end" value="-300,-60"/><param name="delay" value="0"/></include>
+					<include content="ThemeBat"><param name="top" value="210"/><param name="size" value="70"/><param name="start" value="2050,-20"/><param name="end" value="-250,60"/><param name="delay" value="500"/></include>
+					<include content="ThemeBat"><param name="top" value="100"/><param name="size" value="50"/><param name="start" value="2100,30"/><param name="end" value="-200,10"/><param name="delay" value="1100"/></include>
+				</control>
+
+				<!-- Lightning: a white flash that snaps on and dies away. The
+				     two fades multiply: the first rises to 70 percent, the
+				     second holds at full until its delay runs out and then
+				     takes the whole thing back to nothing. -->
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<texture colordiffuse="CCE6E8FF">white.png</texture>
+					<visible>!String.IsEmpty(Window(home).Property(theme_flash))</visible>
+					<animation effect="fade" start="0" end="55" time="60">Visible</animation>
+					<animation effect="fade" start="100" end="0" delay="120" time="600">Visible</animation>
+				</control>
+
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<texture>themes/vignette.png</texture>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- One lantern's glow, flickering by fading in and out on its own
+	     period so the three never pulse together. -->
+	<include name="ThemeLantern">
+		<param name="left"/>
+		<param name="top"/>
+		<param name="size"/>
+		<param name="ms"/>
+		<definition>
+			<control type="image">
+				<left>$PARAM[left]</left>
+				<top>$PARAM[top]</top>
+				<width>$PARAM[size]</width>
+				<height>$PARAM[size]</height>
+				<texture colordiffuse="B3FFFFFF">themes/pumpkin_glow.png</texture>
+				<animation effect="fade" start="100" end="40" time="$PARAM[ms]" pulse="true" condition="true">Conditional</animation>
+			</control>
+		</definition>
+	</include>
+
+	<!-- A screen of rain: two copies of a tile that wraps top to bottom,
+	     one above the other, slid down by one screen height in a loop. -->
+	<include name="ThemeRain">
+		<param name="texture"/>
+		<param name="ms"/>
+		<param name="diffuse"/>
+		<definition>
+			<control type="group">
+				<left>0</left>
+				<top>0</top>
+				<animation effect="slide" start="0,-1080" end="0,0" time="$PARAM[ms]" loop="true" condition="true">Conditional</animation>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<texture colordiffuse="$PARAM[diffuse]">$PARAM[texture]</texture>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>1080</top>
+					<width>1920</width>
+					<height>1080</height>
+					<texture colordiffuse="$PARAM[diffuse]">$PARAM[texture]</texture>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- A fog bank: two copies of the tile side by side, slid by one tile
+	     width in a loop. 'start' and 'end' set the direction. -->
+	<include name="ThemeFog">
+		<param name="top"/>
+		<param name="start"/>
+		<param name="end"/>
+		<param name="ms"/>
+		<param name="diffuse"/>
+		<definition>
+			<control type="group">
+				<left>0</left>
+				<top>$PARAM[top]</top>
+				<animation effect="slide" start="$PARAM[start],0" end="$PARAM[end],0" time="$PARAM[ms]" loop="true" condition="true">Conditional</animation>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>360</height>
+					<texture colordiffuse="$PARAM[diffuse]">themes/fog.png</texture>
+				</control>
+				<control type="image">
+					<left>1920</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>360</height>
+					<texture colordiffuse="$PARAM[diffuse]">themes/fog.png</texture>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- One bat beating its wings as it crosses from right to left. The
+	     visible condition is on the bat, not on a group around it: Kodi
+	     plays a Visible animation only when the control's own visibility
+	     changes, so under a group that appears the slide never ran and
+	     no bat was seen (found live, 12/10/2026).
+	     'size' is a percentage of the 120 by 80 sprite; the slide runs from 'start' to
+	     'end' in screen pixels from its resting place at the left edge. -->
+	<include name="ThemeBat">
+		<param name="top"/>
+		<param name="size"/>
+		<param name="start"/>
+		<param name="end"/>
+		<param name="delay"/>
+		<definition>
+			<control type="multiimage">
+				<left>0</left>
+				<top>$PARAM[top]</top>
+				<width>120</width>
+				<height>80</height>
+				<imagepath>special://skin/media/themes/bat/</imagepath>
+				<timeperimage>70</timeperimage>
+				<fadetime>0</fadetime>
+				<loop>yes</loop>
+				<randomize>false</randomize>
+				<visible>!String.IsEmpty(Window(home).Property(theme_bats)) + !$EXP[theme_devils_night]</visible>
+				<animation effect="zoom" start="$PARAM[size]" end="$PARAM[size]" center="60,40" time="0" condition="true">Conditional</animation>
+				<animation effect="slide" start="$PARAM[start]" end="$PARAM[end]" delay="$PARAM[delay]" time="7000">Visible</animation>
+			</control>
+		</definition>
+	</include>
+
+	<!-- Devil's Night: the crow on Eric's stone (the left one). The perched
+	     sprite's bottom centre is the perch, (840, 694) on screen, the same
+	     as CROW_PERCH in build_theme_art.py. The flying sprite is centred
+	     a little above it, so a landing ends with the bird over its feet
+	     and a take off starts there. Each state is a separate control so
+	     each one's animation starts afresh when its state begins. -->
+	<include name="ThemeCrow">
+		<!-- Flying in from the top right, slowing as it lands. -->
+		<control type="multiimage">
+			<left>720</left>
+			<top>554</top>
+			<width>240</width>
+			<height>160</height>
+			<imagepath>special://skin/media/themes/crow_fly/</imagepath>
+			<timeperimage>80</timeperimage>
+			<fadetime>0</fadetime>
+			<loop>yes</loop>
+			<randomize>false</randomize>
+			<visible>String.IsEqual(Window(home).Property(theme_crow),landing)</visible>
+			<animation effect="slide" start="1250,-620" end="0,0" time="6000" tween="sine" easing="out">Visible</animation>
+			<animation effect="zoom" start="55" end="100" center="840,634" time="6000" tween="sine" easing="out">Visible</animation>
+		</control>
+		<!-- Taking off to the top left, gathering speed. -->
+		<control type="multiimage">
+			<left>720</left>
+			<top>554</top>
+			<width>240</width>
+			<height>160</height>
+			<imagepath>special://skin/media/themes/crow_fly/</imagepath>
+			<timeperimage>70</timeperimage>
+			<fadetime>0</fadetime>
+			<loop>yes</loop>
+			<randomize>false</randomize>
+			<visible>String.IsEqual(Window(home).Property(theme_crow),leaving)</visible>
+			<animation effect="slide" start="0,0" end="-1100,-700" time="5000" tween="quadratic" easing="in">Visible</animation>
+		</control>
+		<!-- On the stone, still or tapping it with its beak. -->
+		<control type="image">
+			<left>760</left>
+			<top>538</top>
+			<width>160</width>
+			<height>160</height>
+			<texture>themes/crow_perch.png</texture>
+			<visible>String.IsEqual(Window(home).Property(theme_crow),perched) | String.IsEqual(Window(home).Property(theme_crow),tap)</visible>
+			<animation effect="rotate" start="0" end="14" center="840,694" time="140" pulse="true" condition="String.IsEqual(Window(home).Property(theme_crow),tap)">Conditional</animation>
+		</control>
+		<!-- Head up, beak open. -->
+		<control type="image">
+			<left>760</left>
+			<top>538</top>
+			<width>160</width>
+			<height>160</height>
+			<texture>themes/crow_caw.png</texture>
+			<visible>String.IsEqual(Window(home).Property(theme_crow),caw)</visible>
+		</control>
 	</include>
 
 </includes>

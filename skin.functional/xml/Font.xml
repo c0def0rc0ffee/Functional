@@ -34,6 +34,14 @@
 			<filename>NotoSans-Regular.ttf</filename>
 			<size>72</size>
 		</font>
+		<!-- THEME-SEASON: Creepster (SIL Open Font Licence, fonts/creepster_license.txt)
+		     for the window titles in a Halloween theme. Latin letters only, so
+		     it is kept to the skin's own strings; see HeaderBar. -->
+		<font>
+			<name>font_creepy</name>
+			<filename>Creepster-Regular.ttf</filename>
+			<size>44</size>
+		</font>
 
 		<!-- ===== Estuary-style numeric font aliases =====
 		     Many third-party add-ons (Trakt, OEM scripts, etc.) ship custom

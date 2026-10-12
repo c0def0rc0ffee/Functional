@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  The Halloween colour set: the same names as defaults.xml, recoloured
+  bone on near black with blood red for the accent shades.
+  </summary>
+  <remarks>
+  Kodi loads defaults.xml first and then lays this file over it, so only
+  names given here change and every control in the skin is recoloured
+  without touching its XML. It is switched in through Kodi's own
+  lookandfeel.skincolors setting, which service.py:update_theme sets for
+  the Halloween themes and puts back to SKINDEFAULT afterwards; changing
+  that setting makes Kodi reload the skin once. The accent fills go
+  through $VAR[AccentColor], which has its own Halloween branch in
+  Includes.xml, so the accent names here only cover the few controls
+  that still use the fixed names.
+  </remarks>
+-->
+<colors>
+	<color name="grey">FF7A5E5E</color>
+	<color name="grey_dark">FF1C0D0F</color>
+	<color name="grey_mid">FF2E1517</color>
+	<color name="accent">FFA3101B</color>
+	<color name="accent_hi">FFD32F2F</color>
+	<color name="text">FFEDE3D3</color>
+	<color name="text_dim">FFB5A493</color>
+	<color name="bg">FF080506</color>
+	<color name="bg_panel">CC160A0C</color>
+	<color name="bg_dialog">FF160A0C</color>
+	<color name="selected">FFA3101B</color>
+</colors>
