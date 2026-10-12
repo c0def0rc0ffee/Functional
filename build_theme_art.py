@@ -19,6 +19,9 @@ Two scenes and the sprites that move over them:
   * fog.png                horizontally tileable band, slid in a loop.
   * rain_near.png, rain_far.png  vertically tileable rain, slid in a loop.
   * vignette.png           dark edges, scaled up by Kodi.
+  * spider_PATH/NN.png     a spider's gait, turned for each crawl path.
+  * witch_rtl/, witch_ltr/ a witch on a broomstick, both ways.
+  * ghost/NN.png           a sheet ghost with a waving hem.
   * pumpkin_glow.png       the lantern glow that flickers over the hill.
 
 Photographic artwork is JPEG under the house rules, so the two scenes are
@@ -785,6 +788,170 @@ def vignette():
     save_png(img, OUT / "vignette.png")
 
 
+# Spider paths in screen pixels, start and end of the sprite's top left
+# corner. ThemeSpider in Includes.xml slides the 96 by 96 sprite along the
+# same lines; each path gets its own frames turned to face its heading.
+SPIDER_PATHS = {
+    "a": ((-120, 860), (2040, 860)),     # along the foot, left to right
+    "b": ((2040, 250), (-120, 250)),     # across the top, right to left
+    "c": ((1560, -120), (360, 1200)),    # top right, down to the bottom left
+    "d": ((240, 1200), (1500, -120)),    # bottom left, up to the top right
+    "drop": ((1300, -120), (1300, 560)), # down a thread and back up
+}
+
+
+def spider_frame(phase):
+    """
+    <summary>One spider facing up the canvas, legs at a point in the gait, 96 square RGBA.</summary>
+    <param name="phase">Gait position in radians; four frames step it by a quarter turn.</param>
+    <returns>The image.</returns>
+    <remarks>Legs move in two alternating sets of four (left 1 and 3 with
+    right 2 and 4), the way a spider walks, so the frames read as a
+    scuttle rather than a wave.</remarks>
+    """
+    s = SS
+    img = Image.new("RGBA", (96 * s, 96 * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    body = (10, 8, 10, 255)
+    cx, cy = 48 * s, 40 * s
+    bases = (-58, -22, 14, 48)  # degrees from straight out sideways, negative forward
+    for side in (-1, 1):
+        for i, base in enumerate(bases):
+            set_a = (i % 2 == 0) == (side < 0)
+            swing = 14 * math.sin(phase + (0 if set_a else math.pi))
+            ang = math.radians(base + swing)
+            hip = (cx + side * 6 * s, cy + (i - 1.5) * 4 * s)
+            knee = (hip[0] + side * math.cos(ang) * 20 * s, hip[1] + math.sin(ang) * 20 * s - 10 * s)
+            foot = (knee[0] + side * math.cos(ang) * 16 * s, knee[1] + math.sin(ang) * 18 * s + 14 * s)
+            d.line([hip, knee], fill=body, width=3 * s)
+            d.line([knee, foot], fill=body, width=2 * s)
+    d.ellipse([cx - 15 * s, cy + 4 * s, cx + 15 * s, cy + 42 * s], fill=body)
+    d.ellipse([cx - 10 * s, cy - 12 * s, cx + 10 * s, cy + 10 * s], fill=body)
+    d.line([(cx - 3 * s, cy - 12 * s), (cx - 5 * s, cy - 17 * s)], fill=body, width=2 * s)
+    d.line([(cx + 3 * s, cy - 12 * s), (cx + 5 * s, cy - 17 * s)], fill=body, width=2 * s)
+    # an hourglass mark and two glints, so it is not just a blot
+    d.polygon([(cx - 4 * s, cy + 16 * s), (cx + 4 * s, cy + 16 * s), (cx, cy + 23 * s)], fill=(150, 10, 16, 255))
+    d.polygon([(cx - 4 * s, cy + 30 * s), (cx + 4 * s, cy + 30 * s), (cx, cy + 23 * s)], fill=(150, 10, 16, 255))
+    for ex in (-4, 4):
+        d.ellipse([cx + (ex - 1.5) * s, cy - 9 * s, cx + (ex + 1.5) * s, cy - 6 * s], fill=(120, 110, 120, 255))
+    return img.resize((96, 96), Image.LANCZOS)
+
+
+def spiders():
+    """
+    <summary>Four gait frames per spider path, turned to face the way that path runs.</summary>
+    <remarks>Written to spider_PATH/NN.png. The drop path faces down.</remarks>
+    """
+    frames = [spider_frame(i * math.pi / 2) for i in range(4)]
+    for name, ((x0, y0), (x1, y1)) in SPIDER_PATHS.items():
+        heading = math.degrees(math.atan2(x1 - x0, -(y1 - y0)))  # clockwise from straight up
+        for i, frame in enumerate(frames):
+            turned = frame.rotate(-heading, resample=Image.BICUBIC)
+            save_png(turned, OUT / "spider_{0}".format(name) / "{0:02d}.png".format(i))
+
+
+def witch_frame(flutter):
+    """
+    <summary>A witch on a broomstick flying left, 240 by 150 RGBA silhouette.</summary>
+    <param name="flutter">0 to 1, how far the cape, hair and bristles stream back.</param>
+    <returns>The image.</returns>
+    <remarks>Hunched forward over the stick, head clear of the hat brim
+    and the cape thin and ragged, so the outline still says witch at the
+    size and speed she crosses the screen.</remarks>
+    """
+    s = SS
+    img = Image.new("RGBA", (240 * s, 150 * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    ink = (10, 6, 10, 255)
+
+    def P(x, y):
+        return (x * s, y * s)
+
+    # broomstick and bristles
+    d.line([P(16, 106), P(192, 94)], fill=ink, width=4 * s)
+    spread = 9 + 7 * flutter
+    d.polygon([P(186, 90), P(232, 86 - spread), P(228, 98), P(234, 110 + spread * 0.6), P(186, 101)], fill=ink)
+    d.line([P(184, 88), P(184, 104)], fill=ink, width=3 * s)
+    # cape: thin, ragged, streaming back from the shoulders
+    t = 30 * flutter
+    d.polygon([P(118, 52), P(146, 54), P(174 + t, 52 - 8 * flutter), P(160 + t * 0.6, 62),
+               P(184 + t, 68 - 4 * flutter), P(158 + t * 0.4, 74), P(170 + t * 0.7, 84), P(136, 88)], fill=ink)
+    # hunched body on the stick
+    d.polygon([P(100, 60), P(116, 50), P(132, 58), P(138, 92), P(118, 98), P(80, 96), P(80, 90),
+               P(104, 86)], fill=ink)
+    # arm reaching forward to the stick, hand on it
+    d.line([P(108, 62), P(86, 80), P(70, 100)], fill=ink, width=5 * s)
+    # shin forward and a pointed boot
+    d.polygon([P(82, 92), P(64, 108), P(70, 112), P(90, 98)], fill=ink)
+    d.polygon([P(66, 106), P(50, 110), P(68, 114)], fill=ink)
+    # head below the brim, hooked nose, pointed chin
+    d.ellipse([P(97, 33)[0], P(97, 33)[1], P(115, 51)[0], P(115, 51)[1]], fill=ink)
+    d.polygon([P(99, 40), P(86, 48), P(99, 46)], fill=ink)
+    d.polygon([P(101, 48), P(94, 56), P(106, 50)], fill=ink)
+    # hair streaming back from under the hat
+    d.polygon([P(112, 36), P(132 + 10 * flutter, 42), P(126 + 8 * flutter, 46), P(134 + 10 * flutter, 50),
+               P(114, 48)], fill=ink)
+    # hat: a wide brim, then a tall cone bending back at the tip
+    d.polygon([P(86, 35), P(130, 28), P(132, 32), P(88, 39)], fill=ink)
+    d.polygon([P(98, 34), P(120, 30), P(118, 14), P(126, 2), P(136 + 4 * flutter, 4 + 2 * flutter),
+               P(124, 8), P(112, 16)], fill=ink)
+    return img.resize((240, 150), Image.LANCZOS)
+
+
+def witches():
+    """
+    <summary>Three cape frames of the witch, flying left (rtl) and mirrored flying right (ltr).</summary>
+    """
+    for i, flutter in enumerate((0.0, 0.55, 1.0)):
+        frame = witch_frame(flutter)
+        save_png(frame, OUT / "witch_rtl" / "{0:02d}.png".format(i))
+        save_png(frame.transpose(Image.FLIP_LEFT_RIGHT), OUT / "witch_ltr" / "{0:02d}.png".format(i))
+
+
+def ghost_frame(wave):
+    """
+    <summary>A sheet ghost with a waving hem and a soft glow, 140 by 170 RGBA.</summary>
+    <param name="wave">Hem phase in radians.</param>
+    <returns>The image.</returns>
+    <remarks>Drawn translucent so the background shows through it; Kodi
+    fades it further in and out as it drifts.</remarks>
+    """
+    s = SS
+    w, h = 140 * s, 170 * s
+    sheet = Image.new("L", (w, h), 0)
+    d = ImageDraw.Draw(sheet)
+    d.ellipse([28 * s, 14 * s, 112 * s, 98 * s], fill=255)
+    hem = [(28 * s, 56 * s)]
+    for k in range(9):
+        x = 28 + k * 84 / 8
+        y = 140 + 10 * math.sin(wave + k * 1.3) + (8 if k % 2 else -4)
+        hem.append((x * s, y * s))
+    hem.append((112 * s, 56 * s))
+    d.polygon(hem, fill=255)
+    # arms raised a little, sleeves hanging
+    d.polygon([(30 * s, 70 * s), (8 * s, 84 * s + 6 * math.sin(wave) * s), (30 * s, 96 * s)], fill=255)
+    d.polygon([(110 * s, 70 * s), (132 * s, 80 * s - 6 * math.sin(wave) * s), (110 * s, 94 * s)], fill=255)
+    sheet = sheet.resize((140, 170), Image.LANCZOS)
+    glow = sheet.filter(ImageFilter.GaussianBlur(9))
+    alpha = np.maximum(np.asarray(sheet, np.float32) * 0.78, np.asarray(glow, np.float32) * 0.5)
+    shade = 0.82 + 0.18 * np.linspace(1, 0, 170)[:, None]
+    rgb = np.stack([235 * shade, 238 * shade, 248 * shade], -1) * np.ones((170, 140, 1))
+    img = Image.fromarray(np.dstack([rgb, alpha]).astype(np.uint8), "RGBA")
+    d = ImageDraw.Draw(img)
+    for ex in (54, 82):
+        d.ellipse([ex - 7, 46, ex + 7, 64], fill=(20, 16, 24, 230))
+    d.ellipse([60, 72, 76, 92], fill=(20, 16, 24, 210))
+    return img
+
+
+def ghosts():
+    """
+    <summary>Three hem frames of the ghost, played in a loop as it drifts.</summary>
+    """
+    for i in range(3):
+        save_png(ghost_frame(i * 2 * math.pi / 3), OUT / "ghost" / "{0:02d}.png".format(i))
+
+
 def main():
     """
     <summary>Draw every theme image.</summary>
@@ -800,6 +967,10 @@ def main():
     rain("rain_far.png", 520, 26, 70, 1, 71)
     rain("rain_near.png", 180, 44, 110, 1, 72)
     vignette()
+    # Drawn last so the seeded pictures above come out exactly as before.
+    spiders()
+    witches()
+    ghosts()
     for path in sorted(OUT.rglob("*")):
         if path.is_file():
             print("{0:>9,}  {1}".format(path.stat().st_size, path.relative_to(OUT.parent.parent)))

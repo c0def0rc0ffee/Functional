@@ -54,6 +54,11 @@
 	     manual pick; the XML only reads the result. -->
 	<expression name="theme_halloween">String.IsEqual(Window(home).Property(theme_name),halloween) | String.IsEqual(Window(home).Property(theme_name),devilsnight)</expression>
 	<expression name="theme_devils_night">String.IsEqual(Window(home).Property(theme_name),devilsnight)</expression>
+	<!-- THEME-CREATURES: the fog and dark corners are in. Always on
+	     Devil's Night; for Halloween once Window(home).Property(theme_level)
+	     reaches 1. The level only climbs during the yearly build-up (see
+	     service.py:_theme_intro) and is 3 the rest of the time. -->
+	<expression name="theme_atmosphere">$EXP[theme_devils_night] | Integer.IsGreaterOrEqual(Window(home).Property(theme_level),1)</expression>
 	<!-- A background picture of the user's own is on screen in
 	     SkinBackground: the slideshow, the static image or the folder
 	     slideshow. The Halloween hill only fills in where none is, and
@@ -3628,12 +3633,28 @@
 					<include content="ThemeRain"><param name="texture" value="themes/rain_near.png"/><param name="ms" value="800"/><param name="diffuse" value="80FFFFFF"/></include>
 				</control>
 
+				<!-- THEME-CREATURES: the witch and the ghosts, Halloween only,
+				     in the sky behind the fog. -->
+				<control type="group">
+					<visible>!$EXP[theme_devils_night]</visible>
+					<include content="ThemeWitch"><param name="dir" value="rtl"/><param name="start" value="2000,330"/><param name="end" value="-300,140"/></include>
+					<include content="ThemeWitch"><param name="dir" value="ltr"/><param name="start" value="-300,170"/><param name="end" value="2000,320"/></include>
+					<include content="ThemeGhost"><param name="set" value="a"/><param name="start" value="-200,600"/><param name="end" value="2100,420"/><param name="delay" value="0"/><param name="fadeout" value="12500"/></include>
+					<include content="ThemeGhost"><param name="set" value="b"/><param name="start" value="2100,520"/><param name="end" value="-200,380"/><param name="delay" value="0"/><param name="fadeout" value="12500"/></include>
+					<include content="ThemeGhost"><param name="set" value="b"/><param name="start" value="2150,700"/><param name="end" value="-150,560"/><param name="delay" value="2500"/><param name="fadeout" value="15000"/></include>
+				</control>
+
 				<!-- Two fog banks drifting opposite ways at different speeds.
 				     Each is two copies of a tile that wraps left to right,
 				     slid by exactly one tile width and looped, so there is
-				     no seam and no jump. -->
-				<include content="ThemeFog"><param name="top" value="800"/><param name="start" value="0"/><param name="end" value="-1920"/><param name="ms" value="90000"/><param name="diffuse" value="99FFFFFF"/></include>
-				<include content="ThemeFog"><param name="top" value="860"/><param name="start" value="-1920"/><param name="end" value="0"/><param name="ms" value="140000"/><param name="diffuse" value="66FFFFFF"/></include>
+				     no seam and no jump. They roll in slowly when the yearly
+				     build-up reaches them ($EXP[theme_atmosphere]). -->
+				<control type="group">
+					<visible>$EXP[theme_atmosphere]</visible>
+					<animation effect="fade" start="0" end="100" time="12000">Visible</animation>
+					<include content="ThemeFog"><param name="top" value="800"/><param name="start" value="0"/><param name="end" value="-1920"/><param name="ms" value="90000"/><param name="diffuse" value="99FFFFFF"/></include>
+					<include content="ThemeFog"><param name="top" value="860"/><param name="start" value="-1920"/><param name="end" value="0"/><param name="ms" value="140000"/><param name="diffuse" value="66FFFFFF"/></include>
+				</control>
 
 				<!-- A flight of three bats across the top, Halloween only.
 				     Each bat carries the condition itself (see ThemeBat). -->
@@ -3664,10 +3685,160 @@
 					<width>1920</width>
 					<height>1080</height>
 					<texture>themes/vignette.png</texture>
+					<visible>$EXP[theme_atmosphere]</visible>
+					<animation effect="fade" start="0" end="100" time="12000">Visible</animation>
+				</control>
+
+				<!-- THEME-CREATURES: spiders last, crawling over everything
+				     else in the background, Halloween only. -->
+				<control type="group">
+					<visible>!$EXP[theme_devils_night]</visible>
+					<include content="ThemeSpiderSlot"><param name="slot" value="1"/></include>
+					<include content="ThemeSpiderSlot"><param name="slot" value="2"/></include>
 				</control>
 			</control>
 		</definition>
 	</include>
+
+	<!-- THEME-CREATURES: one spider crawling a path. 'slot' is 1 or 2, so
+	     two can be out at once; it shows while
+	     Window(home).Property(theme_spiderN) is 'path_speed'. The path's
+	     ends and the frames turned to face along it come from SPIDER_PATHS
+	     in build_theme_art.py, and 'ms' must match SPIDER_SECS in
+	     service.py, which clears the property when the crawl is over. -->
+	<include name="ThemeSpider">
+		<param name="slot"/>
+		<param name="path"/>
+		<param name="speed"/>
+		<param name="start"/>
+		<param name="end"/>
+		<param name="ms"/>
+		<param name="step"/>
+		<definition>
+			<control type="multiimage">
+				<left>0</left>
+				<top>0</top>
+				<width>96</width>
+				<height>96</height>
+				<imagepath>special://skin/media/themes/spider_$PARAM[path]/</imagepath>
+				<timeperimage>$PARAM[step]</timeperimage>
+				<fadetime>0</fadetime>
+				<loop>yes</loop>
+				<randomize>false</randomize>
+				<visible>String.IsEqual(Window(home).Property(theme_spider$PARAM[slot]),$PARAM[path]_$PARAM[speed])</visible>
+				<animation effect="slide" start="$PARAM[start]" end="$PARAM[end]" time="$PARAM[ms]">Visible</animation>
+			</control>
+		</definition>
+	</include>
+
+	<!-- A spider letting itself down a thread from the top and climbing
+	     back: half the time down, half up, the thread moving with it. -->
+	<include name="ThemeSpiderDrop">
+		<param name="slot"/>
+		<param name="speed"/>
+		<param name="half"/>
+		<param name="step"/>
+		<definition>
+			<control type="group">
+				<left>1300</left>
+				<top>-120</top>
+				<visible>String.IsEqual(Window(home).Property(theme_spider$PARAM[slot]),drop_$PARAM[speed])</visible>
+				<animation effect="slide" start="0,0" end="0,680" time="$PARAM[half]" tween="sine" easing="out">Visible</animation>
+				<animation effect="slide" start="0,0" end="0,-680" delay="$PARAM[half]" time="$PARAM[half]" tween="sine" easing="in">Visible</animation>
+				<control type="image">
+					<left>47</left>
+					<top>-1100</top>
+					<width>2</width>
+					<height>1130</height>
+					<texture colordiffuse="99D0D0DC">white.png</texture>
+				</control>
+				<control type="multiimage">
+					<left>0</left>
+					<top>0</top>
+					<width>96</width>
+					<height>96</height>
+					<imagepath>special://skin/media/themes/spider_drop/</imagepath>
+					<timeperimage>$PARAM[step]</timeperimage>
+					<fadetime>0</fadetime>
+					<loop>yes</loop>
+					<randomize>false</randomize>
+				</control>
+			</control>
+		</definition>
+	</include>
+
+	<!-- Both spider slots: every path at both speeds. -->
+	<include name="ThemeSpiderSlot">
+		<param name="slot"/>
+		<definition>
+			<include content="ThemeSpider"><param name="slot" value="$PARAM[slot]"/><param name="path" value="a"/><param name="speed" value="fast"/><param name="start" value="-120,860"/><param name="end" value="2040,860"/><param name="ms" value="3000"/><param name="step" value="40"/></include>
+			<include content="ThemeSpider"><param name="slot" value="$PARAM[slot]"/><param name="path" value="a"/><param name="speed" value="slow"/><param name="start" value="-120,860"/><param name="end" value="2040,860"/><param name="ms" value="14000"/><param name="step" value="120"/></include>
+			<include content="ThemeSpider"><param name="slot" value="$PARAM[slot]"/><param name="path" value="b"/><param name="speed" value="fast"/><param name="start" value="2040,250"/><param name="end" value="-120,250"/><param name="ms" value="3000"/><param name="step" value="40"/></include>
+			<include content="ThemeSpider"><param name="slot" value="$PARAM[slot]"/><param name="path" value="b"/><param name="speed" value="slow"/><param name="start" value="2040,250"/><param name="end" value="-120,250"/><param name="ms" value="14000"/><param name="step" value="120"/></include>
+			<include content="ThemeSpider"><param name="slot" value="$PARAM[slot]"/><param name="path" value="c"/><param name="speed" value="fast"/><param name="start" value="1560,-120"/><param name="end" value="360,1200"/><param name="ms" value="2600"/><param name="step" value="40"/></include>
+			<include content="ThemeSpider"><param name="slot" value="$PARAM[slot]"/><param name="path" value="c"/><param name="speed" value="slow"/><param name="start" value="1560,-120"/><param name="end" value="360,1200"/><param name="ms" value="12000"/><param name="step" value="120"/></include>
+			<include content="ThemeSpider"><param name="slot" value="$PARAM[slot]"/><param name="path" value="d"/><param name="speed" value="fast"/><param name="start" value="240,1200"/><param name="end" value="1500,-120"/><param name="ms" value="2600"/><param name="step" value="40"/></include>
+			<include content="ThemeSpider"><param name="slot" value="$PARAM[slot]"/><param name="path" value="d"/><param name="speed" value="slow"/><param name="start" value="240,1200"/><param name="end" value="1500,-120"/><param name="ms" value="12000"/><param name="step" value="120"/></include>
+			<include content="ThemeSpiderDrop"><param name="slot" value="$PARAM[slot]"/><param name="speed" value="fast"/><param name="half" value="1600"/><param name="step" value="40"/></include>
+			<include content="ThemeSpiderDrop"><param name="slot" value="$PARAM[slot]"/><param name="speed" value="slow"/><param name="half" value="6000"/><param name="step" value="120"/></include>
+		</definition>
+	</include>
+
+	<!-- The witch crossing the sky, 'rtl' or 'ltr' as
+	     Window(home).Property(theme_witch) says, bobbing on her broom as
+	     she goes. 11 seconds, as WITCH_SECS in service.py. -->
+	<include name="ThemeWitch">
+		<param name="dir"/>
+		<param name="start"/>
+		<param name="end"/>
+		<definition>
+			<control type="multiimage">
+				<left>0</left>
+				<top>0</top>
+				<width>240</width>
+				<height>150</height>
+				<imagepath>special://skin/media/themes/witch_$PARAM[dir]/</imagepath>
+				<timeperimage>120</timeperimage>
+				<fadetime>0</fadetime>
+				<loop>yes</loop>
+				<randomize>false</randomize>
+				<visible>String.IsEqual(Window(home).Property(theme_witch),$PARAM[dir])</visible>
+				<animation effect="slide" start="$PARAM[start]" end="$PARAM[end]" time="11000">Visible</animation>
+				<animation effect="slide" start="0,0" end="0,-18" time="700" pulse="true" condition="String.IsEqual(Window(home).Property(theme_witch),$PARAM[dir])">Conditional</animation>
+			</control>
+		</definition>
+	</include>
+
+	<!-- One ghost drifting across, fading in at the start and out at the
+	     end, bobbing as it goes. 'set' is the value of
+	     Window(home).Property(theme_ghosts) it belongs to; a set's ghosts
+	     are all gone within GHOST_SECS in service.py. -->
+	<include name="ThemeGhost">
+		<param name="set"/>
+		<param name="start"/>
+		<param name="end"/>
+		<param name="delay"/>
+		<param name="fadeout"/>
+		<definition>
+			<control type="multiimage">
+				<left>0</left>
+				<top>0</top>
+				<width>140</width>
+				<height>170</height>
+				<imagepath>special://skin/media/themes/ghost/</imagepath>
+				<timeperimage>260</timeperimage>
+				<fadetime>0</fadetime>
+				<loop>yes</loop>
+				<randomize>false</randomize>
+				<visible>String.IsEqual(Window(home).Property(theme_ghosts),$PARAM[set])</visible>
+				<animation effect="slide" start="$PARAM[start]" end="$PARAM[end]" delay="$PARAM[delay]" time="15000">Visible</animation>
+				<animation effect="fade" start="0" end="85" delay="$PARAM[delay]" time="2000">Visible</animation>
+				<animation effect="fade" start="100" end="0" delay="$PARAM[fadeout]" time="2500">Visible</animation>
+				<animation effect="slide" start="0,0" end="0,-26" time="1300" pulse="true" condition="String.IsEqual(Window(home).Property(theme_ghosts),$PARAM[set])">Conditional</animation>
+			</control>
+		</definition>
+	</include>
+
 
 	<!-- One lantern's glow, flickering by fading in and out on its own
 	     period so the three never pulse together. -->

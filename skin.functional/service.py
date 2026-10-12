@@ -742,8 +742,15 @@ class FunctionalHelper(xbmc.Monitor):
         self._crow_state = None          # None = no crow; else as in _crow_set
         self._crow_until = 0.0
         self._crow_leave_at = 0.0
-        self._bats_next = self._bats_until = 0.0
         self._flash_next = self._flash_until = 0.0
+        # Creatures (THEME-CREATURES, see _theme_motion): property name ->
+        # (value, monotonic time it is done); next due time per kind.
+        self._creatures = {}
+        self._theme_next = {}
+        self._intro_start = None         # monotonic start of the yearly build-up, None = not running
+        self._intro_step = 0
+        self._intro_level = 0
+        self._season_seen = False        # this run has already met the season
         self._bootstrap_layout_defaults()
         self._migrate_bg_mode()
         _dlog("helper ready")
@@ -6637,7 +6644,9 @@ class FunctionalHelper(xbmc.Monitor):
         properties:
             theme_name      halloween, devilsnight or empty
             theme_seasonal  "1" while the calendar is the reason
-            theme_crow / theme_bats / theme_flash   see _theme_motion
+            theme_level     0 to 3, the yearly build-up, see _theme_intro_check
+            theme_crow, theme_spider1/2, theme_witch, theme_ghosts,
+            theme_bats, theme_flash   see _theme_motion
         The colours are Kodi's own lookandfeel.skincolors setting, see
         _theme_colours. Everything else is the XML reading theme_name.
         </remarks>
@@ -6649,6 +6658,7 @@ class FunctionalHelper(xbmc.Monitor):
         if not xbmc.getCondVisibility("Skin.HasSetting(theme_seasonal_off)"):
             seasonal = self._season_theme(time.localtime())
         want = seasonal or manual
+        self._theme_intro_check(seasonal, manual)
         if want != self._theme_seen:
             _dlog("theme: {0} (season {1}, pick {2})".format(
                 want or "none", seasonal or "none", manual or "none"))
@@ -6657,6 +6667,44 @@ class FunctionalHelper(xbmc.Monitor):
         self._theme_prop("theme_seasonal", "1" if seasonal else "")
         self._theme_colours(self.THEME_COLOURS if want else self.THEME_COLOURS_DEFAULT)
         self._theme_motion(want)
+
+    def _theme_intro_check(self, seasonal, manual):
+        """
+        <summary>
+        Start the yearly build-up when the season switches Halloween on by
+        itself for the first time this year.
+        </summary>
+        <param name="seasonal">The theme the calendar asks for, or "".</param>
+        <param name="manual">The theme picked in Skin Settings, or "".</param>
+        <remarks>
+        Asked for on 12/10/2026: the first time each year, Halloween starts
+        with the red tint alone and builds up over half an hour (INTRO);
+        every other start, a restart of Kodi or a theme picked by hand,
+        has everything at once. The year is kept in
+        Skin.String(theme_intro_year) and written the moment the season is
+        first met, so a restart part way through comes back at full
+        strength rather than starting over. When that first meeting is on
+        Devil's Night, or Halloween is already picked by hand, the year is
+        spent without a build-up.
+        </remarks>
+        """
+        if not seasonal:
+            self._season_seen = False
+            return
+        if self._season_seen:
+            return
+        self._season_seen = True
+        year = str(time.localtime().tm_year)
+        if xbmc.getInfoLabel("Skin.String(theme_intro_year)").strip() == year:
+            return
+        _set_skin_string("theme_intro_year", year)
+        if seasonal == "halloween" and manual != "halloween":
+            self._intro_start = time.monotonic()
+            self._intro_step = 0
+            self._intro_level = 0
+            _dlog("theme: first Halloween of {0}, starting the build-up".format(year))
+        else:
+            _dlog("theme: first season of {0} met as {1}, no build-up this year".format(year, seasonal))
 
     def _theme_colours(self, colours):
         """
@@ -6698,22 +6746,64 @@ class FunctionalHelper(xbmc.Monitor):
         self._theme_colours_ok = None
         self._theme_colours_at = now
 
+    # THEME-CREATURES. How long each creature is out, in seconds: the
+    # animation time in Includes.xml plus a little, so the property is
+    # never cleared while it is still on screen.
+    SPIDER_SECS = {
+        "a_fast": 3.5, "a_slow": 14.5, "b_fast": 3.5, "b_slow": 14.5,
+        "c_fast": 3.1, "c_slow": 12.5, "d_fast": 3.1, "d_slow": 12.5,
+        "drop_fast": 3.7, "drop_slow": 12.5,
+    }
+    WITCH_SECS = 11.5
+    GHOST_SECS = 19.0                  # set b's second ghost starts 2.5 s late
+    BATS_SECS = 9.0
+    CREATURE_KEYS = ("theme_spider1", "theme_spider2", "theme_witch", "theme_ghosts", "theme_bats")
+    # The yearly build-up: (seconds from the start, what, which). It runs
+    # once a year, the first time the season switches Halloween on by
+    # itself; see _theme_intro. "level" moves Window(home).Property
+    # (theme_level): 0 the red tint and nothing else, 1 the fog and dark
+    # corners roll in, 2 lightning starts, 3 everything at random. Nine
+    # minutes of nothing first, then it gathers pace over about half an
+    # hour.
+    INTRO = (
+        (0, "level", 0),
+        (540, "spider", "a_fast"),
+        (600, "spider", "b_fast"),
+        (780, "witch", "rtl"),
+        (960, "spider", "c_slow"),
+        (1000, "spider", "d_fast"),
+        (1140, "level", 1),
+        (1230, "ghosts", "a"),
+        (1350, "spider", "drop_slow"),
+        (1360, "spider", "a_fast"),
+        (1470, "bats", "1"),
+        (1560, "level", 2),
+        (1590, "witch", "ltr"),
+        (1680, "spider", "b_slow"),
+        (1690, "spider", "c_fast"),
+        (1700, "spider", "d_fast"),
+        (1800, "ghosts", "b"),
+        (1920, "level", 3),
+    )
+
     def _theme_motion(self, theme):
         """
         <summary>
-        Step the crow, the bats and the lightning for the theme in force.
+        Step the crow, the creatures and the lightning for the theme in force.
         </summary>
         <param name="theme">The theme update_theme settled on.</param>
         <remarks>
         Called once a second. The crow only exists on Devil's Night: it
         lands on Eric's stone, sits, now and then taps the stone or caws,
         and every four to seven minutes flies off and comes back a little
-        later. Bats cross every one to three minutes in Halloween proper.
-        Lightning comes every forty seconds to two minutes, more often on
-        Devil's Night, which is a storm. Outside a Halloween theme every
-        property is cleared and the timers start over, so the crow lands
-        afresh when Devil's Night begins. Monotonic time throughout, so a
-        clock step does not freeze or rush a state.
+        later. Spiders, the witch, ghosts and bats are Halloween only:
+        scripted by INTRO during the yearly build-up, at random after it
+        (_theme_creatures_random). Lightning comes every forty seconds to
+        two minutes once the level allows it, more often on Devil's
+        Night, which is a storm. Outside a Halloween theme every property
+        is cleared and the timers start over, so the crow lands afresh
+        when Devil's Night begins. Monotonic time throughout, so a clock
+        step does not freeze or rush a state.
         </remarks>
         """
         now = time.monotonic()
@@ -6721,54 +6811,165 @@ class FunctionalHelper(xbmc.Monitor):
             if self._crow_state is not None or self._theme_motion_live:
                 self._crow_state = None
                 self._theme_motion_live = False
-                for key in ("theme_crow", "theme_bats", "theme_flash"):
+                self._intro_start = None
+                self._creatures = {}
+                for key in ("theme_crow", "theme_flash", "theme_level") + self.CREATURE_KEYS:
                     self._theme_prop(key, "")
             return
         if not self._theme_motion_live:
             self._theme_motion_live = True
-            self._bats_next = now + random.uniform(20, 60)
+            self._theme_next = {
+                "spider": now + random.uniform(10, 30),
+                "witch": now + random.uniform(60, 120),
+                "ghosts": now + random.uniform(40, 90),
+                "bats": now + random.uniform(20, 60),
+            }
             self._flash_next = now + random.uniform(15, 40)
-            self._bats_until = self._flash_until = 0.0
+            self._flash_until = 0.0
+
+        level = 3
+        if theme != "halloween":
+            self._intro_start = None   # Devil's Night ends a build-up still running
+        if self._intro_start is not None:
+            level = self._theme_intro(now)
+        elif theme == "halloween":
+            self._theme_creatures_random(now)
+        self._theme_prop("theme_level", str(level))
 
         if theme == "devilsnight":
-            if self._crow_state is None:
-                self._crow_set("landing", now, self.CROW_LAND_SECS)
-                self._crow_leave_at = now + random.uniform(240, 420)
-            elif now >= self._crow_until:
-                state = self._crow_state
-                if state == "landing" or state in ("tap", "caw"):
-                    self._crow_set("perched", now, random.uniform(6, 15))
-                elif state == "perched":
-                    if now >= self._crow_leave_at:
-                        self._crow_set("leaving", now, self.CROW_LEAVE_SECS)
-                    else:
-                        roll = random.random()
-                        if roll < 0.45:
-                            self._crow_set("tap", now, 1.6)
-                        elif roll < 0.8:
-                            self._crow_set("caw", now, 1.4)
-                        else:
-                            self._crow_set("perched", now, random.uniform(5, 12))
-                elif state == "leaving":
-                    self._crow_set("away", now, random.uniform(20, 45))
-                else:
-                    self._crow_set("landing", now, self.CROW_LAND_SECS)
-                    self._crow_leave_at = now + random.uniform(240, 420)
-            # Every tick, not only on a change: a skin reload can drop it.
-            self._theme_prop("theme_crow", self._crow_state)
+            self._theme_crow(now)
         elif self._crow_state is not None:
             self._crow_state = None
             self._theme_prop("theme_crow", "")
 
-        if theme == "halloween" and now >= self._bats_next:
-            self._bats_until = now + 9
-            self._bats_next = now + random.uniform(60, 180)
-        self._theme_prop("theme_bats", "1" if theme == "halloween" and now < self._bats_until else "")
+        for key in self.CREATURE_KEYS:
+            value, until = self._creatures.get(key, ("", 0.0))
+            self._theme_prop(key, value if theme == "halloween" and now < until else "")
 
-        if now >= self._flash_next:
+        if level >= 2 and now >= self._flash_next:
             self._flash_until = now + 1.2
             self._flash_next = now + (random.uniform(25, 70) if theme == "devilsnight" else random.uniform(40, 120))
         self._theme_prop("theme_flash", "1" if now < self._flash_until else "")
+
+    def _theme_intro(self, now):
+        """
+        <summary>
+        Play the yearly build-up up to now and say what level it has reached.
+        </summary>
+        <param name="now">time.monotonic() of this tick.</param>
+        <returns>The theme level, 0 to 3.</returns>
+        <remarks>
+        Steps fire in order as their time comes, each once; a spider goes
+        to whichever slot is free, and is dropped if both are busy, which
+        the timings in INTRO are spaced to avoid. When the last step has
+        fired the build-up is over and the random scheduler takes over
+        from the next tick, with its first creatures due straight away.
+        </remarks>
+        """
+        elapsed = now - self._intro_start
+        while self._intro_step < len(self.INTRO) and self.INTRO[self._intro_step][0] <= elapsed:
+            _secs, what, which = self.INTRO[self._intro_step]
+            self._intro_step += 1
+            if what == "level":
+                self._intro_level = which
+                _dlog("theme: build-up level {0} at {1:.0f} s".format(which, elapsed))
+            else:
+                self._creature_start(what, which, now)
+        if self._intro_step >= len(self.INTRO):
+            self._intro_start = None
+            for kind in self._theme_next:
+                self._theme_next[kind] = now + random.uniform(5, 30)
+            _dlog("theme: build-up over, everything at random from here")
+        return self._intro_level
+
+    def _theme_creatures_random(self, now):
+        """
+        <summary>
+        Send the next creature out when it is due, at full strength.
+        </summary>
+        <param name="now">time.monotonic() of this tick.</param>
+        <remarks>
+        A spider every 40 seconds to two minutes, on a random path, fast
+        a little over half the time; the witch every four to seven
+        minutes; ghosts every two and a half to five and a half; bats
+        every one to three. A creature that is due while its slot is
+        still busy simply waits for the next tick.
+        </remarks>
+        """
+        due = self._theme_next
+        if now >= due["spider"]:
+            path = random.choice(("a", "b", "c", "d", "drop"))
+            speed = "fast" if random.random() < 0.55 else "slow"
+            if self._creature_start("spider", "{0}_{1}".format(path, speed), now):
+                due["spider"] = now + random.uniform(40, 120)
+        if now >= due["witch"] and self._creature_start("witch", random.choice(("rtl", "ltr")), now):
+            due["witch"] = now + random.uniform(240, 420)
+        if now >= due["ghosts"] and self._creature_start("ghosts", random.choice(("a", "b")), now):
+            due["ghosts"] = now + random.uniform(150, 330)
+        if now >= due["bats"] and self._creature_start("bats", "1", now):
+            due["bats"] = now + random.uniform(60, 180)
+
+    def _creature_start(self, kind, value, now):
+        """
+        <summary>
+        Put a creature out for as long as its animation runs.
+        </summary>
+        <param name="kind">spider, witch, ghosts or bats.</param>
+        <param name="value">The property value its controls show on.</param>
+        <param name="now">time.monotonic() of this tick.</param>
+        <returns>True when it went out; False when its slot is busy.</returns>
+        <remarks>
+        A slot counts as busy for one second after its creature is done,
+        so the property is cleared for at least a tick and the same
+        creature twice in a row starts its animation from the beginning:
+        Kodi only replays a Visible animation on a change of visibility.
+        </remarks>
+        """
+        if kind == "spider":
+            keys = ("theme_spider1", "theme_spider2")
+            secs = self.SPIDER_SECS[value]
+        else:
+            keys = ("theme_" + kind,)
+            secs = {"witch": self.WITCH_SECS, "ghosts": self.GHOST_SECS, "bats": self.BATS_SECS}[kind]
+        for key in keys:
+            _value, until = self._creatures.get(key, ("", 0.0))
+            if now >= until + 1.0:
+                self._creatures[key] = (value, now + secs)
+                return True
+        return False
+
+    def _theme_crow(self, now):
+        """
+        <summary>
+        Step the Devil's Night crow and publish its state.
+        </summary>
+        <param name="now">time.monotonic() of this tick.</param>
+        """
+        if self._crow_state is None:
+            self._crow_set("landing", now, self.CROW_LAND_SECS)
+            self._crow_leave_at = now + random.uniform(240, 420)
+        elif now >= self._crow_until:
+            state = self._crow_state
+            if state == "landing" or state in ("tap", "caw"):
+                self._crow_set("perched", now, random.uniform(6, 15))
+            elif state == "perched":
+                if now >= self._crow_leave_at:
+                    self._crow_set("leaving", now, self.CROW_LEAVE_SECS)
+                else:
+                    roll = random.random()
+                    if roll < 0.45:
+                        self._crow_set("tap", now, 1.6)
+                    elif roll < 0.8:
+                        self._crow_set("caw", now, 1.4)
+                    else:
+                        self._crow_set("perched", now, random.uniform(5, 12))
+            elif state == "leaving":
+                self._crow_set("away", now, random.uniform(20, 45))
+            else:
+                self._crow_set("landing", now, self.CROW_LAND_SECS)
+                self._crow_leave_at = now + random.uniform(240, 420)
+        # Every tick, not only on a change: a skin reload can drop it.
+        self._theme_prop("theme_crow", self._crow_state)
 
     def _crow_set(self, state, now, secs):
         """
