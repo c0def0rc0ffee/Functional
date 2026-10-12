@@ -364,6 +364,83 @@
 
 		</control>
 
+		<!-- ENGAGE-LIST: the next few Engage slots as a list down the left of
+		     the screen, the larger companion of the COMING UP block in the
+		     stats column (ENGAGE-NEXT above). Its own setting,
+		     show_engage_list; the two are independent. Engage publishes the
+		     slots as Window(home).Property(Engage.Next.N.*) for N 1 to 11,
+		     1 being the slot the small block shows; the skin reads and never
+		     computes, and the panel stays invisible until Engage publishes.
+		     Anchored at the top of the left column like the stats column on
+		     the right: x 60 to 540 from y 180, under the logo and a top
+		     menu, dropping 80 under a corner bar on the top edge, and
+		     rising 160 to y 20 when nothing at all is up there
+		     ($EXP[engage_list_rise]: logo hidden, no top menu, no top bar,
+		     no top left caption). Rows are 80 apart from y 228 (row N
+		     spans 228 + 80(N-1) to 308 + 80(N-1); 160 less when risen) and
+		     the list grows down as far as the layout allows: nine rows to
+		     y 948 at most, eleven when risen. Both shifts are multiples of
+		     the row pitch, so every cut below lands on whole rows.
+		     What cuts it, each row carrying its own 'when':
+		     - the menu row across the centre (y 480 to 620) when it is wide
+		       enough to reach this column ($EXP[engage_list_cut], four or
+		       more tiles): the rows at and below the band hide, so the
+		       list ends at y 468: that is rows 4 and up at y 180, rows 3
+		       and up under a top bar, rows 6 and up when risen. Up to three
+		       tiles stay right of x 610 and the list runs on past the band;
+		     - the menu at the bottom (y 820 to 960, or 920 to 1060 under a
+		       top bar): the rows reaching y 788 and below hide, rows 8 and
+		       9 at y 180 or under a top bar, rows 10 and 11 when risen;
+		     - a top bar alone: row 9 would end at y 1028, so it hides;
+		     - a bottom left caption or the version line lifted above a
+		       bottom left bar ($EXP[engage_list_foot], y 870 to 960): the
+		       row reaching y 948 hides, row 9 at y 180, row 11 when risen,
+		       and row 8 under a top bar;
+		     - rows 10 and 11 only exist risen; they would end at y 1028
+		       and 1108 otherwise.
+		     Each row is a button, 9321 to 9331, the EngageListRow include:
+		     OK opens Engage's own launcher. Left from the left edge button
+		     9310, or straight from the first tile while that button is
+		     hidden, lands on the first row; Up and Down walk the rows and
+		     leave for the menu row at either end; Left again wraps to the
+		     last tile, Right goes back. Hidden rows pass focus along, so
+		     the chain holds however many slots are published or cut. -->
+		<control type="group">
+			<visible>$EXP[engage_list_shown]</visible>
+			<animation effect="slide" end="0,80" time="0" condition="$EXP[corner_bar_top]">Conditional</animation>
+			<animation effect="slide" end="0,-160" time="0" condition="$EXP[engage_list_rise]">Conditional</animation>
+			<left>60</left>
+			<top>180</top>
+			<width>480</width>
+			<control type="label">
+				<left>0</left>
+				<top>0</top>
+				<width>480</width>
+				<height>40</height>
+				<font>font_med</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>31634</label>
+			</control>
+			<control type="image">
+				<left>0</left>
+				<top>44</top>
+				<width>480</width>
+				<height>2</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+			<include content="EngageListRow"><param name="n" value="1"/><param name="id" value="9321"/><param name="top" value="56"/><param name="onup" value="9000"/><param name="ondown" value="9322"/></include>
+			<include content="EngageListRow"><param name="n" value="2"/><param name="id" value="9322"/><param name="top" value="136"/><param name="onup" value="9321"/><param name="ondown" value="9323"/></include>
+			<include content="EngageListRow"><param name="n" value="3"/><param name="id" value="9323"/><param name="top" value="216"/><param name="onup" value="9322"/><param name="ondown" value="9324"/><param name="when" value="![$EXP[engage_list_cut] + $EXP[corner_bar_top]]"/></include>
+			<include content="EngageListRow"><param name="n" value="4"/><param name="id" value="9324"/><param name="top" value="296"/><param name="onup" value="9323"/><param name="ondown" value="9325"/><param name="when" value="![$EXP[engage_list_cut] + !$EXP[engage_list_rise]]"/></include>
+			<include content="EngageListRow"><param name="n" value="5"/><param name="id" value="9325"/><param name="top" value="376"/><param name="onup" value="9324"/><param name="ondown" value="9326"/><param name="when" value="![$EXP[engage_list_cut] + !$EXP[engage_list_rise]]"/></include>
+			<include content="EngageListRow"><param name="n" value="6"/><param name="id" value="9326"/><param name="top" value="456"/><param name="onup" value="9325"/><param name="ondown" value="9327"/><param name="when" value="!$EXP[engage_list_cut]"/></include>
+			<include content="EngageListRow"><param name="n" value="7"/><param name="id" value="9327"/><param name="top" value="536"/><param name="onup" value="9326"/><param name="ondown" value="9328"/><param name="when" value="!$EXP[engage_list_cut]"/></include>
+			<include content="EngageListRow"><param name="n" value="8"/><param name="id" value="9328"/><param name="top" value="616"/><param name="onup" value="9327"/><param name="ondown" value="9329"/><param name="when" value="!$EXP[engage_list_cut] + ![$EXP[menu_bottom] + !$EXP[engage_list_rise]] + ![$EXP[corner_bar_top] + $EXP[engage_list_foot]]"/></include>
+			<include content="EngageListRow"><param name="n" value="9"/><param name="id" value="9329"/><param name="top" value="696"/><param name="onup" value="9328"/><param name="ondown" value="9330"/><param name="when" value="!$EXP[engage_list_cut] + ![$EXP[menu_bottom] + !$EXP[engage_list_rise]] + !$EXP[corner_bar_top] + ![$EXP[engage_list_foot] + !$EXP[engage_list_rise]]"/></include>
+			<include content="EngageListRow"><param name="n" value="10"/><param name="id" value="9330"/><param name="top" value="776"/><param name="onup" value="9329"/><param name="ondown" value="9331"/><param name="when" value="$EXP[engage_list_rise] + !$EXP[engage_list_cut] + !$EXP[menu_bottom]"/></include>
+			<include content="EngageListRow"><param name="n" value="11"/><param name="id" value="9331"/><param name="top" value="856"/><param name="onup" value="9330"/><param name="ondown" value="9000"/><param name="when" value="$EXP[engage_list_rise] + !$EXP[engage_list_cut] + !$EXP[menu_bottom] + !$EXP[engage_list_foot]"/></include>
+		</control>
+
 		<!-- Functional logo top-left -->
 		<control type="image">
 			<left>40</left>
@@ -462,8 +539,13 @@
 			     188 at seven, 162 with the smaller font at eight. With the 20
 			     gap that is 220, 460, 700, 940, 1180, 1420, 1436, 1436 wide.
 			     Centre: the stats column starts at x 1550, so while any stats
-			     block shows the row is centred on x 775 instead of 960 (slide
-			     185 left) and its widest forms end at x 1493, 57 clear.
+			     block shows a row of five or more tiles is centred on x 775
+			     instead of 960 (slide 185 left) and its widest forms end at
+			     x 1493, 57 clear. Up to four tiles stay on the screen centre,
+			     where four end at x 1430 and five would touch the column;
+			     a short row beside the column looked off centre otherwise.
+			     Before the service has published Tile.Count the row is slid,
+			     which is what it always was.
 			     Top: up to five tiles span x 370 to 1550 on the screen centre
 			     and need nothing. From six the row is centred on x 880 (slide
 			     80 left): six span x 170 to 1590, seven and eight x 162 to
@@ -479,7 +561,7 @@
 			<animation effect="slide" end="0,-440" time="0" condition="$EXP[menu_top]">Conditional</animation>
 			<animation effect="slide" end="0,440" time="0" condition="$EXP[menu_bottom] + $EXP[corner_bar_top]">Conditional</animation>
 			<animation effect="slide" end="0,340" time="0" condition="$EXP[menu_bottom] + !$EXP[corner_bar_top]">Conditional</animation>
-			<animation effect="slide" end="-185,0" time="0" condition="!$EXP[menu_top] + !$EXP[menu_bottom] + $EXP[home_stats_shown]">Conditional</animation>
+			<animation effect="slide" end="-185,0" time="0" condition="!$EXP[menu_top] + !$EXP[menu_bottom] + $EXP[home_stats_shown] + [String.IsEmpty(Window(home).Property(Tile.Count)) | Integer.IsGreater(Window(home).Property(Tile.Count),4)]">Conditional</animation>
 			<animation effect="slide" end="-80,0" time="0" condition="$EXP[menu_top] + Integer.IsGreater(Window(home).Property(Tile.Count),5)">Conditional</animation>
 			<left>0</left>
 			<top>480</top>
