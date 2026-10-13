@@ -23,7 +23,7 @@
   Settings, Radarr) the drop down also holds Remove from Radarr,
   list_command radarr_remove, which asks before anything is sent
   (service.py, RADARR-REMOVE). Sort Lists, list_command sort, ends the row
-  and reorders the lists themselves, see LISTS-SORT.
+  and picks the order the lists are kept in, see LISTS-SORT.
 
   The action row sits on a 120px band at the foot of the screen, or at the
   top just under the header when Skin.HasSetting(lists_actions_top) is on
@@ -651,13 +651,14 @@
 				<onclick>Skin.SetString(list_command,port_time)</onclick>
 			</control>
 
-			<!-- LISTS-SORT: put the lists themselves in order by name,
+			<!-- LISTS-SORT: pick the order the lists are kept in, by name,
 			     newest or oldest, or most or fewest items (service.py,
-			     _lists_sort). Last in the row so nothing before it moves,
-			     and only shown when there are two lists or more. -->
+			     _lists_sort). The order holds through every change and
+			     rides on the label. Last in the row so nothing before it
+			     moves, and only shown when there are two lists or more. -->
 			<control type="button" id="9011">
 				<visible>Integer.IsGreater(Window(home).Property(Lists.Count),1)</visible>
-				<width>240</width>
+				<width>400</width>
 				<height>60</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
@@ -668,7 +669,7 @@
 				<textoffsetx>0</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>31652</label>
+				<label>$LOCALIZE[31652]  $INFO[Window(home).Property(Lists.SortLabel)]</label>
 				<onclick>Skin.SetString(list_command,sort)</onclick>
 			</control>
 

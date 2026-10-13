@@ -718,6 +718,11 @@ class FunctionalHelper(xbmc.Monitor):
         self._lists = None           # [{name, items:[record]}], None = not loaded
         self._lists_last = ""        # name of the list an item last went into
         self._lists_sel = 1          # 1-based list the Lists screen has selected
+        # LISTS-SORT: the kept order, a LISTS_SORTS mode, "" = file order
+        self._lists_sort_mode = ""
+        # (row, monotonic deadline) while the Lists screen's cursor is being
+        # moved after its list changed place, see _lists_follow
+        self._lists_sel_hold = None
         self._lists_frozen = False   # saving refused, see _lists_set_aside
         self._lists_sel_pub = None   # selection the right column currently shows
         self._lists_slots_used = 0   # Lists.N.* slots written last publish
@@ -3230,7 +3235,7 @@ class FunctionalHelper(xbmc.Monitor):
         with self._lists_lock:
             if self._lists is not None and not force:
                 return self._lists
-            lists, last = [], ""
+            lists, last, sort = [], "", ""
             broken = False
             path = self._lists_path()
             # Plain open(), not xbmcvfs.File: the profile folder is always a
@@ -3243,11 +3248,11 @@ class FunctionalHelper(xbmc.Monitor):
             if os.path.exists(path):
                 try:
                     with open(path, "r", encoding="utf-8") as fh:
-                        lists, last = self._lists_parse(fh.read())
+                        lists, last, sort = self._lists_parse(fh.read())
                 except Exception:  # noqa: BLE001
                     _dlog("lists.json unreadable:\n" + traceback.format_exc(),
                           xbmc.LOGWARNING)
-                    lists, last = [], ""
+                    lists, last, sort = [], "", ""
                     broken = True
             previous = path + self.LISTS_PREVIOUS_SUFFIX
             if broken or (not os.path.exists(path) and os.path.exists(previous)):
@@ -3257,12 +3262,14 @@ class FunctionalHelper(xbmc.Monitor):
                 # the main file is gone for a moment and only this one exists.
                 try:
                     with open(previous, "r", encoding="utf-8") as fh:
-                        lists, last = self._lists_parse(fh.read())
+                        lists, last, sort = self._lists_parse(fh.read())
                     _dlog("lists: using the previous copy, %d lists" % len(lists),
                           xbmc.LOGWARNING)
                 except Exception:  # noqa: BLE001
-                    lists, last = [], ""
+                    lists, last, sort = [], "", ""
             self._lists = lists
+            self._lists_sort_mode = sort
+            self._lists_order_locked()
             if broken:
                 self._lists_set_aside(path)
             else:
@@ -3281,7 +3288,8 @@ class FunctionalHelper(xbmc.Monitor):
         Parse the text of a lists.json into clean list records.
         </summary>
         <param name="text">The file's contents.</param>
-        <returns>(lists, last): the list dicts and the remembered last list name.</returns>
+        <returns>(lists, last, sort): the list dicts, the remembered last
+        list name and the kept order (a LISTS_SORTS mode, "" for none).</returns>
         <exception cref="ValueError">On anything that is not the expected JSON shape; callers decide what an unreadable file means.</exception>
         <remarks>
         Shared by the loader and the importer, so a file exported from
@@ -3296,7 +3304,9 @@ class FunctionalHelper(xbmc.Monitor):
         number on this box, what Sort Lists orders by for newest and oldest
         (LISTS-SORT). A file written before it existed has none; its lists
         are numbered in file order, which was creation order, because
-        nothing could reorder lists until Sort Lists arrived.
+        nothing could reorder lists until Sort Lists arrived. "sort" is the
+        order Sort Lists keeps the lists in; an unknown or missing one reads
+        as none, which leaves them in file order.
         </remarks>
         """
         if not (text or "").strip():
@@ -3344,7 +3354,10 @@ class FunctionalHelper(xbmc.Monitor):
                 top += 1
                 lst["seq"] = top
             seen.add(lst["seq"])
-        return lists, str(data.get("last", "") or "")
+        sort = str(data.get("sort", "") or "")
+        if sort not in self.LISTS_SORT_MODES:
+            sort = ""
+        return lists, str(data.get("last", "") or ""), sort
 
     def _lists_export(self, folder=""):
         """
@@ -3397,7 +3410,8 @@ class FunctionalHelper(xbmc.Monitor):
             return
         try:
             with xbmcvfs.File(path) as fh:
-                incoming, _last = self._lists_parse(fh.read())
+                # The kept order belongs to this box, not to the file.
+                incoming, _last, _sort = self._lists_parse(fh.read())
         except Exception:  # noqa: BLE001
             _dlog("lists import of %s failed:\n%s" % (path, traceback.format_exc()),
                   xbmc.LOGWARNING)
@@ -3589,8 +3603,10 @@ class FunctionalHelper(xbmc.Monitor):
         truncated file. The file being replaced is kept beside it under
         LISTS_PREVIOUS_SUFFIX. Refused while _lists_frozen is set: the file
         on disk could not be read and could not be moved aside, so writing
-        would destroy it; each call tries the move again first. Must not be
-        called with _lists_lock held.</remarks>"""
+        would destroy it; each call tries the move again first. The kept
+        order (LISTS-SORT) is applied first, even when the save is refused,
+        so the screen always shows it. Must not be called with _lists_lock
+        held.</remarks>"""
         path = self._lists_path()
         # One writer at a time, from building the text to the rename. The
         # loop (a watched removal) and the dialog thread (any edit) can both
@@ -3610,7 +3626,11 @@ class FunctionalHelper(xbmc.Monitor):
                     else:
                         self._lists_frozen = False
                 frozen = self._lists_frozen
+                # LISTS-SORT: every change lands here, so this is where the
+                # kept order is put back, and the moved selection noted.
+                moved = self._lists_order_locked()
                 payload = json.dumps({"version": 1, "last": self._lists_last,
+                                      "sort": self._lists_sort_mode,
                                       "lists": self._lists or []},
                                      ensure_ascii=False, indent=1)
             if frozen:
@@ -3637,6 +3657,8 @@ class FunctionalHelper(xbmc.Monitor):
                     xbmcgui.NOTIFICATION_ERROR, 4000)
         self._set_or_reset("lists_last", self._lists_last)
         self._lists_publish()
+        if moved:
+            self._lists_follow(*moved)
 
     @classmethod
     def _list_item_clean(cls, raw):
@@ -3741,6 +3763,9 @@ class FunctionalHelper(xbmc.Monitor):
             lists = list(self._lists or [])
         shown = lists[:self.LISTS_MAX]
         win.setProperty("Lists.Count", str(len(shown)))
+        # LISTS-SORT: the kept order, shown on the Sort Lists button.
+        sid = self.LISTS_SORT_MODES.get(self._lists_sort_mode, (0, 0))[1]
+        win.setProperty("Lists.SortLabel", _L(sid) if sid else "")
         used_before = self._lists_slots_used
         for i in range(max(len(shown), used_before)):
             n = i + 1
@@ -3845,7 +3870,7 @@ class FunctionalHelper(xbmc.Monitor):
         selected list); item_up:N, item_down:N and item_del:N (the row's
         quick buttons, LISTS-QUICK in Custom_1151_Lists.xml; remove asks
         first); shuffle (put the selected list in a random order, after a
-        confirm); sort (put the lists themselves in the order picked,
+        confirm); sort (pick the order the lists are kept in,
         LISTS-SORT); save_queue (the open queue window becomes a new
         list). Each tick also runs the Remove Watched tracker, whatever
         window is up, because watching happens away from this screen.
@@ -3871,7 +3896,13 @@ class FunctionalHelper(xbmc.Monitor):
                 "Container(50).ListItem.Property(idx)") or 0)
         except ValueError:
             sel = 0
-        if sel:
+        hold = self._lists_sel_hold
+        if hold and (sel == hold[0] or time.monotonic() > hold[1]):
+            self._lists_sel_hold = hold = None
+        # While the cursor is on its way to a list's new row, the row it
+        # is leaving holds another list now; following it would fill the
+        # right column with that one for a tick.
+        if sel and not hold:
             self._lists_sel = sel
         if self._lists_sel != self._lists_sel_pub:
             self._list_items_publish(self._lists_sel)
@@ -3995,7 +4026,8 @@ class FunctionalHelper(xbmc.Monitor):
         """<summary>Append a new list and save.</summary>
         <param name="name">The new list's name, already checked as unused.</param>
         <param name="items">Records to start it with; none when omitted.</param>
-        <returns>The new list's 1-based index, or 0 when there is no room.</returns>
+        <returns>Non zero when the list was made, 0 when there is no room.
+        Not its place: a kept sort (LISTS-SORT) moves it on save.</returns>
         <remarks>LISTS_MAX is the number of rows the Lists screen has. A
         list beyond it would be saved and become the quick add target with
         no row to show it on, so it could never be ported, renamed or
@@ -4045,8 +4077,10 @@ class FunctionalHelper(xbmc.Monitor):
                     return
                 if not self._lists_create(name):
                     return
+                # By name, not as the last list: a kept sort (LISTS-SORT)
+                # has already put the new one in its place.
                 with self._lists_lock:
-                    target = self._lists[-1]
+                    target = next(l for l in self._lists if l["name"] == name)
             else:
                 target = lists[choice]
         with self._lists_lock:
@@ -4615,44 +4649,87 @@ class FunctionalHelper(xbmc.Monitor):
         self._lists_notify(_L(31624) % lst["name"])
         xbmc.executebuiltin("SetFocus(51,0,absolute)")
 
-    # LISTS-SORT: Sort Lists picker rows, (string id, key, newest first).
-    # Ties fall back to the name, so the order is the same on every run.
-    LISTS_SORTS = ((31653, "name", False), (31654, "seq", True),
-                   (31655, "seq", False), (31656, "size", True),
-                   (31657, "size", False))
+    # LISTS-SORT: mode -> (picker string, button string, key, largest
+    # first). Ties fall back to the name, so the order never wobbles.
+    LISTS_SORT_MODES = {"name": (31653, 31653, "name", False),
+                        "newest": (31654, 31659, "seq", True),
+                        "oldest": (31655, 31660, "seq", False),
+                        "most": (31656, 31661, "size", True),
+                        "fewest": (31657, 31662, "size", False)}
+    LISTS_SORT_ORDER = ("name", "newest", "oldest", "most", "fewest")
+    # Seconds the Lists screen waits for its cursor to reach a moved list.
+    LISTS_FOLLOW_SECS = 2.0
+
+    def _lists_order_locked(self):
+        """<summary>Put self._lists in the kept order and keep the same
+        list selected (LISTS-SORT). The caller holds _lists_lock.</summary>
+        <returns>(old row, new row) when the selected list changed place,
+        otherwise None.</returns>
+        <remarks>Name first, then a stable sort on the key, so lists that
+        tie keep name order whichever way the key runs. With no kept order
+        the lists stay as they are.</remarks>"""
+        mode = self.LISTS_SORT_MODES.get(self._lists_sort_mode)
+        lists = self._lists
+        if not mode or not lists:
+            return None
+        old = self._lists_sel
+        picked = lists[old - 1] if 0 < old <= len(lists) else None
+        lists.sort(key=lambda l: l["name"].casefold())
+        if mode[2] == "seq":
+            lists.sort(key=lambda l: l.get("seq") or 0, reverse=mode[3])
+        elif mode[2] == "size":
+            lists.sort(key=lambda l: len(l["items"]), reverse=mode[3])
+        if picked is None:
+            return None
+        new = next(i for i, l in enumerate(lists) if l is picked) + 1
+        if new == old:
+            return None
+        self._lists_sel = new
+        return old, new
+
+    def _lists_follow(self, old, new):
+        """<summary>Move the Lists screen's cursor after the selected list,
+        which a kept sort has just moved from row old to row new
+        (LISTS-SORT).</summary>
+        <param name="old">Its row before the change, 1-based.</param>
+        <param name="new">Its row now, 1-based.</param>
+        <remarks>Control.Move rather than SetFocus: it moves the list of
+        lists' cursor without taking focus, so someone working in the items
+        column or on the buttons stays where they are. update_lists holds
+        the selection at new until the cursor gets there, or for
+        LISTS_FOLLOW_SECS at most.</remarks>"""
+        if not xbmc.getCondVisibility(
+                "Window.IsActive(%d)" % self.LISTS_WINDOW_ID):
+            return
+        self._lists_sel_hold = (new, time.monotonic() + self.LISTS_FOLLOW_SECS)
+        xbmc.executebuiltin("Control.Move(50,%d)" % (new - old))
 
     def _lists_sort(self):
-        """<summary>Put the lists themselves in the order picked: by name,
-        newest or oldest first, or most or fewest items first
-        (LISTS-SORT).</summary>
-        <remarks>A one off reorder kept in lists.json, like Shuffle List,
-        not a standing mode: a list made afterwards goes at the bottom as
-        always, and adding items never moves a list under the cursor. No
-        confirm, because any order can be had back by sorting again.
-        Newest and oldest go by the creation number, see _lists_parse. The
-        cursor goes to the first list, since the one selected has
-        moved.</remarks>"""
+        """<summary>Pick the order the lists are kept in: by name, newest
+        or oldest first, or most or fewest items first (LISTS-SORT).</summary>
+        <remarks>Kept in lists.json and applied on every save, so a new
+        list, an item added or taken away, or a rename puts the lists back
+        in that order straight away. The selected list stays selected
+        wherever it moves to. Oldest first is the order lists are made in,
+        so it is also the way back to how lists stood before a sort.
+        Newest and oldest go by the creation number, see _lists_parse.</remarks>"""
         with self._lists_lock:
             if len(self._lists or []) < 2:
                 return
+            current = self._lists_sort_mode
+        rows = self.LISTS_SORT_ORDER
         choice = xbmcgui.Dialog().select(
-            _L(31652), [_L(sid) for sid, _key, _desc in self.LISTS_SORTS])
+            _L(31652), [_L(self.LISTS_SORT_MODES[m][0]) for m in rows],
+            preselect=rows.index(current) if current in rows else -1)
         if choice < 0:
             return
-        sid, key, desc = self.LISTS_SORTS[choice]
+        mode = rows[choice]
         with self._lists_lock:
-            # Name first as the tie break, then the stable sort on the key
-            # keeps that order within equal keys whichever way it runs.
-            self._lists.sort(key=lambda l: l["name"].casefold())
-            if key == "seq":
-                self._lists.sort(key=lambda l: l.get("seq") or 0, reverse=desc)
-            elif key == "size":
-                self._lists.sort(key=lambda l: len(l["items"]), reverse=desc)
-            self._lists_sel = 1
+            self._lists_sort_mode = mode
         self._lists_save()
-        _dlog("lists sorted: %s" % _L(sid))
+        sid = self.LISTS_SORT_MODES[mode][0]
+        _dlog("lists kept sorted: %s" % mode)
         self._lists_notify(_L(31658) % _L(sid))
-        xbmc.executebuiltin("SetFocus(50,0,absolute)")
 
     def _lists_toggle_autoremove(self):
         """<summary>Flip Remove Watched on the selected list and say which

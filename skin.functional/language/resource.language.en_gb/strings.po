@@ -2378,5 +2378,21 @@ msgid "Fewest items first"
 msgstr ""
 
 msgctxt "#31658"
-msgid "Lists sorted: %s"
+msgid "Lists kept sorted: %s"
+msgstr ""
+
+msgctxt "#31659"
+msgid "Newest"
+msgstr ""
+
+msgctxt "#31660"
+msgid "Oldest"
+msgstr ""
+
+msgctxt "#31661"
+msgid "Most items"
+msgstr ""
+
+msgctxt "#31662"
+msgid "Fewest items"
 msgstr ""
