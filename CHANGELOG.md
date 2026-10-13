@@ -11,6 +11,14 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.22.2 (13/10/2026)
+
+- Sort Lists now keeps the lists in the order you pick. A new list, an
+  item added or taken away, or a rename puts them straight back in that
+  order, and the button shows which order is in force. The list you have
+  selected stays selected when it moves. Oldest first is the order the
+  lists were made in.
+
 ## 0.22.1 (13/10/2026)
 
 - The Lists screen has a Sort Lists button at the end of its action row,
