@@ -226,6 +226,10 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
+# The add-on API JellyStat's dashboard manages the lists through (LISTS-API).
+# Kodi puts the add-on's own folder on sys.path, so it imports beside this file.
+import lists_api
+
 HOME_WINDOW_ID = 10000
 
 # ---- Localised strings ----------------------------------------------------
@@ -3906,6 +3910,23 @@ class FunctionalHelper(xbmc.Monitor):
             self._lists_sel = sel
         if self._lists_sel != self._lists_sel_pub:
             self._list_items_publish(self._lists_sel)
+
+    def update_lists_api(self):
+        """
+        <summary>
+        Slow tick handler for LISTS-API: keep the lists' add-on API running
+        while Skin Settings, Lists, "Let JellyStat manage the lists" is on.
+        </summary>
+        <remarks>
+        The switch is stored inverted, as lists_api_off, so that it reads as
+        on before anyone has touched it: the spec's default, and safe because
+        the server only listens on the box itself and JellyStat's password is
+        the real gate. lists_api.sync costs nothing when nothing has changed.
+        The server's threads call back into this helper's list methods under
+        its own locks; see lists_api.py.
+        </remarks>
+        """
+        lists_api.sync(self, not xbmc.getCondVisibility("Skin.HasSetting(lists_api_off)"))
 
     def _lists_worker(self, cmd):
         """<summary>Dispatch one list_command on the dialog thread.</summary>
@@ -8463,6 +8484,8 @@ def run():
         # Once a second: Engage rewrites its rows on its own schedule.
         helper.update_coming_up_days,
         helper.normalize_clearance,
+        # Once a second: follows the "Let JellyStat manage the lists" switch.
+        helper.update_lists_api,
     )
     failures = {}
     tick = 0
@@ -8473,6 +8496,9 @@ def run():
         tick = (tick + 1) % SLOW_EVERY
         if helper.waitForAbort(FunctionalHelper.POLL_SECS):
             break
+    # The discovery property goes first inside stop(), so JellyStat stops
+    # sending before the socket closes.
+    lists_api.stop()
     _dlog("service shutting down")
 
 

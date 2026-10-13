@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.22.2" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.0" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>Sort Lists now keeps the lists in the order you pick. A new list, an item added or taken away, or a rename puts them straight back in that order, and the button shows which order is in force. The list you have selected stays selected when it moves. Oldest first is the order the lists were made in.</news>
+		<news>Your lists can now be managed from the JellyStat dashboard on a phone or laptop: make and delete lists, rename them, turn Remove Watched on or off, search the library to add films, whole shows or episodes, put the items in order or take them off, and back up or restore every list. The TV's Lists screen shows each change at once. It needs JellyStat 0.27.0 or later on the same box, and can be switched off in Skin Settings, Lists, which is the page that used to be called Radarr.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

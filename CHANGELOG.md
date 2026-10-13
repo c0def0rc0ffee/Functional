@@ -11,6 +11,16 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.0 (13/10/2026)
+
+- Your lists can now be managed from the JellyStat dashboard on a phone or
+  laptop: make and delete lists, rename them, turn Remove Watched on or
+  off, search the library to add films, whole shows or episodes, put the
+  items in order or take them off, and back up or restore every list. The
+  TV's Lists screen shows each change at once. It needs JellyStat 0.27.0 or
+  later on the same box, and can be switched off in Skin Settings, Lists,
+  which is the page that used to be called Radarr.
+
 ## 0.22.2 (13/10/2026)
 
 - Sort Lists now keeps the lists in the order you pick. A new list, an

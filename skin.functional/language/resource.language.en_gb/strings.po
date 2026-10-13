@@ -2396,3 +2396,11 @@ msgstr ""
 msgctxt "#31662"
 msgid "Fewest items"
 msgstr ""
+
+msgctxt "#31663"
+msgid "Lists"
+msgstr ""
+
+msgctxt "#31664"
+msgid "Let JellyStat manage the lists"
+msgstr ""

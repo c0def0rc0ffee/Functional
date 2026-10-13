@@ -42,6 +42,7 @@ build simply produces the two zips, so a fresh clone works unchanged.
 """
 
 import fnmatch
+import glob
 import os
 import re
 import shutil
@@ -563,7 +564,8 @@ def dir_entry(arcname):
 def run_checks():
     """
     <summary>
-    Run checks/skin_checks.py and stop the build on any finding.
+    Run checks/skin_checks.py, then every tests/test_*.py, and stop the
+    build on any finding or failure.
     </summary>
     <exception cref="SystemExit">
     When the checker is missing, cannot run, or reports a finding.
@@ -585,6 +587,17 @@ def run_checks():
     if result.returncode != 0:
         sys.exit("ABORTED: the static checks found problems (listed above). "
                  "Not building.")
+    # Then every tests/test_*.py, each a standalone script that exits non
+    # zero on a failure (the lists API since 0.23.0). Run without writing
+    # bytecode, so the tree stays as git sees it.
+    tests = sorted(glob.glob(os.path.join(REPO, "tests", "test_*.py")))
+    env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
+    for test in tests:
+        print("Test: " + os.path.relpath(test, REPO))
+        result = subprocess.run([sys.executable, test], cwd=REPO, env=env)
+        if result.returncode != 0:
+            sys.exit("ABORTED: %s failed (listed above). Not building."
+                     % os.path.relpath(test, REPO))
 
 
 def collect_members(walk_root, arc_base, exclude_dirs=(), exclude_globs=(),
