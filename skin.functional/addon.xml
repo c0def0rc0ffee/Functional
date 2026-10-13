@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.22.0" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.22.1" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,9 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>A whole TV show or season can go on a list as one row. Press and hold on a show or season in the TV library and use Add To List. The row shows how many episodes it holds.
-Port to Queue plays every episode of it in order. Port Shuffled and Port by Time count the show or season as one item and pick one random episode from it, so a show added whole gives one episode and the same show added as two seasons gives two. A whole show leaves out Specials.
-On a list with Remove Watched on, an episode watched after the show or season was added is taken out of it, and the row goes once every episode has been watched.</news>
+		<news>The Lists screen has a Sort Lists button at the end of its action row, shown when there are two lists or more. It puts the lists in order by name, newest or oldest first, or most or fewest items first, and keeps that order. Lists made before this count as made in the order they were already in.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

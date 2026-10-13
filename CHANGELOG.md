@@ -11,6 +11,14 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.22.1 (13/10/2026)
+
+- The Lists screen has a Sort Lists button at the end of its action row,
+  shown when there are two lists or more. It puts the lists in order by
+  name, newest or oldest first, or most or fewest items first, and keeps
+  that order. Lists made before this count as made in the order they
+  were already in.
+
 ## 0.22.0 (13/10/2026)
 
 - A whole TV show or season can go on a list as one row. Press and hold
