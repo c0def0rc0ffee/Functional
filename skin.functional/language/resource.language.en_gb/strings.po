@@ -2332,3 +2332,23 @@ msgstr ""
 msgctxt "#31646"
 msgid "Christmas is on for the season until the end of Boxing Day"
 msgstr ""
+
+msgctxt "#31647"
+msgid "Whole show"
+msgstr ""
+
+msgctxt "#31648"
+msgid "Whole season"
+msgstr ""
+
+msgctxt "#31649"
+msgid "%d episode"
+msgstr ""
+
+msgctxt "#31650"
+msgid "%d episodes"
+msgstr ""
+
+msgctxt "#31651"
+msgid "No episodes left to play in %s"
+msgstr ""

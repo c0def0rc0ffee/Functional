@@ -3196,8 +3196,14 @@ class FunctionalHelper(xbmc.Monitor):
     LIST_DBID_KEYS = {"movie": "movieid", "episode": "episodeid",
                       "musicvideo": "musicvideoid", "song": "songid"}
     LIST_MUSIC_TYPES = ("song",)
+    # LISTS-GROUPS: a whole show or season kept as one row. It is stored by
+    # library id alone (a videodb:// path names nothing on another box) and
+    # stands for its episodes, which are fetched afresh whenever the list is
+    # ported, so episodes added to the library later are included.
+    LIST_GROUP_TYPES = ("tvshow", "season")
     LIST_ITEM_PROPS = ("label", "file", "dbtype", "dbid", "thumb", "duration",
-                       "show", "season", "episode", "artist", "year", "kind")
+                       "show", "season", "episode", "artist", "year", "kind",
+                       "count")
 
     def _lists_path(self):
         """<summary>Absolute path of lists.json, creating its folder.</summary>
@@ -3429,6 +3435,54 @@ class FunctionalHelper(xbmc.Monitor):
         "song": ("AudioLibrary.GetSongDetails", "songid", "songdetails"),
     }
 
+    def _list_group_localise(self, item):
+        """<summary>Find an imported show or season row in this box's
+        library by title, since its ids belong to the box that wrote it
+        (LISTS-GROUPS).</summary>
+        <param name="item">A clean tvshow or season record. Modified in place.</param>
+        <returns>The record carrying this box's id, or None when this box
+        has no show of that title, or not that season of it.</returns>
+        <remarks>A group row has no path to fall back on, so the show title
+        stored with it is the match: the id it came with is kept when it
+        names a show of the same title here, otherwise the first show of
+        that exact title is used.</remarks>"""
+        title = item["show"] or (item["label"] if item["dbtype"] == "tvshow" else "")
+        if not title:
+            return None
+        if item["dbtype"] == "tvshow":
+            resp = _jsonrpc("VideoLibrary.GetTVShowDetails", {
+                "tvshowid": item["dbid"], "properties": ["title"]})
+            det = ((resp or {}).get("result") or {}).get("tvshowdetails") or {}
+            if det.get("title") == title:
+                return item
+        else:
+            resp = _jsonrpc("VideoLibrary.GetSeasonDetails", {
+                "seasonid": item["dbid"], "properties": ["showtitle", "season"]})
+            det = ((resp or {}).get("result") or {}).get("seasondetails") or {}
+            if (det.get("showtitle") == title
+                    and str(det.get("season")) == item["season"]):
+                return item
+        resp = _jsonrpc("VideoLibrary.GetTVShows", {
+            "properties": ["title"],
+            "filter": {"field": "title", "operator": "is", "value": title}})
+        shows = ((resp or {}).get("result") or {}).get("tvshows") or []
+        showid = next((int(sh["tvshowid"]) for sh in shows
+                       if sh.get("title") == title), 0)
+        if not showid:
+            return None
+        if item["dbtype"] == "tvshow":
+            item["dbid"] = showid
+            return item
+        resp = _jsonrpc("VideoLibrary.GetSeasons", {
+            "tvshowid": showid, "properties": ["season"]})
+        seasons = ((resp or {}).get("result") or {}).get("seasons") or []
+        match = next((int(se["seasonid"]) for se in seasons
+                      if str(se.get("season")) == item["season"]), 0)
+        if not match:
+            return None
+        item["dbid"] = match
+        return item
+
     def _list_item_localise(self, item):
         """
         <summary>
@@ -3452,6 +3506,8 @@ class FunctionalHelper(xbmc.Monitor):
         item with an id, which is why import runs on the dialog thread.
         </remarks>
         """
+        if item["dbtype"] in self.LIST_GROUP_TYPES:
+            return self._list_group_localise(item)
         call = self.LIST_DETAIL_CALLS.get(item["dbtype"])
         if not item["dbid"] or call is None:
             return item if item["file"] else None
@@ -3572,12 +3628,29 @@ class FunctionalHelper(xbmc.Monitor):
             it["dbid"] = int(it["dbid"] or 0)
         except ValueError:
             it["dbid"] = 0
-        if it["dbtype"] not in cls.LIST_DBID_KEYS:
+        if it["dbtype"] in cls.LIST_GROUP_TYPES:
+            # LISTS-GROUPS: no id, nothing to stand for ("All seasons" is -1).
+            if it["dbid"] <= 0:
+                return None
+            it["file"] = ""
+            it["kind"] = "video"
+        elif it["dbtype"] not in cls.LIST_DBID_KEYS:
             it["dbid"] = 0
         try:
             it["duration"] = int(it["duration"] or 0)
         except ValueError:
             it["duration"] = _parse_duration_to_seconds(it["duration"])
+        try:
+            it["count"] = int(it["count"] or 0)
+        except ValueError:
+            it["count"] = 0
+        if it["dbtype"] in cls.LIST_GROUP_TYPES:
+            # Episodes Remove Watched has taken out of this show or season,
+            # as "season x episode" keys, which mean the same on any box.
+            skip = raw.get("skip") or []
+            it["skip"] = sorted({str(k) for k in skip if isinstance(k, str)
+                                 and re.match(r"^\d+x\d+$", k)}) \
+                if isinstance(skip, list) else []
         if it["dbtype"] in cls.LIST_MUSIC_TYPES:
             it["kind"] = "music"
         elif it["kind"] != "music":
@@ -3603,7 +3676,13 @@ class FunctionalHelper(xbmc.Monitor):
         """<summary>The dim second line shown under an item on the Lists
         screen, e.g. "Movie (1927) · 2h 33m" or "Show S01E04 · 42m".</summary>"""
         bits = []
-        if it["dbtype"] == "episode" or (it["show"] and it["episode"]):
+        if it["dbtype"] in cls.LIST_GROUP_TYPES:
+            # LISTS-GROUPS: "Whole show · 62 episodes · 46h 10m".
+            bits.append(_L(31647) if it["dbtype"] == "tvshow" else _L(31648))
+            if it["count"]:
+                bits.append((_L(31649) if it["count"] == 1
+                             else _L(31650)) % it["count"])
+        elif it["dbtype"] == "episode" or (it["show"] and it["episode"]):
             tag = ""
             if it["season"] and it["episode"]:
                 try:
@@ -3906,6 +3985,8 @@ class FunctionalHelper(xbmc.Monitor):
         list the user picks (with "New list" as the final choice).</summary>
         <param name="pick">True to always show the picker.</param>"""
         item = self._lists_capture_item()
+        if item is not None and item["dbtype"] in self.LIST_GROUP_TYPES:
+            item = self._list_group_fill(item)
         if item is None:
             self._lists_notify(_L(31337), True)
             return
@@ -4008,10 +4089,171 @@ class FunctionalHelper(xbmc.Monitor):
             return {key: it["dbid"]}
         return {"file": it["file"]}
 
+    # ---- Lists: whole shows and seasons (LISTS-GROUPS) ----------------------
+    #
+    # <summary>
+    # A show or season added from the library is one row on its list and
+    # plays as if every one of its episodes were listed in its place, in
+    # season and episode order.
+    # </summary>
+    # <remarks>
+    # The row is expanded at the moment it is used, never when it is added,
+    # so the list stays short and a show that gains episodes plays them
+    # too. Port and Play now queue every episode in order. The random ports
+    # (Port Shuffled, Port by Time) treat the row as ONE item, as asked on
+    # 13/10/2026: it is drawn like any other row and puts in one random
+    # episode, so a show added whole gives one episode and the same show
+    # added as two seasons gives two. A whole show leaves out season 0
+    # (Specials), as Kodi's own listing does; a Specials season added on
+    # its own plays in full.
+    #
+    # On a Remove Watched list an episode watched after the row was added
+    # leaves the row exactly as a single item would leave the list: its
+    # "season x episode" key goes into the row's "skip" and it is never
+    # queued again. The row itself goes once nothing is left in it.
+    # Episodes watched before the row was added are not touched.
+    # </remarks>
+    LIST_EPISODE_PROPS = ["title", "file", "runtime", "season", "episode",
+                          "showtitle", "thumbnail", "art", "playcount"]
+
+    @staticmethod
+    def _list_group_where(it):
+        """<summary>Which show, and which season of it, a group row names.</summary>
+        <param name="it">A stored tvshow or season record.</param>
+        <returns>(tvshowid, season number or None for the whole show), or
+        (0, None) when the library no longer has it.</returns>"""
+        if it["dbtype"] == "tvshow":
+            return it["dbid"], None
+        resp = _jsonrpc("VideoLibrary.GetSeasonDetails", {
+            "seasonid": it["dbid"], "properties": ["tvshowid", "season"]})
+        det = ((resp or {}).get("result") or {}).get("seasondetails") or {}
+        showid = det.get("tvshowid") or 0
+        if not showid or det.get("season") is None:
+            return 0, None
+        return int(showid), int(det["season"])
+
+    def _list_group_episodes(self, it):
+        """<summary>The episodes a show or season row stands for, in order.</summary>
+        <param name="it">A stored tvshow or season record.</param>
+        <returns>Episode rows from VideoLibrary.GetEpisodes, sorted by season
+        then episode, less any Remove Watched has taken out of the row;
+        empty when the show or season has gone.</returns>"""
+        showid, season = self._list_group_where(it)
+        if not showid:
+            return []
+        params = {"tvshowid": showid, "properties": self.LIST_EPISODE_PROPS}
+        if season is not None:
+            params["season"] = season
+        resp = _jsonrpc("VideoLibrary.GetEpisodes", params)
+        rows = ((resp or {}).get("result") or {}).get("episodes") or []
+        if season is None:
+            rows = [r for r in rows if self._safe_int(r.get("season"), 0) > 0]
+        skip = set(it.get("skip") or [])
+        if skip:
+            rows = [r for r in rows if self._list_episode_key(r) not in skip]
+        rows.sort(key=lambda r: (self._safe_int(r.get("season"), 0),
+                                 self._safe_int(r.get("episode"), 0)))
+        return rows
+
+    def _list_episode_key(self, row):
+        """<summary>The "season x episode" key a group row's skip uses.</summary>
+        <param name="row">An episode row from the library.</param>"""
+        return "%dx%d" % (self._safe_int(row.get("season"), 0),
+                          self._safe_int(row.get("episode"), 0))
+
+    def _list_group_fill(self, item):
+        """<summary>Complete a just captured show or season row from the
+        library: a label that says which show, the poster, and the episode
+        count and running time shown under it.</summary>
+        <param name="item">A clean tvshow or season record.</param>
+        <returns>The record, or None when it has no episodes to play.</returns>
+        <remarks>The count and time are a snapshot for the Lists screen
+        only; what gets played is worked out again at port time.</remarks>"""
+        if item["dbtype"] == "tvshow":
+            resp = _jsonrpc("VideoLibrary.GetTVShowDetails", {
+                "tvshowid": item["dbid"], "properties": ["title", "art", "year"]})
+            det = ((resp or {}).get("result") or {}).get("tvshowdetails") or {}
+            title = det.get("title") or item["show"] or item["label"]
+            item["show"] = title
+            item["label"] = title
+            item["year"] = str(det.get("year") or item["year"] or "")
+        else:
+            resp = _jsonrpc("VideoLibrary.GetSeasonDetails", {
+                "seasonid": item["dbid"],
+                "properties": ["showtitle", "season", "art"]})
+            det = ((resp or {}).get("result") or {}).get("seasondetails") or {}
+            item["show"] = det.get("showtitle") or item["show"]
+            if det.get("season") is not None:
+                item["season"] = str(det["season"])
+            name = det.get("label") or item["label"]
+            item["label"] = (item["show"] + ", " + name) if item["show"] else name
+        art = det.get("art") or {}
+        item["thumb"] = (art.get("poster") or art.get("tvshow.poster")
+                         or art.get("thumb") or item["thumb"])
+        rows = self._list_group_episodes(item)
+        if not rows:
+            return None
+        self._list_group_tally(item, rows)
+        return item
+
+    def _list_group_tally(self, item, rows):
+        """<summary>Set the episode count and running time shown under a
+        group row from the episodes it still stands for.</summary>
+        <param name="item">The tvshow or season record. Modified in place.</param>
+        <param name="rows">Its episodes, as _list_group_episodes returns them.</param>"""
+        item["count"] = len(rows)
+        item["duration"] = sum(self._safe_int(r.get("runtime"), 0) for r in rows)
+
+    def _lists_expand(self, items, one_each=False):
+        """<summary>Swap each show or season row for its episodes.</summary>
+        <param name="items">Rows in list order, not modified.</param>
+        <param name="one_each">Put in one random episode per show or season
+        row instead of all of them: the random ports treat a row as one
+        item.</param>
+        <returns>Playable records in the same order, with an episode that is
+        also listed elsewhere on the list kept only the first time, as
+        adding it twice by hand would have been refused.</returns>"""
+        out = []
+        for it in items:
+            if it["dbtype"] not in self.LIST_GROUP_TYPES:
+                expanded = [it]
+            else:
+                expanded = []
+                rows = self._list_group_episodes(it)
+                if one_each and rows:
+                    # Prefer an episode not already drawn from another row.
+                    fresh = [r for r in rows if not any(
+                        x["dbtype"] == "episode"
+                        and x["dbid"] == self._safe_int(r.get("episodeid"), 0)
+                        for x in out)]
+                    rows = [random.choice(fresh or rows)]
+                for r in rows:
+                    art = r.get("art") or {}
+                    ep = self._list_item_clean({
+                        "label": r.get("title") or r.get("label") or "",
+                        "file": r.get("file") or "",
+                        "dbtype": "episode",
+                        "dbid": r.get("episodeid") or 0,
+                        "thumb": r.get("thumbnail") or art.get("thumb") or "",
+                        "duration": r.get("runtime") or 0,
+                        "show": r.get("showtitle") or it["show"],
+                        "season": r.get("season") or "",
+                        "episode": r.get("episode") or "",
+                        "kind": "video",
+                    })
+                    if ep:
+                        expanded.append(ep)
+            for ep in expanded:
+                if not any(self._list_item_same(ep, x) for x in out):
+                    out.append(ep)
+        return out
+
     def _lists_port(self, shuffle):
         """<summary>Copy the whole selected list into Kodi's queue(s) and
         start it playing.</summary>
-        <param name="shuffle">Randomise the order before queueing.</param>"""
+        <param name="shuffle">Randomise the order before queueing, with
+        each show or season row putting in one random episode rather than
+        all of them (LISTS-GROUPS).</param>"""
         idx, lst = self._lists_selected()
         if not lst:
             return
@@ -4019,6 +4261,10 @@ class FunctionalHelper(xbmc.Monitor):
             items = list(lst["items"])
         if not items:
             self._lists_notify(_L(31345) % lst["name"], True)
+            return
+        items = self._lists_expand(items, one_each=shuffle)
+        if not items:
+            self._lists_notify(_L(31651) % lst["name"], True)
             return
         if shuffle:
             random.shuffle(items)
@@ -4056,6 +4302,12 @@ class FunctionalHelper(xbmc.Monitor):
         with self._lists_lock:
             lst["fill"] = minutes
         self._lists_save()
+        # Each show or season row counts once, as the one random episode
+        # it gives, and that is what the time is filled from.
+        items = self._lists_expand(items, one_each=True)
+        if not items:
+            self._lists_notify(_L(31651) % lst["name"], True)
+            return
         picked, total = self._lists_pick_for_duration(items, minutes * 60)
         _dlog("list fill: %s target %s picked %d of %d, total %s" % (
             lst["name"], self._fmt_hhmm(minutes), len(picked), len(items),
@@ -4163,6 +4415,15 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("list item menu: row %d of %s -> choice %d" % (
             pos + 1, lst["name"], choice))
         if choice == 0:
+            if it["dbtype"] in self.LIST_GROUP_TYPES:
+                # LISTS-GROUPS: a show or season is many items, so it goes
+                # through the queue like a port, clear or keep as set.
+                eps = self._lists_expand([it])
+                if not eps:
+                    self._lists_notify(_L(31651) % it["label"], True)
+                    return
+                self._lists_queue(lst, eps, _L(31356))
+                return
             _jsonrpc("Player.Open", {"item": self._list_item_spec(it)})
             return
         if choice < 0:
@@ -4416,6 +4677,7 @@ class FunctionalHelper(xbmc.Monitor):
         for key, expiry in list(self._lists_watch_ignore.items()):
             if expiry <= now:
                 self._lists_watch_ignore.pop(key, None)
+        updates = self._list_groups_watched(seen)
         removed = []  # (label, list name)
         with self._lists_lock:
             for lst in self._lists or []:
@@ -4423,7 +4685,18 @@ class FunctionalHelper(xbmc.Monitor):
                     continue
                 keep = []
                 for it in lst["items"]:
-                    if any(self._list_item_watched(it, rec) for rec in seen):
+                    upd = next((u for u in updates if u[0] is it), None)
+                    if upd:
+                        # LISTS-GROUPS: the watched episodes leave the row.
+                        _row, keys, titles, rows = upd
+                        it["skip"] = sorted(set(it.get("skip") or []) | keys)
+                        self._list_group_tally(it, rows)
+                        removed.extend((titles[k], lst["name"]) for k in sorted(keys))
+                        if not rows:
+                            removed.append((it["label"], lst["name"]))
+                            continue
+                        keep.append(it)
+                    elif any(self._list_item_watched(it, rec) for rec in seen):
                         removed.append((it["label"], lst["name"]))
                     else:
                         keep.append(it)
@@ -4435,6 +4708,53 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("lists: removed watched %s from %s" % (label, name))
             xbmcgui.Dialog().notification(label, _L(31508) % name,
                                           xbmcgui.NOTIFICATION_INFO, 5000)
+
+    def _list_groups_watched(self, seen):
+        """<summary>Work out which episodes just watched belong to show and
+        season rows on Remove Watched lists (LISTS-GROUPS).</summary>
+        <param name="seen">Records drained from _lists_watched_q.</param>
+        <returns>One (row, new skip keys, {key: episode title}, episodes
+        left after them) per row that loses an episode; the row is the
+        stored dict itself, matched by identity under the lock.</returns>
+        <remarks>Runs before the lists lock is taken, since it queries the
+        library: one lookup per watched episode, and one episode listing
+        per row those episodes belong to. An episode the row had already
+        dropped, or a special against a whole show row, changes nothing.</remarks>"""
+        eps = [rec["dbid"] for rec in seen
+               if rec["dbtype"] == "episode" and rec["dbid"]]
+        if not eps:
+            return []
+        with self._lists_lock:
+            rows = [it for lst in self._lists or [] if lst.get("autoremove")
+                    for it in lst["items"]
+                    if it["dbtype"] in self.LIST_GROUP_TYPES]
+        if not rows:
+            return []
+        watched = []  # (tvshowid, season, key, title)
+        for epid in eps:
+            resp = _jsonrpc("VideoLibrary.GetEpisodeDetails", {
+                "episodeid": epid,
+                "properties": ["tvshowid", "season", "episode", "title"]})
+            det = ((resp or {}).get("result") or {}).get("episodedetails") or {}
+            if det.get("tvshowid"):
+                watched.append((int(det["tvshowid"]),
+                                self._safe_int(det.get("season"), 0),
+                                self._list_episode_key(det),
+                                det.get("title") or det.get("label") or ""))
+        updates = []
+        for it in rows:
+            showid, season = self._list_group_where(it)
+            mine = [w for w in watched if w[0] == showid
+                    and (w[1] == season if season is not None else w[1] > 0)
+                    and w[2] not in (it.get("skip") or [])]
+            if not mine:
+                continue
+            keys = {w[2] for w in mine}
+            titles = {w[2]: w[3] or it["label"] for w in mine}
+            left = [r for r in self._list_group_episodes(it)
+                    if self._list_episode_key(r) not in keys]
+            updates.append((it, keys, titles, left))
+        return updates
 
     @staticmethod
     def _list_item_watched(it, rec):

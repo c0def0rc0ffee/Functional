@@ -2498,9 +2498,12 @@
 	     next open, which is stock behaviour. The item's identity is copied
 	     into Home window properties at click time rather than read by the
 	     service afterwards, because the underlying container can move on
-	     before the next service tick. Only leaf items (never a show, season,
-	     album or plugin folder) in the library and queue windows show the
-	     rows.</remarks> -->
+	     before the next service tick. Leaf items in the library and queue
+	     windows show the rows, and so do a library show or season
+	     (LISTS-GROUPS, 13/10/2026), which goes on the list as one row
+	     standing for all its episodes. Albums and plugin folders do not, nor
+	     does "All seasons", which Kodi lists as a season carrying the
+	     SHOW's id and an empty season number.</remarks> -->
 	<include name="ListsContextButton">
 		<param name="id" />
 		<param name="top" />
@@ -2535,7 +2538,7 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus>-</texturenofocus>
 				<label>$PARAM[label]</label>
-				<visible>$PARAM[visible] + !ListItem.IsFolder + !ListItem.IsParentFolder + !String.IsEmpty(ListItem.FilenameAndPath) + [Window.IsActive(videos) | Window.IsActive(music) | Window.IsActive(videoplaylist) | Window.IsActive(musicplaylist)]</visible>
+				<visible>$PARAM[visible] + !ListItem.IsParentFolder + [Window.IsActive(videos) | Window.IsActive(music) | Window.IsActive(videoplaylist) | Window.IsActive(musicplaylist)] + [[!ListItem.IsFolder + !String.IsEmpty(ListItem.FilenameAndPath)] | [Window.IsActive(videos) + [String.IsEqual(ListItem.DBTYPE,tvshow) | [String.IsEqual(ListItem.DBTYPE,season) + !String.IsEmpty(ListItem.Season)]] + Integer.IsGreater(ListItem.DBID,0)]]</visible>
 				<animation effect="slide" end="0,60" time="0" condition="$PARAM[shift]">Conditional</animation>
 				<onup>$PARAM[onup]</onup>
 				<ondown>$PARAM[ondown]</ondown>
