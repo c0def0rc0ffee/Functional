@@ -11,6 +11,19 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.22.0 (13/10/2026)
+
+- A whole TV show or season can go on a list as one row. Press and hold
+  on a show or season in the TV library and use Add To List. The row
+  shows how many episodes it holds.
+- Port to Queue plays every episode of it in order. Port Shuffled and
+  Port by Time count the show or season as one item and pick one random
+  episode from it, so a show added whole gives one episode and the same
+  show added as two seasons gives two. A whole show leaves out Specials.
+- On a list with Remove Watched on, an episode watched after the show or
+  season was added is taken out of it, and the row goes once every
+  episode has been watched.
+
 ## 0.21.3 (12/10/2026)
 
 - The Coming up list on the left has separators: a faint line between
