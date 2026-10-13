@@ -3292,7 +3292,11 @@ class FunctionalHelper(xbmc.Monitor):
         Watched switch; a file written before it existed reads as off.
         "radarr" marks the one list whose films Remove from Radarr acts on,
         see _radarr_pick_list; it also reads as off when missing, and only
-        the first list carrying it keeps it.
+        the first list carrying it keeps it. "seq" is the list's creation
+        number on this box, what Sort Lists orders by for newest and oldest
+        (LISTS-SORT). A file written before it existed has none; its lists
+        are numbered in file order, which was creation order, because
+        nothing could reorder lists until Sort Lists arrived.
         </remarks>
         """
         if not (text or "").strip():
@@ -3320,11 +3324,26 @@ class FunctionalHelper(xbmc.Monitor):
                 fill = 0
             radarr = bool(entry.get("radarr")) and not any(
                 l["radarr"] for l in lists)
+            try:
+                seq = max(int(entry.get("seq") or 0), 0)
+            except (TypeError, ValueError):
+                seq = 0
             lists.append({"name": name,
                           "items": [it for it in items if it],
                           "fill": min(max(fill, 0), 23 * 60 + 59),
                           "autoremove": bool(entry.get("autoremove")),
-                          "radarr": radarr})
+                          "radarr": radarr,
+                          "seq": seq})
+        # Unnumbered lists (an older file) follow the numbered ones in file
+        # order, and a repeated number is renumbered, so every list has its
+        # own and the newest and oldest sorts are never left to chance.
+        seen = set()
+        top = max([l["seq"] for l in lists] or [0])
+        for lst in lists:
+            if not lst["seq"] or lst["seq"] in seen:
+                top += 1
+                lst["seq"] = top
+            seen.add(lst["seq"])
         return lists, str(data.get("last", "") or "")
 
     def _lists_export(self, folder=""):
@@ -3407,8 +3426,11 @@ class FunctionalHelper(xbmc.Monitor):
                         continue
                     # "radarr" is never carried over: which list sends
                     # films to be deleted is chosen on this box, not by a file.
+                    # Its number on the other box means nothing here: an
+                    # imported list is new to this box, so it sorts newest.
                     target = {"name": entry["name"], "items": [], "fill": entry["fill"],
-                              "autoremove": entry["autoremove"], "radarr": False}
+                              "autoremove": entry["autoremove"], "radarr": False,
+                              "seq": self._lists_next_seq(lists)}
                     lists.append(target)
                     new_lists += 1
                 for item in entry["items"]:
@@ -3823,7 +3845,8 @@ class FunctionalHelper(xbmc.Monitor):
         selected list); item_up:N, item_down:N and item_del:N (the row's
         quick buttons, LISTS-QUICK in Custom_1151_Lists.xml; remove asks
         first); shuffle (put the selected list in a random order, after a
-        confirm); save_queue (the open queue window becomes a new
+        confirm); sort (put the lists themselves in the order picked,
+        LISTS-SORT); save_queue (the open queue window becomes a new
         list). Each tick also runs the Remove Watched tracker, whatever
         window is up, because watching happens away from this screen.
         A command arriving while another dialog is up is dropped, as with
@@ -3891,6 +3914,8 @@ class FunctionalHelper(xbmc.Monitor):
             self._lists_item_quick(*cmd.split(":", 1))
         elif cmd == "shuffle":
             self._lists_shuffle()
+        elif cmd == "sort":
+            self._lists_sort()
         elif cmd == "save_queue":
             self._lists_save_queue()
         elif cmd == "export":
@@ -3956,6 +3981,16 @@ class FunctionalHelper(xbmc.Monitor):
             win.clearProperty(prop)
         return self._list_item_clean(raw)
 
+    @staticmethod
+    def _lists_next_seq(lists):
+        """<summary>The creation number for a list about to be added
+        (LISTS-SORT).</summary>
+        <param name="lists">The lists it is joining.</param>
+        <returns>One more than the highest number in use, 1 for the first.</returns>
+        <remarks>The highest rather than the count, so a list removed
+        earlier never lets a new one share a number with an old one.</remarks>"""
+        return max([l.get("seq") or 0 for l in lists] or [0]) + 1
+
     def _lists_create(self, name, items=None):
         """<summary>Append a new list and save.</summary>
         <param name="name">The new list's name, already checked as unused.</param>
@@ -3971,7 +4006,8 @@ class FunctionalHelper(xbmc.Monitor):
             else:
                 self._lists.append({"name": name, "items": list(items or []),
                                     "fill": 0, "autoremove": False,
-                                    "radarr": False})
+                                    "radarr": False,
+                                    "seq": self._lists_next_seq(self._lists)})
                 idx = len(self._lists)
                 self._lists_last = name
         if not idx:
@@ -4578,6 +4614,45 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("list %s: shuffled %d items" % (lst["name"], len(lst["items"])))
         self._lists_notify(_L(31624) % lst["name"])
         xbmc.executebuiltin("SetFocus(51,0,absolute)")
+
+    # LISTS-SORT: Sort Lists picker rows, (string id, key, newest first).
+    # Ties fall back to the name, so the order is the same on every run.
+    LISTS_SORTS = ((31653, "name", False), (31654, "seq", True),
+                   (31655, "seq", False), (31656, "size", True),
+                   (31657, "size", False))
+
+    def _lists_sort(self):
+        """<summary>Put the lists themselves in the order picked: by name,
+        newest or oldest first, or most or fewest items first
+        (LISTS-SORT).</summary>
+        <remarks>A one off reorder kept in lists.json, like Shuffle List,
+        not a standing mode: a list made afterwards goes at the bottom as
+        always, and adding items never moves a list under the cursor. No
+        confirm, because any order can be had back by sorting again.
+        Newest and oldest go by the creation number, see _lists_parse. The
+        cursor goes to the first list, since the one selected has
+        moved.</remarks>"""
+        with self._lists_lock:
+            if len(self._lists or []) < 2:
+                return
+        choice = xbmcgui.Dialog().select(
+            _L(31652), [_L(sid) for sid, _key, _desc in self.LISTS_SORTS])
+        if choice < 0:
+            return
+        sid, key, desc = self.LISTS_SORTS[choice]
+        with self._lists_lock:
+            # Name first as the tie break, then the stable sort on the key
+            # keeps that order within equal keys whichever way it runs.
+            self._lists.sort(key=lambda l: l["name"].casefold())
+            if key == "seq":
+                self._lists.sort(key=lambda l: l.get("seq") or 0, reverse=desc)
+            elif key == "size":
+                self._lists.sort(key=lambda l: len(l["items"]), reverse=desc)
+            self._lists_sel = 1
+        self._lists_save()
+        _dlog("lists sorted: %s" % _L(sid))
+        self._lists_notify(_L(31658) % _L(sid))
+        xbmc.executebuiltin("SetFocus(50,0,absolute)")
 
     def _lists_toggle_autoremove(self):
         """<summary>Flip Remove Watched on the selected list and say which

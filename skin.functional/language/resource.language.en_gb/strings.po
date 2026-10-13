@@ -2352,3 +2352,31 @@ msgstr ""
 msgctxt "#31651"
 msgid "No episodes left to play in %s"
 msgstr ""
+
+msgctxt "#31652"
+msgid "Sort Lists"
+msgstr ""
+
+msgctxt "#31653"
+msgid "Name"
+msgstr ""
+
+msgctxt "#31654"
+msgid "Newest first"
+msgstr ""
+
+msgctxt "#31655"
+msgid "Oldest first"
+msgstr ""
+
+msgctxt "#31656"
+msgid "Most items first"
+msgstr ""
+
+msgctxt "#31657"
+msgid "Fewest items first"
+msgstr ""
+
+msgctxt "#31658"
+msgid "Lists sorted: %s"
+msgstr ""
