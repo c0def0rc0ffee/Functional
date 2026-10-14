@@ -79,6 +79,10 @@ For a headless / remote-only Linux box, the scripts in [`mint-autoupdate/`](mint
 
 After updating, you might need to switch to a different skin and back, or restart Kodi, for the new XML to load (Kodi caches skin files in memory).
 
+## Managing the lists from JellyStat
+
+From 0.23.0 the skin's lists can be managed from the JellyStat dashboard on a phone or laptop, provided JellyStat 0.27.0 or later is installed on the same box. Nothing else needs setting up: the switch **Let JellyStat manage the lists** sits on the **Lists** page of **Settings → Skin Settings** (the page that used to be called Radarr) and is on by default; turn it off there if you would rather the lists were only edited on the TV.
+
 ## Migrating from the old `skin.starter`
 
 If a device previously had this skin under the old ID `skin.starter`:

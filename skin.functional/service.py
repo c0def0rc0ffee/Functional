@@ -509,6 +509,24 @@ def _parse_duration_to_seconds(text):
         return 0
 
 
+def _num_text(value):
+    """
+    <summary>
+    A season or episode number from a JSON-RPC row as the text a list item holds.
+    </summary>
+    <param name="value">The number Kodi returned, or None when the row has none.</param>
+    <returns>'0' for season 0, '' when there is none.</returns>
+    <remarks>
+    _list_item_clean reads every field as text, so a row's number has to be made
+    text before it. Reading it through "or" turned the number 0 into '' and a
+    Specials episode lost its season (c26ab7c fixed the API side; this is the
+    same rule for the service's own rows). The same helper lives in lists_api.py,
+    which cannot import this module.
+    </remarks>
+    """
+    return "" if value is None else str(value)
+
+
 # ---------------------------------------------------------------------------
 
 
@@ -3310,7 +3328,11 @@ class FunctionalHelper(xbmc.Monitor):
         are numbered in file order, which was creation order, because
         nothing could reorder lists until Sort Lists arrived. "sort" is the
         order Sort Lists keeps the lists in; an unknown or missing one reads
-        as none, which leaves them in file order.
+        as none, which leaves them in file order. A name already used by an
+        earlier list, ignoring case, is renamed with a number in brackets
+        and logged: the TV's name prompt and the API both refuse such a
+        name, but an import used to create one, and dropping the list on
+        the way in would lose its items.
         </remarks>
         """
         if not (text or "").strip():
@@ -3342,6 +3364,13 @@ class FunctionalHelper(xbmc.Monitor):
                 seq = max(int(entry.get("seq") or 0), 0)
             except (TypeError, ValueError):
                 seq = 0
+            wanted, number = name, 2
+            while any(l["name"].lower() == name.lower() for l in lists):
+                name = "%s (%d)" % (wanted, number)
+                number += 1
+            if name != wanted:
+                _dlog("lists: %r is already a list's name ignoring case, read as %r"
+                      % (wanted, name), xbmc.LOGWARNING)
             lists.append({"name": name,
                           "items": [it for it in items if it],
                           "fill": min(max(fill, 0), 23 * 60 + 59),
@@ -3406,7 +3435,11 @@ class FunctionalHelper(xbmc.Monitor):
         twice is harmless, and the caps LISTS_MAX and LIST_ITEMS_MAX hold.
         Each incoming item's library id is checked against this box first,
         see _list_item_localise: the file may come from a box with its own
-        video database, where id 12 is a different film.</remarks>
+        video database, where id 12 is a different film. An incoming list
+        whose name is here already under another case ("films" against
+        "Films") is skipped, counted in a second toast and logged, since
+        the name prompt and the API both refuse a name taken ignoring case
+        and this used to be the one way to make such a pair.</remarks>
         """
         if not path:
             path = xbmcgui.Dialog().browse(1, _L(31484), "files", ".json")
@@ -3434,11 +3467,17 @@ class FunctionalHelper(xbmc.Monitor):
                 else:
                     checked.append(item)
             entry["items"] = checked
-        new_lists = new_items = 0
+        new_lists = new_items = clashed = 0
         with self._lists_lock:
             lists = self._lists if self._lists is not None else []
             for entry in incoming:
                 target = next((l for l in lists if l["name"] == entry["name"]), None)
+                if target is None and any(l["name"].lower() == entry["name"].lower()
+                                          for l in lists):
+                    clashed += 1
+                    _dlog("lists import: %r skipped, a list of that name is here "
+                          "under another case" % entry["name"], xbmc.LOGWARNING)
+                    continue
                 if target is None:
                     if len(lists) >= self.LISTS_MAX:
                         continue
@@ -3461,9 +3500,11 @@ class FunctionalHelper(xbmc.Monitor):
             self._lists = lists
         self._lists_save()
         _dlog("lists imported from %s: %d new list(s), %d new item(s), "
-              "%d item(s) this library does not have" % (
-                  path, new_lists, new_items, dropped))
+              "%d item(s) this library does not have, %d list(s) skipped" % (
+                  path, new_lists, new_items, dropped, clashed))
         self._lists_notify(_L(31486) % (new_lists, new_items))
+        if clashed:
+            self._lists_notify(_L(31665) % clashed, True)
 
     # dbtype -> (JSON-RPC details method, its id parameter, the key the
     # record comes back under), for _list_item_localise.
@@ -3923,9 +3964,15 @@ class FunctionalHelper(xbmc.Monitor):
         the server only listens on the box itself and JellyStat's password is
         the real gate. lists_api.sync costs nothing when nothing has changed.
         The server's threads call back into this helper's list methods under
-        its own locks; see lists_api.py.
+        its own locks; see lists_api.py. Nothing is started while the
+        startup splash is still up: announcing the server writes a Home
+        window property, which is the write the crash dumps on record
+        implicate during the Startup to Home transition, so this waits for
+        the splash to go as a belt beside the three second grace in run().
         </remarks>
         """
+        if xbmc.getCondVisibility("Window.IsActive(startup)"):
+            return
         lists_api.sync(self, not xbmc.getCondVisibility("Skin.HasSetting(lists_api_off)"))
 
     def _lists_worker(self, cmd):
@@ -4328,8 +4375,8 @@ class FunctionalHelper(xbmc.Monitor):
                         "thumb": r.get("thumbnail") or art.get("thumb") or "",
                         "duration": r.get("runtime") or 0,
                         "show": r.get("showtitle") or it["show"],
-                        "season": r.get("season") or "",
-                        "episode": r.get("episode") or "",
+                        "season": _num_text(r.get("season")),
+                        "episode": _num_text(r.get("episode")),
                         "kind": "video",
                     })
                     if ep:
@@ -4609,8 +4656,8 @@ class FunctionalHelper(xbmc.Monitor):
                 "thumb": row.get("thumbnail") or "",
                 "duration": row.get("runtime") or row.get("duration") or 0,
                 "show": row.get("showtitle") or "",
-                "season": row.get("season") or "",
-                "episode": row.get("episode") or "",
+                "season": _num_text(row.get("season")),
+                "episode": _num_text(row.get("episode")),
                 "artist": artist,
                 "year": row.get("year") or "",
                 "kind": kind,

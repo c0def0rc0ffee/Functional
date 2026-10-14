@@ -41,6 +41,11 @@ SKIN = os.path.join(REPO, "skin.functional")
 XML_DIR = os.path.join(SKIN, "xml")
 PO_PATH = os.path.join(SKIN, "language", "resource.language.en_gb", "strings.po")
 SERVICE = os.path.join(SKIN, "service.py")
+# The add-on API module, judged by the same service checks, plus a check that
+# every attribute it reads off the helper the service hands it exists.
+API = os.path.join(SKIN, "lists_api.py")
+API_HELPER_CLASS = "FunctionalHelper"   # the class whose instance the API is handed
+API_HELPER_PARAM = "helper"             # the parameter name it arrives under
 COLOURS = os.path.join(SKIN, "colors", "defaults.xml")
 MEDIA = os.path.join(SKIN, "media")
 
@@ -57,10 +62,14 @@ ALLOW_TEXTURES = {"-"}
 ALLOW_NO_DISABLEDCOLOR = set()
 # Skin settings the XML reads that only Kodi itself or the user ever sets.
 ALLOW_UNSET_SETTINGS = set()
-# Methods the helper class inherits from Kodi's own monitor class. That base
-# class is not in this tree, so its members cannot be read from the source;
-# name each one the service calls here.
-ALLOW_INHERITED = {"waitForAbort", "abortRequested"}
+# Members a class inherits from a base class outside this tree, keyed by the
+# base class's own name (the last part of xbmc.Monitor is Monitor). Those bases
+# cannot be read from the source, so name each member the tree uses here.
+ALLOW_INHERITED = {
+    "Monitor": {"waitForAbort", "abortRequested"},
+    "BaseHTTPRequestHandler": {"headers", "server", "path", "command", "rfile", "wfile",
+                               "send_response", "send_header", "end_headers"},
+}
 # Names every module has without binding them itself.
 MODULE_NAMES = {"__file__", "__name__", "__doc__", "__package__", "__spec__",
                 "__loader__", "__builtins__", "__path__", "__cached__"}
@@ -388,6 +397,9 @@ def check_settings_drift():
                 exact.add(literal)
 
     def names(pattern):
+        """<summary>Every capture of a pattern across the skin's XML, and where it was seen.</summary>
+        <param name="pattern">A regex with one group, the name to collect.</param>
+        <returns>dict of captured name to the set of file basenames it appears in.</returns>"""
         found = collections.defaultdict(set)
         for fname, text in xml_text.items():
             for m in re.finditer(pattern, text):
@@ -395,6 +407,10 @@ def check_settings_drift():
         return found
 
     def mentioned(name):
+        """<summary>Whether service.py writes or names a setting or property.</summary>
+        <param name="name">The setting or property name as the XML reads it.</param>
+        <returns>True when it is allowed, appears as an exact literal, or matches a
+        format pattern such as Cast.%d.Name.</returns>"""
         if name in ALLOW_UNSET_SETTINGS or name in exact:
             return True
         return any(p.match(name) for p in patterns)
@@ -476,9 +492,10 @@ def _class_members(classes, name, seen=()):
     <param name="seen">Classes already visited, so a base class cycle cannot recurse for ever.</param>
     <returns>Set of names: methods, class level assignments, every self attribute
     the class's own methods store, the same for each base class defined in this
-    module, and ALLOW_INHERITED when a base class lives outside it.</returns>
-    <remarks>A base such as xbmc.Monitor is not in this tree, so its members
-    cannot be read from source; the allowance names the few that are used.</remarks>"""
+    module, and that base's ALLOW_INHERITED entry when a base class lives outside it.</returns>
+    <remarks>A base such as xbmc.Monitor or BaseHTTPRequestHandler is not in this
+    tree, so its members cannot be read from source; the allowance names the few
+    that are used, per base class.</remarks>"""
     node = classes[name]
     found = set()
     for item in node.body:
@@ -498,14 +515,16 @@ def _class_members(classes, name, seen=()):
         if isinstance(base, ast.Name) and base.id in classes and base.id not in seen:
             found |= _class_members(classes, base.id, seen + (name,))
         elif not (isinstance(base, ast.Name) and base.id == "object"):
-            found |= ALLOW_INHERITED
+            short = base.attr if isinstance(base, ast.Attribute) else getattr(base, "id", "")
+            found |= ALLOW_INHERITED.get(short, set())
     return found
 
 
-def _unresolved_names(source, tree):
+def _unresolved_names(source, tree, label="service.py"):
     """<summary>Every name the module reads that nothing binds.</summary>
     <param name="source">Module source text.</param>
     <param name="tree">The same source parsed by ast, used only for line numbers.</param>
+    <param name="label">The file name, for the symbol table only.</param>
     <returns>Sorted list of (line, scope name, name).</returns>
     <remarks>Uses the compiler's own symbol table rather than a hand kept walk,
     so comprehension variables, closures, except and with targets, lambdas and
@@ -515,12 +534,14 @@ def _unresolved_names(source, tree):
     call, a thread target, a table entry and a plain read alike, at module
     level as well as inside functions. It does not prove the order things are
     defined in, only that a definition exists.</remarks>"""
-    top = symtable.symtable(source, "service.py", "exec")
+    top = symtable.symtable(source, label, "exec")
     known = set(dir(builtins)) | MODULE_NAMES
 
     def bound_here(sym):
         """<summary>Whether a scope binds a name itself: by assignment, import,
-        parameter, or a def or class statement.</summary>"""
+        parameter, or a def or class statement.</summary>
+        <param name="sym">A symtable Symbol.</param>
+        <returns>True when the scope binds it.</returns>"""
         return sym.is_assigned() or sym.is_imported() or sym.is_parameter() or sym.is_namespace()
 
     tables, stack = [], [top]
@@ -577,9 +598,10 @@ def _unresolved_names(source, tree):
     return sorted(found)
 
 
-def _service_findings(source):
+def _service_findings(source, label="service.py"):
     """<summary>Every finding for one service module's source text.</summary>
     <param name="source">The module source.</param>
+    <param name="label">The file name shown in each finding.</param>
     <returns>Findings: a name that resolves to nothing (a call, a thread target,
     a table entry or a plain read, inside a function or at module level), an
     attribute of self, of an instance or of a class that the class never
@@ -598,8 +620,8 @@ def _service_findings(source):
     checked; neither is getattr() with a computed name.</remarks>"""
     findings = []
     tree = ast.parse(source)
-    for line, scope, name in _unresolved_names(source, tree):
-        findings.append("service.py:{0} {1}: {2} resolves to nothing".format(line, scope, name))
+    for line, scope, name in _unresolved_names(source, tree, label):
+        findings.append("{0}:{1} {2}: {3} resolves to nothing".format(label, line, scope, name))
 
     classes = {n.name: n for n in tree.body if isinstance(n, ast.ClassDef)}
     members = {name: _class_members(classes, name) for name in classes}
@@ -614,10 +636,12 @@ def _service_findings(source):
         key = (owner, node.attr)
         if key not in reported:
             reported.add(key)
-            findings.append("service.py:{0} {1}.{2} is never defined".format(node.lineno, what, node.attr))
+            findings.append("{0}:{1} {2}.{3} is never defined".format(label, node.lineno, what, node.attr))
 
     def class_of(node):
-        """<summary>The module class a call expression constructs, or None.</summary>"""
+        """<summary>The module class a call expression constructs, or None.</summary>
+        <param name="node">Any ast node; only a Call to a module class name counts.</param>
+        <returns>The class name, or None.</returns>"""
         if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
                 and node.func.id in classes):
             return node.func.id
@@ -625,6 +649,8 @@ def _service_findings(source):
 
     def own_nodes(scope):
         """<summary>Every node that belongs to one scope and to no scope nested in it.</summary>
+        <param name="scope">The module or a function node.</param>
+        <returns>Yields each node in turn.</returns>
         <remarks>The bodies of nested functions and classes are left out, so
         an instance name never leaks between scopes. Lambdas are walked into:
         they read the enclosing scope's names and have none of their own
@@ -638,6 +664,7 @@ def _service_findings(source):
 
     def instances(scope):
         """<summary>Names a scope assigns straight from a module class's constructor.</summary>
+        <param name="scope">The module or a function node.</param>
         <returns>dict of name to class name. A name the scope also assigns
         from anything else is left out, since its type is then unknown.</returns>"""
         found, rebound = {}, set()
@@ -688,23 +715,59 @@ def _service_findings(source):
     for func in funcs:
         docstring = ast.get_docstring(func)
         if not docstring or "<summary>" not in docstring:
-            findings.append("service.py:{0} {1}(): no <summary> doc comment".format(func.lineno, func.name))
+            findings.append("{0}:{1} {2}(): no <summary> doc comment".format(label, func.lineno, func.name))
         for default in func.args.defaults + func.args.kw_defaults:
             if isinstance(default, (ast.List, ast.Dict, ast.Set)):
-                findings.append("service.py:{0} {1}(): mutable default argument".format(func.lineno, func.name))
+                findings.append("{0}:{1} {2}(): mutable default argument".format(label, func.lineno, func.name))
     for node in ast.walk(tree):
         if isinstance(node, ast.ExceptHandler) and node.type is None:
-            findings.append("service.py:{0} bare except:".format(node.lineno))
+            findings.append("{0}:{1} bare except:".format(label, node.lineno))
+    return findings
+
+
+def _api_findings(api_source, service_source, api_label="lists_api.py",
+                  cls_name=API_HELPER_CLASS, param=API_HELPER_PARAM):
+    """<summary>Every attribute the API module reads off the helper it is handed
+    that the helper's class never defines.</summary>
+    <param name="api_source">The API module's source.</param>
+    <param name="service_source">The service module's source, which defines the helper class.</param>
+    <param name="api_label">The API file name shown in each finding.</param>
+    <param name="cls_name">The helper class, as named in the service module.</param>
+    <param name="param">The name the helper arrives under in the API module.</param>
+    <returns>Findings, one per attribute name, with the line it is first read on.</returns>
+    <remarks>_service_findings cannot type a helper handed in as a parameter, so
+    without this a method renamed or range deleted in service.py would only show
+    as a 500 behind the API's blanket except, the same silence the service
+    check exists to break. A missing helper class is itself a finding.</remarks>"""
+    classes = {n.name: n for n in ast.parse(service_source).body if isinstance(n, ast.ClassDef)}
+    if cls_name not in classes:
+        return ["{0}: the service defines no class {1} for the API's {2}".format(
+            api_label, cls_name, param)]
+    members = _class_members(classes, cls_name)
+    findings, reported = [], set()
+    for node in ast.walk(ast.parse(api_source)):
+        if (isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name)
+                and node.value.id == param and isinstance(node.ctx, ast.Load)
+                and node.attr not in members and node.attr not in reported):
+            reported.add(node.attr)
+            findings.append("{0}:{1} {2}.{3} is not defined on {4}".format(
+                api_label, node.lineno, param, node.attr, cls_name))
     return findings
 
 
 def check_service():
-    """<summary>service.py resolves: every name it reads and every helper it calls exists, every function carries a summary.</summary>
-    <returns>The findings of _service_findings() for the skin's service.py.</returns>
+    """<summary>service.py and lists_api.py resolve: every name each reads and every
+    helper each calls exists, every function carries a summary, and every attribute
+    the API reads off the helper is one the service's helper class defines.</summary>
+    <returns>The findings of _service_findings() for both modules and of
+    _api_findings() for the pair.</returns>
     <remarks>This is the check that would have caught the dead service of
     September 2026, where a blanket except hid a removed helper and
-    py_compile still passed.</remarks>"""
-    return _service_findings(_read(SERVICE))
+    py_compile still passed. Since 0.23.0 the API module calls back into the
+    helper under its own blanket except, so it is judged the same way.</remarks>"""
+    service, api = _read(SERVICE), _read(API)
+    return (_service_findings(service) + _service_findings(api, "lists_api.py")
+            + _api_findings(api, service))
 
 
 def _ignore_basename_patterns():
@@ -848,6 +911,14 @@ if __name__ == "__main__":
     run()
 '''
 
+# An API module handed an instance of the sample's Helper, as lists_api.py is
+# handed the service's FunctionalHelper.
+_SELF_TEST_API = '''
+def handle(helper):
+    """<summary>h</summary>"""
+    return helper.tick() + helper.LIMIT
+'''
+
 
 def check_self_test():
     """<summary>Prove the service and house rule checks still catch what they exist to catch.</summary>
@@ -876,6 +947,29 @@ def check_self_test():
         source = _SELF_TEST_SERVICE.replace(old, new)
         if source == _SELF_TEST_SERVICE or not _service_findings(source):
             findings.append("self test: service check missed {0}".format(label))
+    # The same checks over a second module, and the helper attribute check
+    # between the two.
+    if _service_findings(_SELF_TEST_API, "api.py"):
+        findings.append("self test: the clean API sample was reported: {0}".format(
+            _service_findings(_SELF_TEST_API, "api.py")[:2]))
+    if _api_findings(_SELF_TEST_API, _SELF_TEST_SERVICE, "api.py", "Helper", "helper"):
+        findings.append("self test: the clean API sample's helper reads were reported")
+    planted_api = (
+        ("a helper method removed, still called from the API module",
+         "helper.tick()", "helper.gone()"),
+        ("a helper class attribute removed, still read from the API module",
+         "helper.LIMIT", "helper.GONE"),
+    )
+    for label, old, new in planted_api:
+        source = _SELF_TEST_API.replace(old, new)
+        if source == _SELF_TEST_API or not _api_findings(
+                source, _SELF_TEST_SERVICE, "api.py", "Helper", "helper"):
+            findings.append("self test: API helper check missed {0}".format(label))
+    source = _SELF_TEST_API.replace('"""<summary>h</summary>"""', '"""h"""')
+    found = _service_findings(source, "api.py")
+    if not found or not found[0].startswith("api.py:"):
+        findings.append("self test: service check over a second module missed a "
+                        "function without a summary, or did not name that file")
     amp, bs = "&", "\\"
     house = (
         ("an em dash", ("a " + chr(0x2014) + " b").encode("utf-8")),

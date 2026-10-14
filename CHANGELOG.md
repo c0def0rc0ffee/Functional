@@ -11,6 +11,23 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.1 (14/10/2026)
+
+- A Specials episode saved from the queue window with Save as List now keeps
+  its season, so the Lists screen shows S00E01 under it rather than the show
+  name alone.
+- Import Lists no longer makes a second list whose name differs from one you
+  already have only by case; such a list is skipped and a message says how
+  many were. A lists file that already holds such a pair reads with the
+  second one renamed, with a number in brackets, instead of dropped.
+- Restoring a backup from JellyStat is refused when the backup names a list
+  twice, ignoring case, and the list tied to Remove from Radarr is never
+  copied onto more than one restored list.
+- Setting Port by Time on the TV no longer makes JellyStat refuse its next
+  change to the lists as made against an older version.
+- The README and the install guide now describe the Lists page in Skin
+  Settings and the JellyStat switch on it.
+
 ## 0.23.0 (13/10/2026)
 
 - Your lists can now be managed from the JellyStat dashboard on a phone or

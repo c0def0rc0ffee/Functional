@@ -2404,3 +2404,7 @@ msgstr ""
 msgctxt "#31664"
 msgid "Let JellyStat manage the lists"
 msgstr ""
+
+msgctxt "#31665"
+msgid "%d list(s) not imported: a list of that name is already here"
+msgstr ""

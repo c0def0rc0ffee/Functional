@@ -256,6 +256,26 @@ def etag_of(value):
     return '"%s"' % hashlib.sha256(blob).hexdigest()[:20]
 
 
+def _etag(helper, lists):
+    """
+    <summary>
+    The collection ETag: a hash of the lists as the dashboard sees them, in order.
+    </summary>
+    <param name="helper">The service's FunctionalHelper, for the record wording.</param>
+    <param name="lists">The list dicts as stored, in their kept order.</param>
+    <returns>The ETag header value.</returns>
+    <remarks>
+    Hashing the API records (_list_record) rather than the raw store means a change
+    the API never shows, such as a Port by Time length set on the TV, does not turn
+    the dashboard's next write into a 412. Anything the dashboard can see still
+    counts: a name, the switch, the items and their labels (so a Remove Watched skip
+    that changes a show row's count counts too), the Radarr tie, and the order the
+    lists are presented in.
+    </remarks>
+    """
+    return etag_of([_list_record(helper, lst) for lst in lists])
+
+
 def _check_match(current, if_match):
     """
     <summary>
@@ -302,7 +322,7 @@ def _snapshot(helper):
     helper._lists_load()
     with helper._lists_lock:
         lists = copy.deepcopy(helper._lists or [])
-    return lists, etag_of(lists)
+    return lists, _etag(helper, lists)
 
 
 def _current_etag(helper):
@@ -310,8 +330,10 @@ def _current_etag(helper):
     <summary>
     The ETag of the lists as they stand. The caller holds helper._lists_lock.
     </summary>
+    <param name="helper">The service's FunctionalHelper, whose _lists are read in place.</param>
+    <returns>The ETag header value, as _etag computes it.</returns>
     """
-    return etag_of(helper._lists or [])
+    return _etag(helper, helper._lists or [])
 
 
 def _refuse_if_frozen(helper):
@@ -457,6 +479,34 @@ def _check_name(body, lists, own=None):
             raise ApiError(422, "validation", "There is already a list called %s." % name,
                            "name")
     return name
+
+
+def _check_backup_names(body):
+    """
+    <summary>
+    Refuse a backup document whose list names repeat, ignoring case.
+    </summary>
+    <param name="body">The parsed JSON body of POST /restore.</param>
+    <exception cref="ApiError">422 naming the first repeated name.</exception>
+    <remarks>
+    The same rule _check_name applies to one list at a time. Judged on the raw
+    document rather than after the service's parser, which renames a repeat to keep
+    a file readable; a restore is a deliberate replacement, so a document that would
+    need renaming is refused outright. Entries the parser would drop (not an object,
+    or no name) are passed over here too.
+    </remarks>
+    """
+    seen = set()
+    for entry in body.get("lists") or []:
+        if not isinstance(entry, dict):
+            continue
+        name = str(entry.get("name", "")).strip()
+        if not name:
+            continue
+        if name.lower() in seen:
+            raise ApiError(422, "validation",
+                           "That backup names a list %s more than once." % name)
+        seen.add(name.lower())
 
 
 def _check_autoremove(body, default):
@@ -815,6 +865,7 @@ def _restore(helper, body, if_match):
     """
     if not isinstance(body, dict) or body.get("type") != BACKUP_TYPE:
         raise ApiError(422, "validation", "That is not a backup of the Functional lists.")
+    _check_backup_names(body)
     try:
         incoming, _last, _sort = helper._lists_parse(json.dumps(body))
     except ValueError as exc:
@@ -833,8 +884,12 @@ def _restore(helper, body, if_match):
         with helper._lists_lock:
             _check_match(_current_etag(helper), if_match)
             tied = next((l["name"] for l in helper._lists if l.get("radarr")), None)
+            # The first list of the tied name and no other: exactly one list
+            # carries the flag, whatever the document held.
             for lst in incoming:
-                lst["radarr"] = lst["name"] == tied
+                lst["radarr"] = tied is not None and lst["name"] == tied
+                if lst["radarr"]:
+                    tied = None
             helper._lists[:] = incoming
             if not any(l["name"] == helper._lists_last for l in incoming):
                 helper._lists_last = ""
@@ -954,6 +1009,9 @@ class _Handler(BaseHTTPRequestHandler):
 
     server_version = "FunctionalListsApi"
     sys_version = ""
+    # Seconds a request may sit idle before the connection is dropped, so a
+    # client that stops mid request cannot hold a handler thread for ever.
+    timeout = 10
 
     def log_message(self, fmt, *args):
         """
@@ -981,6 +1039,18 @@ class _Handler(BaseHTTPRequestHandler):
         """<summary>Serve a DELETE.</summary>"""
         self._serve("DELETE")
 
+    def do_HEAD(self):
+        """<summary>A HEAD gets the spec's 405, headers only, after the same checks.</summary>"""
+        self._serve("HEAD")
+
+    def do_PATCH(self):
+        """<summary>A PATCH gets the spec's 405 after the same checks.</summary>"""
+        self._serve("PATCH")
+
+    def do_OPTIONS(self):
+        """<summary>An OPTIONS gets the spec's 405 after the same checks.</summary>"""
+        self._serve("OPTIONS")
+
     def _serve(self, method):
         """
         <summary>
@@ -990,7 +1060,10 @@ class _Handler(BaseHTTPRequestHandler):
         <remarks>
         The Host check comes first, then the token, both before any body is read. An
         unexpected exception is logged in full to kodi.log and answered with a bare
-        500, so no internals reach the dashboard.
+        500, so no internals reach the dashboard. A method the spec does not use
+        (HEAD, PATCH, OPTIONS) goes through the same two checks and is then refused by
+        the route with 405 and an Allow header, in the spec's JSON shape, rather than
+        by the stdlib's 501 HTML page.
         </remarks>
         """
         try:
@@ -1025,12 +1098,19 @@ class _Handler(BaseHTTPRequestHandler):
         </summary>
         <returns>The parsed value.</returns>
         <exception cref="ApiError">413 when Content-Length is over MAX_BODY, 400 when it
-        is missing, not a number, or the body is not JSON.</exception>
+        is missing, not a number, negative, or the body is not JSON.</exception>
+        <remarks>
+        A negative length is refused rather than passed to read(): read(-1) means
+        "until the client closes", which held the handler thread for as long as the
+        client cared to keep the socket open.
+        </remarks>
         """
         try:
             length = int(self.headers.get("Content-Length") or "")
         except ValueError:
             raise ApiError(400, "bad_request", "The request needs a Content-Length.")
+        if length < 0:
+            raise ApiError(400, "bad_request", "The Content-Length cannot be negative.")
         if length > MAX_BODY:
             raise ApiError(413, "too_large", "The request is larger than %d bytes." % MAX_BODY)
         try:
@@ -1046,15 +1126,24 @@ class _Handler(BaseHTTPRequestHandler):
         <param name="status">The HTTP status.</param>
         <param name="payload">The value to send as JSON, or None for no body.</param>
         <param name="headers">Extra headers, such as ETag.</param>
+        <remarks>
+        A HEAD request gets the headers, Content-Length included, and no body. A
+        client that has gone away by the time the answer is written (the dashboard's
+        proxy timing out, say) raises on the socket; that is logged at debug through
+        the skin's logger and otherwise ignored, so no traceback reaches stderr.
+        </remarks>
         """
         data = b"" if payload is None else json.dumps(payload).encode("utf-8")
-        self.send_response(status)
-        if payload is not None:
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(data)))
-        self.send_header("Cache-Control", "no-store")
-        for name, value in headers.items():
-            self.send_header(name, value)
-        self.end_headers()
-        if data:
-            self.wfile.write(data)
+        try:
+            self.send_response(status)
+            if payload is not None:
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "no-store")
+            for name, value in headers.items():
+                self.send_header(name, value)
+            self.end_headers()
+            if data and self.command != "HEAD":
+                self.wfile.write(data)
+        except OSError as exc:
+            _log("client went away before the answer was sent: %s" % exc, xbmc.LOGDEBUG)

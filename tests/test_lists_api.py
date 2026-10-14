@@ -17,11 +17,14 @@ Usage:
 </remarks>
 """
 
+import io
 import json
 import os
 import shutil
+import socket
 import sys
 import tempfile
+import time
 import types
 import urllib.error
 import urllib.request
@@ -48,7 +51,10 @@ EPISODES = {34: {"episodeid": 34, "tvshowid": 5, "title": "Pilot", "showtitle": 
 
 
 def _contains(value, q):
-    """<summary>The library's case insensitive "contains" filter.</summary>"""
+    """<summary>The library's case insensitive "contains" filter.</summary>
+    <param name="value">The field's text, or None.</param>
+    <param name="q">The search text.</param>
+    <returns>True when q is inside value, ignoring case.</returns>"""
     return q.lower() in (value or "").lower()
 
 
@@ -87,24 +93,33 @@ def fake_jsonrpc(text):
 
 PROPS = {}
 SKIN_SETTINGS = set()
+# Conditions other than Skin.HasSetting that read as true, such as
+# "Window.IsActive(startup)" while a test pretends the splash is up.
+CONDS = set()
 
 
 class _Window:
     """<summary>A Home window whose properties live in PROPS.</summary>"""
 
     def __init__(self, _wid=None):
-        """<summary>Any window id maps to the one property store.</summary>"""
+        """<summary>Any window id maps to the one property store.</summary>
+        <param name="_wid">The window id, ignored.</param>"""
 
     def setProperty(self, key, value):  # noqa: N802 (Kodi API)
-        """<summary>Store a property.</summary>"""
+        """<summary>Store a property.</summary>
+        <param name="key">Property name.</param>
+        <param name="value">Its text.</param>"""
         PROPS[key] = value
 
     def getProperty(self, key):  # noqa: N802 (Kodi API)
-        """<summary>Read a property, '' when unset.</summary>"""
+        """<summary>Read a property, '' when unset.</summary>
+        <param name="key">Property name.</param>
+        <returns>The stored text, or ''.</returns>"""
         return PROPS.get(key, "")
 
     def clearProperty(self, key):  # noqa: N802 (Kodi API)
-        """<summary>Remove a property.</summary>"""
+        """<summary>Remove a property.</summary>
+        <param name="key">Property name.</param>"""
         PROPS.pop(key, None)
 
 
@@ -131,10 +146,13 @@ class _Monitor:
 
 
 def _cond(text):
-    """<summary>getCondVisibility for Skin.HasSetting; everything else is false.</summary>"""
+    """<summary>getCondVisibility for Skin.HasSetting and the CONDS set; everything
+    else is false.</summary>
+    <param name="text">The condition as the service writes it.</param>
+    <returns>True for a skin setting in SKIN_SETTINGS or a condition in CONDS.</returns>"""
     if text.startswith("Skin.HasSetting(") and text.endswith(")"):
         return text[len("Skin.HasSetting("):-1] in SKIN_SETTINGS
-    return False
+    return text in CONDS
 
 
 def _load_strings():
@@ -164,7 +182,9 @@ STRINGS = _load_strings()
 
 
 def _translate(path):
-    """<summary>special:// paths into the temporary profile.</summary>"""
+    """<summary>special:// paths into the temporary profile.</summary>
+    <param name="path">A special:// or plain path.</param>
+    <returns>The local path under PROFILE, or the path unchanged.</returns>"""
     for prefix in ("special://profile/", "special://temp/"):
         if path.startswith(prefix):
             return os.path.join(PROFILE, path[len(prefix):])
@@ -252,6 +272,12 @@ def call(helper, method, path, body=None, if_match=None, query=None):
     <summary>
     Route one request through lists_api.handle and return what it answered.
     </summary>
+    <param name="helper">The FunctionalHelper from seed().</param>
+    <param name="method">GET, POST, PUT or DELETE.</param>
+    <param name="path">The URL path.</param>
+    <param name="body">The parsed JSON body, or None.</param>
+    <param name="if_match">The If-Match header value, or None.</param>
+    <param name="query">The parsed query as parse_qs gives it, or None for none.</param>
     <returns>(status, payload, headers); an ApiError becomes its status and body.</returns>
     """
     try:
@@ -470,6 +496,71 @@ def test_backup_restore():
     check(os.path.exists(LISTS_FILE + ".previous"), "the replaced file is kept as previous")
 
 
+def test_restore_repeated_names():
+    """<summary>A backup naming a list twice, ignoring case, is refused, and the
+    Radarr tie is only ever put on one restored list.</summary>"""
+    helper = seed([{"name": "Tied", "items": [], "seq": 1, "radarr": True}])
+    status, doc, headers = call(helper, "GET", "/backup")
+    doc["lists"] = [{"name": "Tied", "items": [], "seq": 1},
+                    {"name": "tied", "items": [], "seq": 2}]
+    status, body, _h = call(helper, "POST", "/restore", doc, headers["ETag"])
+    check(status == 422 and body["error"]["code"] == "validation"
+          and "tied" in body["error"]["message"].lower(),
+          "a backup with a repeated name is refused, naming it")
+    with helper._lists_lock:
+        names = [l["name"] for l in helper._lists]
+    check(names == ["Tied"], "nothing changed by the refused restore")
+    # The tie belt below that check: with the check stood down, a document
+    # naming the tied list twice still restores with exactly one list tied.
+    doc["lists"] = [{"name": "Tied", "items": [], "seq": 1, "radarr": True},
+                    {"name": "Tied", "items": [], "seq": 2, "radarr": True}]
+    real_check = lists_api._check_backup_names
+    lists_api._check_backup_names = lambda body: None
+    try:
+        status, body, _h = call(helper, "POST", "/restore", doc, headers["ETag"])
+    finally:
+        lists_api._check_backup_names = real_check
+    saved = on_disk()["lists"]
+    check(status == 200 and [l["name"] for l in saved] == ["Tied", "Tied (2)"],
+          "the parser renames the repeat rather than keeping a pair")
+    check([l["name"] for l in saved if l["radarr"]] == ["Tied"], "the tie lands on one list only")
+
+
+def test_etag_is_the_view():
+    """<summary>The ETag follows what the dashboard can see: unchanged by a no op
+    write, by an equivalent save and by a TV only setting, changed by anything
+    shown.</summary>"""
+    helper = seed([{"name": "A", "items": [GROUP], "seq": 1, "fill": 0},
+                   {"name": "B", "items": [], "seq": 2}], sort="name")
+    _s, _b, headers = call(helper, "GET", "/lists")
+    first = headers["ETag"]
+    status, _b, headers2 = call(helper, "PUT", "/lists/1", {"name": "A"}, first)
+    check(status == 200 and headers2["ETag"] == first, "a no op PUT keeps the ETag")
+    helper._lists_save()
+    _s, _b, headers3 = call(helper, "GET", "/lists")
+    check(headers3["ETag"] == first, "an equivalent TV side save keeps the ETag")
+    with helper._lists_lock:
+        helper._lists[0]["fill"] = 120
+    helper._lists_save()
+    _s, _b, headers4 = call(helper, "GET", "/lists")
+    check(headers4["ETag"] == first, "Port by Time set on the TV keeps the ETag")
+    with helper._lists_lock:
+        helper._lists[0]["items"][0]["skip"] = ["1x1", "1x2"]
+        helper._lists[0]["items"][0]["count"] = 0
+    helper._lists_save()
+    _s, _b, headers5 = call(helper, "GET", "/lists")
+    check(headers5["ETag"] != first, "a Remove Watched skip that changes a row's count changes it")
+    before = headers5["ETag"]
+    with helper._lists_lock:
+        helper._lists_sort_mode = "newest"
+    helper._lists_save()
+    _s, listing, headers6 = call(helper, "GET", "/lists")
+    check([l["name"] for l in listing["items"]] == ["B", "A"] and headers6["ETag"] != before,
+          "a new kept order changes it")
+    status, _b, _h = call(helper, "PUT", "/lists/2", {"autoremove": True}, first)
+    check(status == 412, "the first ETag is stale after a real change")
+
+
 def test_frozen():
     """<summary>Writes are refused while the service will not save.</summary>"""
     helper = seed([{"name": "A", "items": [], "seq": 1}])
@@ -486,6 +577,10 @@ def test_http():
     helper.update_lists_api()
     check(lists_api.DISCOVERY_PROPERTY not in PROPS, "switched off, not announced")
     SKIN_SETTINGS.discard("lists_api_off")
+    CONDS.add("Window.IsActive(startup)")
+    helper.update_lists_api()
+    check(lists_api.DISCOVERY_PROPERTY not in PROPS, "nothing starts while the splash is up")
+    CONDS.discard("Window.IsActive(startup)")
     helper.update_lists_api()
     announce = json.loads(PROPS[lists_api.DISCOVERY_PROPERTY])
     port, token = announce["port"], announce["token"]
@@ -493,7 +588,10 @@ def test_http():
     base = "http://127.0.0.1:%d" % port
 
     def get(path, headers):
-        """<summary>One GET; returns (status, body).</summary>"""
+        """<summary>One GET; returns (status, body).</summary>
+        <param name="path">The URL path.</param>
+        <param name="headers">Request headers; urllib adds Host itself.</param>
+        <returns>(status, parsed JSON body).</returns>"""
         req = urllib.request.Request(base + path, headers=headers)
         try:
             with urllib.request.urlopen(req, timeout=5) as resp:
@@ -501,23 +599,70 @@ def test_http():
         except urllib.error.HTTPError as err:
             return err.code, json.loads(err.read() or b"null")
 
+    def raw(request, timeout=3):
+        """<summary>One request written straight to the socket, for what urllib
+        will not send.</summary>
+        <param name="request">The whole request text, headers and blank line included.</param>
+        <param name="timeout">Seconds to wait for the server's answer.</param>
+        <returns>(status line, header lines, body text), or ('', [], '') on a timeout.</returns>"""
+        sock = socket.create_connection(("127.0.0.1", port), timeout=timeout)
+        sock.sendall(request.encode("utf-8"))
+        data = b""
+        try:
+            while True:
+                chunk = sock.recv(65536)
+                if not chunk:
+                    break
+                data += chunk
+        except socket.timeout:
+            return "", [], ""
+        finally:
+            sock.close()
+        head, _sep, body = data.decode("utf-8", "replace").partition("\r\n\r\n")
+        lines = head.split("\r\n")
+        return lines[0], lines[1:], body
+
     status, _b = get("/info", {"Host": "evil.example"})
     check(status == 400, "wrong Host refused")
     status, _b = get("/info", {})
     check(status == 401, "missing token refused")
     status, body = get("/lists", {lists_api.TOKEN_HEADER: token})
     check(status == 200 and body["items"][0]["name"] == "A", "round trip")
-    req = urllib.request.Request(base + "/lists", method="POST", data=b"x" * 10,
-                                 headers={lists_api.TOKEN_HEADER: token,
-                                          "Content-Length": str(lists_api.MAX_BODY + 1)})
+    # A client that stops reading before the answer must not print a
+    # traceback to stderr: the server logs it at debug and moves on.
+    captured, real_stderr = io.StringIO(), sys.stderr
+    sys.stderr = captured
     try:
-        urllib.request.urlopen(req, timeout=5)
-        status = 200
-    except urllib.error.HTTPError as err:
-        status = err.code
-    except (urllib.error.URLError, ConnectionError):
-        status = 413  # the server answered and closed before the client finished
-    check(status == 413, "oversized body refused")
+        req = urllib.request.Request(base + "/lists", method="POST", data=b"x" * 10,
+                                     headers={lists_api.TOKEN_HEADER: token,
+                                              "Content-Length": str(lists_api.MAX_BODY + 1)})
+        try:
+            urllib.request.urlopen(req, timeout=5)
+            status = 200
+        except urllib.error.HTTPError as err:
+            status = err.code
+        except (urllib.error.URLError, ConnectionError):
+            status = 413  # the server answered and closed before the client finished
+        check(status == 413, "oversized body refused")
+        time.sleep(0.3)
+    finally:
+        sys.stderr = real_stderr
+    check("Traceback" not in captured.getvalue(), "a client going away leaves stderr alone")
+    host = "Host: 127.0.0.1:%d\r\n" % port
+    auth = "%s: %s\r\n" % (lists_api.TOKEN_HEADER, token)
+    line, headers, body = raw("POST /lists HTTP/1.0\r\n" + host + auth + "Content-Length: -1\r\n\r\n")
+    check(line.startswith("HTTP/1.0 400") and "negative" in body, "a negative Content-Length is 400")
+    line, headers, body = raw("HEAD /info HTTP/1.0\r\n" + host + auth + "\r\n")
+    check(line.startswith("HTTP/1.0 405") and "Allow: GET" in headers and body == "",
+          "HEAD is 405 with Allow and no body")
+    line, headers, body = raw("PATCH /lists/1 HTTP/1.0\r\n" + host + auth + "\r\n")
+    check(line.startswith("HTTP/1.0 405") and "Allow: GET, PUT, DELETE" in headers
+          and json.loads(body)["error"]["code"] == "method_not_allowed",
+          "PATCH is the spec's 405")
+    line, headers, body = raw("OPTIONS /lists HTTP/1.0\r\n" + host + auth + "\r\n")
+    check(line.startswith("HTTP/1.0 405") and "Allow: GET, POST" in headers, "OPTIONS is 405")
+    line, headers, body = raw("OPTIONS /lists HTTP/1.0\r\n" + host + "\r\n")
+    check(line.startswith("HTTP/1.0 401"), "OPTIONS still needs the token")
     SKIN_SETTINGS.add("lists_api_off")
     helper.update_lists_api()
     check(lists_api.DISCOVERY_PROPERTY not in PROPS, "switched off again, withdrawn")
@@ -528,7 +673,8 @@ def main():
     """<summary>Run every test, clean up, and exit non zero on any failure.</summary>"""
     tests = [test_info_and_schema, test_create, test_cap, test_replace,
              test_kodi_side_change_is_stale, test_delete, test_new_and_sort, test_search,
-             test_backup_restore, test_frozen, test_http]
+             test_backup_restore, test_restore_repeated_names, test_etag_is_the_view,
+             test_frozen, test_http]
     try:
         for test in tests:
             print("running " + test.__name__)

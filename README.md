@@ -110,6 +110,7 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 - The Lists screen's action buttons sit along the bottom, or along the top under the header (Lists and Favourites settings)
 - Porting asks whether to clear the current queue first, or set a standing answer under Lists and Favourites
 - **Export** and **Import** (Lists and Favourites settings) carry lists between boxes: export copies the lists file to any folder Kodi can write to, import merges one in by list name without dropping anything
+- **Managed from JellyStat**: with JellyStat 0.27.0 or later on the same box, its dashboard can make, rename and delete lists, switch Remove Watched, search the library to add films, whole shows or episodes, put the items in order, and back up or restore every list, from a phone or laptop. The switch **Let JellyStat manage the lists** is on the **Lists** page of Skin Settings (the page that used to be called Radarr) and is on by default
 
 ### Other Windows
 
