@@ -11,6 +11,13 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.2 (20/10/2026)
+
+- The Coming up list on Home now groups a day that has more than one Engage
+  slot: the day is shown once as a title, with each slot on its own line
+  beneath it giving just the name and the time. A day with a single slot
+  still shows as before, the name with when it is due underneath.
+
 ## 0.23.1 (14/10/2026)
 
 - A Specials episode saved from the queue window with Save as List now keeps

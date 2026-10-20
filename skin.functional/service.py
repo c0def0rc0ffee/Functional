@@ -185,10 +185,10 @@ update_lists()
     addon_data/skin.functional/radarr.json, every outcome appended to
     radarr-log.txt beside it. See the RADARR-REMOVE block.
 
-update_coming_up_days()
-    Publishes ComingUp.N.Sep ("slot" or "day") for the rows of the Coming
-    up list, from the day part of each Engage.Next.N.When, so the list
-    draws a heavier separator where the day changes.
+update_coming_up_lines()
+    Publishes the Coming up list as ComingUp.L.Kind, .Label, .When and .Sep
+    for 22 lines: a day with one slot keeps its two line row, a day with
+    several gets a heading and one line per slot (see coming_up_lines).
 
 update_theme()
     Seasonal themes. Picks Halloween from 29 to 31 October (Devil's Night
@@ -528,6 +528,65 @@ def _num_text(value):
 
 
 # ---------------------------------------------------------------------------
+
+
+# COMING-UP-LINES: the Coming up list is drawn as 40 pixel lines, two per row
+# of the old 80 pixel list, so the cut rules that hide whole rows still apply.
+COMING_UP_SLOTS = 11  # Engage.Next.1.* to .11.*, what Engage publishes
+COMING_UP_LINES = 22  # ComingUp.1.* to .22.*, the lines Home.xml draws
+
+
+def coming_up_lines(slots):
+    """
+    <summary>
+    Lay Engage's upcoming slots out as the lines of the Coming up list.
+    </summary>
+    <param name="slots">(label, when) pairs in Engage's order, where `when` is
+    Engage.Next.N.When: "Tonight 19:00", "Tomorrow 20:00", "Wednesday 19:30"
+    or "Wednesday 21/10/2026 19:30".</param>
+    <returns>COMING_UP_LINES dicts of kind, label, when and sep, one per line,
+    empty strings where a line has nothing.</returns>
+    <remarks>
+    Asked for on 20/10/2026. A day with one slot keeps the original two line
+    row: kind "item" with the label and the whole `when`, then an "item2"
+    line the item draws over. A day with several slots gets a "heading" line
+    holding the day, then one "slot" line each with the label and only the
+    time. Everything before the last space of `when` is the day, the last
+    word the time, as the old day separators read it. A group of
+    odd length is followed by a "pad" line, so every day starts on an odd
+    line: the first half of an old row. That keeps a two line item inside
+    one row and a heading in the same row as its first slot, so a row the
+    layout cuts takes whole items with it and never leaves a heading alone.
+    sep is "day" on the first line of every day but the first.
+    </remarks>
+    """
+    groups = []
+    for label, when in slots:
+        when = (when or "").strip()
+        day, _, time = when.rpartition(" ")
+        if not day:
+            day, time = when, ""
+        if groups and groups[-1][0] == day:
+            groups[-1][1].append((label, when, time))
+        else:
+            groups.append((day, [(label, when, time)]))
+    lines = []
+    for day, members in groups:
+        sep = "day" if lines else ""
+        if len(members) == 1:
+            label, when, _ = members[0]
+            lines.append({"kind": "item", "label": label, "when": when, "sep": sep})
+            lines.append({"kind": "item2", "label": "", "when": "", "sep": ""})
+            continue
+        lines.append({"kind": "heading", "label": day, "when": "", "sep": sep})
+        for label, _, time in members:
+            lines.append({"kind": "slot", "label": label, "when": time, "sep": ""})
+        if len(lines) % 2:
+            lines.append({"kind": "pad", "label": "", "when": "", "sep": ""})
+    lines = lines[:COMING_UP_LINES]
+    while len(lines) < COMING_UP_LINES:
+        lines.append({"kind": "", "label": "", "when": "", "sep": ""})
+    return lines
 
 
 class FunctionalHelper(xbmc.Monitor):
@@ -2997,43 +3056,43 @@ class FunctionalHelper(xbmc.Monitor):
         else:
             _dlog("continue command ignored: %r" % cmd)
 
-    # ---- Next Up (the next unwatched episode per show in progress) --------
+    # ---- Coming up (Engage's next slots, the list on the left of Home) ----
 
-    ENGAGE_LIST_ROWS = 11  # Engage.Next.1.* to .11.*, the rows of the Coming up list
-
-    def update_coming_up_days(self):
+    def update_coming_up_lines(self):
         """
         <summary>
-        Mark which rows of the Coming up list start a new day, so the list
-        can draw a heavier separator there.
+        Publish the Coming up list as lines: one two line row for a day with
+        one slot, a day heading and a line per slot for a day with several.
         </summary>
         <remarks>
-        COMING-UP-SEP, asked for on 12/10/2026: a small separator between
-        the list's rows and a slightly larger one between days. Slow tick.
-        Engage publishes Engage.Next.N.When as "Tonight 19:00", "Tomorrow
-        20:00", "Wednesday 19:30" or, from a week out, "Wednesday 21/10/2026
-        19:30"; today always reads Tonight, so everything before the time
-        names the day exactly. For each row N from 2 this publishes
-        Window(home).Property(ComingUp.N.Sep): "day" when its day differs
-        from row N-1's, "slot" when it is the same day, and nothing when
-        either row is empty. Row 1 never has one. Written only on a change.
+        Slow tick. Reads Engage.Next.1 to 11 (Label and When) from Home, stops
+        at the first empty label, lays them out with coming_up_lines and
+        publishes Window(home).Property(ComingUp.L.Kind), .Label, .When and
+        .Sep for L 1 to 22, which Home.xml's ComingUpLine include draws.
+        Written only on a change, and an empty value is cleared rather than
+        set. This replaced update_coming_up_days and its ComingUp.N.Sep
+        (COMING-UP-SEP, 12/10/2026) on 20/10/2026; the heavier rule where
+        the day changes is the "day" sep here.
         </remarks>
         """
         home = xbmcgui.Window(HOME_WINDOW_ID)
-        prev_day = None
-        for n in range(1, self.ENGAGE_LIST_ROWS + 1):
-            when = home.getProperty("Engage.Next.{0}.When".format(n)).strip()
-            day = when.rsplit(" ", 1)[0] if " " in when else when
-            sep = ""
-            if n > 1 and when and prev_day:
-                sep = "day" if day != prev_day else "slot"
-            key = "ComingUp.{0}.Sep".format(n)
-            if home.getProperty(key) != sep:
-                if sep:
-                    home.setProperty(key, sep)
-                else:
-                    home.clearProperty(key)
-            prev_day = day if when else None
+        slots = []
+        for n in range(1, COMING_UP_SLOTS + 1):
+            label = home.getProperty("Engage.Next.{0}.Label".format(n)).strip()
+            if not label:
+                break
+            slots.append((label, home.getProperty("Engage.Next.{0}.When".format(n))))
+        for number, line in enumerate(coming_up_lines(slots), 1):
+            for field in ("kind", "label", "when", "sep"):
+                key = "ComingUp.{0}.{1}".format(number, field.capitalize())
+                value = line[field]
+                if home.getProperty(key) != value:
+                    if value:
+                        home.setProperty(key, value)
+                    else:
+                        home.clearProperty(key)
+
+    # ---- Next Up (the next unwatched episode per show in progress) --------
 
     def update_next_up(self):
         """
@@ -8529,7 +8588,7 @@ def run():
         helper.update_theme,
         helper.maybe_refresh_stats,
         # Once a second: Engage rewrites its rows on its own schedule.
-        helper.update_coming_up_days,
+        helper.update_coming_up_lines,
         helper.normalize_clearance,
         # Once a second: follows the "Let JellyStat manage the lists" switch.
         helper.update_lists_api,

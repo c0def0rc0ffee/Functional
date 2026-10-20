@@ -326,7 +326,7 @@
 	     along to the next one the same way. Inwards is the row itself.
 	     The right button's outward target is the Engage block (9320,
 	     ENGAGE-NEXT) first, which hands on to 9001 while it is hidden;
-	     the left button's is the first row of the Engage list (9321,
+	     the left button's is the first line of the Engage list (9341,
 	     ENGAGE-LIST), which hands on to 9028 the same way.
 	     The button repeats the group's visibility so Control.IsVisible on
 	     it is honest: a child of a hidden group otherwise reads visible. -->
@@ -373,61 +373,62 @@
 		<control type="group">
 			<visible>Skin.HasSetting(bg_step_buttons) + !String.IsEmpty(Window(home).Property(home_bg_fanart)) + !$EXP[bg_video_showing]</visible>
 			<animation effect="fade" time="400">VisibleChange</animation>
-			<include content="BgStepButton"><param name="id" value="9310"/><param name="left" value="0"/><param name="command" value="bg_prev"/><param name="icon" value="prev.png"/><param name="onleft" value="9321"/><param name="onright" value="9000"/></include>
+			<include content="BgStepButton"><param name="id" value="9310"/><param name="left" value="0"/><param name="command" value="bg_prev"/><param name="icon" value="prev.png"/><param name="onleft" value="9341"/><param name="onright" value="9000"/></include>
 			<include content="BgStepButton"><param name="id" value="9311"/><param name="left" value="1870"/><param name="command" value="bg_next"/><param name="icon" value="next.png"/><param name="onleft" value="9000"/><param name="onright" value="9320"/></include>
 		</control>
 	</include>
-	<!-- ENGAGE-LIST: one row of the Coming up list on the left of Home
-	     (Home.xml). 80 tall: the slot's label, scrolling, then when it
-	     is due, both font_reg in white like the stats column's figures
-	     and the small block (only the panel heading takes the accent,
-	     12/10/2026); no episode line, a show reads
-	     as its name alone. Slot n is Window(home).Property(Engage.Next.n.*),
-	     published by Engage; the row shows while that slot's label is
-	     present and 'when' holds, and hides with the panel. The button
-	     repeats the group's visibility so Control.IsVisible on it is
-	     honest and a hidden row passes focus along. OK opens Engage's own
-	     launcher; Left wraps to the last tile and Right returns to the
-	     left edge button, or to the menu row while that is hidden, the
-	     mirror of the small block's 9320. -->
-	<include name="EngageListRow">
-		<param name="n" />
-		<param name="id" />
+	<!-- ENGAGE-LIST: one 40 pixel line of the Coming up list on the left of
+	     Home (Home.xml), COMING-UP-LINES, 20/10/2026. Line L is
+	     Window(home).Property(ComingUp.L.*), published by
+	     service.py:update_coming_up_lines, and ComingUp.L.Kind says what
+	     it holds:
+	     - item: a day with one slot, drawn as the original 80 tall row:
+	       the slot's label, scrolling, then its when, both font_reg in
+	       white; the line below is its item2 and draws nothing;
+	     - heading: the day of a day with several slots, in bold;
+	     - slot: one of that day's slots, indented under the heading, its
+	       label scrolling on the left and its time on the right;
+	     - pad and empty: nothing.
+	     Only the panel heading takes the accent (12/10/2026). The line
+	     shows while the list does, its kind is set and 'when' (its row's
+	     cut rule) holds. A heavier rule sits in the gap above the first
+	     line of every day but the first (ComingUp.L.Sep is day). The
+	     buttons repeat the line's visibility plus their kind, so
+	     Control.IsVisible on them is honest and a hidden one passes focus
+	     along: 'tall' (80, an item) and 'short' (40, a slot). OK opens
+	     Engage's own launcher; Left wraps to the last tile and Right
+	     returns to the left edge button, the mirror of the small block's
+	     9320. Line 1's tall button is where Left from the left edge
+	     button lands: while line 1 is a heading it is hidden, and its
+	     Left goes on to line 2's slot (headingleft, set on line 1 only)
+	     instead of the last tile. -->
+	<include name="ComingUpLine">
+		<param name="line" />
+		<param name="tall" />
+		<param name="short" />
 		<param name="top" />
-		<param name="onup" />
-		<param name="ondown" />
+		<param name="tallup" />
+		<param name="talldown" />
+		<param name="shortup" />
+		<param name="shortdown" />
 		<param name="when" default="true" />
+		<param name="headingleft" default="9028" />
 		<definition>
 			<control type="group">
-				<visible>$EXP[engage_list_shown] + !String.IsEmpty(Window(home).Property(Engage.Next.$PARAM[n].Label)) + [$PARAM[when]]</visible>
+				<visible>$EXP[engage_list_shown] + !String.IsEmpty(Window(home).Property(ComingUp.$PARAM[line].Kind)) + [$PARAM[when]]</visible>
 				<left>0</left>
 				<top>$PARAM[top]</top>
 				<width>480</width>
-				<height>80</height>
-				<!-- COMING-UP-SEP: a separator in the 8 pixel gap above the
-				     row, never above row 1. A faint hairline between two
-				     slots on the same day, a thicker, brighter rule where the
-				     day changes; service.py:update_coming_up_days says which
-				     in Window(home).Property(ComingUp.N.Sep). Both sit inside
-				     the gap, so no row moves and the list keeps its 80 pixel
-				     pitch, which the cut, rise and foot rules depend on. -->
-				<control type="image">
-					<left>0</left>
-					<top>-5</top>
-					<width>480</width>
-					<height>1</height>
-					<texture colordiffuse="33FFFFFF">white.png</texture>
-					<visible>String.IsEqual(Window(home).Property(ComingUp.$PARAM[n].Sep),slot)</visible>
-				</control>
+				<height>40</height>
 				<control type="image">
 					<left>0</left>
 					<top>-6</top>
 					<width>480</width>
 					<height>3</height>
 					<texture colordiffuse="80FFFFFF">white.png</texture>
-					<visible>String.IsEqual(Window(home).Property(ComingUp.$PARAM[n].Sep),day)</visible>
+					<visible>String.IsEqual(Window(home).Property(ComingUp.$PARAM[line].Sep),day)</visible>
 				</control>
-				<control type="button" id="$PARAM[id]">
+				<control type="button" id="$PARAM[tall]">
 					<left>-10</left>
 					<top>-8</top>
 					<width>500</width>
@@ -436,31 +437,84 @@
 					<texturenofocus>-</texturenofocus>
 					<disabledcolor>disabled</disabledcolor>
 					<label></label>
-					<visible>$EXP[engage_list_shown] + !String.IsEmpty(Window(home).Property(Engage.Next.$PARAM[n].Label)) + [$PARAM[when]]</visible>
+					<visible>$EXP[engage_list_shown] + String.IsEqual(Window(home).Property(ComingUp.$PARAM[line].Kind),item) + [$PARAM[when]]</visible>
+					<onclick>RunScript(service.engage)</onclick>
+					<onleft condition="String.IsEqual(Window(home).Property(ComingUp.$PARAM[line].Kind),heading)">$PARAM[headingleft]</onleft>
+					<onleft>9028</onleft>
+					<onright>9310</onright>
+					<onup>$PARAM[tallup]</onup>
+					<ondown>$PARAM[talldown]</ondown>
+				</control>
+				<control type="button" id="$PARAM[short]">
+					<left>-10</left>
+					<top>-4</top>
+					<width>500</width>
+					<height>40</height>
+					<texturefocus colordiffuse="33FFFFFF">white.png</texturefocus>
+					<texturenofocus>-</texturenofocus>
+					<disabledcolor>disabled</disabledcolor>
+					<label></label>
+					<visible>$EXP[engage_list_shown] + String.IsEqual(Window(home).Property(ComingUp.$PARAM[line].Kind),slot) + [$PARAM[when]]</visible>
 					<onclick>RunScript(service.engage)</onclick>
 					<onleft>9028</onleft>
 					<onright>9310</onright>
-					<onup>$PARAM[onup]</onup>
-					<ondown>$PARAM[ondown]</ondown>
+					<onup>$PARAM[shortup]</onup>
+					<ondown>$PARAM[shortdown]</ondown>
+				</control>
+				<control type="group">
+					<visible>String.IsEqual(Window(home).Property(ComingUp.$PARAM[line].Kind),item)</visible>
+					<control type="label">
+						<left>0</left>
+						<top>0</top>
+						<width>480</width>
+						<height>34</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<scroll>true</scroll>
+						<label>$INFO[Window(home).Property(ComingUp.$PARAM[line].Label)]</label>
+					</control>
+					<control type="label">
+						<left>0</left>
+						<top>38</top>
+						<width>480</width>
+						<height>34</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<label>$INFO[Window(home).Property(ComingUp.$PARAM[line].When)]</label>
+					</control>
 				</control>
 				<control type="label">
+					<visible>String.IsEqual(Window(home).Property(ComingUp.$PARAM[line].Kind),heading)</visible>
 					<left>0</left>
 					<top>0</top>
 					<width>480</width>
 					<height>34</height>
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
-					<scroll>true</scroll>
-					<label>$INFO[Window(home).Property(Engage.Next.$PARAM[n].Label)]</label>
+					<label>[B]$INFO[Window(home).Property(ComingUp.$PARAM[line].Label)][/B]</label>
 				</control>
-				<control type="label">
-					<left>0</left>
-					<top>38</top>
-					<width>480</width>
-					<height>34</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<label>$INFO[Window(home).Property(Engage.Next.$PARAM[n].When)]</label>
+				<control type="group">
+					<visible>String.IsEqual(Window(home).Property(ComingUp.$PARAM[line].Kind),slot)</visible>
+					<control type="label">
+						<left>24</left>
+						<top>0</top>
+						<width>340</width>
+						<height>34</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<scroll>true</scroll>
+						<label>$INFO[Window(home).Property(ComingUp.$PARAM[line].Label)]</label>
+					</control>
+					<control type="label">
+						<left>370</left>
+						<top>0</top>
+						<width>110</width>
+						<height>34</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<align>right</align>
+						<label>$INFO[Window(home).Property(ComingUp.$PARAM[line].When)]</label>
+					</control>
 				</control>
 			</control>
 		</definition>

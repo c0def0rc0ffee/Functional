@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.1" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.2" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,11 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>A Specials episode saved from the queue window with Save as List now keeps its season, so the Lists screen shows S00E01 under it rather than the show name alone.
-Import Lists no longer makes a second list whose name differs from one you already have only by case; such a list is skipped and a message says how many were. A lists file that already holds such a pair reads with the second one renamed, with a number in brackets, instead of dropped.
-Restoring a backup from JellyStat is refused when the backup names a list twice, ignoring case, and the list tied to Remove from Radarr is never copied onto more than one restored list.
-Setting Port by Time on the TV no longer makes JellyStat refuse its next change to the lists as made against an older version.
-The README and the install guide now describe the Lists page in Skin Settings and the JellyStat switch on it.</news>
+		<news>The Coming up list on Home now groups a day that has more than one Engage slot: the day is shown once as a title, with each slot on its own line beneath it giving just the name and the time. A day with a single slot still shows as before, the name with when it is due underneath.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
