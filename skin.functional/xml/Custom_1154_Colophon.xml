@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  Colophon screen (custom window 1154): who made the set and for whom, the
+  installed version of each part of it, and a cup of coffee.
+  </summary>
+  <remarks>
+  Hidden. Nothing links here. It opens when focus bounces between the same two
+  tiles on the Home menu row eight times running, which is Left, Right, Left,
+  Right and so on: see COLOPHON-CODE in the HomeTile include (Includes.xml).
+  Any other move resets the count, so ordinary use never gets here.
+
+  The cup and the steam are white artwork tinted with the accent colour
+  (media/colophon, from build_colophon_art.py). Each of the three wisps rises
+  and fades on a loop of its own length, so they never move in step.
+
+  One of ten lines shows under the cup, picked as the window opens from the
+  last digit of the clock's seconds, so it changes from one opening to the
+  next but stays put while the page is up. Each line is its own label, shown
+  by the line property, rather than one label fed through SetProperty: some
+  lines hold commas, which a builtin's parameters would split on.
+
+  The dedication photo ships inside the skin's code (colophon_art.py) and is
+  written out to the skin's data folder by service.py at start up; the
+  polaroid shows only once it is there.
+
+  Versions are live infolabels through the CreditsVersion variables, which say
+  "Not installed" for anything missing, so the page doubles as a check of
+  what is on the box. It needs nothing from service.py.
+  </remarks>
+-->
+<window id="1154" type="window">
+	<defaultcontrol always="true">9000</defaultcontrol>
+	<onload condition="String.EndsWith(System.Time(ss),0)">SetProperty(line,0)</onload>
+	<onload condition="String.EndsWith(System.Time(ss),1)">SetProperty(line,1)</onload>
+	<onload condition="String.EndsWith(System.Time(ss),2)">SetProperty(line,2)</onload>
+	<onload condition="String.EndsWith(System.Time(ss),3)">SetProperty(line,3)</onload>
+	<onload condition="String.EndsWith(System.Time(ss),4)">SetProperty(line,4)</onload>
+	<onload condition="String.EndsWith(System.Time(ss),5)">SetProperty(line,5)</onload>
+	<onload condition="String.EndsWith(System.Time(ss),6)">SetProperty(line,6)</onload>
+	<onload condition="String.EndsWith(System.Time(ss),7)">SetProperty(line,7)</onload>
+	<onload condition="String.EndsWith(System.Time(ss),8)">SetProperty(line,8)</onload>
+	<onload condition="String.EndsWith(System.Time(ss),9)">SetProperty(line,9)</onload>
+	<animation effect="fade" time="250">WindowOpen</animation>
+	<animation effect="fade" time="200">WindowClose</animation>
+	<controls>
+
+		<!-- ========== BACKDROP ========== -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="bg">white.png</texture>
+		</control>
+
+		<!-- A slow accent glow behind the cup, breathing rather than moving. -->
+		<control type="image">
+			<left>140</left>
+			<top>180</top>
+			<width>620</width>
+			<height>620</height>
+			<texture colordiffuse="$VAR[AccentColor]">colophon/glow.png</texture>
+			<animation effect="fade" start="22" end="22" time="0" condition="true">Conditional</animation>
+			<animation effect="zoom" start="92" end="104" center="450,490" time="5200" pulse="true" condition="true">Conditional</animation>
+		</control>
+
+		<!-- ========== LEFT: THE CUP ========== -->
+		<control type="group">
+			<left>0</left>
+			<top>0</top>
+			<animation effect="slide" start="0,40" end="0,0" time="500" tween="cubic" easing="out">WindowOpen</animation>
+			<animation effect="fade" start="0" end="100" time="500">WindowOpen</animation>
+
+			<!-- Steam: drawn before the cup so the rim sits over its foot.
+			     Rises and fades out together on one loop each; the lengths
+			     differ so the three never line up. -->
+			<control type="image">
+				<left>300</left>
+				<top>290</top>
+				<width>96</width>
+				<height>240</height>
+				<texture colordiffuse="text">colophon/steam.png</texture>
+				<animation effect="slide" start="0,60" end="0,-150" time="3400" loop="true" condition="true">Conditional</animation>
+				<animation effect="fade" start="80" end="0" time="3400" loop="true" condition="true">Conditional</animation>
+			</control>
+			<control type="image">
+				<left>370</left>
+				<top>280</top>
+				<width>96</width>
+				<height>240</height>
+				<texture colordiffuse="text">colophon/steam.png</texture>
+				<animation effect="slide" start="0,60" end="0,-170" time="4100" loop="true" condition="true">Conditional</animation>
+				<animation effect="fade" start="85" end="0" time="4100" loop="true" condition="true">Conditional</animation>
+			</control>
+			<control type="image">
+				<left>440</left>
+				<top>295</top>
+				<width>96</width>
+				<height>240</height>
+				<texture colordiffuse="text">colophon/steam.png</texture>
+				<animation effect="slide" start="0,60" end="0,-140" time="3700" loop="true" condition="true">Conditional</animation>
+				<animation effect="fade" start="75" end="0" time="3700" loop="true" condition="true">Conditional</animation>
+			</control>
+
+			<!-- The cup's solid silhouette in the background colour, between
+			     the steam and the outline, so no steam shows through the
+			     open body. -->
+			<control type="image">
+				<left>210</left>
+				<top>440</top>
+				<width>480</width>
+				<height>400</height>
+				<aspectratio>keep</aspectratio>
+				<texture colordiffuse="bg">colophon/cup_fill.png</texture>
+			</control>
+			<control type="image">
+				<left>210</left>
+				<top>440</top>
+				<width>480</width>
+				<height>400</height>
+				<aspectratio>keep</aspectratio>
+				<texture colordiffuse="$VAR[AccentColor]">colophon/cup.png</texture>
+			</control>
+
+			<!-- The line for this opening: ten labels, one visible. -->
+			<control type="group">
+				<left>120</left>
+				<top>870</top>
+				<animation effect="fade" start="0" end="100" time="500" delay="700">WindowOpen</animation>
+				<include content="CreditsLine"><param name="n" value="0"/><param name="text" value="$LOCALIZE[31670]"/></include>
+				<include content="CreditsLine"><param name="n" value="1"/><param name="text" value="$LOCALIZE[31671]"/></include>
+				<include content="CreditsLine"><param name="n" value="2"/><param name="text" value="$LOCALIZE[31672]"/></include>
+				<include content="CreditsLine"><param name="n" value="3"/><param name="text" value="$LOCALIZE[31673]"/></include>
+				<include content="CreditsLine"><param name="n" value="4"/><param name="text" value="$LOCALIZE[31674]"/></include>
+				<include content="CreditsLine"><param name="n" value="5"/><param name="text" value="$LOCALIZE[31675]"/></include>
+				<include content="CreditsLine"><param name="n" value="6"/><param name="text" value="$LOCALIZE[31676]"/></include>
+				<include content="CreditsLine"><param name="n" value="7"/><param name="text" value="$LOCALIZE[31677]"/></include>
+				<include content="CreditsLine"><param name="n" value="8"/><param name="text" value="$LOCALIZE[31678]"/></include>
+				<include content="CreditsLine"><param name="n" value="9"/><param name="text" value="$LOCALIZE[31679]"/></include>
+			</control>
+		</control>
+
+		<!-- ========== RIGHT: WHO, FOR WHOM, AND WHAT IS INSTALLED ========== -->
+		<control type="group">
+			<left>860</left>
+			<top>0</top>
+
+			<control type="label">
+				<left>0</left>
+				<top>100</top>
+				<width>560</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<aligny>center</aligny>
+				<label>31666</label>
+				<animation effect="fade" start="0" end="100" time="300" delay="150">WindowOpen</animation>
+			</control>
+
+			<control type="group">
+				<left>0</left>
+				<top>150</top>
+				<animation effect="slide" start="60,0" end="0,0" time="420" delay="200" tween="cubic" easing="out">WindowOpen</animation>
+				<animation effect="fade" start="0" end="100" time="420" delay="200">WindowOpen</animation>
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>560</width>
+					<height>34</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<aligny>center</aligny>
+					<label>31667</label>
+				</control>
+				<control type="label">
+					<left>-4</left>
+					<top>34</top>
+					<width>560</width>
+					<height>96</height>
+					<font>font_huge</font>
+					<textcolor>white</textcolor>
+					<aligny>center</aligny>
+					<label>Rob Ford</label>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>134</top>
+					<width>560</width>
+					<height>36</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<aligny>center</aligny>
+					<label>c0def0rc0ffee</label>
+				</control>
+				<!-- The dedication. -->
+				<control type="textbox">
+					<left>0</left>
+					<top>196</top>
+					<width>560</width>
+					<height>120</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<label>31682</label>
+				</control>
+			</control>
+
+			<!-- The photo, as a polaroid tipped a few degrees: a white card
+			     with a deeper margin at the foot. Shown only once the
+			     service has written it out of the skin's code
+			     (Window(home).Property(colophon_photo), service.py:
+			     write_dedication); before that the page has the words alone.
+			     The rotation centre is the card's own middle, measured from
+			     this group's origin. -->
+			<control type="group">
+				<left>620</left>
+				<top>96</top>
+				<visible>!String.IsEmpty(Window(home).Property(colophon_photo))</visible>
+				<animation effect="rotate" end="-4" center="155,215" time="0" condition="true">Conditional</animation>
+				<animation effect="zoom" start="85" end="100" center="155,215" time="600" delay="300" tween="back" easing="out">WindowOpen</animation>
+				<animation effect="fade" start="0" end="100" time="500" delay="300">WindowOpen</animation>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>310</width>
+					<height>430</height>
+					<texture colordiffuse="FFF4F1EA">white.png</texture>
+				</control>
+				<control type="image">
+					<left>15</left>
+					<top>15</top>
+					<width>280</width>
+					<height>358</height>
+					<aspectratio>scale</aspectratio>
+					<texture background="true">$INFO[Window(home).Property(colophon_photo)]</texture>
+				</control>
+			</control>
+
+			<control type="label">
+				<left>0</left>
+				<top>540</top>
+				<width>560</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<aligny>center</aligny>
+				<label>31668</label>
+				<animation effect="fade" start="0" end="100" time="300" delay="400">WindowOpen</animation>
+			</control>
+
+			<control type="group">
+				<left>0</left>
+				<top>586</top>
+				<include content="AboutRow"><param name="top" value="0"/><param name="delay" value="500"/><param name="key" value="FUNCTIONAL"/><param name="value" value="$VAR[CreditsVersionFunctional]"/></include>
+				<include content="AboutRow"><param name="top" value="54"/><param name="delay" value="560"/><param name="key" value="ENGAGE"/><param name="value" value="$VAR[CreditsVersionEngage]"/></include>
+				<include content="AboutRow"><param name="top" value="108"/><param name="delay" value="620"/><param name="key" value="JELLYSTAT"/><param name="value" value="$VAR[CreditsVersionJellyStat]"/></include>
+				<include content="AboutRow"><param name="top" value="162"/><param name="delay" value="680"/><param name="key" value="JELLYRATE"/><param name="value" value="$VAR[CreditsVersionJellyRate]"/></include>
+				<include content="AboutRow"><param name="top" value="216"/><param name="delay" value="740"/><param name="key" value="DUALPLAY"/><param name="value" value="$VAR[CreditsVersionDualPlay]"/></include>
+				<include content="AboutRow"><param name="top" value="270"/><param name="delay" value="800"/><param name="key" value="FEED"/><param name="value" value="$VAR[CreditsVersionFeed]"/></include>
+				<include content="AboutRow"><param name="top" value="324"/><param name="delay" value="860"/><param name="key" value="KODI"/><param name="value" value="$INFO[System.BuildVersionShort]"/></include>
+			</control>
+		</control>
+
+		<!-- ========== FOOTER ========== -->
+		<control type="label">
+			<left>860</left>
+			<top>975</top>
+			<width>760</width>
+			<height>50</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<aligny>center</aligny>
+			<label>31680</label>
+			<animation effect="fade" start="0" end="100" time="400" delay="900">WindowOpen</animation>
+		</control>
+
+		<control type="button" id="9000">
+			<right>120</right>
+			<top>960</top>
+			<width>200</width>
+			<height>70</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<disabledcolor>disabled</disabledcolor>
+			<focusedcolor>white</focusedcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<label>31681</label>
+			<onclick>Back</onclick>
+			<onup>9000</onup>
+			<ondown>9000</ondown>
+			<onleft>9000</onleft>
+			<onright>9000</onright>
+			<!-- Slide, not fade: this is the default control, and a fade from
+			     0 would leave it untargetable while Kodi tries to focus it
+			     (the same note as the About page's Close). -->
+			<animation effect="slide" start="0,40" end="0,0" time="400" tween="cubic" easing="out">WindowOpen</animation>
+		</control>
+
+	</controls>
+</window>

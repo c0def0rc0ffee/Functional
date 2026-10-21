@@ -3056,6 +3056,53 @@ class FunctionalHelper(xbmc.Monitor):
         else:
             _dlog("continue command ignored: %r" % cmd)
 
+    # ---- Colophon (the hidden screen, custom window 1154) --------------------
+
+    DEDICATION_FILE = "special://profile/addon_data/skin.functional/colophon/dedication.jpg"
+
+    def write_dedication(self):
+        """
+        <summary>
+        Write the Colophon screen's dedication photo out of the skin's code
+        into the skin's data folder, and tell the screen where it is.
+        </summary>
+        <returns>True when the photo is in place.</returns>
+        <remarks>
+        The photo ships as base64 text in colophon_art.py rather than as an
+        image file (COLOPHON, 21/10/2026). Run once at start up. The file is
+        rewritten only when its SHA-256 differs from the one the module
+        carries, so a normal start reads it and writes nothing. It is written
+        beside itself and renamed into place, so the screen never shows half
+        a picture. Window(home).Property(colophon_photo) holds its path once
+        it is there; the screen shows the photo only while that is set. Any
+        failure is logged and leaves the screen with the words alone.
+        </remarks>
+        """
+        import base64
+        import hashlib
+        home = xbmcgui.Window(HOME_WINDOW_ID)
+        try:
+            import colophon_art
+            path = xbmcvfs.translatePath(self.DEDICATION_FILE)
+            current = None
+            if os.path.isfile(path):
+                with open(path, "rb") as handle:
+                    current = hashlib.sha256(handle.read()).hexdigest()
+            if current != colophon_art.DEDICATION_SHA256:
+                data = base64.b64decode(colophon_art.DEDICATION_JPEG)
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path + ".part", "wb") as handle:
+                    handle.write(data)
+                os.replace(path + ".part", path)
+                _dlog("colophon: dedication photo written")
+            home.setProperty("colophon_photo", self.DEDICATION_FILE)
+            return True
+        except Exception as err:  # noqa: BLE001
+            _dlog("colophon: could not write the dedication photo: %s" % err,
+                  xbmc.LOGWARNING)
+            home.clearProperty("colophon_photo")
+            return False
+
     # ---- Coming up (Engage's next slots, the list on the left of Home) ----
 
     def update_coming_up_lines(self):
@@ -8526,6 +8573,8 @@ def run():
     # before touching it.
     if helper.waitForAbort(3):
         return
+    # Once, after the grace: a file write and one Home property.
+    helper.write_dedication()
 
     # Polling loop for things Kodi doesn't notify on (focused item changes etc.).
     # waitForAbort returns True if Kodi is shutting down.

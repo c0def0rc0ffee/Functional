@@ -2213,6 +2213,31 @@
 				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),addons)">ActivateWindow(AddonBrowser)</onclick>
 				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),settings)">ActivateWindow(Settings)</onclick>
 				<onclick condition="String.IsEqual(Window(home).Property(Tile.$PARAM[n].Kind),fav)">Skin.SetString(tile_command,run:$PARAM[n])</onclick>
+				<!-- COLOPHON-CODE, 21/10/2026: focus bouncing between the same
+				     two tiles eight times running (Left, Right, Left, Right...)
+				     opens the hidden Colophon page (window 1154): the eighth move
+				     is the seventh bounce. Three Home
+				     properties: credits_prev and credits_prev2 are the last two
+				     tiles focused, credits_step how many bounces in a row. A
+				     focus is a bounce when it returns to the tile focused two
+				     moves ago, and is not the same tile twice. Each action's
+				     condition is read as that action runs, top to bottom, so
+				     the count moves on from the highest step down (one step
+				     per focus, never cascading), anything that is not a bounce
+				     clears it, and the shift of the last two tiles comes last.
+				     Focus only, so no key does anything different. -->
+				<onfocus condition="String.IsEqual(Window(home).Property(credits_prev2),$PARAM[n]) + !String.IsEqual(Window(home).Property(credits_prev),$PARAM[n]) + String.IsEqual(Window(home).Property(credits_step),6)">SetProperty(credits_step,7,home)</onfocus>
+				<onfocus condition="String.IsEqual(Window(home).Property(credits_prev2),$PARAM[n]) + !String.IsEqual(Window(home).Property(credits_prev),$PARAM[n]) + String.IsEqual(Window(home).Property(credits_step),5)">SetProperty(credits_step,6,home)</onfocus>
+				<onfocus condition="String.IsEqual(Window(home).Property(credits_prev2),$PARAM[n]) + !String.IsEqual(Window(home).Property(credits_prev),$PARAM[n]) + String.IsEqual(Window(home).Property(credits_step),4)">SetProperty(credits_step,5,home)</onfocus>
+				<onfocus condition="String.IsEqual(Window(home).Property(credits_prev2),$PARAM[n]) + !String.IsEqual(Window(home).Property(credits_prev),$PARAM[n]) + String.IsEqual(Window(home).Property(credits_step),3)">SetProperty(credits_step,4,home)</onfocus>
+				<onfocus condition="String.IsEqual(Window(home).Property(credits_prev2),$PARAM[n]) + !String.IsEqual(Window(home).Property(credits_prev),$PARAM[n]) + String.IsEqual(Window(home).Property(credits_step),2)">SetProperty(credits_step,3,home)</onfocus>
+				<onfocus condition="String.IsEqual(Window(home).Property(credits_prev2),$PARAM[n]) + !String.IsEqual(Window(home).Property(credits_prev),$PARAM[n]) + String.IsEqual(Window(home).Property(credits_step),1)">SetProperty(credits_step,2,home)</onfocus>
+				<onfocus condition="String.IsEqual(Window(home).Property(credits_prev2),$PARAM[n]) + !String.IsEqual(Window(home).Property(credits_prev),$PARAM[n]) + String.IsEmpty(Window(home).Property(credits_step))">SetProperty(credits_step,1,home)</onfocus>
+				<onfocus condition="![String.IsEqual(Window(home).Property(credits_prev2),$PARAM[n]) + !String.IsEqual(Window(home).Property(credits_prev),$PARAM[n])]">ClearProperty(credits_step,home)</onfocus>
+				<onfocus>SetProperty(credits_prev2,$INFO[Window(home).Property(credits_prev)],home)</onfocus>
+				<onfocus>SetProperty(credits_prev,$PARAM[n],home)</onfocus>
+				<onfocus condition="String.IsEqual(Window(home).Property(credits_step),7)">ActivateWindow(1154)</onfocus>
+				<onfocus condition="String.IsEqual(Window(home).Property(credits_step),7)">ClearProperty(credits_step,home)</onfocus>
 			</control>
 		</definition>
 	</include>
@@ -3316,6 +3341,62 @@
 			</control>
 		</definition>
 	</include>
+
+	<!-- ===== COLOPHON-BLOCK, 21/10/2026 =====
+	     Pieces used only by the Colophon page (custom window 1154). -->
+
+	<!--
+	  <summary>
+	  One of the Colophon page's ten lines, shown when the page picked it.
+	  </summary>
+	  <param name="n">0 to 9, matched against the page's line property.</param>
+	  <param name="text">The line, as $LOCALIZE of its string id.</param>
+	-->
+	<include name="CreditsLine">
+		<param name="n" />
+		<param name="text" />
+		<definition>
+			<control type="label">
+				<visible>String.IsEqual(Window.Property(line),$PARAM[n])</visible>
+				<left>0</left>
+				<top>0</top>
+				<width>660</width>
+				<height>50</height>
+				<font>font_reg</font>
+				<textcolor>text_dim</textcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<label>[I]$PARAM[text][/I]</label>
+			</control>
+		</definition>
+	</include>
+
+	<!-- <summary>The installed version of each part of the set, with a v in
+	     front, or Not installed, for the Colophon page's rows.</summary> -->
+	<variable name="CreditsVersionFunctional">
+		<value condition="System.HasAddon(skin.functional)">v$INFO[System.AddonVersion(skin.functional)]</value>
+		<value>$LOCALIZE[31669]</value>
+	</variable>
+	<variable name="CreditsVersionEngage">
+		<value condition="System.HasAddon(service.engage)">v$INFO[System.AddonVersion(service.engage)]</value>
+		<value>$LOCALIZE[31669]</value>
+	</variable>
+	<variable name="CreditsVersionJellyStat">
+		<value condition="System.HasAddon(script.jellystat)">v$INFO[System.AddonVersion(script.jellystat)]</value>
+		<value>$LOCALIZE[31669]</value>
+	</variable>
+	<variable name="CreditsVersionJellyRate">
+		<value condition="System.HasAddon(service.jellyrate)">v$INFO[System.AddonVersion(service.jellyrate)]</value>
+		<value>$LOCALIZE[31669]</value>
+	</variable>
+	<variable name="CreditsVersionDualPlay">
+		<value condition="System.HasAddon(service.jellyfin.dualplay)">v$INFO[System.AddonVersion(service.jellyfin.dualplay)]</value>
+		<value>$LOCALIZE[31669]</value>
+	</variable>
+	<variable name="CreditsVersionFeed">
+		<value condition="System.HasAddon(repository.deliciouscoffee)">v$INFO[System.AddonVersion(repository.deliciouscoffee)]</value>
+		<value>$LOCALIZE[31669]</value>
+	</variable>
 
 	<!-- ===== ABOUT-PAGE-BLOCK =====
 	     Pieces used only by the About page (custom window 1152). The page's

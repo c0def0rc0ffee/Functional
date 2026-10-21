@@ -11,6 +11,10 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.3 (21/10/2026)
+
+- Small polish and tidying behind the scenes.
+
 ## 0.23.2 (20/10/2026)
 
 - The Coming up list on Home now groups a day that has more than one Engage

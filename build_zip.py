@@ -922,6 +922,14 @@ def main():
     # Ignore files are read at build time, not at import time, so an edit to
     # them takes effect on the next build without touching this script.
     src_globs = rules[0]
+    # Folders the ignore files name are left out of the source walk too, not
+    # only judged afterwards: a folder excluded in .git/info/exclude (a local
+    # source photo, 21/10/2026) is untracked by design, and the ls-files
+    # check below would otherwise refuse the build over it. Plain names
+    # only, since the walk matches a folder's name exactly; a wildcard
+    # folder rule is still caught by forbidden_members.
+    src_dirs = SRC_ZIP_EXCLUDE_DIRS + tuple(
+        d for d in git_ignored_dir_rules()[0] if not any(c in d for c in "*?["))
     print(f"  {len(src_globs)} source exclusions in force, "
           f"{GIT_EXCLUDE_FILE} read and non-empty")
 
@@ -933,7 +941,7 @@ def main():
                  f"(local only, secret looking or junk names): {bad}. "
                  "Move them out of skin.functional. Nothing was built.")
     src_names = [name for name, full in
-                 collect_members(REPO, "", exclude_dirs=SRC_ZIP_EXCLUDE_DIRS,
+                 collect_members(REPO, "", exclude_dirs=src_dirs,
                                  exclude_globs=src_globs,
                                  keep_dot_dirs=SRC_KEEP_DOT_DIRS)
                  if full is not None]
@@ -992,7 +1000,7 @@ def main():
     # --- Source zip: the whole repo tree as pushed to GitHub ---
     src_out = os.path.join(GIT, f"skin.functional-{version}-src.zip")
     files, dirs, part = write_zip(src_out, REPO, "",
-                                  exclude_dirs=SRC_ZIP_EXCLUDE_DIRS,
+                                  exclude_dirs=src_dirs,
                                   exclude_globs=src_globs,
                                   keep_dot_dirs=SRC_KEEP_DOT_DIRS)
     verify_zip(part,

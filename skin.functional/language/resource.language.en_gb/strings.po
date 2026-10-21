@@ -2408,3 +2408,74 @@ msgstr ""
 msgctxt "#31665"
 msgid "%d list(s) not imported: a list of that name is already here"
 msgstr ""
+
+# COLOPHON, 21/10/2026: the hidden Colophon screen (Custom_1154_Colophon.xml).
+# 31670 to 31679 are the ten lines it picks from, one per opening.
+
+msgctxt "#31666"
+msgid "C R E D I T S"
+msgstr ""
+
+msgctxt "#31667"
+msgid "Made by"
+msgstr ""
+
+msgctxt "#31668"
+msgid "T H E   S E T"
+msgstr ""
+
+msgctxt "#31669"
+msgid "Not installed"
+msgstr ""
+
+msgctxt "#31670"
+msgid "Brewed one cup at a time."
+msgstr ""
+
+msgctxt "#31671"
+msgid "Best enjoyed with a flat white and a box set."
+msgstr ""
+
+msgctxt "#31672"
+msgid "No beans were harmed in the making of this skin."
+msgstr ""
+
+msgctxt "#31673"
+msgid "Powered by caffeine and stubbornness."
+msgstr ""
+
+msgctxt "#31674"
+msgid "Freshly ground, every release."
+msgstr ""
+
+msgctxt "#31675"
+msgid "If anything breaks, it was decaf."
+msgstr ""
+
+msgctxt "#31676"
+msgid "Served hot from DeliciousCoffee."
+msgstr ""
+
+msgctxt "#31677"
+msgid "Stirred, not shaken."
+msgstr ""
+
+msgctxt "#31678"
+msgid "Another episode? Put the kettle on."
+msgstr ""
+
+msgctxt "#31679"
+msgid "Refills are free. So are the updates."
+msgstr ""
+
+msgctxt "#31680"
+msgid "You found the secret menu. Back takes you home."
+msgstr ""
+
+msgctxt "#31681"
+msgid "Close"
+msgstr ""
+
+msgctxt "#31682"
+msgid "A personal project, made just for me, and dedicated to my wife."
+msgstr ""
