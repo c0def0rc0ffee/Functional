@@ -532,7 +532,7 @@ def _num_text(value):
 
 # COMING-UP-LINES: the Coming up list is drawn as 40 pixel lines, two per row
 # of the old 80 pixel list, so the cut rules that hide whole rows still apply.
-COMING_UP_SLOTS = 11  # Engage.Next.1.* to .11.*, what Engage publishes
+COMING_UP_SLOTS = 22  # Engage.Next.1.* to .22.*, what Engage publishes: one per line at most
 COMING_UP_LINES = 22  # ComingUp.1.* to .22.*, the lines Home.xml draws
 
 
@@ -3112,14 +3112,17 @@ class FunctionalHelper(xbmc.Monitor):
         one slot, a day heading and a line per slot for a day with several.
         </summary>
         <remarks>
-        Slow tick. Reads Engage.Next.1 to 11 (Label and When) from Home, stops
+        Slow tick. Reads Engage.Next.1 to 22 (Label and When) from Home, stops
         at the first empty label, lays them out with coming_up_lines and
         publishes Window(home).Property(ComingUp.L.Kind), .Label, .When and
         .Sep for L 1 to 22, which Home.xml's ComingUpLine include draws.
         Written only on a change, and an empty value is cleared rather than
         set. This replaced update_coming_up_days and its ComingUp.N.Sep
         (COMING-UP-SEP, 12/10/2026) on 20/10/2026; the heavier rule where
-        the day changes is the "day" sep here.
+        the day changes is the "day" sep here. COMING-UP-MORE, 21/10/2026:
+        reads 22 slots, up from 11, because days that share a heading take
+        fewer than two lines a slot and the 22 lines had room to spare;
+        coming_up_lines still cuts whatever does not fit.
         </remarks>
         """
         home = xbmcgui.Window(HOME_WINDOW_ID)

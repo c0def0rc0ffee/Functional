@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.3" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.4" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>Small polish and tidying behind the scenes.</news>
+		<news>The Coming up list on Home now shows up to 22 Engage slots, up from 11, filling the room freed when a day groups its slots under one heading. The extra slots need Engage 1.11.6; an older Engage still gives the first 11.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

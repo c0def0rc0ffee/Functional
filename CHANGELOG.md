@@ -11,6 +11,13 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.4 (21/10/2026)
+
+- The Coming up list on Home now shows up to 22 Engage slots, up from 11,
+  filling the room freed when a day groups its slots under one heading.
+  The extra slots need Engage 1.11.6; an older Engage still gives the
+  first 11.
+
 ## 0.23.3 (21/10/2026)
 
 - Small polish and tidying behind the scenes.

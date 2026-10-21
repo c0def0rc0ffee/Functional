@@ -373,7 +373,8 @@
 		     stats column (ENGAGE-NEXT above). Its own setting,
 		     show_engage_list; the two are independent. Engage publishes the
 		     slots as Window(home).Property(Engage.Next.N.Label) and .When
-		     for N 1 to 11, 1 being the slot the small block shows; a row is
+		     for N 1 to 22 (11 before COMING-UP-MORE, 21/10/2026), 1 being
+		     the slot the small block shows; a row is
 		     the slot's name and when it is due, never an episode line. The
 		     skin reads and never computes, and the panel stays invisible
 		     until Engage publishes.

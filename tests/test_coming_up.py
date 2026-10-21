@@ -114,10 +114,22 @@ def test_overflow_and_empty():
     equal(kinds(service.coming_up_lines([])), [], "nothing published, nothing drawn")
 
 
+def test_shared_days_use_the_spare_lines():
+    """
+    <summary>COMING-UP-MORE: days that share a heading fit more than eleven slots in the 22 lines.</summary>
+    """
+    slots = []
+    for count, day in zip([6, 6, 5], ["Tonight", "Tomorrow", "Friday"]):
+        slots += [("S{}{}".format(day, i), "{} 1{}:00".format(day, i)) for i in range(count)]
+    equal(len(slots[:service.COMING_UP_SLOTS]), 17, "all seventeen slots are read")
+    lines = service.coming_up_lines(slots[:service.COMING_UP_SLOTS])
+    equal(sum(1 for line in lines if line["kind"] == "slot"), 17, "seventeen slots fill the 22 lines")
+
+
 if __name__ == "__main__":
     for test in (test_one_slot_per_day, test_several_slots_in_a_day,
                  test_dated_day_and_even_group, test_every_day_starts_on_an_odd_line,
-                 test_overflow_and_empty):
+                 test_overflow_and_empty, test_shared_days_use_the_spare_lines):
         print("running " + test.__name__)
         test()
     if FAILURES:
