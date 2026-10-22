@@ -2514,6 +2514,26 @@ msgctxt "#31690"
 msgid "No add-on settings to show."
 msgstr ""
 
+msgctxt "#31691"
+msgid "Move to another list"
+msgstr ""
+
+msgctxt "#31692"
+msgid "Copy to another list"
+msgstr ""
+
+msgctxt "#31693"
+msgid "Move to which list?"
+msgstr ""
+
+msgctxt "#31694"
+msgid "Copy to which list?"
+msgstr ""
+
+msgctxt "#31695"
+msgid "%s moved to %s"
+msgstr ""
+
 msgctxt "#31700"
 msgid "Overall: the accent colour, seasonal themes, where notifications appear, logging for fault finding, and a backup of every setting on these pages."
 msgstr ""

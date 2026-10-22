@@ -11,6 +11,11 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.8 (22/10/2026)
+
+- A list item's menu can now move or copy it to another list, or to a new
+  one made there and then.
+
 ## 0.23.7 (22/10/2026)
 
 - The Radarr settings page is called Radarr again, and the switch that lets

@@ -162,10 +162,43 @@ def test_import_skips_case_clash():
           "the usual toast still shows")
 
 
+def test_move_and_copy_to_another_list():
+    """<summary>LISTS-MOVE-COPY: copy leaves the row where it is, move takes it out,
+    an item already there is not doubled, and backing out changes nothing.</summary>"""
+    film = {"label": "Metropolis", "dbtype": "movie", "dbid": 12, "file": "/media/films/Metropolis.mkv"}
+    other = {"label": "Metropolitan", "dbtype": "movie", "dbid": 13, "file": "/media/films/Metropolitan.mkv"}
+    helper = T.seed([{"name": "Films", "items": [dict(film), dict(other)], "seq": 1},
+                     {"name": "Later", "items": [], "seq": 2}])
+    answers = []
+    T._Dialog.select = lambda self, *a, **k: answers.pop(0)
+    try:
+        def lists():
+            return {l["name"]: [it["dbid"] for it in l["items"]] for l in helper._lists}
+        source = helper._lists[0]
+        answers[:] = [-1]
+        helper._lists_item_to_list(source, 0, source["items"][0], move=True)
+        check(lists() == {"Films": [12, 13], "Later": []}, "backing out changes nothing")
+        answers[:] = [0]
+        helper._lists_item_to_list(source, 0, source["items"][0], move=False)
+        check(lists() == {"Films": [12, 13], "Later": [12]}, "copy: in both lists")
+        check(helper._lists[1]["items"][0] is not source["items"][0], "copy: its own record")
+        answers[:] = [0]
+        helper._lists_item_to_list(source, 0, source["items"][0], move=True)
+        check(lists() == {"Films": [13], "Later": [12]}, "move of one already there: not doubled, gone from here")
+        answers[:] = [0]
+        helper._lists_item_to_list(source, 0, source["items"][0], move=True)
+        check(lists() == {"Films": [], "Later": [12, 13]}, "move: there and not here")
+        saved = {l["name"]: [it["dbid"] for it in l["items"]] for l in T.on_disk()["lists"]}
+        check(saved == {"Films": [], "Later": [12, 13]}, "and saved")
+    finally:
+        del T._Dialog.select
+
+
 def main():
     """<summary>Run every test, clean up, and exit non zero on any failure.</summary>"""
     tests = [test_queue_save_keeps_season_zero, test_expand_keeps_season_zero,
-             test_parse_renames_case_duplicates, test_import_skips_case_clash]
+             test_parse_renames_case_duplicates, test_import_skips_case_clash,
+             test_move_and_copy_to_another_list]
     try:
         for test in tests:
             print("running " + test.__name__)

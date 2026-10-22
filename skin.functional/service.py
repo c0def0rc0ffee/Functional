@@ -5023,7 +5023,8 @@ class FunctionalHelper(xbmc.Monitor):
 
     def _lists_item_menu(self, row):
         """<summary>Action menu for one row of the selected list: play it
-        now, move it up or down, or remove it.</summary>
+        now, move it up or down, remove it, or move or copy it to another
+        list (LISTS-MOVE-COPY, 22/10/2026).</summary>
         <param name="row">1-based row number as a string.</param>"""
         try:
             pos = int(row) - 1
@@ -5034,7 +5035,7 @@ class FunctionalHelper(xbmc.Monitor):
             return
         it = lst["items"][pos]
         choice = xbmcgui.Dialog().contextmenu(
-            [_L(31358), _L(31359), _L(31360), _L(31361)])
+            [_L(31358), _L(31359), _L(31360), _L(31361), _L(31691), _L(31692)])
         _dlog("list item menu: row %d of %s -> choice %d" % (
             pos + 1, lst["name"], choice))
         if choice == 0:
@@ -5051,7 +5052,70 @@ class FunctionalHelper(xbmc.Monitor):
             return
         if choice < 0:
             return
+        if choice in (4, 5):
+            self._lists_item_to_list(lst, pos, it, move=(choice == 4))
+            return
         self._lists_item_apply(lst, pos, it, {1: "up", 2: "down", 3: "del"}[choice])
+
+    def _lists_item_to_list(self, lst, pos, it, move):
+        """<summary>Move or copy one row of the selected list into another
+        list the user picks, "New list" being the last choice.</summary>
+        <param name="lst">The list the row belongs to.</param>
+        <param name="pos">0-based row index the caller saw.</param>
+        <param name="it">The item the caller saw at pos.</param>
+        <param name="move">True to take it out of lst once it is in the
+        other list; False to leave it where it is as well.</param>
+        <remarks>LISTS-MOVE-COPY, 22/10/2026. The other list gets its own copy
+        of the record, so a later change to one never shows in the other.
+        The add rules are the ones Add To List keeps: an item the other list
+        already holds is not added twice, and a full list takes nothing.
+        Already there counts as done for a move, so the row still leaves
+        this list: the end is the same, the item in the other list only.
+        The removal goes through _lists_item_apply, which checks the row
+        still holds the item, saves, and leaves the cursor where the next
+        item slid in. Nothing is changed when the pick is backed out of.
+        </remarks>"""
+        with self._lists_lock:
+            others = [l for l in self._lists if l is not lst]
+        names = [l["name"] for l in others] + [_L(31464)]
+        choice = xbmcgui.Dialog().select(_L(31693 if move else 31694), names)
+        if choice < 0:
+            return
+        if choice == len(others):
+            name = self._lists_ask_name(_L(31338))
+            if not name or not self._lists_create(name):
+                return
+            with self._lists_lock:
+                target = next(l for l in self._lists if l["name"] == name)
+        else:
+            target = others[choice]
+        with self._lists_lock:
+            if pos >= len(lst["items"]) or lst["items"][pos] is not it:
+                return
+            dup = any(self._list_item_same(it, x) for x in target["items"])
+            if not dup:
+                if len(target["items"]) >= self.LIST_ITEMS_MAX:
+                    full = True
+                else:
+                    full = False
+                    target["items"].append(json.loads(json.dumps(it)))
+            else:
+                full = False
+        if full:
+            self._lists_notify(_L(31339) % (target["name"], self.LIST_ITEMS_MAX), True)
+            return
+        _dlog("list item %s: %s from %s to %s%s" % (
+            "move" if move else "copy", it.get("label", ""), lst["name"],
+            target["name"], " (already there)" if dup else ""))
+        if move:
+            self._lists_item_apply(lst, pos, it, "del")
+            self._lists_notify(_L(31695) % (it.get("label", ""), target["name"]))
+            return
+        self._lists_save()
+        if dup:
+            self._lists_notify(_L(31340) % (it.get("label", ""), target["name"]))
+        else:
+            self._lists_notify(_L(31341) % target["name"])
 
     def _lists_item_quick(self, cmd, row):
         """<summary>One of a row's quick buttons (LISTS-QUICK): move it up,
