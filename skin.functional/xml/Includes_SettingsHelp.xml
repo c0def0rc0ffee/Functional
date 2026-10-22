@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  SETTINGS-HELP, 22/10/2026: the help text for the Skin Settings window,
+  pulled in by Includes.xml. SettingsHelp maps whichever settings control
+  has focus to one string saying what it does and, after a line break,
+  where the thing it affects appears. settings_help_shown is true exactly
+  when one of those controls has focus, so the panel in SkinSettings.xml
+  hides rather than showing an empty box.
+  </summary>
+  <remarks>
+  The strings are 31700 upwards in strings.po, one per control, except the
+  eight main menu tiles, whose cycle, label and favourite rows share one
+  string per kind of row. Two focusable controls are left out on purpose:
+  7321, the one pixel relay focus passes through after the custom accent
+  picker, and 7900, the unlabelled About strip, which help text would
+  give away. A control added to SkinSettings.xml needs a value here and
+  its id in settings_help_shown, or the panel stays hidden on it.
+  </remarks>
+-->
+<includes>
+	<!-- <summary>True while any control the SettingsHelp map covers has
+	     focus. Kept as a plain list of ids, the same ids as the map below,
+	     rather than a test of the variable's text.</summary> -->
+	<expression name="settings_help_shown">Control.HasFocus(7003) | Control.HasFocus(7006) | Control.HasFocus(7001) | Control.HasFocus(7005) | Control.HasFocus(7002) | Control.HasFocus(7007) | Control.HasFocus(7004) | Control.HasFocus(7008) | Control.HasFocus(7009) | Control.HasFocus(7107) | Control.HasFocus(7108) | Control.HasFocus(7137) | Control.HasFocus(7149) | Control.HasFocus(7150) | Control.HasFocus(7179) | Control.HasFocus(7180) | Control.HasFocus(7181) | Control.HasFocus(7128) | Control.HasFocus(7129) | Control.HasFocus(7143) | Control.HasFocus(7144) | Control.HasFocus(7141) | Control.HasFocus(7142) | Control.HasFocus(7104) | Control.HasFocus(7106) | Control.HasFocus(7122) | Control.HasFocus(7105) | Control.HasFocus(7115) | Control.HasFocus(7151) | Control.HasFocus(7152) | Control.HasFocus(7153) | Control.HasFocus(7154) | Control.HasFocus(7155) | Control.HasFocus(7156) | Control.HasFocus(7157) | Control.HasFocus(7158) | Control.HasFocus(7161) | Control.HasFocus(7162) | Control.HasFocus(7163) | Control.HasFocus(7164) | Control.HasFocus(7165) | Control.HasFocus(7166) | Control.HasFocus(7167) | Control.HasFocus(7168) | Control.HasFocus(7171) | Control.HasFocus(7172) | Control.HasFocus(7173) | Control.HasFocus(7174) | Control.HasFocus(7175) | Control.HasFocus(7176) | Control.HasFocus(7177) | Control.HasFocus(7178) | Control.HasFocus(7113) | Control.HasFocus(7140) | Control.HasFocus(7123) | Control.HasFocus(7109) | Control.HasFocus(7112) | Control.HasFocus(7136) | Control.HasFocus(7139) | Control.HasFocus(7119) | Control.HasFocus(7300) | Control.HasFocus(7320) | Control.HasFocus(7301) | Control.HasFocus(7330) | Control.HasFocus(7331) | Control.HasFocus(7332) | Control.HasFocus(7310) | Control.HasFocus(7311) | Control.HasFocus(7312) | Control.HasFocus(7208) | Control.HasFocus(7314) | Control.HasFocus(7315) | Control.HasFocus(7220) | Control.HasFocus(7221) | Control.HasFocus(7222) | Control.HasFocus(7223) | Control.HasFocus(7230) | Control.HasFocus(7231) | Control.HasFocus(7232) | Control.HasFocus(7233) | Control.HasFocus(7224) | Control.HasFocus(7200) | Control.HasFocus(7201) | Control.HasFocus(7202) | Control.HasFocus(7203) | Control.HasFocus(7204) | Control.HasFocus(7205) | Control.HasFocus(7206) | Control.HasFocus(7207) | Control.HasFocus(7209) | Control.HasFocus(7316) | Control.HasFocus(7234) | Control.HasFocus(7235) | Control.HasFocus(7238) | Control.HasFocus(7236) | Control.HasFocus(7237) | Control.HasFocus(7124) | Control.HasFocus(7400) | Control.HasFocus(7401) | Control.HasFocus(7402) | Control.HasFocus(7403) | Control.HasFocus(7404) | Control.HasFocus(7405) | Control.HasFocus(7406) | Control.HasFocus(7130) | Control.HasFocus(7131) | Control.HasFocus(7132) | Control.HasFocus(7116) | Control.HasFocus(7110) | Control.HasFocus(7111) | Control.HasFocus(7120) | Control.HasFocus(7125) | Control.HasFocus(7126) | Control.HasFocus(7145) | Control.HasFocus(7114) | Control.HasFocus(7133) | Control.HasFocus(7134) | Control.HasFocus(7135) | Control.HasFocus(7117) | Control.HasFocus(7118) | Control.HasFocus(7146) | Control.HasFocus(7147) | Control.HasFocus(7148) | Control.HasFocus(7302) | Control.HasFocus(7303) | Control.HasFocus(7304) | Control.HasFocus(7305) | Control.HasFocus(7313) | Control.HasFocus(7306) | Control.HasFocus(7307) | Control.HasFocus(7308) | Control.HasFocus(7309)</expression>
+
+	<!-- <summary>Help text for the focused Skin Settings control: what it
+	     does, then a Where line. Empty when nothing listed has focus.
+	     </summary> -->
+	<variable name="SettingsHelp">
+		<value condition="Control.HasFocus(7003)">$LOCALIZE[31700]</value>
+		<value condition="Control.HasFocus(7006)">$LOCALIZE[31701]</value>
+		<value condition="Control.HasFocus(7001)">$LOCALIZE[31702]</value>
+		<value condition="Control.HasFocus(7005)">$LOCALIZE[31703]</value>
+		<value condition="Control.HasFocus(7002)">$LOCALIZE[31704]</value>
+		<value condition="Control.HasFocus(7007)">$LOCALIZE[31705]</value>
+		<value condition="Control.HasFocus(7004)">$LOCALIZE[31706]</value>
+		<value condition="Control.HasFocus(7008)">$LOCALIZE[31707]</value>
+		<value condition="Control.HasFocus(7009)">$LOCALIZE[31809]</value>
+		<value condition="Control.HasFocus(7107)">$LOCALIZE[31708]</value>
+		<value condition="Control.HasFocus(7108)">$LOCALIZE[31709]</value>
+		<value condition="Control.HasFocus(7137)">$LOCALIZE[31710]</value>
+		<value condition="Control.HasFocus(7149)">$LOCALIZE[31711]</value>
+		<value condition="Control.HasFocus(7150)">$LOCALIZE[31712]</value>
+		<value condition="Control.HasFocus(7179)">$LOCALIZE[31713]</value>
+		<value condition="Control.HasFocus(7180)">$LOCALIZE[31714]</value>
+		<value condition="Control.HasFocus(7181)">$LOCALIZE[31810]</value>
+		<value condition="Control.HasFocus(7128)">$LOCALIZE[31715]</value>
+		<value condition="Control.HasFocus(7129)">$LOCALIZE[31716]</value>
+		<value condition="Control.HasFocus(7143)">$LOCALIZE[31717]</value>
+		<value condition="Control.HasFocus(7144)">$LOCALIZE[31718]</value>
+		<value condition="Control.HasFocus(7141)">$LOCALIZE[31719]</value>
+		<value condition="Control.HasFocus(7142)">$LOCALIZE[31720]</value>
+		<value condition="Control.HasFocus(7104)">$LOCALIZE[31721]</value>
+		<value condition="Control.HasFocus(7106)">$LOCALIZE[31722]</value>
+		<value condition="Control.HasFocus(7122)">$LOCALIZE[31723]</value>
+		<value condition="Control.HasFocus(7105)">$LOCALIZE[31724]</value>
+		<value condition="Control.HasFocus(7115)">$LOCALIZE[31725]</value>
+		<value condition="Control.HasFocus(7151)">$LOCALIZE[31726]</value>
+		<value condition="Control.HasFocus(7152)">$LOCALIZE[31726]</value>
+		<value condition="Control.HasFocus(7153)">$LOCALIZE[31726]</value>
+		<value condition="Control.HasFocus(7154)">$LOCALIZE[31726]</value>
+		<value condition="Control.HasFocus(7155)">$LOCALIZE[31726]</value>
+		<value condition="Control.HasFocus(7156)">$LOCALIZE[31726]</value>
+		<value condition="Control.HasFocus(7157)">$LOCALIZE[31726]</value>
+		<value condition="Control.HasFocus(7158)">$LOCALIZE[31726]</value>
+		<value condition="Control.HasFocus(7161)">$LOCALIZE[31727]</value>
+		<value condition="Control.HasFocus(7162)">$LOCALIZE[31727]</value>
+		<value condition="Control.HasFocus(7163)">$LOCALIZE[31727]</value>
+		<value condition="Control.HasFocus(7164)">$LOCALIZE[31727]</value>
+		<value condition="Control.HasFocus(7165)">$LOCALIZE[31727]</value>
+		<value condition="Control.HasFocus(7166)">$LOCALIZE[31727]</value>
+		<value condition="Control.HasFocus(7167)">$LOCALIZE[31727]</value>
+		<value condition="Control.HasFocus(7168)">$LOCALIZE[31727]</value>
+		<value condition="Control.HasFocus(7171)">$LOCALIZE[31728]</value>
+		<value condition="Control.HasFocus(7172)">$LOCALIZE[31728]</value>
+		<value condition="Control.HasFocus(7173)">$LOCALIZE[31728]</value>
+		<value condition="Control.HasFocus(7174)">$LOCALIZE[31728]</value>
+		<value condition="Control.HasFocus(7175)">$LOCALIZE[31728]</value>
+		<value condition="Control.HasFocus(7176)">$LOCALIZE[31728]</value>
+		<value condition="Control.HasFocus(7177)">$LOCALIZE[31728]</value>
+		<value condition="Control.HasFocus(7178)">$LOCALIZE[31728]</value>
+		<value condition="Control.HasFocus(7113)">$LOCALIZE[31729]</value>
+		<value condition="Control.HasFocus(7140)">$LOCALIZE[31730]</value>
+		<value condition="Control.HasFocus(7123)">$LOCALIZE[31731]</value>
+		<value condition="Control.HasFocus(7109)">$LOCALIZE[31732]</value>
+		<value condition="Control.HasFocus(7112)">$LOCALIZE[31733]</value>
+		<value condition="Control.HasFocus(7136)">$LOCALIZE[31734]</value>
+		<value condition="Control.HasFocus(7139)">$LOCALIZE[31735]</value>
+		<value condition="Control.HasFocus(7119)">$LOCALIZE[31736]</value>
+		<value condition="Control.HasFocus(7300)">$LOCALIZE[31737]</value>
+		<value condition="Control.HasFocus(7320)">$LOCALIZE[31738]</value>
+		<value condition="Control.HasFocus(7301)">$LOCALIZE[31739]</value>
+		<value condition="Control.HasFocus(7330)">$LOCALIZE[31740]</value>
+		<value condition="Control.HasFocus(7331)">$LOCALIZE[31741]</value>
+		<value condition="Control.HasFocus(7332)">$LOCALIZE[31742]</value>
+		<value condition="Control.HasFocus(7310)">$LOCALIZE[31743]</value>
+		<value condition="Control.HasFocus(7311)">$LOCALIZE[31744]</value>
+		<value condition="Control.HasFocus(7312)">$LOCALIZE[31745]</value>
+		<value condition="Control.HasFocus(7208)">$LOCALIZE[31746]</value>
+		<value condition="Control.HasFocus(7314)">$LOCALIZE[31747]</value>
+		<value condition="Control.HasFocus(7315)">$LOCALIZE[31748]</value>
+		<value condition="Control.HasFocus(7220)">$LOCALIZE[31749]</value>
+		<value condition="Control.HasFocus(7221)">$LOCALIZE[31750]</value>
+		<value condition="Control.HasFocus(7222)">$LOCALIZE[31751]</value>
+		<value condition="Control.HasFocus(7223)">$LOCALIZE[31752]</value>
+		<value condition="Control.HasFocus(7230)">$LOCALIZE[31753]</value>
+		<value condition="Control.HasFocus(7231)">$LOCALIZE[31754]</value>
+		<value condition="Control.HasFocus(7232)">$LOCALIZE[31755]</value>
+		<value condition="Control.HasFocus(7233)">$LOCALIZE[31756]</value>
+		<value condition="Control.HasFocus(7224)">$LOCALIZE[31757]</value>
+		<value condition="Control.HasFocus(7200)">$LOCALIZE[31758]</value>
+		<value condition="Control.HasFocus(7201)">$LOCALIZE[31759]</value>
+		<value condition="Control.HasFocus(7202)">$LOCALIZE[31760]</value>
+		<value condition="Control.HasFocus(7203)">$LOCALIZE[31761]</value>
+		<value condition="Control.HasFocus(7204)">$LOCALIZE[31762]</value>
+		<value condition="Control.HasFocus(7205)">$LOCALIZE[31763]</value>
+		<value condition="Control.HasFocus(7206)">$LOCALIZE[31764]</value>
+		<value condition="Control.HasFocus(7207)">$LOCALIZE[31765]</value>
+		<value condition="Control.HasFocus(7209)">$LOCALIZE[31766]</value>
+		<value condition="Control.HasFocus(7316)">$LOCALIZE[31767]</value>
+		<value condition="Control.HasFocus(7234)">$LOCALIZE[31768]</value>
+		<value condition="Control.HasFocus(7235)">$LOCALIZE[31769]</value>
+		<value condition="Control.HasFocus(7238)">$LOCALIZE[31770]</value>
+		<value condition="Control.HasFocus(7236)">$LOCALIZE[31771]</value>
+		<value condition="Control.HasFocus(7237)">$LOCALIZE[31772]</value>
+		<value condition="Control.HasFocus(7124)">$LOCALIZE[31773]</value>
+		<value condition="Control.HasFocus(7400)">$LOCALIZE[31774]</value>
+		<value condition="Control.HasFocus(7401)">$LOCALIZE[31775]</value>
+		<value condition="Control.HasFocus(7402)">$LOCALIZE[31776]</value>
+		<value condition="Control.HasFocus(7403)">$LOCALIZE[31777]</value>
+		<value condition="Control.HasFocus(7404)">$LOCALIZE[31778]</value>
+		<value condition="Control.HasFocus(7405)">$LOCALIZE[31779]</value>
+		<value condition="Control.HasFocus(7406)">$LOCALIZE[31780]</value>
+		<value condition="Control.HasFocus(7130)">$LOCALIZE[31781]</value>
+		<value condition="Control.HasFocus(7131)">$LOCALIZE[31782]</value>
+		<value condition="Control.HasFocus(7132)">$LOCALIZE[31783]</value>
+		<value condition="Control.HasFocus(7116)">$LOCALIZE[31784]</value>
+		<value condition="Control.HasFocus(7110)">$LOCALIZE[31785]</value>
+		<value condition="Control.HasFocus(7111)">$LOCALIZE[31786]</value>
+		<value condition="Control.HasFocus(7120)">$LOCALIZE[31787]</value>
+		<value condition="Control.HasFocus(7125)">$LOCALIZE[31788]</value>
+		<value condition="Control.HasFocus(7126)">$LOCALIZE[31789]</value>
+		<value condition="Control.HasFocus(7145)">$LOCALIZE[31790]</value>
+		<value condition="Control.HasFocus(7114)">$LOCALIZE[31791]</value>
+		<value condition="Control.HasFocus(7133)">$LOCALIZE[31792]</value>
+		<value condition="Control.HasFocus(7134)">$LOCALIZE[31793]</value>
+		<value condition="Control.HasFocus(7135)">$LOCALIZE[31794]</value>
+		<value condition="Control.HasFocus(7117)">$LOCALIZE[31795]</value>
+		<value condition="Control.HasFocus(7118)">$LOCALIZE[31796]</value>
+		<value condition="Control.HasFocus(7146)">$LOCALIZE[31797]</value>
+		<value condition="Control.HasFocus(7147)">$LOCALIZE[31798]</value>
+		<value condition="Control.HasFocus(7148)">$LOCALIZE[31799]</value>
+		<value condition="Control.HasFocus(7302)">$LOCALIZE[31800]</value>
+		<value condition="Control.HasFocus(7303)">$LOCALIZE[31801]</value>
+		<value condition="Control.HasFocus(7304)">$LOCALIZE[31802]</value>
+		<value condition="Control.HasFocus(7305)">$LOCALIZE[31803]</value>
+		<value condition="Control.HasFocus(7313)">$LOCALIZE[31804]</value>
+		<value condition="Control.HasFocus(7306)">$LOCALIZE[31805]</value>
+		<value condition="Control.HasFocus(7307)">$LOCALIZE[31806]</value>
+		<value condition="Control.HasFocus(7308)">$LOCALIZE[31807]</value>
+		<value condition="Control.HasFocus(7309)">$LOCALIZE[31808]</value>
+	</variable>
+</includes>

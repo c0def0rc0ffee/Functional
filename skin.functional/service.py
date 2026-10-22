@@ -532,8 +532,18 @@ def _num_text(value):
 
 # COMING-UP-LINES: the Coming up list is drawn as 40 pixel lines, two per row
 # of the old 80 pixel list, so the cut rules that hide whole rows still apply.
-COMING_UP_SLOTS = 22  # Engage.Next.1.* to .22.*, what Engage publishes: one per line at most
+COMING_UP_SLOTS = 50  # Engage.Next.1.* to .50.*, what Engage publishes (COMING-UP-SCROLL)
 COMING_UP_LINES = 22  # ComingUp.1.* to .22.*, the lines Home.xml draws
+# COMING-UP-SCROLL, 22/10/2026: the controls the scroll watches (Home.xml). Each
+# line L has a tall button 9340+L, a short one 9370+L and an invisible marker
+# 9470+L that shows while the layout leaves that line room; 9395 and 9396 are
+# the catches below the last line and above the first.
+COMING_UP_TALL = 9340
+COMING_UP_SHORT = 9370
+COMING_UP_MARKER = 9470
+COMING_UP_CATCH_DOWN = 9395
+COMING_UP_CATCH_UP = 9396
+COMING_UP_MENU = 9000
 
 
 # COMING-UP-ESTIMATE, 22/10/2026: the day words Engage's when_label uses, so an
@@ -623,14 +633,129 @@ def estimate_coming_up(slots, now, playing_ends=None):
     return result
 
 
-def coming_up_lines(slots):
+def coming_up_run_ends(slots, now, playing_ends=None):
+    """
+    <summary>
+    Find where each run of back to back Coming up slots ends.
+    </summary>
+    <param name="slots">(label, when, due, runtime, ends_at) tuples in Engage's
+    order: due is Engage.Next.N.Due, runtime its .Runtime in whole seconds and
+    ends_at its .EndsAt ("1" when the slot has its Ends At switch on), any of
+    them possibly empty.</param>
+    <param name="now">The current time as a datetime.datetime; unused, kept so
+    the call reads like estimate_coming_up's.</param>
+    <param name="playing_ends">When whatever is playing now will end, or None.</param>
+    <returns>{index: end} for each slot that ends a run and has its switch on,
+    end being a datetime.datetime.</returns>
+    <remarks>
+    COMING-UP-ENDS, 22/10/2026. A run is slots each of which would start while
+    the one before it is still playing, so queues behind it; whatever is playing
+    now counts as the start of the first run. Start times follow the same rules as
+    estimate_coming_up. A run whose last slot has an unknown running time has an
+    unknown end and gets no line, and the next slot then starts a run of its own,
+    since whether it would queue cannot be known. A slot with no due time breaks
+    the chain the same way. Only the run's last slot's switch counts, as asked
+    for on 22/10/2026.
+    </remarks>
+    """
+    result = {}
+    cursor = playing_ends
+    cursor_known = playing_ends is not None
+    last = None
+
+    def close(run_last):
+        """<summary>Record a finished run's end when known and wanted.</summary>"""
+        if run_last is not None and run_last[1] is not None and run_last[2]:
+            result[run_last[0]] = run_last[1]
+
+    for index, (_label, _when, due, runtime, ends_at) in enumerate(slots):
+        try:
+            due_at = datetime.datetime.strptime((due or "").strip(), "%Y-%m-%dT%H:%M")
+        except ValueError:
+            close(last)
+            last, cursor, cursor_known = None, None, False
+            continue
+        joins = cursor_known and cursor is not None and cursor > due_at
+        if not joins:
+            close(last)
+        start = due_at
+        if cursor is not None and cursor > due_at:
+            start = cursor
+            if start.second or start.microsecond:
+                start = start.replace(second=0, microsecond=0) + datetime.timedelta(minutes=1)
+        try:
+            seconds = int(runtime or 0)
+        except ValueError:
+            seconds = 0
+        end = start + datetime.timedelta(seconds=seconds) if seconds > 0 else None
+        last = (index, end, (ends_at or "").strip() == "1")
+        cursor, cursor_known = (end, True) if end is not None else (start, False)
+    close(last)
+    return result
+
+
+def coming_up_window(lines, offset):
+    """
+    <summary>
+    The COMING_UP_LINES lines of the Coming up list that show from a scroll offset.
+    </summary>
+    <param name="lines">Every line, as coming_up_lines(..., every=True) gives them.</param>
+    <param name="offset">How many lines are scrolled past; made even and kept within
+    the list, so a two line row is never split.</param>
+    <returns>(window, offset): exactly COMING_UP_LINES line dicts, padded with empty
+    ones, and the offset actually used.</returns>
+    <remarks>
+    COMING-UP-SCROLL, 22/10/2026. The first line shown keeps no day rule: it is the
+    top of the list, whatever it was in the whole.
+    </remarks>
+    """
+    last = max(0, len(lines) - 2)
+    offset = max(0, min(int(offset) - int(offset) % 2, last - last % 2))
+    window = [dict(line) for line in lines[offset:offset + COMING_UP_LINES]]
+    if window:
+        window[0]["sep"] = ""
+    while len(window) < COMING_UP_LINES:
+        window.append({"kind": "", "label": "", "when": "", "sep": ""})
+    return window, offset
+
+
+def coming_up_stops(lines, room):
+    """
+    <summary>
+    The scroll offsets the Coming up list may stop at.
+    </summary>
+    <param name="lines">Every line, as coming_up_lines(..., every=True) gives them.</param>
+    <param name="room">How many lines the layout shows.</param>
+    <returns>Ascending line offsets, 0 first: the first line of every day, and, for
+    a day too long to show whole, each row inside it as well.</returns>
+    <remarks>
+    COMING-UP-SCROLL, 22/10/2026. Scrolling a day at a time keeps its heading (or
+    its one slot) on the top line, so a slot is never shown without its day; asked
+    for after the first try, which went a row at a time and could leave "Late Film"
+    at the top with no day above it. A day longer than the room still has to be
+    walked through, so its rows are stops too. Every day starts on an even offset,
+    so whole rows are kept.
+    </remarks>
+    """
+    starts = [i for i, line in enumerate(lines) if line["kind"] in ("heading", "item")]
+    stops = set(starts) | {0}
+    ends = starts[1:] + [len(lines)]
+    for start, end in zip(starts, ends):
+        if end - start > room:
+            stops.update(range(start, end, 2))
+    return sorted(stops)
+
+
+def coming_up_lines(slots, every=False):
     """
     <summary>
     Lay Engage's upcoming slots out as the lines of the Coming up list.
     </summary>
     <param name="slots">(label, when) pairs in Engage's order, where `when` is
     Engage.Next.N.When: "Tonight 19:00", "Tomorrow 20:00", "Wednesday 19:30"
-    or "Wednesday 21/10/2026 19:30".</param>
+    or "Wednesday 21/10/2026 19:30". COMING-UP-ENDS, 22/10/2026: an entry may
+    instead be (label, time, "ends"), an Ends At line, which joins the day of
+    the slot before it whatever its time and is drawn as an "ends" line.</param>
     <returns>COMING_UP_LINES dicts of kind, label, when and sep, one per line,
     empty strings where a line has nothing.</returns>
     <remarks>
@@ -644,32 +769,41 @@ def coming_up_lines(slots):
     line: the first half of an old row. That keeps a two line item inside
     one row and a heading in the same row as its first slot, so a row the
     layout cuts takes whole items with it and never leaves a heading alone.
-    sep is "day" on the first line of every day but the first.
+    sep is "day" on the first line of every day but the first. With every set
+    (COMING-UP-SCROLL), the whole list comes back, uncut and unpadded, for
+    coming_up_window to show a part of.
     </remarks>
     """
     groups = []
-    for label, when in slots:
-        when = (when or "").strip()
+    for entry in slots:
+        if len(entry) > 2 and entry[2] == "ends":
+            if groups:
+                groups[-1][1].append((entry[0], entry[1], entry[1], "ends"))
+            continue
+        label, when = entry[0], (entry[1] or "").strip()
         day, _, time = when.rpartition(" ")
         if not day:
             day, time = when, ""
         if groups and groups[-1][0] == day:
-            groups[-1][1].append((label, when, time))
+            groups[-1][1].append((label, when, time, "slot"))
         else:
-            groups.append((day, [(label, when, time)]))
+            groups.append((day, [(label, when, time, "slot")]))
     lines = []
     for day, members in groups:
         sep = "day" if lines else ""
-        if len(members) == 1:
-            label, when, _ = members[0]
+        if sum(1 for member in members if member[3] == "slot") == 1:
+            label, when, _, _ = members[0]
             lines.append({"kind": "item", "label": label, "when": when, "sep": sep})
             lines.append({"kind": "item2", "label": "", "when": "", "sep": ""})
-            continue
-        lines.append({"kind": "heading", "label": day, "when": "", "sep": sep})
-        for label, _, time in members:
-            lines.append({"kind": "slot", "label": label, "when": time, "sep": ""})
+            members = members[1:]
+        else:
+            lines.append({"kind": "heading", "label": day, "when": "", "sep": sep})
+        for label, _, time, kind in members:
+            lines.append({"kind": kind, "label": label, "when": time, "sep": ""})
         if len(lines) % 2:
             lines.append({"kind": "pad", "label": "", "when": "", "sep": ""})
+    if every:
+        return lines
     lines = lines[:COMING_UP_LINES]
     while len(lines) < COMING_UP_LINES:
         lines.append({"kind": "", "label": "", "when": "", "sep": ""})
@@ -776,6 +910,11 @@ class FunctionalHelper(xbmc.Monitor):
         # reaches its loop, killing background, ETA and everything else.
         self._last_eta = None
         self._last_dur_dbg = None
+        # COMING-UP-SCROLL: lines of the Coming up list scrolled past, and how many
+        # lines the whole list has; see update_coming_up_lines.
+        self.coming_up_offset = 0
+        self.coming_up_total = 0
+        self.coming_up_every = []
         # Age labels on the two info screens (see update_media_age), keyed by
         # Home property name so an unchanged label is never rewritten.
         self._age_last = {}
@@ -3199,7 +3338,7 @@ class FunctionalHelper(xbmc.Monitor):
         one slot, a day heading and a line per slot for a day with several.
         </summary>
         <remarks>
-        Slow tick. Reads Engage.Next.1 to 22 (Label and When) from Home, stops
+        Slow tick. Reads Engage.Next.1 to 50 (Label and When) from Home, stops
         at the first empty label, lays them out with coming_up_lines and
         publishes Window(home).Property(ComingUp.L.Kind), .Label, .When and
         .Sep for L 1 to 22, which Home.xml's ComingUpLine include draws.
@@ -3214,7 +3353,13 @@ class FunctionalHelper(xbmc.Monitor):
         on, the times are first replaced by estimate_coming_up's, using each
         slot's Engage.Next.N.Due and .Runtime and the end of whatever is
         playing; with it off, or with an Engage that publishes neither, the
-        list is exactly as Engage sent it.
+        list is exactly as Engage sent it. COMING-UP-ENDS, 22/10/2026: with
+        Skin.HasSetting(coming_up_ends) on, whichever the estimate is, an
+        "Ends At" line follows each run's last slot where coming_up_run_ends
+        finds one, its time as HH:MM. COMING-UP-SCROLL, 22/10/2026: reads up to
+        50 slots, and shows the 22 lines from coming_up_offset on
+        (coming_up_window); ComingUp.Scrolled is "1" while that is not the top.
+        The offset only moves while Skin.HasSetting(coming_up_scroll) is on.
         </remarks>
         """
         home = xbmcgui.Window(HOME_WINDOW_ID)
@@ -3225,13 +3370,38 @@ class FunctionalHelper(xbmc.Monitor):
                 break
             slots.append((label, home.getProperty("Engage.Next.{0}.When".format(n)),
                           home.getProperty("Engage.Next.{0}.Due".format(n)),
-                          home.getProperty("Engage.Next.{0}.Runtime".format(n))))
-        if xbmc.getCondVisibility("Skin.HasSetting(coming_up_estimate)"):
+                          home.getProperty("Engage.Next.{0}.Runtime".format(n)),
+                          home.getProperty("Engage.Next.{0}.EndsAt".format(n))))
+        estimate = xbmc.getCondVisibility("Skin.HasSetting(coming_up_estimate)")
+        ends = {}
+        if estimate or xbmc.getCondVisibility("Skin.HasSetting(coming_up_ends)"):
             now = datetime.datetime.now()
-            slots = estimate_coming_up(slots, now, self.coming_up_playing_ends(now))
+            playing_ends = self.coming_up_playing_ends(now)
+            if xbmc.getCondVisibility("Skin.HasSetting(coming_up_ends)"):
+                ends = coming_up_run_ends(slots, now, playing_ends)
+        if estimate:
+            shown = estimate_coming_up([row[:4] for row in slots], now, playing_ends)
         else:
-            slots = [(label, when) for label, when, _, _ in slots]
-        for number, line in enumerate(coming_up_lines(slots), 1):
+            shown = [(row[0], row[1]) for row in slots]
+        entries = []
+        for index, entry in enumerate(shown):
+            entries.append(entry)
+            if index in ends:
+                entries.append(("Ends At", "{:02d}:{:02d}".format(ends[index].hour,
+                                                                  ends[index].minute), "ends"))
+        if not xbmc.getCondVisibility("Skin.HasSetting(coming_up_scroll)"):
+            self.coming_up_offset = 0
+        every = coming_up_lines(entries, every=True)
+        self.coming_up_every = every
+        self.coming_up_total = len(every)
+        window, self.coming_up_offset = coming_up_window(every, self.coming_up_offset)
+        scrolled = "1" if self.coming_up_offset else ""
+        if home.getProperty("ComingUp.Scrolled") != scrolled:
+            if scrolled:
+                home.setProperty("ComingUp.Scrolled", scrolled)
+            else:
+                home.clearProperty("ComingUp.Scrolled")
+        for number, line in enumerate(window, 1):
             for field in ("kind", "label", "when", "sep"):
                 key = "ComingUp.{0}.{1}".format(number, field.capitalize())
                 value = line[field]
@@ -3266,6 +3436,87 @@ class FunctionalHelper(xbmc.Monitor):
         except Exception:  # noqa: BLE001 - playback can stop between the calls
             return None
         return now + datetime.timedelta(seconds=left)
+
+    def coming_up_scroll_tick(self):
+        """
+        <summary>
+        Scroll the Coming up list when focus reaches a catch below or above it, and
+        put it back to the top once focus leaves it.
+        </summary>
+        <remarks>
+        COMING-UP-SCROLL, 22/10/2026. Fast tick. Home.xml sends Down from the list's
+        last line to the catch 9395 and Up from its first line, while scrolled, to
+        9396; both are invisible one pixel buttons. On 9395 the list moves down to
+        the next day and focus goes to the last line it now shows that has
+        something to choose, or on to the menu row when nothing is left below. On
+        9396 it moves up to the day before and focus goes to the first such line,
+        or on to the menu row at the top. A move goes to the next or previous stop from
+        coming_up_stops, which is a whole day unless the day is too long to fit. Focus anywhere but the list and its catches puts the
+        list back to the top. How many lines the layout leaves room for is read
+        from the markers 9471 to 9492, so every cut rule in Home.xml still holds.
+        With the setting off the catches are hidden and this does nothing.
+        </remarks>
+        """
+        if not xbmc.getCondVisibility("Skin.HasSetting(coming_up_scroll)"):
+            return
+        on_home = xbmc.getCondVisibility("Window.IsActive(home)")
+        try:
+            focus = int(xbmc.getInfoLabel("System.CurrentControlId") or 0) if on_home else 0
+        except ValueError:
+            focus = 0
+        lines = range(1, COMING_UP_LINES + 1)
+        ours = {COMING_UP_CATCH_DOWN, COMING_UP_CATCH_UP}
+        ours.update(COMING_UP_TALL + n for n in lines)
+        ours.update(COMING_UP_SHORT + n for n in lines)
+        if focus not in ours:
+            if self.coming_up_offset:
+                self.coming_up_offset = 0
+                self.update_coming_up_lines()
+            return
+        if focus not in (COMING_UP_CATCH_DOWN, COMING_UP_CATCH_UP):
+            return
+        room = sum(1 for n in lines
+                   if xbmc.getCondVisibility("Control.IsVisible({0})".format(COMING_UP_MARKER + n)))
+        stops = coming_up_stops(self.coming_up_every, room) if room else [0]
+        if focus == COMING_UP_CATCH_DOWN:
+            later = [stop for stop in stops if stop > self.coming_up_offset]
+            if room and later and self.coming_up_offset + room < self.coming_up_total:
+                self.coming_up_offset = later[0]
+                self.update_coming_up_lines()
+                self.coming_up_focus_line(range(room, 0, -1))
+            else:
+                xbmc.executebuiltin("SetFocus({0})".format(COMING_UP_MENU))
+        else:
+            earlier = [stop for stop in stops if stop < self.coming_up_offset]
+            if self.coming_up_offset:
+                self.coming_up_offset = earlier[-1] if earlier else 0
+                self.update_coming_up_lines()
+                self.coming_up_focus_line(range(1, room + 1))
+            else:
+                xbmc.executebuiltin("SetFocus({0})".format(COMING_UP_MENU))
+
+    def coming_up_focus_line(self, order):
+        """
+        <summary>
+        Put focus on the first line, in the order given, that has something to choose.
+        </summary>
+        <param name="order">Line numbers to try, first choice first.</param>
+        <remarks>
+        COMING-UP-SCROLL. An item line takes its tall button and a slot line its
+        short one; headings, Ends At lines and padding have none. Falls back to the
+        menu row when no line has one.
+        </remarks>
+        """
+        home = xbmcgui.Window(HOME_WINDOW_ID)
+        for number in order:
+            kind = home.getProperty("ComingUp.{0}.Kind".format(number))
+            if kind == "item":
+                xbmc.executebuiltin("SetFocus({0})".format(COMING_UP_TALL + number))
+                return
+            if kind == "slot":
+                xbmc.executebuiltin("SetFocus({0})".format(COMING_UP_SHORT + number))
+                return
+        xbmc.executebuiltin("SetFocus({0})".format(COMING_UP_MENU))
 
     # ---- Next Up (the next unwatched episode per show in progress) --------
 
@@ -8753,6 +9004,8 @@ def run():
         # Fast as well: it only compares a timestamp unless a refresh is
         # due, and a toggled hide_nextup should refill the row at once.
         helper.update_next_up,
+        # COMING-UP-SCROLL: a catch has to be answered while the key is fresh.
+        helper.coming_up_scroll_tick,
     )
     slow = (
         helper.update_queue_eta,

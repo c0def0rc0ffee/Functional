@@ -11,6 +11,18 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.6 (22/10/2026)
+
+- New Add-ons page in the settings, holding the JellyStat and Engage
+  settings that used to sit on the Home Screen page.
+- A help panel under the settings pages says what the focused setting does
+  and where on screen it shows.
+- Coming up can end each run of back to back Engage slots with an Ends At
+  line giving when the run finishes. Each Engage slot can turn its line off.
+- Coming up can scroll: focus the list and press Down to go on through the
+  week a day at a time; it goes back to the top when you move away.
+- Needs Engage 1.11.8 for the Ends At line and the full week.
+
 ## 0.23.5 (22/10/2026)
 
 - New setting, off by default: Coming up can show when Engage slots queued

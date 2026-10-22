@@ -174,12 +174,79 @@ def test_coming_up_when():
           "a week ahead is dated")
 
 
+def test_run_ends():
+    """
+    <summary>COMING-UP-ENDS: a run ends where the next slot is clear of it, and only a switched on last slot gets a line.</summary>
+    """
+    dt = service.datetime.datetime
+    now = dt(2026, 10, 22, 17, 0)
+    slots = [
+        ("Voyager", "Tonight 18:00", "2026-10-22T18:00", "2640", "1"),
+        ("Dune", "Tonight 18:05", "2026-10-22T18:05", "9300", "1"),
+        ("Late", "Tonight 23:30", "2026-10-22T23:30", "1800", ""),
+        ("Morning", "Tomorrow 07:00", "2026-10-23T07:00", "1800", "1"),
+    ]
+    ends = service.coming_up_run_ends(slots, now)
+    equal(sorted(ends), [1, 3], "Voyager and Dune are one run ending with Dune; Late's switch is off")
+    equal(ends[1], dt(2026, 10, 22, 21, 19), "the run ends when Dune does")
+    equal(ends[3], dt(2026, 10, 23, 7, 30), "a slot on its own is a run of one")
+    unknown = service.coming_up_run_ends([
+        ("A", "Tonight 18:00", "2026-10-22T18:00", "", "1"),
+        ("B", "Tonight 18:05", "2026-10-22T18:05", "600", "1"),
+    ], now)
+    equal(sorted(unknown), [1], "no line for an unknown end, and the slot after starts its own run")
+    playing = service.coming_up_run_ends([("A", "Tonight 17:10", "2026-10-22T17:10", "600", "1")], now,
+                                         playing_ends=dt(2026, 10, 22, 17, 30))
+    equal(playing, {0: dt(2026, 10, 22, 17, 40)}, "queued behind what is playing")
+
+
+def test_ends_lines():
+    """
+    <summary>An Ends At line stays in its run's day, in a two line item day and in a heading day.</summary>
+    """
+    lines = service.coming_up_lines([("Dune", "Tonight 21:30"), ("Ends At", "23:46", "ends"),
+                                     ("Voyager", "Tomorrow 18:00"), ("Dune", "Tomorrow 18:05"),
+                                     ("Ends At", "21:19", "ends")])
+    equal(kinds(lines), ["item", "item2", "ends", "pad", "heading", "slot", "slot", "ends"],
+          "a one slot day keeps its item, then the line, padded to whole rows")
+    equal((lines[2]["label"], lines[2]["when"]), ("Ends At", "23:46"), "the line carries its time")
+    equal(lines[4]["sep"], "day", "the next day still gets its rule")
+
+
+def test_scroll_window():
+    """
+    <summary>COMING-UP-SCROLL: the window moves in whole rows, stops at the end, and drops the top rule.</summary>
+    """
+    days = ["Tonight", "Tomorrow", "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"]
+    slots = []
+    for day in days:
+        slots += [("A " + day, day + " 18:00"), ("B " + day, day + " 20:00")]
+    every = service.coming_up_lines(slots, every=True)
+    equal(len(every), 28, "seven days of two slots: a heading, two slots and a pad each")
+    equal(len(service.coming_up_lines(slots)), service.COMING_UP_LINES, "unscrolled, the usual 22 lines")
+    window, offset = service.coming_up_window(every, 0)
+    equal((offset, window[0]["label"]), (0, "Tonight"), "the top")
+    window, offset = service.coming_up_window(every, 5)
+    equal(offset, 4, "an odd offset rounds down to a whole row")
+    equal((window[0]["label"], window[0]["sep"]), ("Tomorrow", ""), "the first line shown keeps no rule")
+    window, offset = service.coming_up_window(every, 99)
+    equal(offset, 26, "never past the last row")
+    equal(len(window), service.COMING_UP_LINES, "always every line")
+    equal(service.coming_up_stops(every, 6), [0, 4, 8, 12, 16, 20, 24],
+          "a day at a time when each day fits")
+    long_day = service.coming_up_lines([("S{}".format(i), "Tonight 1{}:00".format(i)) for i in range(7)]
+                                       + [("X", "Tomorrow 18:00")], every=True)
+    equal(service.coming_up_stops(long_day, 4), [0, 2, 4, 6, 8],
+          "a day longer than the room is walked a row at a time, then the next day")
+
+
 if __name__ == "__main__":
     for test in (test_one_slot_per_day, test_several_slots_in_a_day,
                  test_dated_day_and_even_group, test_every_day_starts_on_an_odd_line,
                  test_overflow_and_empty, test_shared_days_use_the_spare_lines,
                  test_estimate_chains_queued_slots, test_estimate_playing_and_unknowns,
-                 test_coming_up_when):
+                 test_coming_up_when, test_run_ends, test_ends_lines,
+                 test_scroll_window):
         print("running " + test.__name__)
         test()
     if FAILURES:

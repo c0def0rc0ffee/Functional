@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
   <summary>
-  Skin Settings window: category buttons 7001 to 7008 (Overall, Main
+  Skin Settings window: category buttons 7001 to 7009 (Overall, Main
   Menu, Home Screen, Background, Library, Lists and Favourites,
-  Playback, Radarr) down the left, each showing its page of toggles, pickers
+  Playback, Radarr, Add-ons) down the left, each showing its page of toggles, pickers
   and readouts on the right. The
   values are Skin.Strings and Skin.Settings read by the windows and by
   service.py. Default control 7000 is set without always, so the last
@@ -47,21 +47,26 @@
 			<texture>logo.png</texture>
 		</control>
 
-		<!-- ========== LEFT: CATEGORY NAV ========== -->
+		<!-- ========== LEFT: CATEGORY NAV ==========
+		     Height 600, down from 800 (SETTINGS-HELP, 22/10/2026): the eight
+		     buttons took 588, and the space beneath now holds the help panel.
+		     ADDONS-PAGE, 22/10/2026: a ninth button, Add-ons, and every button
+		     64 tall instead of 70 so the nine (608) still end above the panel
+		     at y 730. -->
 		<control type="grouplist" id="7000">
 			<left>40</left>
 			<top>120</top>
 			<width>360</width>
-			<height>800</height>
+			<height>608</height>
 			<itemgap>4</itemgap>
 			<orientation>vertical</orientation>
 
-			<!-- Eight pages. The stored value under settings_category is the
+			<!-- Nine pages. The stored value under settings_category is the
 			     original name where a page was renamed (media = Library,
 			     video = Playback) so a saved choice still opens a page. -->
 			<control type="button" id="7003">
 				<width>360</width>
-				<height>70</height>
+				<height>64</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
@@ -80,7 +85,7 @@
 
 			<control type="button" id="7006">
 				<width>360</width>
-				<height>70</height>
+				<height>64</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
@@ -99,7 +104,7 @@
 
 			<control type="button" id="7001">
 				<width>360</width>
-				<height>70</height>
+				<height>64</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
@@ -120,7 +125,7 @@
 				     unless mode=image, which broke right-arrow entry.) -->
 			<control type="button" id="7005">
 				<width>360</width>
-				<height>70</height>
+				<height>64</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
@@ -139,7 +144,7 @@
 
 			<control type="button" id="7002">
 				<width>360</width>
-				<height>70</height>
+				<height>64</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
@@ -158,7 +163,7 @@
 
 			<control type="button" id="7007">
 				<width>360</width>
-				<height>70</height>
+				<height>64</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
@@ -177,7 +182,7 @@
 
 			<control type="button" id="7004">
 				<width>360</width>
-				<height>70</height>
+				<height>64</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
@@ -196,7 +201,7 @@
 
 			<control type="button" id="7008">
 				<width>360</width>
-				<height>70</height>
+				<height>64</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
@@ -213,6 +218,268 @@
 				<onright>7400</onright>
 			</control>
 
+			<!-- ADDONS-PAGE, 22/10/2026: settings for other add-ons. -->
+			<control type="button" id="7009">
+				<width>360</width>
+				<height>64</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>31687</label>
+				<onfocus condition="!Skin.HasSetting(settings_reload)">Skin.SetString(settings_category,addons)</onfocus>
+				<onclick>Skin.Reset(settings_reload)</onclick>
+				<onclick>Skin.SetString(settings_category,addons)</onclick>
+				<onright>7027</onright>
+			</control>
+
+		</control>
+
+
+		<!-- ========== ADD-ONS CATEGORY ==========
+		     ADDONS-PAGE, 22/10/2026: everything the skin does with another
+		     add-on, gathered off the Home Screen page: JellyStat's figures
+		     under the stats, and Engage's next slot block, its Coming up
+		     list and the list's estimate, Ends At and scroll switches. One
+		     grouplist column like the others, section labels inside it with
+		     ids so the grouplist links past them; each section and its rows
+		     show only with their add-on installed, and a plain note shows
+		     when neither is; as elsewhere, nothing suggests installing
+		     either. -->
+		<control type="group">
+			<visible>String.IsEqual(Skin.String(settings_category),addons)</visible>
+
+			<control type="label">
+				<left>440</left>
+				<top>120</top>
+				<width>1400</width>
+				<height>50</height>
+				<font>font_med</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>31687</label>
+			</control>
+			<control type="image">
+				<left>440</left>
+				<top>166</top>
+				<width>1400</width>
+				<height>2</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+			<control type="label">
+				<left>440</left>
+				<top>190</top>
+				<width>1400</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>31690</label>
+				<visible>!System.HasAddon(script.jellystat) + !System.HasAddon(service.engage)</visible>
+			</control>
+
+			<control type="grouplist" id="7027">
+				<left>440</left>
+				<top>190</top>
+				<width>680</width>
+				<height>840</height>
+				<itemgap>10</itemgap>
+				<orientation>vertical</orientation>
+				<pagecontrol>7057</pagecontrol>
+				<onleft>7000</onleft>
+
+				<control type="label" id="7065">
+					<visible>System.HasAddon(script.jellystat)</visible>
+					<width>680</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>31689</label>
+				</control>
+				<!-- JellyStat figures under the TV stats. Only offered with
+				     script.jellystat installed; nothing here ever suggests
+				     installing it. -->
+				<control type="radiobutton" id="7137">
+					<visible>System.HasAddon(script.jellystat)</visible>
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31404</label>
+					<selected>!Skin.HasSetting(hide_jellystat)</selected>
+					<onclick>Skin.ToggleSetting(hide_jellystat)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<control type="label" id="7067">
+					<visible>System.HasAddon(service.engage)</visible>
+					<width>680</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>31688</label>
+				</control>
+				<!-- ENGAGE-NEXT: the next Engage slot under the stats. Only
+				     offered with service.engage installed, and off by default;
+				     nothing here ever suggests installing it. -->
+				<control type="radiobutton" id="7149">
+					<visible>System.HasAddon(service.engage)</visible>
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31633</label>
+					<selected>Skin.HasSetting(show_engage)</selected>
+					<onclick>Skin.ToggleSetting(show_engage)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<!-- ENGAGE-LIST: the next few Engage slots down the left of
+				     Home, independent of the block above. Same gate, off by
+				     default. -->
+				<control type="radiobutton" id="7150">
+					<visible>System.HasAddon(service.engage)</visible>
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31635</label>
+					<selected>Skin.HasSetting(show_engage_list)</selected>
+					<onclick>Skin.ToggleSetting(show_engage_list)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<!-- COMING-UP-ESTIMATE, 22/10/2026: show in the Coming up list when
+				     a slot queued behind the one before it will really start
+				     (service.py:estimate_coming_up). Off by default, and only
+				     usable while the list is on. -->
+				<control type="radiobutton" id="7179">
+					<visible>System.HasAddon(service.engage)</visible>
+					<enable>Skin.HasSetting(show_engage_list)</enable>
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31683</label>
+					<selected>Skin.HasSetting(coming_up_estimate)</selected>
+					<onclick>Skin.ToggleSetting(coming_up_estimate)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<!-- COMING-UP-ENDS, 22/10/2026: an "Ends At" line in the Coming
+				     up list after each run of back to back slots, giving when the
+				     run ends (service.py:coming_up_slots_with_ends). Independent
+				     of the estimate above; Engage's per slot "Ends At" switch
+				     decides which runs get one. Off by default, and only usable
+				     while the list is on. -->
+				<control type="radiobutton" id="7180">
+					<visible>System.HasAddon(service.engage)</visible>
+					<enable>Skin.HasSetting(show_engage_list)</enable>
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31684</label>
+					<selected>Skin.HasSetting(coming_up_ends)</selected>
+					<onclick>Skin.ToggleSetting(coming_up_ends)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<!-- COMING-UP-SCROLL, 22/10/2026: focus the Coming up list on Home
+				     and Down scrolls on through the week, a day at a time; it goes
+				     back to the top when focus leaves the list
+				     (service.py:coming_up_scroll_tick). Off by default, and only
+				     usable while the list is on. -->
+				<control type="radiobutton" id="7181">
+					<visible>System.HasAddon(service.engage)</visible>
+					<enable>Skin.HasSetting(show_engage_list)</enable>
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31686</label>
+					<selected>Skin.HasSetting(coming_up_scroll)</selected>
+					<onclick>Skin.ToggleSetting(coming_up_scroll)</onclick>
+					<onleft>7000</onleft>
+				</control>
+			</control>
+			<control type="scrollbar" id="7057">
+				<left>1132</left>
+				<top>190</top>
+				<width>8</width>
+				<height>840</height>
+				<orientation>vertical</orientation>
+				<showonepage>false</showonepage>
+				<onleft>7027</onleft>
+				<onright>7027</onright>
+				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
+				<texturesliderbar colordiffuse="$VAR[AccentColor]">white.png</texturesliderbar>
+				<texturesliderbarfocus colordiffuse="$VAR[AccentHiColor]">white.png</texturesliderbarfocus>
+			</control>
 		</control>
 
 
@@ -303,112 +570,6 @@
 					<label>31253</label>
 					<selected>!Skin.HasSetting(hide_tvshows_count)</selected>
 					<onclick>Skin.ToggleSetting(hide_tvshows_count)</onclick>
-					<onleft>7000</onleft>
-					<onright>7022</onright>
-				</control>
-				<!-- JellyStat figures under the TV stats. Only offered with
-				     script.jellystat installed; nothing here ever suggests
-				     installing it. -->
-				<control type="radiobutton" id="7137">
-					<visible>System.HasAddon(script.jellystat)</visible>
-					<width>680</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31404</label>
-					<selected>!Skin.HasSetting(hide_jellystat)</selected>
-					<onclick>Skin.ToggleSetting(hide_jellystat)</onclick>
-					<onleft>7000</onleft>
-					<onright>7022</onright>
-				</control>
-				<!-- ENGAGE-NEXT: the next Engage slot under the stats. Only
-				     offered with service.engage installed, and off by default;
-				     nothing here ever suggests installing it. -->
-				<control type="radiobutton" id="7149">
-					<visible>System.HasAddon(service.engage)</visible>
-					<width>680</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31633</label>
-					<selected>Skin.HasSetting(show_engage)</selected>
-					<onclick>Skin.ToggleSetting(show_engage)</onclick>
-					<onleft>7000</onleft>
-					<onright>7022</onright>
-				</control>
-				<!-- ENGAGE-LIST: the next few Engage slots down the left of
-				     Home, independent of the block above. Same gate, off by
-				     default. -->
-				<control type="radiobutton" id="7150">
-					<visible>System.HasAddon(service.engage)</visible>
-					<width>680</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31635</label>
-					<selected>Skin.HasSetting(show_engage_list)</selected>
-					<onclick>Skin.ToggleSetting(show_engage_list)</onclick>
-					<onleft>7000</onleft>
-					<onright>7022</onright>
-				</control>
-				<!-- COMING-UP-ESTIMATE, 22/10/2026: show in the list above when
-				     a slot queued behind the one before it will really start
-				     (service.py:estimate_coming_up). Off by default, and only
-				     usable while the list is on. -->
-				<control type="radiobutton" id="7179">
-					<visible>System.HasAddon(service.engage)</visible>
-					<enable>Skin.HasSetting(show_engage_list)</enable>
-					<width>680</width>
-					<height>60</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31683</label>
-					<selected>Skin.HasSetting(coming_up_estimate)</selected>
-					<onclick>Skin.ToggleSetting(coming_up_estimate)</onclick>
 					<onleft>7000</onleft>
 					<onright>7022</onright>
 				</control>
@@ -4029,6 +4190,45 @@
 				<label>$LOCALIZE[31323][CR][CR]$LOCALIZE[31324]</label>
 			</control>
 
+		</control>
+
+		<!-- SETTINGS-HELP, 22/10/2026
+		     <summary>
+		     Help for the focused control: what it does, then where on screen
+		     it shows, from $VAR[SettingsHelp] in Includes_SettingsHelp.xml.
+		     </summary>
+		     <remarks>
+		     Sits under the category column, x 40 to 400 and y 730 to 1000,
+		     the one space free on every page: the pages start at x 440 and
+		     reach y 1030 to 1050 down there, and the footer hint below takes
+		     y 1010 to 1050. The longest text wraps to about seven lines, so
+		     the 256 tall label has room to spare. Hidden whenever focus is
+		     on something the map does not cover (settings_help_shown), so an
+		     empty rule never shows on its own.
+		     </remarks> -->
+		<control type="group">
+			<left>40</left>
+			<top>730</top>
+			<width>360</width>
+			<height>270</height>
+			<visible>$EXP[settings_help_shown]</visible>
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>360</width>
+				<height>2</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+			<control type="label">
+				<left>0</left>
+				<top>14</top>
+				<width>360</width>
+				<height>256</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<wrapmultiline>true</wrapmultiline>
+				<label>$VAR[SettingsHelp]</label>
+			</control>
 		</control>
 
 		<!-- Footer hint -->

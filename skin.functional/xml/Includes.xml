@@ -10,6 +10,7 @@
 <includes>
 	<!-- The game dialogs' controls live in their own file. -->
 	<include file="Includes_Games.xml" />
+	<include file="Includes_SettingsHelp.xml" />
 
 	<!-- Live video is showing through the GUI: the option is on, something is
 	     playing, and we're not in the picture slideshow (which owns the
@@ -388,6 +389,10 @@
 	     - heading: the day of a day with several slots, in bold;
 	     - slot: one of that day's slots, indented under the heading, its
 	       label scrolling on the left and its time on the right;
+	     - ends: an "Ends At" line after a run of slots, COMING-UP-ENDS,
+	       22/10/2026, laid out like a slot in italic: the words from
+	       string 31685 and the time the run ends; it has no button, so
+	       focus passes over it;
 	     - pad and empty: nothing.
 	     Only the panel heading takes the accent (12/10/2026). The line
 	     shows while the list does, its kind is set and 'when' (its row's
@@ -413,7 +418,19 @@
 		<param name="shortdown" />
 		<param name="when" default="true" />
 		<param name="headingleft" default="9028" />
+		<param name="marker" />
 		<definition>
+			<!-- COMING-UP-SCROLL, 22/10/2026: shows while the layout leaves this
+			     line room, whatever it holds, so service.py can count how many
+			     lines the list has before it scrolls. Draws nothing. -->
+			<control type="image" id="$PARAM[marker]">
+				<left>0</left>
+				<top>$PARAM[top]</top>
+				<width>1</width>
+				<height>1</height>
+				<texture>-</texture>
+				<visible>$EXP[engage_list_shown] + [$PARAM[when]]</visible>
+			</control>
 			<control type="group">
 				<visible>$EXP[engage_list_shown] + !String.IsEmpty(Window(home).Property(ComingUp.$PARAM[line].Kind)) + [$PARAM[when]]</visible>
 				<left>0</left>
@@ -514,6 +531,28 @@
 						<textcolor>text</textcolor>
 						<align>right</align>
 						<label>$INFO[Window(home).Property(ComingUp.$PARAM[line].When)]</label>
+					</control>
+				</control>
+				<control type="group">
+					<visible>String.IsEqual(Window(home).Property(ComingUp.$PARAM[line].Kind),ends)</visible>
+					<control type="label">
+						<left>24</left>
+						<top>0</top>
+						<width>340</width>
+						<height>34</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<label>[I]$LOCALIZE[31685][/I]</label>
+					</control>
+					<control type="label">
+						<left>370</left>
+						<top>0</top>
+						<width>110</width>
+						<height>34</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<align>right</align>
+						<label>[I]$INFO[Window(home).Property(ComingUp.$PARAM[line].When)][/I]</label>
 					</control>
 				</control>
 			</control>

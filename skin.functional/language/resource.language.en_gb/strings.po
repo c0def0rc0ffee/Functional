@@ -2483,3 +2483,475 @@ msgstr ""
 msgctxt "#31683"
 msgid "Coming up: show when queued slots really start"
 msgstr ""
+
+msgctxt "#31684"
+msgid "Coming up: Ends At line after each run"
+msgstr ""
+
+msgctxt "#31685"
+msgid "Ends At"
+msgstr ""
+
+msgctxt "#31686"
+msgid "Coming up: scroll through the week with Down"
+msgstr ""
+
+msgctxt "#31687"
+msgid "Add-ons"
+msgstr ""
+
+msgctxt "#31688"
+msgid "ENGAGE AND COMING UP"
+msgstr ""
+
+msgctxt "#31689"
+msgid "JELLYSTAT"
+msgstr ""
+
+msgctxt "#31690"
+msgid "No add-on settings to show."
+msgstr ""
+
+msgctxt "#31700"
+msgid "Overall: the accent colour, seasonal themes, where notifications appear, logging for fault finding, and a backup of every setting on these pages."
+msgstr ""
+
+msgctxt "#31701"
+msgid "Main Menu: the eight tiles on Home, where the menu and the corner bar sit, and which round icons the corner bar carries."
+msgstr ""
+
+msgctxt "#31702"
+msgid "Home Screen: the stats column, Continue Watching, the sleep timer, and the logo, clock and other extras on Home. The JellyStat and Engage blocks are on the Add-ons page."
+msgstr ""
+
+msgctxt "#31703"
+msgid "Background: the picture or slideshow behind Home, how dark it is, a time schedule, its caption, and whether other screens show it too."
+msgstr ""
+
+msgctxt "#31704"
+msgid "Library: poster size, the press and hold menu, the default sort order, side menu collections and the fields in the info bar."
+msgstr ""
+
+msgctxt "#31705"
+msgid "Lists and Favourites: what porting a list does to the queue, the Lists screen buttons, moving lists between boxes, and the Favourites filter."
+msgstr ""
+
+msgctxt "#31706"
+msgid "Playback: the video player's on screen display, the dim behind its settings dialogs, and Kodi's own playback buffer."
+msgstr ""
+
+msgctxt "#31707"
+msgid "Radarr: send the films on one chosen list to Radarr for removal, and let the JellyStat dashboard manage the skin's lists."
+msgstr ""
+
+msgctxt "#31708"
+msgid "Shows the film counts: total, watched and unwatched.[CR]Where: Home screen, the stats column on the right."
+msgstr ""
+
+msgctxt "#31709"
+msgid "Shows the TV counts: shows, unwatched shows and episodes.[CR]Where: Home screen, the stats column on the right."
+msgstr ""
+
+msgctxt "#31710"
+msgid "Shows JellyStat's viewing figures, hours watched overall and this month, once JellyStat has published them.[CR]Where: Home screen, the stats column, under the TV counts."
+msgstr ""
+
+msgctxt "#31711"
+msgid "Shows the next Engage slot, its name and when it is due, as a small Coming up block.[CR]Where: Home screen, the stats column, under the counts."
+msgstr ""
+
+msgctxt "#31712"
+msgid "Shows the next few Engage slots as a list, each with its name and when it is due.[CR]Where: Home screen, the Coming up list on the left."
+msgstr ""
+
+msgctxt "#31713"
+msgid "For Engage slots queued behind each other, shows when each will really start, from the slot before and whatever is playing. Display only: Engage still prompts at the set time.[CR]Where: Home screen, the Coming up list on the left."
+msgstr ""
+
+msgctxt "#31714"
+msgid "Adds an Ends At line after each run of back to back Engage slots, giving when the run ends. Which runs get one is a per slot switch in Engage's Manage slots.[CR]Where: Home screen, the Coming up list on the left."
+msgstr ""
+
+msgctxt "#31715"
+msgid "Shows the Continue Watching tab and its pop up of films and episodes you have started. Off removes both.[CR]Where: Home screen, a tab on the top or bottom edge."
+msgstr ""
+
+msgctxt "#31716"
+msgid "Chooses which edge of Home carries the Continue Watching tab: top or bottom.[CR]Where: Home screen, the top or bottom edge."
+msgstr ""
+
+msgctxt "#31717"
+msgid "Shows a Next Up row of the next unwatched episodes in the Continue Watching pop up.[CR]Where: Home screen, the Continue Watching pop up, under the two rows."
+msgstr ""
+
+msgctxt "#31718"
+msgid "Adds a Recently Added tab of the newest titles beside the Continue Watching tab.[CR]Where: Home screen, beside the Continue Watching tab."
+msgstr ""
+
+msgctxt "#31719"
+msgid "Offers the sleep timer rows: set a timer, sleep when this finishes, or cancel it.[CR]Where: the power menu."
+msgstr ""
+
+msgctxt "#31720"
+msgid "Shows how long is left while a sleep timer is set.[CR]Where: the video player's on screen display and seek bar."
+msgstr ""
+
+msgctxt "#31721"
+msgid "Shows the skin logo.[CR]Where: Home screen, top left corner."
+msgstr ""
+
+msgctxt "#31722"
+msgid "Shows the time and date.[CR]Where: Home screen, top right corner."
+msgstr ""
+
+msgctxt "#31723"
+msgid "Shows the current temperature and conditions once Kodi has fetched the weather.[CR]Where: Home screen, top right, under the date."
+msgstr ""
+
+msgctxt "#31724"
+msgid "Shows the skin's version number.[CR]Where: Home screen, bottom left."
+msgstr ""
+
+msgctxt "#31725"
+msgid "Shows a brief loading splash while Kodi starts, before handing over to Home.[CR]Where: the first screen when Kodi starts."
+msgstr ""
+
+msgctxt "#31726"
+msgid "Cycles what this tile opens: one of the skin's screens, a favourite, or Off to remove it.[CR]Where: Home screen, the main menu."
+msgstr ""
+
+msgctxt "#31727"
+msgid "Types your own name for this tile. Left empty, the tile keeps its usual name.[CR]Where: Home screen, the main menu."
+msgstr ""
+
+msgctxt "#31728"
+msgid "Picks which of your Kodi favourites this tile opens.[CR]Where: Home screen, the main menu."
+msgstr ""
+
+msgctxt "#31729"
+msgid "Places the main menu at the top, centre or bottom of the screen.[CR]Where: Home screen, the main menu."
+msgstr ""
+
+msgctxt "#31730"
+msgid "Moves the round icons, the now playing banner and the queue button to a corner or the middle of the top or bottom edge.[CR]Where: Home screen, the corner bar."
+msgstr ""
+
+msgctxt "#31731"
+msgid "Shows the round Favourites icon.[CR]Where: Home screen, the corner bar."
+msgstr ""
+
+msgctxt "#31732"
+msgid "Shows the round Add-ons icon.[CR]Where: Home screen, the corner bar."
+msgstr ""
+
+msgctxt "#31733"
+msgid "Shows the round Power icon, which opens the power menu.[CR]Where: Home screen, the corner bar."
+msgstr ""
+
+msgctxt "#31734"
+msgid "Shows a round Lists icon beside Favourites, whatever the main menu holds.[CR]Where: Home screen, the corner bar."
+msgstr ""
+
+msgctxt "#31735"
+msgid "Shows a round icon for the JellyStat Stats page, whatever the main menu holds.[CR]Where: Home screen, the corner bar."
+msgstr ""
+
+msgctxt "#31736"
+msgid "Draws no disc behind the round icons until one has focus. They still sit in the same place and still work.[CR]Where: Home screen, the corner bar."
+msgstr ""
+
+msgctxt "#31737"
+msgid "Cycles the accent colour used for focus highlights, headings and rules.[CR]Where: every screen of the skin."
+msgstr ""
+
+msgctxt "#31738"
+msgid "Opens Kodi's colour picker to choose any accent colour. Cancelling leaves the accent as it was.[CR]Where: every screen of the skin."
+msgstr ""
+
+msgctxt "#31739"
+msgid "Chooses the corner or edge where notifications and background progress bars appear.[CR]Where: pop up notifications, on any screen."
+msgstr ""
+
+msgctxt "#31740"
+msgid "Picks a theme by hand: Halloween, Devil's Night, Christmas, Christmas Eve or off.[CR]Where: the colours and seasonal scenery on every screen."
+msgstr ""
+
+msgctxt "#31741"
+msgid "Turns the Halloween theme on by itself from 29 to 31 October each year.[CR]Where: the colours and seasonal scenery on every screen."
+msgstr ""
+
+msgctxt "#31742"
+msgid "Turns the Christmas theme on by itself from the first Saturday of December to Boxing Day.[CR]Where: the colours and seasonal scenery on every screen."
+msgstr ""
+
+msgctxt "#31743"
+msgid "Writes a detailed skin log for fault finding, alongside Kodi's own log.[CR]Where: nothing on screen, a file named skin.functional-debug.log."
+msgstr ""
+
+msgctxt "#31744"
+msgid "Chooses the folder the debug log is written to.[CR]Where: nothing on screen, the debug log file."
+msgstr ""
+
+msgctxt "#31745"
+msgid "Puts the debug log back in Kodi's temp folder.[CR]Where: nothing on screen, the debug log file."
+msgstr ""
+
+msgctxt "#31746"
+msgid "Draws the active library filter state over the library lists, as a troubleshooting aid.[CR]Where: the video library screens."
+msgstr ""
+
+msgctxt "#31747"
+msgid "Takes a fresh copy of every skin setting now. A copy is also kept up to date by itself.[CR]Where: nothing on screen, the skin's own backup."
+msgstr ""
+
+msgctxt "#31748"
+msgid "Puts every skin setting back from the backup, after asking first. The skin then reloads.[CR]Where: every page of these settings."
+msgstr ""
+
+msgctxt "#31749"
+msgid "Sets the poster size in the gallery view: small, medium, large or extra large.[CR]Where: the video library screens, gallery view."
+msgstr ""
+
+msgctxt "#31750"
+msgid "Sets 11 or 12 columns for small posters. Use 11 if your TV crops the right edge.[CR]Where: the library gallery view, small size."
+msgstr ""
+
+msgctxt "#31751"
+msgid "Uses strict 2:3 posters, shorter than usual. Use it if your TV crops the bottom.[CR]Where: the video library screens, gallery view."
+msgstr ""
+
+msgctxt "#31752"
+msgid "Opens the press and hold menu at the left edge, or centred over the list.[CR]Where: the press and hold menu."
+msgstr ""
+
+msgctxt "#31753"
+msgid "Sets the order Movies always opens in, even after a genre filter.[CR]Where: the Movies library screen."
+msgstr ""
+
+msgctxt "#31754"
+msgid "Sets the direction of the Movies sort. Automatic is A to Z for Title and newest first for the rest.[CR]Where: the Movies library screen."
+msgstr ""
+
+msgctxt "#31755"
+msgid "Sets the order TV Shows always opens in, even after a genre filter.[CR]Where: the TV Shows library screen."
+msgstr ""
+
+msgctxt "#31756"
+msgid "Sets the direction of the TV Shows sort. Automatic is A to Z for Title and newest first for the rest.[CR]Where: the TV Shows library screen."
+msgstr ""
+
+msgctxt "#31757"
+msgid "Adds Collections and a row for each collection to the filters.[CR]Where: the library side menu, filter section."
+msgstr ""
+
+msgctxt "#31758"
+msgid "Puts the info bar for the focused title at the top of the screen instead of the bottom.[CR]Where: the library screens."
+msgstr ""
+
+msgctxt "#31759"
+msgid "Shows the genre of the focused title.[CR]Where: the library info bar."
+msgstr ""
+
+msgctxt "#31760"
+msgid "Shows the running time of the focused title.[CR]Where: the library info bar."
+msgstr ""
+
+msgctxt "#31761"
+msgid "Shows the star rating of the focused title.[CR]Where: the library info bar."
+msgstr ""
+
+msgctxt "#31762"
+msgid "Shows the age certificate of the focused title, such as PG or 12.[CR]Where: the library info bar."
+msgstr ""
+
+msgctxt "#31763"
+msgid "Shows the video resolution of the focused title, such as 4K or 1080p.[CR]Where: the library info bar."
+msgstr ""
+
+msgctxt "#31764"
+msgid "Shows how many years ago the focused title came out.[CR]Where: the library info bar."
+msgstr ""
+
+msgctxt "#31765"
+msgid "Shows when the focused title was last played.[CR]Where: the library info bar."
+msgstr ""
+
+msgctxt "#31766"
+msgid "Shows the time the focused title would finish if you started it now.[CR]Where: the library info bar."
+msgstr ""
+
+msgctxt "#31767"
+msgid "Shows how old the title is, in years, on the info screens. Titles under a year old show nothing.[CR]Where: the video info screen and the full screen info card."
+msgstr ""
+
+msgctxt "#31768"
+msgid "Sets what porting a list does to the current queue: clear it, keep it, or ask each time.[CR]Where: the Lists screen, when you port a list."
+msgstr ""
+
+msgctxt "#31769"
+msgid "Puts the action buttons in a band under the header instead of at the foot.[CR]Where: the Lists screen."
+msgstr ""
+
+msgctxt "#31770"
+msgid "Adds move up, move down and remove buttons to the focused item.[CR]Where: the Lists screen, the focused item row."
+msgstr ""
+
+msgctxt "#31771"
+msgid "Copies all your lists to a folder you choose, ready to import on another box.[CR]Where: nothing on screen, a lists.json file."
+msgstr ""
+
+msgctxt "#31772"
+msgid "Merges lists from a file exported on another box, matched by name. Nothing here is removed.[CR]Where: the Lists screen."
+msgstr ""
+
+msgctxt "#31773"
+msgid "Sets the filter the Favourites screen opens on: All, Movies, TV, Music, Apps or Other.[CR]Where: the Favourites screen."
+msgstr ""
+
+msgctxt "#31774"
+msgid "Sets the web address of your Radarr server.[CR]Where: nothing on screen, used by Remove from Radarr on the Lists screen."
+msgstr ""
+
+msgctxt "#31775"
+msgid "Sets Radarr's API key. It is kept in the skin's data folder and shown here only as Set or Not set.[CR]Where: nothing on screen."
+msgstr ""
+
+msgctxt "#31776"
+msgid "Chooses the one list that gets a Remove from Radarr button, or none.[CR]Where: the Lists screen, on that list."
+msgstr ""
+
+msgctxt "#31777"
+msgid "While on, Remove from Radarr removes nothing and only logs what it would have done.[CR]Where: the Radarr log."
+msgstr ""
+
+msgctxt "#31778"
+msgid "Asks Radarr whether the address and key work. It changes nothing.[CR]Where: a pop up notification."
+msgstr ""
+
+msgctxt "#31779"
+msgid "Shows the newest lines of the Radarr log, newest first.[CR]Where: a text window over these settings."
+msgstr ""
+
+msgctxt "#31780"
+msgid "Lets the JellyStat dashboard view and edit the skin's lists. It listens only on this box.[CR]Where: nothing on the TV, the lists in JellyStat's dashboard."
+msgstr ""
+
+msgctxt "#31781"
+msgid "Swaps the whole background setup at set times of day, with 2, 3 or 4 slots, or Off.[CR]Where: the background behind Home."
+msgstr ""
+
+msgctxt "#31782"
+msgid "Chooses which schedule slot the rows below are changing, and previews it.[CR]Where: the background behind Home."
+msgstr ""
+
+msgctxt "#31783"
+msgid "Sets when the slot being edited starts. It runs until the next slot starts.[CR]Where: the background behind Home."
+msgstr ""
+
+msgctxt "#31784"
+msgid "Chooses the background: off, a picture, recently watched, random from the library, a folder, or a genre.[CR]Where: the background behind Home."
+msgstr ""
+
+msgctxt "#31785"
+msgid "Picks the picture to use as the background.[CR]Where: the background behind Home."
+msgstr ""
+
+msgctxt "#31786"
+msgid "Removes the chosen background picture.[CR]Where: the background behind Home."
+msgstr ""
+
+msgctxt "#31787"
+msgid "Picks the folder for the slideshow: choose any picture in it and the whole folder is used.[CR]Where: the background behind Home."
+msgstr ""
+
+msgctxt "#31788"
+msgid "Chooses whether the genre slideshow draws on films, TV or both. Changing it clears the genre.[CR]Where: the background behind Home."
+msgstr ""
+
+msgctxt "#31789"
+msgid "Picks the genre the slideshow draws from.[CR]Where: the background behind Home."
+msgstr ""
+
+msgctxt "#31790"
+msgid "Draws only films never watched, and no TV, in random mode.[CR]Where: the background behind Home."
+msgstr ""
+
+msgctxt "#31791"
+msgid "Darkens the background so text on top stays readable.[CR]Where: the background behind Home."
+msgstr ""
+
+msgctxt "#31792"
+msgid "Draws the same background behind every screen, not just Home.[CR]Where: behind every screen of the skin."
+msgstr ""
+
+msgctxt "#31793"
+msgid "Darkens the background on screens other than Home, where lists sit on top of it.[CR]Where: behind every screen except Home."
+msgstr ""
+
+msgctxt "#31794"
+msgid "Keeps a playing video showing behind the menus when you leave the player.[CR]Where: behind every screen while video plays."
+msgstr ""
+
+msgctxt "#31795"
+msgid "Sets how long each picture stays before the slideshow moves on.[CR]Where: the background behind Home."
+msgstr ""
+
+msgctxt "#31796"
+msgid "Places the caption naming the current picture in a corner or bottom centre, or turns it off.[CR]Where: Home screen, over the background."
+msgstr ""
+
+msgctxt "#31797"
+msgid "Adds when the title was last watched after the caption.[CR]Where: Home screen, the background caption."
+msgstr ""
+
+msgctxt "#31798"
+msgid "Adds an Add To List button beside the caption.[CR]Where: Home screen, beside the background caption."
+msgstr ""
+
+msgctxt "#31799"
+msgid "Adds previous and next buttons for stepping through the slideshow by hand.[CR]Where: Home screen, the left and right edges."
+msgstr ""
+
+msgctxt "#31800"
+msgid "Puts the player controls at the top or bottom of the screen. Changing it reloads the skin.[CR]Where: the video player's on screen display and seek bar."
+msgstr ""
+
+msgctxt "#31801"
+msgid "Shows the poster of what is playing alongside the controls.[CR]Where: the video player's on screen display."
+msgstr ""
+
+msgctxt "#31802"
+msgid "Sets how much the video is darkened behind the settings dialogs opened while it plays.[CR]Where: the player's audio, video and subtitle settings."
+msgstr ""
+
+msgctxt "#31803"
+msgid "Shows how much of the video is buffered ahead.[CR]Where: the video player's on screen display and seek bar."
+msgstr ""
+
+msgctxt "#31804"
+msgid "Shows the Buffer All button. Off also puts buffering back to Kodi's defaults.[CR]Where: the video player's on screen display."
+msgstr ""
+
+msgctxt "#31805"
+msgid "Cycles the size of Kodi's playback buffer. Kodi uses about three times this in memory.[CR]Where: nothing on screen, every video Kodi plays."
+msgstr ""
+
+msgctxt "#31806"
+msgid "Cycles how fast Kodi fills the buffer, as a multiple of the video's bitrate, or adaptive.[CR]Where: nothing on screen, every video Kodi plays."
+msgstr ""
+
+msgctxt "#31807"
+msgid "Cycles what Kodi buffers: network shares and internet, internet streams only, everything, or nothing.[CR]Where: nothing on screen, every video Kodi plays."
+msgstr ""
+
+msgctxt "#31808"
+msgid "Puts all of Kodi's buffer settings back to their defaults.[CR]Where: nothing on screen, every video Kodi plays."
+msgstr ""
+
+msgctxt "#31809"
+msgid "Add-ons: settings for the add-ons Functional works with, JellyStat's figures under the stats and Engage's Coming up blocks on Home."
+msgstr ""
+
+msgctxt "#31810"
+msgid "Focus the Coming up list and press Down to scroll on through the next seven days, a day at a time. It goes back to the top when you move away.[CR]Where: Home screen, the Coming up list on the left."
+msgstr ""
