@@ -126,10 +126,60 @@ def test_shared_days_use_the_spare_lines():
     equal(sum(1 for line in lines if line["kind"] == "slot"), 17, "seventeen slots fill the 22 lines")
 
 
+def test_estimate_chains_queued_slots():
+    """
+    <summary>COMING-UP-ESTIMATE: a slot set to start while the one before still runs starts when it ends.</summary>
+    """
+    dt = service.datetime.datetime
+    now = dt(2026, 10, 22, 17, 0)
+    got = service.estimate_coming_up([
+        ("Voyager", "Tonight 18:00", "2026-10-22T18:00", "2640"),
+        ("Dune", "Tonight 18:05", "2026-10-22T18:05", "9300"),
+        ("Late", "Tonight 23:30", "2026-10-22T23:30", ""),
+    ], now)
+    equal(got, [("Voyager", "Tonight 18:00"), ("Dune", "Tonight 18:44"), ("Late", "Tonight 23:30")],
+          "Dune waits for Voyager's 44 minutes; Late is clear of Dune's end at 21:19")
+
+
+def test_estimate_playing_and_unknowns():
+    """
+    <summary>The chain starts at what is playing, rounds up, crosses midnight, and holds after an unknown.</summary>
+    """
+    dt = service.datetime.datetime
+    now = dt(2026, 10, 22, 23, 0)
+    got = service.estimate_coming_up([
+        ("Film", "Tonight 23:10", "2026-10-22T23:10", "5400"),
+        ("Random", "Tonight 23:15", "2026-10-22T23:15", ""),
+        ("Next", "Tonight 23:20", "2026-10-22T23:20", "1800"),
+        ("Old Engage", "Tomorrow 01:00", "", ""),
+    ], now, playing_ends=dt(2026, 10, 22, 23, 40, 20))
+    equal(got[0], ("Film", "Tonight 23:41"), "starts when playback ends, rounded up to the minute")
+    equal(got[1], ("Random", "Tomorrow 01:11"), "past midnight the day word changes")
+    equal(got[2], ("Next", "Tomorrow 01:11"), "after an unknown runtime, no earlier than that slot's start")
+    equal(got[3], ("Old Engage", "Tomorrow 01:00"), "no Due from an older Engage, the set time")
+    equal(service.estimate_coming_up([("A", "Tonight 18:00", "2026-10-22T18:00", "600")], now,
+                                     playing_ends=dt(2026, 10, 22, 17, 30)),
+          [("A", "Tonight 18:00")], "playback ending before the set time changes nothing")
+
+
+def test_coming_up_when():
+    """
+    <summary>The estimate's words match Engage's when_label.</summary>
+    """
+    dt = service.datetime.datetime
+    now = dt(2026, 10, 22, 12, 0)  # a Thursday
+    equal(service.coming_up_when(dt(2026, 10, 21, 23, 50), now), "Yesterday 23:50", "yesterday")
+    equal(service.coming_up_when(dt(2026, 10, 24, 9, 5), now), "Saturday 09:05", "within the week")
+    equal(service.coming_up_when(dt(2026, 10, 29, 19, 0), now), "Thursday 29/10/2026 19:00",
+          "a week ahead is dated")
+
+
 if __name__ == "__main__":
     for test in (test_one_slot_per_day, test_several_slots_in_a_day,
                  test_dated_day_and_even_group, test_every_day_starts_on_an_odd_line,
-                 test_overflow_and_empty, test_shared_days_use_the_spare_lines):
+                 test_overflow_and_empty, test_shared_days_use_the_spare_lines,
+                 test_estimate_chains_queued_slots, test_estimate_playing_and_unknowns,
+                 test_coming_up_when):
         print("running " + test.__name__)
         test()
     if FAILURES:

@@ -536,6 +536,93 @@ COMING_UP_SLOTS = 22  # Engage.Next.1.* to .22.*, what Engage publishes: one per
 COMING_UP_LINES = 22  # ComingUp.1.* to .22.*, the lines Home.xml draws
 
 
+# COMING-UP-ESTIMATE, 22/10/2026: the day words Engage's when_label uses, so an
+# estimated start reads exactly like a time Engage published.
+COMING_UP_DAY_NAMES = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+                       "Saturday", "Sunday")
+
+
+def coming_up_when(start, now):
+    """
+    <summary>
+    Say when a Coming up slot starts in Engage's words.
+    </summary>
+    <param name="start">The start as a datetime.datetime.</param>
+    <param name="now">The current time; only its date matters.</param>
+    <returns>"Yesterday HH:MM", "Tonight HH:MM", "Tomorrow HH:MM", "Weekday
+    HH:MM" within the week, then "Weekday dd/mm/yyyy HH:MM".</returns>
+    <remarks>
+    A copy of when_label in Engage's scheduler.py, which is where the words are
+    decided; keep the two the same, or an estimated time would group under a
+    different day heading from a published one.
+    </remarks>
+    """
+    time_text = "{:02d}:{:02d}".format(start.hour, start.minute)
+    days_ahead = (start.date() - now.date()).days
+    if days_ahead < 0:
+        return "Yesterday " + time_text
+    if days_ahead == 0:
+        return "Tonight " + time_text
+    if days_ahead == 1:
+        return "Tomorrow " + time_text
+    weekday = COMING_UP_DAY_NAMES[start.weekday()]
+    if days_ahead < 7:
+        return "{} {}".format(weekday, time_text)
+    return "{} {:02d}/{:02d}/{:04d} {}".format(weekday, start.day, start.month,
+                                              start.year, time_text)
+
+
+def estimate_coming_up(slots, now, playing_ends=None):
+    """
+    <summary>
+    Work out when each Coming up slot will really start, when the ones before it
+    run on past its set time and it waits its turn in Engage's queue.
+    </summary>
+    <param name="slots">(label, when, due, runtime) tuples in Engage's order: when
+    is Engage.Next.N.When, due its Engage.Next.N.Due ("2026-10-22T18:05") and
+    runtime its Engage.Next.N.Runtime in whole seconds, either of the last two
+    possibly empty.</param>
+    <param name="now">The current time as a datetime.datetime.</param>
+    <param name="playing_ends">When whatever is playing now will end, or None when
+    nothing is playing or its end cannot be known.</param>
+    <returns>(label, when) pairs, when replaced by the estimated start wherever
+    that is later than the set time.</returns>
+    <remarks>
+    Asked for on 22/10/2026: slots set five minutes apart only to order them,
+    18:00 then 18:05, queue behind each other, so the second really starts when
+    the first ends. Each slot starts at its set time or when the one before it
+    ends, whichever is later; the one before ends its start plus its runtime. The
+    chain begins at playing_ends. A start is rounded up to the whole minute, since
+    nothing starts before the one ahead of it has finished. Where a runtime is
+    unknown, the slots after it are held to no earlier than that slot's start,
+    which is certain, rather than a guessed end; so the list never runs out of
+    order. A slot with no due time (an Engage older than 1.11.7) keeps its words
+    and breaks the chain.
+    </remarks>
+    """
+    cursor = playing_ends
+    result = []
+    for label, when, due, runtime in slots:
+        try:
+            due_at = datetime.datetime.strptime((due or "").strip(), "%Y-%m-%dT%H:%M")
+        except ValueError:
+            result.append((label, when))
+            cursor = None
+            continue
+        start = due_at
+        if cursor is not None and cursor > due_at:
+            start = cursor
+            if start.second or start.microsecond:
+                start = start.replace(second=0, microsecond=0) + datetime.timedelta(minutes=1)
+        result.append((label, when if start == due_at else coming_up_when(start, now)))
+        try:
+            seconds = int(runtime or 0)
+        except ValueError:
+            seconds = 0
+        cursor = start + datetime.timedelta(seconds=seconds) if seconds > 0 else start
+    return result
+
+
 def coming_up_lines(slots):
     """
     <summary>
@@ -3123,6 +3210,11 @@ class FunctionalHelper(xbmc.Monitor):
         reads 22 slots, up from 11, because days that share a heading take
         fewer than two lines a slot and the 22 lines had room to spare;
         coming_up_lines still cuts whatever does not fit.
+        COMING-UP-ESTIMATE, 22/10/2026: with Skin.HasSetting(coming_up_estimate)
+        on, the times are first replaced by estimate_coming_up's, using each
+        slot's Engage.Next.N.Due and .Runtime and the end of whatever is
+        playing; with it off, or with an Engage that publishes neither, the
+        list is exactly as Engage sent it.
         </remarks>
         """
         home = xbmcgui.Window(HOME_WINDOW_ID)
@@ -3131,7 +3223,14 @@ class FunctionalHelper(xbmc.Monitor):
             label = home.getProperty("Engage.Next.{0}.Label".format(n)).strip()
             if not label:
                 break
-            slots.append((label, home.getProperty("Engage.Next.{0}.When".format(n))))
+            slots.append((label, home.getProperty("Engage.Next.{0}.When".format(n)),
+                          home.getProperty("Engage.Next.{0}.Due".format(n)),
+                          home.getProperty("Engage.Next.{0}.Runtime".format(n))))
+        if xbmc.getCondVisibility("Skin.HasSetting(coming_up_estimate)"):
+            now = datetime.datetime.now()
+            slots = estimate_coming_up(slots, now, self.coming_up_playing_ends(now))
+        else:
+            slots = [(label, when) for label, when, _, _ in slots]
         for number, line in enumerate(coming_up_lines(slots), 1):
             for field in ("kind", "label", "when", "sep"):
                 key = "ComingUp.{0}.{1}".format(number, field.capitalize())
@@ -3141,6 +3240,32 @@ class FunctionalHelper(xbmc.Monitor):
                         home.setProperty(key, value)
                     else:
                         home.clearProperty(key)
+
+    def coming_up_playing_ends(self, now):
+        """
+        <summary>
+        When whatever is playing now will end, for the Coming up estimate.
+        </summary>
+        <param name="now">The current time as a datetime.datetime.</param>
+        <returns>A datetime.datetime, or None when nothing is playing or the end
+        cannot be known (a live stream or anything else with no total time).</returns>
+        <remarks>
+        COMING-UP-ESTIMATE. Anything playing counts, not only what Engage started,
+        because Engage queues a slot behind any playback. A paused item keeps
+        moving its end later, one tick at a time.
+        </remarks>
+        """
+        try:
+            player = xbmc.Player()
+            if not player.isPlaying():
+                return None
+            total = player.getTotalTime()
+            if total <= 0:
+                return None
+            left = max(0.0, total - player.getTime())
+        except Exception:  # noqa: BLE001 - playback can stop between the calls
+            return None
+        return now + datetime.timedelta(seconds=left)
 
     # ---- Next Up (the next unwatched episode per show in progress) --------
 

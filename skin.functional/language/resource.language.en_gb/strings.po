@@ -2479,3 +2479,7 @@ msgstr ""
 msgctxt "#31682"
 msgid "A personal project, made just for me, and dedicated to my wife."
 msgstr ""
+
+msgctxt "#31683"
+msgid "Coming up: show when queued slots really start"
+msgstr ""

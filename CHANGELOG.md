@@ -11,6 +11,14 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.5 (22/10/2026)
+
+- New setting, off by default: Coming up can show when Engage slots queued
+  behind each other will really start. A slot set for 18:05 behind an 18:00
+  one shows when the 18:00 one ends, counting from whatever is playing now.
+  Only the list changes; Engage still prompts at the set time. Needs Engage
+  1.11.7.
+
 ## 0.23.4 (21/10/2026)
 
 - The Coming up list on Home now shows up to 22 Engage slots, up from 11,
