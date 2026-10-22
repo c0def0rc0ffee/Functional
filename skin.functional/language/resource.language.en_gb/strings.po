@@ -2397,9 +2397,11 @@ msgctxt "#31662"
 msgid "Fewest items"
 msgstr ""
 
-msgctxt "#31663"
-msgid "Lists"
-msgstr ""
+# RADARR-LABEL, 22/10/2026: the Radarr page is called Radarr again, so this
+# string is no longer used. Kept, marked obsolete, rather than deleted.
+#~ msgctxt "#31663"
+#~ msgid "Lists"
+#~ msgstr ""
 
 msgctxt "#31664"
 msgid "Let JellyStat manage the lists"
@@ -2541,7 +2543,7 @@ msgid "Playback: the video player's on screen display, the dim behind its settin
 msgstr ""
 
 msgctxt "#31707"
-msgid "Radarr: send the films on one chosen list to Radarr for removal, and let the JellyStat dashboard manage the skin's lists."
+msgid "Radarr: send the films on one chosen list to Radarr for removal."
 msgstr ""
 
 msgctxt "#31708"
@@ -2949,7 +2951,7 @@ msgid "Puts all of Kodi's buffer settings back to their defaults.[CR]Where: noth
 msgstr ""
 
 msgctxt "#31809"
-msgid "Add-ons: settings for the add-ons Functional works with, JellyStat's figures under the stats and Engage's Coming up blocks on Home."
+msgid "Add-ons: settings for the add-ons Functional works with: JellyStat's figures and its control of the lists, and Engage's Coming up blocks on Home."
 msgstr ""
 
 msgctxt "#31810"

@@ -11,6 +11,12 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.7 (22/10/2026)
+
+- The Radarr settings page is called Radarr again, and the switch that lets
+  JellyStat manage the lists has moved to the Add-ons page.
+- The time on a Coming up Ends At line is no longer clipped.
+
 ## 0.23.6 (22/10/2026)
 
 - New Add-ons page in the settings, holding the JellyStat and Engage

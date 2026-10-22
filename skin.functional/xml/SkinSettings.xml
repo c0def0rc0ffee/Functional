@@ -211,7 +211,7 @@
 				<textoffsetx>20</textoffsetx>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-				<label>31663</label>
+				<label>31580</label>
 				<onfocus condition="!Skin.HasSetting(settings_reload)">Skin.SetString(settings_category,radarr)</onfocus>
 				<onclick>Skin.Reset(settings_reload)</onclick>
 				<onclick>Skin.SetString(settings_category,radarr)</onclick>
@@ -322,6 +322,33 @@
 					<label>31404</label>
 					<selected>!Skin.HasSetting(hide_jellystat)</selected>
 					<onclick>Skin.ToggleSetting(hide_jellystat)</onclick>
+					<onleft>7000</onleft>
+				</control>
+				<!-- LISTS-API: stored inverted so it reads as on until switched
+				     off; service.py update_lists_api follows it. Moved here from
+				     the Radarr page (RADARR-LABEL, 22/10/2026), and like the rest
+				     of this section only offered with JellyStat installed, the
+				     one thing that talks to it. -->
+				<control type="radiobutton" id="7406">
+					<visible>System.HasAddon(script.jellystat)</visible>
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>white</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31664</label>
+					<selected>!Skin.HasSetting(lists_api_off)</selected>
+					<onclick>Skin.ToggleSetting(lists_api_off)</onclick>
 					<onleft>7000</onleft>
 				</control>
 				<control type="label" id="7067">
@@ -3186,7 +3213,7 @@
 				<height>50</height>
 				<font>font_med</font>
 				<textcolor>$VAR[AccentColor]</textcolor>
-				<label>31663</label>
+				<label>31580</label>
 			</control>
 			<control type="image">
 				<left>440</left>
@@ -3301,29 +3328,6 @@
 					<label>31591</label>
 					<onleft>7000</onleft>
 					<onclick>Skin.SetString(list_command,radarr_log)</onclick>
-				</control>
-				<!-- LISTS-API: stored inverted so it reads as on until switched
-				     off; service.py update_lists_api follows it. -->
-				<control type="radiobutton" id="7406">
-					<width>900</width>
-					<height>70</height>
-					<font>font_reg</font>
-					<textcolor>text</textcolor>
-					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
-					<align>left</align>
-					<aligny>center</aligny>
-					<textoffsetx>20</textoffsetx>
-					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
-					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
-					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
-					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31664</label>
-					<selected>!Skin.HasSetting(lists_api_off)</selected>
-					<onclick>Skin.ToggleSetting(lists_api_off)</onclick>
-					<onleft>7000</onleft>
 				</control>
 			</control>
 			<control type="scrollbar" id="7056">

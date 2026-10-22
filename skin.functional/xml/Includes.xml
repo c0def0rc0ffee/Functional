@@ -544,6 +544,9 @@
 						<textcolor>text</textcolor>
 						<label>[I]$LOCALIZE[31685][/I]</label>
 					</control>
+					<!-- Kodi clips italic text at its upright width, so the last
+					     digit's lean was cut off; the trailing space inside the
+					     italics gives it room (22/10/2026). -->
 					<control type="label">
 						<left>370</left>
 						<top>0</top>
@@ -552,7 +555,7 @@
 						<font>font_reg</font>
 						<textcolor>text</textcolor>
 						<align>right</align>
-						<label>[I]$INFO[Window(home).Property(ComingUp.$PARAM[line].When)][/I]</label>
+						<label>[I]$INFO[Window(home).Property(ComingUp.$PARAM[line].When)] [/I]</label>
 					</control>
 				</control>
 			</control>
