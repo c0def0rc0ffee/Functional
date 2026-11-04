@@ -11,6 +11,15 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.9 (04/11/2026)
+
+- A list row whose library id had moved to another film, as happens when a
+  file is replaced or the library rebuilt, could show one title and start
+  another. Every stored id is now checked against the library after
+  loading and again when a row is played, ported, moved or copied: a moved
+  id is found again from the file, and one whose file has gone falls back
+  to playing by path.
+
 ## 0.23.8 (22/10/2026)
 
 - A list item's menu can now move or copy it to another list, or to a new

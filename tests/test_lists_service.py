@@ -58,7 +58,24 @@ def wider_jsonrpc(text):
         return json.dumps({"jsonrpc": "2.0", "id": 1, "result": {"episodes": rows}})
     if method == "Playlist.GetItems":
         return json.dumps({"jsonrpc": "2.0", "id": 1, "result": {"items": QUEUE}})
+    if method in ("VideoLibrary.GetMovies", "VideoLibrary.GetEpisodes") and isinstance(
+            (p.get("filter") or {}).get("and"), list):
+        # LISTS-ID-CHECK: the folder and name filters _list_item_find asks
+        # together, answered from the fake library's file paths.
+        rules = {r["field"]: r["value"] for r in p["filter"]["and"]}
+        wanted = rules.get("path", "") + rules.get("filename", "")
+        table, key = ((T.MOVIES, "movies") if method == "VideoLibrary.GetMovies"
+                      else (T.EPISODES, "episodes"))
+        rows = [r for r in table.values() if r["file"] == wanted]
+        return json.dumps({"jsonrpc": "2.0", "id": 1, "result": {key: rows}})
+    if method == "Player.Open":
+        OPENED.append(p.get("item"))
+        return json.dumps({"jsonrpc": "2.0", "id": 1, "result": "OK"})
     return T.fake_jsonrpc(text)
+
+
+# What Player.Open was asked to start, newest last.
+OPENED = []
 
 
 T.xbmc.executeJSONRPC = wider_jsonrpc
@@ -194,11 +211,62 @@ def test_move_and_copy_to_another_list():
         del T._Dialog.select
 
 
+def test_id_check_repairs_stale_ids():
+    """<summary>LISTS-ID-CHECK: the load time pass re-finds a film whose id now
+    names another file, clears an id whose file is gone from the library, gives a
+    path only record its id, leaves a right record and a title only record alone,
+    and saves once anything changed.</summary>"""
+    stale = {"label": "Metropolis", "dbtype": "movie", "dbid": 13,
+             "file": "/media/films/Metropolis.mkv"}
+    gone = {"label": "Vanished", "dbtype": "movie", "dbid": 99,
+            "file": "/media/films/Vanished.mkv"}
+    pathonly = {"label": "Pilot", "dbtype": "episode", "dbid": 0,
+                "file": "/media/tv/ml/s01e01.mkv"}
+    right = {"label": "Metropolitan", "dbtype": "movie", "dbid": 13,
+             "file": "/media/films/Metropolitan.mkv"}
+    titled = {"label": "Metropolis", "dbtype": "movie", "dbid": 13, "file": ""}
+    helper = T.seed([{"name": "Films", "items": [stale, gone, pathonly, right, titled],
+                      "seq": 1}])
+    T._Dialog.toasts.clear()
+    helper._lists_check_all()
+    ids = [it["dbid"] for it in helper._lists[0]["items"]]
+    check(ids == [12, 0, 34, 13, 13],
+          "stale id re-found by path, gone id cleared, path only record given its id, "
+          "right and title only records untouched")
+    saved = [it["dbid"] for it in T.on_disk()["lists"][0]["items"]]
+    check(saved == [12, 0, 34, 13, 13], "and saved")
+    check(any(t[1].startswith("3 list item(s) matched") for t in T._Dialog.toasts),
+          "a toast counts the records put right")
+    T._Dialog.toasts.clear()
+    os.remove(T.LISTS_FILE + ".previous")
+    helper._lists_check_all()
+    check(not os.path.exists(T.LISTS_FILE + ".previous") and not T._Dialog.toasts,
+          "a second pass changes nothing, saves nothing and says nothing")
+
+
+def test_play_now_uses_the_checked_id():
+    """<summary>LISTS-ID-CHECK: Play now on a row whose stored id has moved to
+    another film starts the film the row shows, by its id as found from the
+    path.</summary>"""
+    stale = {"label": "Metropolis", "dbtype": "movie", "dbid": 13,
+             "file": "/media/films/Metropolis.mkv"}
+    helper = T.seed([{"name": "Films", "items": [stale], "seq": 1}])
+    T._Dialog.contextmenu = lambda self, *a, **k: 0
+    try:
+        OPENED.clear()
+        helper._lists_item_menu("1")
+        check(OPENED == [{"movieid": 12}], "Play now started the film the row shows")
+        check(T.on_disk()["lists"][0]["items"][0]["dbid"] == 12, "and the row was put right")
+    finally:
+        del T._Dialog.contextmenu
+
+
 def main():
     """<summary>Run every test, clean up, and exit non zero on any failure.</summary>"""
     tests = [test_queue_save_keeps_season_zero, test_expand_keeps_season_zero,
              test_parse_renames_case_duplicates, test_import_skips_case_clash,
-             test_move_and_copy_to_another_list]
+             test_move_and_copy_to_another_list, test_id_check_repairs_stale_ids,
+             test_play_now_uses_the_checked_id]
     try:
         for test in tests:
             print("running " + test.__name__)

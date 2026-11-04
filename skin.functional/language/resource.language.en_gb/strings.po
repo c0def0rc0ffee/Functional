@@ -2534,6 +2534,10 @@ msgctxt "#31695"
 msgid "%s moved to %s"
 msgstr ""
 
+msgctxt "#31696"
+msgid "%d list item(s) matched to the library again"
+msgstr ""
+
 msgctxt "#31700"
 msgid "Overall: the accent colour, seasonal themes, where notifications appear, logging for fault finding, and a backup of every setting on these pages."
 msgstr ""

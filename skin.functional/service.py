@@ -1031,6 +1031,9 @@ class FunctionalHelper(xbmc.Monitor):
         # moved after its list changed place, see _lists_follow
         self._lists_sel_hold = None
         self._lists_frozen = False   # saving refused, see _lists_set_aside
+        # LISTS-ID-CHECK: every stored library id has been checked against
+        # this box's library since the last load, see _lists_check_all
+        self._lists_checked = False
         self._lists_sel_pub = None   # selection the right column currently shows
         self._lists_slots_used = 0   # Lists.N.* slots written last publish
         # Remove Watched (see _lists_track_playback, _lists_drain_watched)
@@ -3777,6 +3780,8 @@ class FunctionalHelper(xbmc.Monitor):
             self._lists = lists
             self._lists_sort_mode = sort
             self._lists_order_locked()
+            # LISTS-ID-CHECK: a fresh set of records, none checked yet.
+            self._lists_checked = False
             if broken:
                 self._lists_set_aside(path)
             else:
@@ -4089,6 +4094,140 @@ class FunctionalHelper(xbmc.Monitor):
             return item
         item["dbid"] = 0
         return item if item["file"] else None
+
+    # ---- Lists: library ids checked against the library (LISTS-ID-CHECK) ----
+    #
+    # <summary>
+    # A stored record is played, matched for doubles and by Remove Watched
+    # through its library id, and the library hands ids out again: an
+    # add-on that drops and re-adds a film (a replaced file, a rebuilt
+    # library) leaves the number on another film. The row then kept showing
+    # the old title and poster while Kodi started whatever had the number
+    # now, and a move or copy of it to a list holding that other film read
+    # as "already there". Added 04/11/2026.
+    # </summary>
+    # <remarks>
+    # Every record is checked once per load, on its own thread, and again
+    # at the moment it is played, ported, moved or copied, since the
+    # library can change while Kodi is up. The import path's check
+    # (_list_item_localise) stays as it is: it drops a record that cannot
+    # be placed, which is right for a file from another box, whereas a row
+    # on this box's own lists is never dropped, only put right or left to
+    # play by its path.
+    # </remarks>
+
+    # dbtype -> (listing method, its rows key, their id key), for
+    # _list_item_find.
+    LIST_FIND_CALLS = {
+        "movie": ("VideoLibrary.GetMovies", "movies", "movieid"),
+        "episode": ("VideoLibrary.GetEpisodes", "episodes", "episodeid"),
+        "musicvideo": ("VideoLibrary.GetMusicVideos", "musicvideos",
+                       "musicvideoid"),
+        "song": ("AudioLibrary.GetSongs", "songs", "songid"),
+    }
+
+    def _list_item_find(self, dbtype, file):
+        """<summary>The library id this box has for a file
+        (LISTS-ID-CHECK).</summary>
+        <param name="dbtype">movie, episode, musicvideo or song.</param>
+        <param name="file">The stored path, as Kodi lists it.</param>
+        <returns>The id, or 0 when the library has no entry for exactly
+        that path.</returns>
+        <remarks>Kodi keeps a file as its folder, with the trailing
+        separator, and its name, and filters on each, so the stored path
+        is split at its last slash and both halves are asked for together.
+        The reply's own path has to equal the stored one before its id is
+        taken, so a near miss never wins. A path with no slash, or a
+        stack:// item, which Kodi files under its first part, is not looked
+        up and reads as not found.</remarks>"""
+        call = self.LIST_FIND_CALLS.get(dbtype)
+        cut = (file or "").rfind("/")
+        if call is None or cut < 0 or file.startswith("stack://"):
+            return 0
+        method, rows_key, id_key = call
+        resp = _jsonrpc(method, {
+            "properties": ["file"],
+            "filter": {"and": [
+                {"field": "path", "operator": "is", "value": file[:cut + 1]},
+                {"field": "filename", "operator": "is", "value": file[cut + 1:]}]}})
+        rows = ((resp or {}).get("result") or {}).get(rows_key) or []
+        return next((self._safe_int(r.get(id_key), 0) for r in rows
+                     if r.get("file") == file), 0)
+
+    def _list_item_verify(self, item):
+        """<summary>Check that a record's library id still names the file
+        it was captured with, and put it right when it does not
+        (LISTS-ID-CHECK).</summary>
+        <param name="item">A clean record, the very dict on its list.
+        Modified in place.</param>
+        <returns>True when the record changed.</returns>
+        <remarks>The file the library has under the id is compared with the
+        stored path; on a mismatch the id is looked up afresh from the
+        path, and when the path is gone from the library too the id is
+        cleared, so the row plays by its path as a record with no id
+        always has. A record with a path and no id is looked up so that it
+        gains one, which lets Remove Watched match it. A record with an id
+        and no path can only be checked by title, so it is left alone:
+        there is nothing to put it right from. A show or season row goes
+        through _list_group_localise, which checks by title. One or two
+        queries per record, so callers run this off every lock.</remarks>"""
+        before = item["dbid"]
+        if item["dbtype"] in self.LIST_GROUP_TYPES:
+            self._list_group_localise(item)
+            return item["dbid"] != before
+        call = self.LIST_DETAIL_CALLS.get(item["dbtype"])
+        if call is None or not item["file"]:
+            return False
+        if before:
+            method, id_key, result_key = call
+            resp = _jsonrpc(method, {id_key: before, "properties": ["file"]})
+            details = ((resp or {}).get("result") or {}).get(result_key) or {}
+            if (details.get("file") or "") == item["file"]:
+                return False
+        found = self._list_item_find(item["dbtype"], item["file"])
+        if found == before:
+            return False
+        item["dbid"] = found
+        _dlog("lists: %s had library id %d, now %s" % (
+            item["label"], before, found or "none, plays by path"))
+        return True
+
+    def _lists_verify(self, items):
+        """<summary>Run _list_item_verify over records that sit on the
+        lists and save when any changed (LISTS-ID-CHECK).</summary>
+        <param name="items">Stored records, the very dicts on the lists.</param>
+        <returns>How many records changed.</returns>
+        <remarks>The records are shared with the lists, so a fix lands on
+        the row itself and the save writes it. A record whose check fails
+        (the library not answering) is logged and left as it was. Must not
+        be called with _lists_lock held.</remarks>"""
+        changed = 0
+        for it in items:
+            try:
+                if self._list_item_verify(it):
+                    changed += 1
+            except Exception:  # noqa: BLE001
+                _dlog("lists: id check of %r failed:\n%s" % (
+                    it.get("label"), traceback.format_exc()), xbmc.LOGWARNING)
+        if changed:
+            self._lists_save()
+        return changed
+
+    def _lists_check_all(self):
+        """<summary>Check every stored record's library id, see
+        _list_item_verify, save what changed and say how many
+        (LISTS-ID-CHECK).</summary>
+        <remarks>Run on its own thread once per load, from update_lists.
+        One query per record, so a large set of lists takes a moment;
+        nothing waits for it, and a play or port meanwhile checks its own
+        records.</remarks>"""
+        with self._lists_lock:
+            items = [it for lst in self._lists or [] for it in lst["items"]]
+        changed = self._lists_verify(items)
+        _dlog("lists: id check done, %d of %d record(s) put right" % (
+            changed, len(items)))
+        if changed:
+            self._lists_notify(_L(31696) % changed)
 
     def _lists_set_aside(self, path):
         """
@@ -4416,6 +4555,14 @@ class FunctionalHelper(xbmc.Monitor):
         # until the properties exist, and the home menu opens it cold.
         if self._lists is None:
             self._lists_load()
+        # LISTS-ID-CHECK: once per load, after the splash so the library is
+        # open to queries, check every stored id on its own thread.
+        if not self._lists_checked and not xbmc.getCondVisibility(
+                "Window.IsActive(startup)"):
+            self._lists_checked = True
+            threading.Thread(target=self._dialog_worker,
+                             args=(self._lists_check_all,),
+                             name="functional-lists-check", daemon=True).start()
         self._lists_track_playback()
         self._lists_drain_watched()
         if not xbmc.getCondVisibility(
@@ -4885,6 +5032,8 @@ class FunctionalHelper(xbmc.Monitor):
         if not items:
             self._lists_notify(_L(31345) % lst["name"], True)
             return
+        # LISTS-ID-CHECK: the queue is filled by library id.
+        self._lists_verify(items)
         items = self._lists_expand(items, one_each=shuffle)
         if not items:
             self._lists_notify(_L(31651) % lst["name"], True)
@@ -4917,6 +5066,8 @@ class FunctionalHelper(xbmc.Monitor):
         if not items:
             self._lists_notify(_L(31345) % lst["name"], True)
             return
+        # LISTS-ID-CHECK: the queue is filled by library id.
+        self._lists_verify(items)
         answer = xbmcgui.Dialog().numeric(2, _L(31379),
                                           self._fmt_hhmm(current))
         minutes = self._parse_hhmm(answer)
@@ -5038,6 +5189,10 @@ class FunctionalHelper(xbmc.Monitor):
             [_L(31358), _L(31359), _L(31360), _L(31361), _L(31691), _L(31692)])
         _dlog("list item menu: row %d of %s -> choice %d" % (
             pos + 1, lst["name"], choice))
+        if choice in (0, 4, 5):
+            # LISTS-ID-CHECK: play, move and copy go by the library id, so
+            # make sure it still names this row's file first.
+            self._lists_verify([it])
         if choice == 0:
             if it["dbtype"] in self.LIST_GROUP_TYPES:
                 # LISTS-GROUPS: a show or season is many items, so it goes
