@@ -6,8 +6,8 @@
   </summary>
 -->
 <window type="dialog">
-	<animation effect="fade" time="150">WindowOpen</animation>
-	<animation effect="fade" time="150">WindowClose</animation>
+	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<!-- This box (1300..1880 by 900..1040) lies inside the toast when the
 	     toast is in its default bottom right position (1240..1880 by
 	     890..1040), so it steps up 160 px while a toast is showing there.

@@ -15,8 +15,8 @@
   </remarks>
 -->
 <window type="dialog">
-	<animation effect="fade" time="200">WindowOpen</animation>
-	<animation effect="fade" time="200">WindowClose</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<animation effect="slide" end="-1200,-850" time="0" condition="String.IsEqual(Skin.String(notification_position),tl)">Conditional</animation>
 	<animation effect="slide" end="-600,-850" time="0" condition="String.IsEqual(Skin.String(notification_position),tc)">Conditional</animation>
 	<animation effect="slide" end="0,-850" time="0" condition="String.IsEqual(Skin.String(notification_position),tr)">Conditional</animation>

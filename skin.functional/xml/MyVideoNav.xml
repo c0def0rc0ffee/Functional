@@ -676,7 +676,9 @@
 			<top>0</top>
 			<width>440</width>
 			<height>1080</height>
-			<animation effect="slide" start="0,0" end="440,0" time="220" tween="cubic" easing="out" condition="Skin.HasSetting(left_menu_open)">Conditional</animation>
+			<animation effect="slide" start="0,0" end="440,0" time="220" tween="cubic" easing="out" condition="Skin.HasSetting(left_menu_open) + !Skin.HasSetting(reduce_motion)">Conditional</animation>
+			<!-- Reduce Motion: the same move in one step. -->
+			<animation effect="slide" start="0,0" end="440,0" time="0" condition="Skin.HasSetting(left_menu_open) + Skin.HasSetting(reduce_motion)">Conditional</animation>
 
 			<!-- Backdrop -->
 			<control type="image">
@@ -1539,8 +1541,8 @@
 		     current content is shown. -->
 		<control type="group">
 			<visible>Skin.HasSetting(genre_menu_open)</visible>
-			<animation effect="fade" start="0" end="100" time="150">Visible</animation>
-			<animation effect="fade" start="100" end="0" time="150">Hidden</animation>
+			<animation effect="fade" start="0" end="100" time="150" condition="!Skin.HasSetting(reduce_motion)">Visible</animation>
+			<animation effect="fade" start="100" end="0" time="150" condition="!Skin.HasSetting(reduce_motion)">Hidden</animation>
 
 			<!-- Dim the library behind so the panel reads as modal -->
 			<control type="image">

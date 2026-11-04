@@ -2218,6 +2218,49 @@
 				<enable>!String.IsEmpty(Skin.String(settings_backup_when))</enable>
 				<onleft>7301</onleft>
 				<onup>7314</onup>
+				<ondown>7317</ondown>
+			</control>
+
+			<!-- ===== Right column: MOTION =====
+			     Reduce Motion (roadmap item 43, 04/11/2026). Every transition
+			     animation outside the seasonal theme includes carries
+			     condition="!Skin.HasSetting(reduce_motion)", so with this on a
+			     window, menu or pop-up changes in one step. The seasonal
+			     decorations keep their own switches on the left. Off by
+			     default: the skin moves exactly as before until it is set. -->
+			<control type="label">
+				<left>1380</left>
+				<top>880</top>
+				<width>460</width>
+				<height>30</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>31698</label>
+			</control>
+
+			<control type="radiobutton" id="7317">
+				<left>1380</left>
+				<top>915</top>
+				<width>460</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31697</label>
+				<selected>Skin.HasSetting(reduce_motion)</selected>
+				<onclick>Skin.ToggleSetting(reduce_motion)</onclick>
+				<onleft>7332</onleft>
+				<onup>7315</onup>
 				<ondown>7900</ondown>
 			</control>
 
@@ -2246,7 +2289,7 @@
 				<label></label>
 				<disabledcolor>disabled</disabledcolor>
 				<onleft>7301</onleft>
-				<onup>7315</onup>
+				<onup>7317</onup>
 				<ondown>7900</ondown>
 				<onright>7900</onright>
 				<onclick condition="String.IsEqual(Skin.String(about_taps),4)">Skin.SetString(about_taps,5)</onclick>
@@ -2266,8 +2309,8 @@
 				<height>2</height>
 				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 				<visible>Control.HasFocus(7900)</visible>
-				<animation effect="fade" start="0" end="100" time="150">Visible</animation>
-				<animation effect="fade" start="100" end="0" time="150">Hidden</animation>
+				<animation effect="fade" start="0" end="100" time="150" condition="!Skin.HasSetting(reduce_motion)">Visible</animation>
+				<animation effect="fade" start="100" end="0" time="150" condition="!Skin.HasSetting(reduce_motion)">Hidden</animation>
 			</control>
 
 			<!-- Progress dots: one lights per click, five opens About. -->
@@ -2275,8 +2318,8 @@
 				<left>1380</left>
 				<top>1018</top>
 				<visible>!String.IsEmpty(Skin.String(about_taps))</visible>
-				<animation effect="fade" start="0" end="100" time="200">Visible</animation>
-				<animation effect="fade" start="100" end="0" time="200">Hidden</animation>
+				<animation effect="fade" start="0" end="100" time="200" condition="!Skin.HasSetting(reduce_motion)">Visible</animation>
+				<animation effect="fade" start="100" end="0" time="200" condition="!Skin.HasSetting(reduce_motion)">Hidden</animation>
 				<control type="image">
 					<left>0</left>
 					<top>0</top>

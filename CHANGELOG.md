@@ -11,6 +11,15 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.10 (04/11/2026)
+
+- New Reduce Motion switch under Skin Settings, Overall, off by default.
+  Switched on, the slide and fade effects when windows, menus and pop-ups
+  open, close, appear or go are skipped, so everything changes in one
+  step, and the moving art on the About and credits pages holds still.
+  The seasonal theme decorations keep their own switches. Left off, the
+  skin moves exactly as before.
+
 ## 0.23.9 (04/11/2026)
 
 - A list row whose library id had moved to another film, as happens when a
