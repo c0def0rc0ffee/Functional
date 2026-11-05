@@ -996,6 +996,10 @@ msgctxt "#31244"
 msgid "Show Greeting (beside the clock)"
 msgstr ""
 
+msgctxt "#31245"
+msgid "Preview Settings"
+msgstr ""
+
 msgctxt "#31246"
 msgid "Show Weather Widget (beside the clock)"
 msgstr ""
@@ -2559,7 +2563,7 @@ msgid "Reduce Motion"
 msgstr ""
 
 msgctxt "#31698"
-msgid "MOTION"
+msgid "MOTION AND PREVIEW"
 msgstr ""
 
 msgctxt "#31699"
@@ -3020,4 +3024,8 @@ msgstr ""
 
 msgctxt "#31813"
 msgid "Puts Good morning, Good afternoon or Good evening in front of the time, by the hour, with your profile name when Kodi has more than one profile. It goes with the clock, so Show Date and Time off hides it too, and with the main menu at the top and five or more tiles there is no room beside the clock, so the time shows alone there.[CR]Where: Home screen, top right, beside the time."
+msgstr ""
+
+msgctxt "#31814"
+msgid "Shows what the focused setting does, under this help: a small live copy of your Home screen with the part that changes outlined, and a switch shown the other way round so you see what OK would do.[CR]Where: Skin Settings, under the help text."
 msgstr ""

@@ -393,6 +393,7 @@
 
 	<!-- <summary>STAGE-GROUNDWORK: the weather line and its button. flip_weather shows it the other way round while true.</summary> -->
 	<include name="HomeWeather">
+		<param name="id_weather" default="9006"/>
 		<param name="flip_weather" default="false"/>
 		<definition>
 			<!-- Weather widget, sits beneath the date, right-aligned in the
@@ -414,7 +415,7 @@
 					<aligny>center</aligny>
 					<label>$INFO[Weather.Temperature], $INFO[Weather.Conditions]</label>
 				</control>
-				<control type="button" id="9006">
+				<control type="button" id="$PARAM[id_weather]">
 					<right>20</right>
 					<top>118</top>
 					<width>720</width>
@@ -442,6 +443,7 @@
 	<!-- <summary>STAGE-GROUNDWORK: the clock and date. flip_datetime shows them the other way round while true; the greeting's own switch is read inside $VAR[HomeClockLine] and is not flipped here.</summary> -->
 	<include name="HomeClock">
 		<param name="flip_datetime" default="false"/>
+		<param name="flip_greeting" default="false"/>
 		<definition>
 			<!-- Date / time top-right: time at y 40 to 80, date at y 84 to 116,
 			     both right aligned at right=40, with the weather line under
@@ -462,6 +464,21 @@
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$VAR[HomeClockLine]</label>
+					<visible>!$PARAM[flip_greeting]</visible>
+				</control>
+				<!-- GREETING flip for the stage: the same line with the greeting
+			     switch read the other way round, shown only while flipped. -->
+				<control type="label">
+					<right>40</right>
+					<top>40</top>
+					<width>900</width>
+					<height>40</height>
+					<font>font_med</font>
+					<textcolor>text</textcolor>
+					<align>right</align>
+					<aligny>center</aligny>
+					<label>$VAR[HomeClockLineFlipped]</label>
+					<visible>$PARAM[flip_greeting]</visible>
 				</control>
 				<control type="label">
 					<right>40</right>
@@ -502,6 +519,8 @@
 
 	<!-- <summary>STAGE-GROUNDWORK: the Continue Watching and Recently Added tabs on both edges. flip_continue and flip_recent show a tab the other way round while true.</summary> -->
 	<include name="HomeContinueTabs">
+		<param name="shown_continue" default="$EXP[continue_tab_shown]"/>
+		<param name="shown_recent" default="$EXP[recent_tab_shown]"/>
 		<param name="flip_continue" default="false"/>
 		<param name="flip_recent" default="false"/>
 		<definition>
@@ -511,10 +530,10 @@
 			<control type="button" id="9210">
 				<!-- Anything but "top" is bottom, so a left or right value saved by
 				     0.11.1 still shows a tab. -->
-				<visible>[[$EXP[continue_tab_shown] + !$PARAM[flip_continue]] | [!$EXP[continue_tab_shown] + $PARAM[flip_continue]]] + !$EXP[continue_tab_top]</visible>
+				<visible>[[$PARAM[shown_continue] + !$PARAM[flip_continue]] | [!$PARAM[shown_continue] + $PARAM[flip_continue]]] + !$EXP[continue_tab_top]</visible>
 				<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				<!-- Makes room for the Recently Added tab on the same edge. -->
-				<animation effect="slide" end="-160,0" time="0" condition="[[$EXP[recent_tab_shown] + !$PARAM[flip_recent]] | [!$EXP[recent_tab_shown] + $PARAM[flip_recent]]]">Conditional</animation>
+				<animation effect="slide" end="-160,0" time="0" condition="[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]]">Conditional</animation>
 				<left>810</left>
 				<top>1044</top>
 				<width>300</width>
@@ -546,15 +565,15 @@
 				<onup condition="Control.IsVisible(9110)">9110</onup>
 				<onup condition="Control.IsVisible(9120)">9120</onup>
 				<onup>9100</onup>
-				<onright condition="[[$EXP[recent_tab_shown] + !$PARAM[flip_recent]] | [!$EXP[recent_tab_shown] + $PARAM[flip_recent]]]">9212</onright>
+				<onright condition="[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]]">9212</onright>
 			</control>
 
 			<!-- Top edge -->
 			<control type="button" id="9211">
-				<visible>[[$EXP[continue_tab_shown] + !$PARAM[flip_continue]] | [!$EXP[continue_tab_shown] + $PARAM[flip_continue]]] + $EXP[continue_tab_top]</visible>
+				<visible>[[$PARAM[shown_continue] + !$PARAM[flip_continue]] | [!$PARAM[shown_continue] + $PARAM[flip_continue]]] + $EXP[continue_tab_top]</visible>
 				<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				<!-- Makes room for the Recently Added tab on the same edge. -->
-				<animation effect="slide" end="-160,0" time="0" condition="[[$EXP[recent_tab_shown] + !$PARAM[flip_recent]] | [!$EXP[recent_tab_shown] + $PARAM[flip_recent]]]">Conditional</animation>
+				<animation effect="slide" end="-160,0" time="0" condition="[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]]">Conditional</animation>
 				<left>810</left>
 				<top>0</top>
 				<width>300</width>
@@ -586,14 +605,14 @@
 				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9110)">9110</ondown>
 				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9120)">9120</ondown>
 				<ondown>9000</ondown>
-				<onright condition="[[$EXP[recent_tab_shown] + !$PARAM[flip_recent]] | [!$EXP[recent_tab_shown] + $PARAM[flip_recent]]]">9213</onright>
+				<onright condition="[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]]">9213</onright>
 			</control>
 
 			<control type="button" id="9212">
-				<visible>[[$EXP[recent_tab_shown] + !$PARAM[flip_recent]] | [!$EXP[recent_tab_shown] + $PARAM[flip_recent]]] + !$EXP[continue_tab_top]</visible>
+				<visible>[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]] + !$EXP[continue_tab_top]</visible>
 				<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				<!-- Alone on the edge (nothing to continue) it takes the centre. -->
-				<animation effect="slide" end="-160,0" time="0" condition="[[!$EXP[continue_tab_shown] + !$PARAM[flip_continue]] | [$EXP[continue_tab_shown] + $PARAM[flip_continue]]]">Conditional</animation>
+				<animation effect="slide" end="-160,0" time="0" condition="[[!$PARAM[shown_continue] + !$PARAM[flip_continue]] | [$PARAM[shown_continue] + $PARAM[flip_continue]]]">Conditional</animation>
 				<left>970</left>
 				<top>1044</top>
 				<width>300</width>
@@ -613,7 +632,7 @@
 				<onclick>Skin.SetString(home_panel,recent)</onclick>
 				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsGreater(Container(9221).NumItems,0)">SetFocus(9221)</onclick>
 				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsEqual(Container(9221).NumItems,0)">SetFocus(9223)</onclick>
-				<onleft condition="[[$EXP[continue_tab_shown] + !$PARAM[flip_continue]] | [!$EXP[continue_tab_shown] + $PARAM[flip_continue]]]">9210</onleft>
+				<onleft condition="[[$PARAM[shown_continue] + !$PARAM[flip_continue]] | [!$PARAM[shown_continue] + $PARAM[flip_continue]]]">9210</onleft>
 				<onup condition="$EXP[bar_above_menu]">9000</onup>
 				<onup condition="Control.IsVisible(9110)">9110</onup>
 				<onup condition="Control.IsVisible(9120)">9120</onup>
@@ -621,10 +640,10 @@
 			</control>
 
 			<control type="button" id="9213">
-				<visible>[[$EXP[recent_tab_shown] + !$PARAM[flip_recent]] | [!$EXP[recent_tab_shown] + $PARAM[flip_recent]]] + $EXP[continue_tab_top]</visible>
+				<visible>[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]] + $EXP[continue_tab_top]</visible>
 				<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				<!-- Alone on the edge (nothing to continue) it takes the centre. -->
-				<animation effect="slide" end="-160,0" time="0" condition="[[!$EXP[continue_tab_shown] + !$PARAM[flip_continue]] | [$EXP[continue_tab_shown] + $PARAM[flip_continue]]]">Conditional</animation>
+				<animation effect="slide" end="-160,0" time="0" condition="[[!$PARAM[shown_continue] + !$PARAM[flip_continue]] | [$PARAM[shown_continue] + $PARAM[flip_continue]]]">Conditional</animation>
 				<left>970</left>
 				<top>0</top>
 				<width>300</width>
@@ -644,11 +663,202 @@
 				<onclick>Skin.SetString(home_panel,recent)</onclick>
 				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsGreater(Container(9221).NumItems,0)">SetFocus(9221)</onclick>
 				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsEqual(Container(9221).NumItems,0)">SetFocus(9223)</onclick>
-				<onleft condition="[[$EXP[continue_tab_shown] + !$PARAM[flip_continue]] | [!$EXP[continue_tab_shown] + $PARAM[flip_continue]]]">9211</onleft>
+				<onleft condition="[[$PARAM[shown_continue] + !$PARAM[flip_continue]] | [!$PARAM[shown_continue] + $PARAM[flip_continue]]]">9211</onleft>
 				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9100)">9100</ondown>
 				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9110)">9110</ondown>
 				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9120)">9120</ondown>
 				<ondown>9000</ondown>
+			</control>
+		</definition>
+	</include>
+	<!-- <summary>STAGE, 05/11/2026 (roadmap item 47): the main menu grouplist and its tiles, moved out of Home.xml unchanged. id is the grouplist's id and p the first two digits of the tile ids (9001 to 9028 on Home); the stage passes 9900 and 99 because Skin Settings has groups 9000 to 9007 of its own.</summary> -->
+	<include name="HomeMenu">
+		<param name="id" default="9000"/>
+		<param name="p" default="90"/>
+		<definition>
+			<!-- Main menu, vertical position via Skin.String(menu_position) -->
+			<control type="grouplist" id="$PARAM[id]">
+				<!-- Top: y 40 to 180, clear of the 36px Continue tab on the top edge
+				     and of the corner bar when that is at the top (y 180 to 250).
+				     Bottom: y 820 to 960 while the corner bar holds the bottom edge
+				     (y 970 to 1040), the full 440 only once the bar has moved to the
+				     top. Each tile is the HomeTile include below.
+
+				     TILE-ROW-WIDTH: the row has to stay out of whatever shares its
+				     band, for one to eight tiles. A button's width cannot follow a
+				     condition, so every slot is three buttons of which one shows,
+				     picked by Window(home).Property(Tile.Count) (the number of tiles
+				     showing, from service.py:update_tiles): 220 wide up to six tiles,
+				     188 at seven, 162 with the smaller font at eight. With the 20
+				     gap that is 220, 460, 700, 940, 1180, 1420, 1436, 1436 wide.
+				     Centre: the stats column starts at x 1550, so while any stats
+				     block shows a row of five or more tiles is centred on x 775
+				     instead of 960 (slide 185 left) and its widest forms end at
+				     x 1493, 57 clear. Up to four tiles stay on the screen centre,
+				     where four end at x 1430 and five would touch the column;
+				     a short row beside the column looked off centre otherwise.
+				     Before the service has published Tile.Count the row is slid,
+				     which is what it always was.
+				     Top: up to five tiles span x 370 to 1550 on the screen centre
+				     and need nothing. From six the row is centred on x 880 (slide
+				     80 left): six span x 170 to 1590, seven and eight x 162 to
+				     1598, right of the logo (ends x 160). The date under the
+				     clock is right aligned and starts between x 1580 (the longest
+				     day and month) and x 1650; the last tile's box may reach 18
+				     into the longest one, a built in caption never does.
+				     Bottom: nothing shares the band, the row stays on x 960 and
+				     at its widest spans x 242 to 1678, which just clears the
+				     version line (text ends near x 241) under a top corner bar.
+				     Until the service has published Tile.Count the 220 buttons
+				     show, which is what the row always was. -->
+				<animation effect="slide" end="0,-440" time="0" condition="$EXP[menu_top]">Conditional</animation>
+				<animation effect="slide" end="0,440" time="0" condition="$EXP[menu_bottom] + $EXP[corner_bar_top]">Conditional</animation>
+				<animation effect="slide" end="0,340" time="0" condition="$EXP[menu_bottom] + !$EXP[corner_bar_top]">Conditional</animation>
+				<animation effect="slide" end="-185,0" time="0" condition="!$EXP[menu_top] + !$EXP[menu_bottom] + $EXP[home_stats_shown] + [String.IsEmpty(Window(home).Property(Tile.Count)) | Integer.IsGreater(Window(home).Property(Tile.Count),4)]">Conditional</animation>
+				<animation effect="slide" end="-80,0" time="0" condition="$EXP[menu_top] + Integer.IsGreater(Window(home).Property(Tile.Count),5)">Conditional</animation>
+				<left>0</left>
+				<top>480</top>
+				<width>1920</width>
+				<height>140</height>
+				<itemgap>20</itemgap>
+				<orientation>horizontal</orientation>
+				<align>center</align>
+				<!-- HOME-VERTICAL-NAV: Kodi takes the first condition that holds.
+				     $EXP[bar_above_menu] is the corner bar on the top edge with the
+				     menu NOT at the top; with both at the top the bar (y 180 to
+				     250) lies below the menu (y 40 to 180), which the plain
+				     corner_bar_top test used to get backwards. Only one of the
+				     three bar instances is ever visible, hence three lines each
+				     time. When the menu is the higher of the two, Up goes to the
+				     weather widget if it shows, then to a Continue tab on the top
+				     edge; the widget's own Up carries on to that tab.
+				     The service focuses the bar when every tile is Off, and these
+				     lines are also what Kodi follows THROUGH this grouplist when it
+				     has no focusable child, so each direction has to end on
+				     something that can take focus or on this id itself. -->
+				<!-- BG-ADD: a caption's Add To List button on the top edge is
+				     the nearest thing above, on the bottom edge the nearest
+				     below; BG-STEP: the edge buttons are what lies left and
+				     right of the row. -->
+				<onup condition="Control.IsVisible(9300)">9300</onup>
+				<onup condition="Control.IsVisible(9301)">9301</onup>
+				<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9100)">9100</onup>
+				<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9110)">9110</onup>
+				<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9120)">9120</onup>
+				<onup condition="$EXP[weather_widget_shown]">9006</onup>
+				<onup condition="Control.IsVisible(9211)">9211</onup>
+				<onup condition="Control.IsVisible(9213)">9213</onup>
+				<!-- Down reaches the corner bar whenever it lies below the menu:
+				     on the bottom edge, or on the top edge under a top menu. With
+				     the bar above the menu, a Continue tab on the bottom edge is
+				     what lies below. -->
+				<ondown condition="Control.IsVisible(9302)">9302</ondown>
+				<ondown condition="Control.IsVisible(9303)">9303</ondown>
+				<ondown condition="Control.IsVisible(9304)">9304</ondown>
+				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9210)">9210</ondown>
+				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9212)">9212</ondown>
+				<ondown condition="$EXP[bar_above_menu]">9000</ondown>
+				<ondown condition="Control.IsVisible(9110)">9110</ondown>
+				<ondown condition="Control.IsVisible(9120)">9120</ondown>
+				<ondown>9100</ondown>
+				<!-- Unconditional on purpose: a grouplist's end of row targets
+				     are fixed when the window loads (AddControl wires the last
+				     tile back to the first when the row's own action has no
+				     condition that holds then), and the edge buttons are never
+				     visible that early. While they are hidden Kodi falls
+				     through to their own onleft/onright, which point back here. -->
+				<onleft>9310</onleft>
+				<onright>9311</onright>
+
+				<!-- Eight slots, each a built in screen or any favourite, set on the
+				     Main Menu settings page; with nothing set they are the menu as it
+				     always was. Three buttons per slot, one per width (see
+				     TILE-ROW-WIDTH above): the 220 ones keep the old ids (9006
+				     belongs to the weather widget), 9011 to 9018 are the 188 ones
+				     and 9021 to 9028 the 162 ones. Nothing navigates to a tile by
+				     id, only to this grouplist. -->
+				<include content="HomeTile"><param name="n" value="1" /><param name="id" value="$PARAM[p]01" /><param name="when" value="$EXP[tiles_wide]" /></include>
+				<include content="HomeTile"><param name="n" value="1" /><param name="id" value="$PARAM[p]11" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+				<include content="HomeTile"><param name="n" value="1" /><param name="id" value="$PARAM[p]21" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+				<include content="HomeTile"><param name="n" value="2" /><param name="id" value="$PARAM[p]02" /><param name="when" value="$EXP[tiles_wide]" /></include>
+				<include content="HomeTile"><param name="n" value="2" /><param name="id" value="$PARAM[p]12" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+				<include content="HomeTile"><param name="n" value="2" /><param name="id" value="$PARAM[p]22" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+				<include content="HomeTile"><param name="n" value="3" /><param name="id" value="$PARAM[p]03" /><param name="when" value="$EXP[tiles_wide]" /></include>
+				<include content="HomeTile"><param name="n" value="3" /><param name="id" value="$PARAM[p]13" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+				<include content="HomeTile"><param name="n" value="3" /><param name="id" value="$PARAM[p]23" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+				<include content="HomeTile"><param name="n" value="4" /><param name="id" value="$PARAM[p]04" /><param name="when" value="$EXP[tiles_wide]" /></include>
+				<include content="HomeTile"><param name="n" value="4" /><param name="id" value="$PARAM[p]14" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+				<include content="HomeTile"><param name="n" value="4" /><param name="id" value="$PARAM[p]24" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+				<include content="HomeTile"><param name="n" value="5" /><param name="id" value="$PARAM[p]05" /><param name="when" value="$EXP[tiles_wide]" /></include>
+				<include content="HomeTile"><param name="n" value="5" /><param name="id" value="$PARAM[p]15" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+				<include content="HomeTile"><param name="n" value="5" /><param name="id" value="$PARAM[p]25" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+				<include content="HomeTile"><param name="n" value="6" /><param name="id" value="$PARAM[p]07" /><param name="when" value="$EXP[tiles_wide]" /></include>
+				<include content="HomeTile"><param name="n" value="6" /><param name="id" value="$PARAM[p]16" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+				<include content="HomeTile"><param name="n" value="6" /><param name="id" value="$PARAM[p]26" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+				<include content="HomeTile"><param name="n" value="7" /><param name="id" value="$PARAM[p]08" /><param name="when" value="$EXP[tiles_wide]" /></include>
+				<include content="HomeTile"><param name="n" value="7" /><param name="id" value="$PARAM[p]17" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+				<include content="HomeTile"><param name="n" value="7" /><param name="id" value="$PARAM[p]27" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+				<include content="HomeTile"><param name="n" value="8" /><param name="id" value="$PARAM[p]09" /><param name="when" value="$EXP[tiles_wide]" /></include>
+				<include content="HomeTile"><param name="n" value="8" /><param name="id" value="$PARAM[p]18" /><param name="width" value="188" /><param name="when" value="$EXP[tiles_mid]" /></include>
+				<include content="HomeTile"><param name="n" value="8" /><param name="id" value="$PARAM[p]28" /><param name="width" value="162" /><param name="font" value="font_reg" /><param name="when" value="$EXP[tiles_narrow]" /></include>
+
+			</control>
+		</definition>
+	</include>
+
+	<!-- <summary>STAGE, 05/11/2026 (roadmap item 47): Home at 18.75 per cent, drawn from the same includes as Home, for the preview panel under the help text in Skin Settings. Each flip is the focus of the row that switches that setting, so the stage shows what OK would do; the tabs are shown on their settings alone, since Home's containers are not here; the outlines mark the region the focused row changes.</summary> -->
+	<include name="HomeStage">
+		<param name="left"/>
+		<param name="top"/>
+		<definition>
+			<control type="group">
+				<description>display only: the settings preview stage, never focused, its buttons and their targets are Home's</description>
+				<left>$PARAM[left]</left>
+				<top>$PARAM[top]</top>
+				<width>1920</width>
+				<height>1080</height>
+				<animation effect="zoom" start="100" end="18.75" center="0,0" time="0" condition="true">Conditional</animation>
+				<include content="SkinBackground"/>
+				<include content="BgCaptions"/>
+				<include content="HomeStatsColumn"><param name="flip_movies" value="Control.HasFocus(7107)"/><param name="flip_tvshows" value="Control.HasFocus(7108)"/></include>
+				<include content="HomeLogo"><param name="flip_logo" value="Control.HasFocus(7104)"/></include>
+				<include content="HomeWeather"><param name="flip_weather" value="Control.HasFocus(7122)"/><param name="id_weather" value="9906"/></include>
+				<include content="HomeClock"><param name="flip_datetime" value="Control.HasFocus(7106)"/><param name="flip_greeting" value="Control.HasFocus(7319)"/></include>
+				<include content="HomeMenu"><param name="id" value="9900"/><param name="p" value="99"/></include>
+				<include content="HomeCornerBar"><param name="id_bar" value="9930"/><param name="id_sleep" value="9931"/><param name="id_sleep_btn" value="9932"/><param name="id_resume" value="9933"/><param name="id_queue" value="9934"/><param name="id_stats" value="9935"/><param name="id_lists" value="9936"/><param name="id_fav" value="9937"/><param name="id_addons" value="9938"/><param name="id_settings" value="9939"/><param name="id_power" value="9940"/><param name="align" value="right"/><param name="left" value="480"/><param name="visible" value="$EXP[corner_bar_right]"/></include>
+				<include content="HomeCornerBar"><param name="id_bar" value="9950"/><param name="id_sleep" value="9951"/><param name="id_sleep_btn" value="9952"/><param name="id_resume" value="9953"/><param name="id_queue" value="9954"/><param name="id_stats" value="9955"/><param name="id_lists" value="9956"/><param name="id_fav" value="9957"/><param name="id_addons" value="9958"/><param name="id_settings" value="9959"/><param name="id_power" value="9960"/><param name="align" value="left"/><param name="left" value="40"/><param name="visible" value="$EXP[corner_bar_left]"/></include>
+				<include content="HomeCornerBar"><param name="id_bar" value="9970"/><param name="id_sleep" value="9971"/><param name="id_sleep_btn" value="9972"/><param name="id_resume" value="9973"/><param name="id_queue" value="9974"/><param name="id_stats" value="9975"/><param name="id_lists" value="9976"/><param name="id_fav" value="9977"/><param name="id_addons" value="9978"/><param name="id_settings" value="9979"/><param name="id_power" value="9980"/><param name="align" value="center"/><param name="left" value="260"/><param name="visible" value="$EXP[corner_bar_centre]"/></include>
+				<include content="HomeFooter"><param name="flip_version" value="Control.HasFocus(7105)"/></include>
+				<include content="HomeContinueTabs"><param name="flip_continue" value="Control.HasFocus(7128)"/><param name="flip_recent" value="Control.HasFocus(7144)"/><param name="shown_continue" value="!Skin.HasSetting(hide_continue)"/><param name="shown_recent" value="!Skin.HasSetting(hide_continue) + !Skin.HasSetting(hide_recent)"/></include>
+				<!-- Region outlines: one per region, on the rows that change it. -->
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_logo]"/><param name="left" value="20"/><param name="top" value="10"/><param name="width" value="160"/><param name="height" value="160"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_clock]"/><param name="left" value="960"/><param name="top" value="16"/><param name="width" value="940"/><param name="height" value="150"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_stats]"/><param name="left" value="1530"/><param name="top" value="160"/><param name="width" value="360"/><param name="height" value="640"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_tabs]"/><param name="left" value="560"/><param name="top" value="920"/><param name="width" value="800"/><param name="height" value="160"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_corner]"/><param name="left" value="1360"/><param name="top" value="880"/><param name="width" value="540"/><param name="height" value="190"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_footer]"/><param name="left" value="20"/><param name="top" value="990"/><param name="width" value="640"/><param name="height" value="80"/></include>
+			</control>
+		</definition>
+	</include>
+
+	<!-- <summary>STAGE: an accent outline round one region of the stage, shown on the rows that change that region.</summary> -->
+	<include name="StageRegion">
+		<param name="when"/>
+		<param name="left"/>
+		<param name="top"/>
+		<param name="width"/>
+		<param name="height"/>
+		<definition>
+			<!-- Four bars rather than a border texture: at 18.75 per cent a
+			     sliced frame thins to under a pixel, a 10 px bar keeps two. -->
+			<control type="group">
+				<left>$PARAM[left]</left>
+				<top>$PARAM[top]</top>
+				<visible>$PARAM[when]</visible>
+				<control type="image"><left>0</left><top>0</top><width>$PARAM[width]</width><height>10</height><texture colordiffuse="$VAR[AccentColor]">white.png</texture></control>
+				<control type="image"><left>0</left><top>0</top><width>10</width><height>$PARAM[height]</height><texture colordiffuse="$VAR[AccentColor]">white.png</texture></control>
+				<control type="image"><left>0</left><top>$PARAM[height]</top><width>$PARAM[width]</width><height>10</height><texture colordiffuse="$VAR[AccentColor]">white.png</texture></control>
+				<control type="image"><left>$PARAM[width]</left><top>0</top><width>10</width><height>$PARAM[height]</height><texture colordiffuse="$VAR[AccentColor]">white.png</texture></control>
 			</control>
 		</definition>
 	</include>

@@ -26,6 +26,7 @@ Exit status is the number of findings capped at 1, so a shell can gate on it.
 import ast
 import builtins
 import collections
+import copy
 import fnmatch
 import glob
 import os
@@ -340,7 +341,18 @@ def check_navigation(trees):
             for cid, count in ids.items():
                 if count > 1 and (fname, cid) not in ALLOW_DUPLICATE_IDS:
                     findings.append("{0}: control id {1} appears {2} times".format(name, cid, count))
+            # A group whose description starts "display only" is drawn and
+            # never focused (the settings preview stage draws Home's pieces
+            # inside Skin Settings), so its buttons' targets are not this
+            # window's and are not checked here.
+            display_only = set()
+            for group in expanded.iter("control"):
+                desc = group.find("description")
+                if desc is not None and (desc.text or "").strip().lower().startswith("display only"):
+                    display_only.update(group.iter())
             for control in expanded.iter("control"):
+                if control in display_only:
+                    continue
                 label = "{0} {1}".format(control.get("type"), control.get("id") or "(no id)")
                 for node in control:
                     if node.tag in NAV_TAGS:
@@ -349,6 +361,8 @@ def check_navigation(trees):
                             findings.append("{0}: {1} <{2}> points at missing id {3}".format(
                                 name, label, node.tag, target))
                 for node in control.iter():
+                    if node in display_only:
+                        continue
                     if node.tag.startswith("on") and node.text:
                         for m in re.finditer(r"SetFocus\((\d+)", node.text):
                             if m.group(1) not in ids:
@@ -362,7 +376,14 @@ def check_navigation(trees):
                                 name, node.tag, m.group(1)))
                 if node.tag == "defaultcontrol" and node.text and node.text.strip() not in ids:
                     findings.append("{0}: defaultcontrol {1} does not exist".format(name, node.text.strip()))
-            text = ET.tostring(expanded, encoding="unicode")
+            # The reference search also leaves display only groups out.
+            pruned = copy.deepcopy(expanded)
+            for parent in pruned.iter():
+                for group in list(parent):
+                    desc = group.find("description") if group.tag == "control" else None
+                    if desc is not None and (desc.text or "").strip().lower().startswith("display only"):
+                        parent.remove(group)
+            text = ET.tostring(pruned, encoding="unicode")
             refs = set(re.findall(r"Control\.(?:HasFocus|IsVisible|IsEnabled|GetLabel)\((\d+)\)", text))
             refs |= set(re.findall(r"Container\((\d+)\)", text))
             for ref in sorted(refs - set(ids)):

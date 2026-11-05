@@ -12,6 +12,7 @@
 	<include file="Includes_Games.xml" />
 	<include file="Includes_SettingsHelp.xml" />
 	<include file="Includes_Home.xml" />
+	<include file="Includes_SettingsPreview.xml" />
 
 	<!-- Live video is showing through the GUI: the option is on, something is
 	     playing, and we're not in the picture slideshow (which owns the
@@ -121,6 +122,8 @@
 	<!-- Room for the greeting: with the main menu at the top, a row of five
 	     or more tiles reaches the clock, so the time shows alone there. -->
 	<expression name="greeting_room">Skin.HasSetting(show_greeting) + [!String.IsEqual(Skin.String(menu_position),top) | !Integer.IsGreater(Window(home).Property(Tile.Count),4)]</expression>
+	<!-- STAGE: the same room rule with the greeting switch read the other way round, for the flipped clock line. -->
+	<expression name="greeting_room_flipped">!Skin.HasSetting(show_greeting) + [!String.IsEqual(Skin.String(menu_position),top) | !Integer.IsGreater(Window(home).Property(Tile.Count),4)]</expression>
 	<variable name="HomeClockLine">
 		<value condition="$EXP[greeting_room] + Integer.IsGreater(System.ProfileCount,1) + $EXP[greeting_part_morning]">$LOCALIZE[31241], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
 		<value condition="$EXP[greeting_room] + Integer.IsGreater(System.ProfileCount,1) + $EXP[greeting_part_afternoon]">$LOCALIZE[31242], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
@@ -128,6 +131,16 @@
 		<value condition="$EXP[greeting_room] + $EXP[greeting_part_morning]">$LOCALIZE[31241]  ·  $INFO[System.Time]</value>
 		<value condition="$EXP[greeting_room] + $EXP[greeting_part_afternoon]">$LOCALIZE[31242]  ·  $INFO[System.Time]</value>
 		<value condition="$EXP[greeting_room] + $EXP[greeting_part_evening]">$LOCALIZE[31243]  ·  $INFO[System.Time]</value>
+		<value>$INFO[System.Time]</value>
+	</variable>
+	<!-- STAGE: HomeClockLine with the greeting switch the other way round; the stage's clock shows it while the greeting row is focused. -->
+	<variable name="HomeClockLineFlipped">
+		<value condition="$EXP[greeting_room_flipped] + Integer.IsGreater(System.ProfileCount,1) + $EXP[greeting_part_morning]">$LOCALIZE[31241], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
+		<value condition="$EXP[greeting_room_flipped] + Integer.IsGreater(System.ProfileCount,1) + $EXP[greeting_part_afternoon]">$LOCALIZE[31242], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
+		<value condition="$EXP[greeting_room_flipped] + Integer.IsGreater(System.ProfileCount,1) + $EXP[greeting_part_evening]">$LOCALIZE[31243], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
+		<value condition="$EXP[greeting_room_flipped] + $EXP[greeting_part_morning]">$LOCALIZE[31241]  ·  $INFO[System.Time]</value>
+		<value condition="$EXP[greeting_room_flipped] + $EXP[greeting_part_afternoon]">$LOCALIZE[31242]  ·  $INFO[System.Time]</value>
+		<value condition="$EXP[greeting_room_flipped] + $EXP[greeting_part_evening]">$LOCALIZE[31243]  ·  $INFO[System.Time]</value>
 		<value>$INFO[System.Time]</value>
 	</variable>
 	<!-- Any block of the stats column on the right of Home is showing, in
