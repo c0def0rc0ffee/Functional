@@ -13,8 +13,8 @@
 	<visible>Window.IsActive(fullscreenvideo) | Window.IsActive(visualisation)</visible>
 	<visible>Player.Seeking | Player.HasPerformedSeek(3) | [Player.Paused + !Player.Caching] | Player.Forwarding | Player.Rewinding | Player.ShowTime | Window.IsActive(fullscreeninfo) | !String.IsEmpty(Player.SeekNumeric)</visible>
 	<visible>![Window.IsActive(videoosd) | Window.IsActive(musicosd)]</visible>
-	<animation effect="fade" time="150">WindowOpen</animation>
-	<animation effect="fade" time="150">WindowClose</animation>
+	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<controls>
 
 	<!--

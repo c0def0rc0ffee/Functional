@@ -254,7 +254,7 @@
 				<onleft>9310</onleft>
 				<onright>9311</onright>
 				<visible>!String.IsEmpty(Window(home).Property(home_bg_label)) + String.IsEqual(Skin.String(bg_label_position),$PARAM[pos])</visible>
-				<animation effect="fade" time="400">VisibleChange</animation>
+				<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				<animation effect="slide" end="$PARAM[by1]" time="0" condition="$PARAM[shift1]">Conditional</animation>
 				<animation effect="slide" end="$PARAM[by2]" time="0" condition="$PARAM[shift2]">Conditional</animation>
 				<control type="label">
@@ -390,7 +390,7 @@
 	<include name="BgStepButtons">
 		<control type="group">
 			<visible>Skin.HasSetting(bg_step_buttons) + !String.IsEmpty(Window(home).Property(home_bg_fanart)) + !$EXP[bg_video_showing]</visible>
-			<animation effect="fade" time="400">VisibleChange</animation>
+			<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 			<include content="BgStepButton"><param name="id" value="9310"/><param name="left" value="0"/><param name="command" value="bg_prev"/><param name="icon" value="prev.png"/><param name="onleft" value="9341"/><param name="onright" value="9000"/></include>
 			<include content="BgStepButton"><param name="id" value="9311"/><param name="left" value="1870"/><param name="command" value="bg_next"/><param name="icon" value="next.png"/><param name="onleft" value="9000"/><param name="onright" value="9320"/></include>
 		</control>
@@ -1484,6 +1484,9 @@
 	<include name="GalleryTileBody">
 		<param name="poster_w">200</param>
 		<param name="poster_h">300</param>
+		<!-- Rounded Corners: which mask fits the layout, poster (2:3) or tall. A
+		     default= attribute; Kodi also reads element text as a default. -->
+		<param name="mask" default="poster"/>
 		<definition>
 			<control type="image">
 				<left>4</left>
@@ -1496,7 +1499,22 @@
 				     only 80 per cent opaque, so the fallback film icon used
 				     to show through it under the item's name. The fallback
 				     still covers a poster that is named but fails to load. -->
-				<visible>!String.IsEmpty(ListItem.Art(poster))</visible>
+				<visible>!String.IsEmpty(ListItem.Art(poster)) + !Skin.HasSetting(rounded_corners)</visible>
+			</control>
+			<!-- Rounded Corners: the same art through a corner mask. Kodi takes the
+			     diffuse file name literally, so the switch is a second control. -->
+			<control type="image">
+				<left>4</left>
+				<top>4</top>
+				<width>$PARAM[poster_w]</width>
+				<height>$PARAM[poster_h]</height>
+				<aspectratio scalediffuse="false">scale</aspectratio>
+				<texture fallback="DefaultVideoCover.png" background="true" diffuse="masks/$PARAM[mask].png">$INFO[ListItem.Art(poster)]</texture>
+				<!-- Hidden when there is no poster at all: the panel below is
+				     only 80 per cent opaque, so the fallback film icon used
+				     to show through it under the item's name. The fallback
+				     still covers a poster that is named but fails to load. -->
+				<visible>!String.IsEmpty(ListItem.Art(poster)) + Skin.HasSetting(rounded_corners)</visible>
 			</control>
 			<!-- Items without poster art (add-on / plugin menu entries) get a
 			     name label so the tile isn't a blank square. Library items with
@@ -1507,7 +1525,17 @@
 				<width>$PARAM[poster_w]</width>
 				<height>$PARAM[poster_h]</height>
 				<texture colordiffuse="bg_panel">white.png</texture>
-				<visible>String.IsEmpty(ListItem.Art(poster))</visible>
+				<visible>String.IsEmpty(ListItem.Art(poster)) + !Skin.HasSetting(rounded_corners)</visible>
+			</control>
+			<!-- Rounded Corners: the same art through a corner mask. Kodi takes the
+			     diffuse file name literally, so the switch is a second control. -->
+			<control type="image">
+				<left>4</left>
+				<top>4</top>
+				<width>$PARAM[poster_w]</width>
+				<height>$PARAM[poster_h]</height>
+				<texture colordiffuse="bg_panel" diffuse="masks/$PARAM[mask].png">white.png</texture>
+				<visible>String.IsEmpty(ListItem.Art(poster)) + Skin.HasSetting(rounded_corners)</visible>
 			</control>
 			<control type="image">
 				<centerleft>50%</centerleft>
@@ -1540,7 +1568,20 @@
 				<height>64</height>
 				<aspectratio>stretch</aspectratio>
 				<texture colordiffuse="$VAR[AccentColor]">corner_triangle.png</texture>
-				<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
+				<visible>Integer.IsGreater(ListItem.PlayCount,0) + !Skin.HasSetting(rounded_corners)</visible>
+			</control>
+			<!-- Rounded Corners: the badge's outer corner follows the poster's.
+			     The mask is 64 px with a 10 px radius, the poster's radius on
+			     the medium tile; the other sizes differ by a few pixels at the
+			     very tip, under the tick. -->
+			<control type="image">
+				<right>4</right>
+				<top>4</top>
+				<width>64</width>
+				<height>64</height>
+				<aspectratio>stretch</aspectratio>
+				<texture colordiffuse="$VAR[AccentColor]" diffuse="masks/badge.png">corner_triangle.png</texture>
+				<visible>Integer.IsGreater(ListItem.PlayCount,0) + Skin.HasSetting(rounded_corners)</visible>
 			</control>
 			<!-- Texture, not a "✓" label: NotoSans has no U+2713 glyph, so the
 			     text version rendered as a missing-glyph box. -->
@@ -1566,6 +1607,16 @@
 					<width>$PARAM[poster_w]</width>
 					<height>30</height>
 					<texture colordiffuse="C0000000">white.png</texture>
+					<visible>!Skin.HasSetting(rounded_corners)</visible>
+				</control>
+				<!-- Rounded Corners: the strip's bottom corners follow the poster's. -->
+				<control type="image">
+					<left>4</left>
+					<bottom>4</bottom>
+					<width>$PARAM[poster_w]</width>
+					<height>30</height>
+					<texture colordiffuse="C0000000" diffuse="masks/strip.png">white.png</texture>
+					<visible>Skin.HasSetting(rounded_corners)</visible>
 				</control>
 				<control type="label">
 					<left>4</left>
@@ -1587,6 +1638,7 @@
 		<param name="bg_h">308</param>
 		<param name="poster_w">200</param>
 		<param name="poster_h">300</param>
+		<param name="mask" default="poster"/>
 		<definition>
 			<!-- Focused tile background (sits behind poster, clipped 4px shorter at bottom) -->
 			<control type="image">
@@ -1595,10 +1647,22 @@
 				<width>$PARAM[tile_w]</width>
 				<height>$PARAM[bg_h]</height>
 				<texture colordiffuse="$VAR[AccentHiColor]">white.png</texture>
+				<visible>!Skin.HasSetting(rounded_corners)</visible>
+			</control>
+			<!-- Rounded Corners: the same art through a corner mask. Kodi takes the
+			     diffuse file name literally, so the switch is a second control. -->
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>$PARAM[tile_w]</width>
+				<height>$PARAM[bg_h]</height>
+				<texture colordiffuse="$VAR[AccentHiColor]" diffuse="masks/$PARAM[mask].png">white.png</texture>
+				<visible>Skin.HasSetting(rounded_corners)</visible>
 			</control>
 			<include content="GalleryTileBody">
 				<param name="poster_w" value="$PARAM[poster_w]"/>
 				<param name="poster_h" value="$PARAM[poster_h]"/>
+				<param name="mask" value="$PARAM[mask]"/>
 			</include>
 		</definition>
 	</include>
@@ -1691,7 +1755,7 @@
 					     home_bg_fanart in non-slideshow modes, so there's never a
 					     clash with the slideshow. -->
 					<visible>[String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))] + !$EXP[bg_video_showing]</visible>
-					<animation effect="fade" time="400">VisibleChange</animation>
+					<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				</control>
 
 				<!-- Folder slideshow (mode = folder). One instance per interval preset;
@@ -2942,6 +3006,18 @@
 				<height>480</height>
 				<aspectratio>keep</aspectratio>
 				<texture fallback="DefaultVideo.png" background="true">$VAR[PlayerPosterArt]</texture>
+				<visible>!Skin.HasSetting(rounded_corners)</visible>
+			</control>
+			<!-- Rounded Corners: the same art through a corner mask. Kodi takes the
+			     diffuse file name literally, so the switch is a second control. -->
+			<control type="image">
+				<left>30</left>
+				<top>30</top>
+				<width>320</width>
+				<height>480</height>
+				<aspectratio>keep</aspectratio>
+				<texture fallback="DefaultVideo.png" background="true" diffuse="masks/poster.png">$VAR[PlayerPosterArt]</texture>
+				<visible>Skin.HasSetting(rounded_corners)</visible>
 			</control>
 
 			<!-- Right column: title + metadata + plot -->
@@ -3377,8 +3453,8 @@
 		<definition>
 			<control type="group">
 				<visible>$PARAM[visible]</visible>
-				<animation effect="fade" start="0" end="100" time="100">Visible</animation>
-				<animation effect="fade" start="100" end="0" time="250">Hidden</animation>
+				<animation effect="fade" start="0" end="100" time="100" condition="!Skin.HasSetting(reduce_motion)">Visible</animation>
+				<animation effect="fade" start="100" end="0" time="250" condition="!Skin.HasSetting(reduce_motion)">Hidden</animation>
 				<control type="image">
 					<right>50</right>
 					<top>$PARAM[top]</top>
@@ -3485,8 +3561,8 @@
 				<top>$PARAM[top]</top>
 				<width>960</width>
 				<height>54</height>
-				<animation effect="slide" start="60,0" end="0,0" time="340" delay="$PARAM[delay]" tween="cubic" easing="out">WindowOpen</animation>
-				<animation effect="fade" start="0" end="100" time="340" delay="$PARAM[delay]">WindowOpen</animation>
+				<animation effect="slide" start="60,0" end="0,0" time="340" delay="$PARAM[delay]" tween="cubic" easing="out" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+				<animation effect="fade" start="0" end="100" time="340" delay="$PARAM[delay]" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 
 				<control type="label">
 					<left>0</left>
@@ -3636,7 +3712,7 @@
 					<texturefocus colordiffuse="white">icons/home_power.png</texturefocus>
 					<texturenofocus colordiffuse="$VAR[AccentColor]">icons/home_power.png</texturenofocus>
 					<onclick>ActivateWindow(ShutdownMenu)</onclick>
-					<animation effect="fade" time="200">VisibleChange</animation>
+					<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				</control>
 
 				<control type="label" id="$PARAM[id_sleep]">
@@ -3647,7 +3723,7 @@
 					<textcolor>text</textcolor>
 					<aligny>center</aligny>
 					<label>$INFO[Window(home).Property(sleep_remaining)]</label>
-					<animation effect="fade" time="200">VisibleChange</animation>
+					<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				</control>
 
 				<!-- Resume / now playing button (only visible when media is playing) -->
@@ -3667,7 +3743,7 @@
 					<label>$LOCALIZE[31096] $INFO[VideoPlayer.Title]$INFO[MusicPlayer.Title]</label>
 					<onclick condition="Player.HasVideo">ActivateWindow(fullscreenvideo)</onclick>
 					<onclick condition="Player.HasAudio + !Player.HasVideo">ActivateWindow(visualisation)</onclick>
-					<animation effect="fade" time="200">VisibleChange</animation>
+					<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				</control>
 
 				<!-- Queue (only visible when there's something queued) -->
@@ -3687,7 +3763,7 @@
 					<label>$VAR[QueueCountLabel]</label>
 					<onclick condition="Integer.IsGreater(Playlist.Length(video),0)">ActivateWindow(VideoPlaylist)</onclick>
 					<onclick condition="!Integer.IsGreater(Playlist.Length(video),0) + Integer.IsGreater(Playlist.Length(music),0)">ActivateWindow(MusicPlaylist)</onclick>
-					<animation effect="fade" time="200">VisibleChange</animation>
+					<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				</control>
 
 				<!-- Round icon buttons (Stats / Lists / Favourites / Add-ons / Settings / Power).

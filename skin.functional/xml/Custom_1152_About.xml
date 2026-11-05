@@ -28,8 +28,8 @@
 	<!-- Clear the tap counter so leaving and coming back needs the full
 	     five clicks again. -->
 	<onload>Skin.Reset(about_taps)</onload>
-	<animation effect="fade" time="200">WindowOpen</animation>
-	<animation effect="fade" time="200">WindowClose</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<controls>
 
 		<!-- ========== BACKDROP ========== -->
@@ -54,7 +54,7 @@
 			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 			<animation effect="fade" start="12" end="12" time="0" condition="true">Conditional</animation>
 			<animation effect="rotate" end="-12" center="960,540" time="0" condition="true">Conditional</animation>
-			<animation effect="slide" start="0,-600" end="0,1780" time="34000" loop="true" condition="true">Conditional</animation>
+			<animation effect="slide" start="0,-600" end="0,1780" time="34000" loop="true" condition="!Skin.HasSetting(reduce_motion)">Conditional</animation>
 		</control>
 
 		<!-- Hairline riding just ahead of the band, the accent at 50 per
@@ -67,15 +67,15 @@
 			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
 			<animation effect="fade" start="50" end="50" time="0" condition="true">Conditional</animation>
 			<animation effect="rotate" end="-12" center="960,540" time="0" condition="true">Conditional</animation>
-			<animation effect="slide" start="0,-620" end="0,1760" time="34000" loop="true" condition="true">Conditional</animation>
+			<animation effect="slide" start="0,-620" end="0,1760" time="34000" loop="true" condition="!Skin.HasSetting(reduce_motion)">Conditional</animation>
 		</control>
 
 		<!-- ========== LEFT: IDENTITY ========== -->
 		<control type="group">
 			<left>120</left>
 			<top>0</top>
-			<animation effect="slide" start="-40,0" end="0,0" time="400" tween="cubic" easing="out">WindowOpen</animation>
-			<animation effect="fade" start="0" end="100" time="400">WindowOpen</animation>
+			<animation effect="slide" start="-40,0" end="0,0" time="400" tween="cubic" easing="out" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+			<animation effect="fade" start="0" end="100" time="400" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 
 			<control type="image">
 				<left>0</left>
@@ -84,7 +84,7 @@
 				<height>150</height>
 				<aspectratio>keep</aspectratio>
 				<texture>logo.png</texture>
-				<animation effect="zoom" start="80" end="100" center="75,215" time="500" tween="back" easing="out">WindowOpen</animation>
+				<animation effect="zoom" start="80" end="100" center="75,215" time="500" tween="back" easing="out" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 			</control>
 
 			<control type="label">
@@ -125,14 +125,14 @@
 				<width>360</width>
 				<height>4</height>
 				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
-				<animation effect="zoom" start="0,100" end="100,100" center="0,462" time="600" delay="250" tween="cubic" easing="out">WindowOpen</animation>
+				<animation effect="zoom" start="0,100" end="100,100" center="0,462" time="600" delay="250" tween="cubic" easing="out" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 			</control>
 
 			<!-- Version chip -->
 			<control type="group">
 				<left>0</left>
 				<top>500</top>
-				<animation effect="fade" start="0" end="100" time="300" delay="500">WindowOpen</animation>
+				<animation effect="fade" start="0" end="100" time="300" delay="500" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 				<control type="image">
 					<left>0</left>
 					<top>0</top>
@@ -179,7 +179,7 @@
 				<align>left</align>
 				<aligny>center</aligny>
 				<label>T H I S   I N S T A L L</label>
-				<animation effect="fade" start="0" end="100" time="300" delay="200">WindowOpen</animation>
+				<animation effect="fade" start="0" end="100" time="300" delay="200" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 			</control>
 
 			<control type="group">
@@ -260,7 +260,7 @@
 			<aligny>center</aligny>
 			<scroll>true</scroll>
 			<label>31027</label>
-			<animation effect="fade" start="0" end="100" time="400" delay="900">WindowOpen</animation>
+			<animation effect="fade" start="0" end="100" time="400" delay="900" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 		</control>
 
 		<control type="button" id="9000">
@@ -286,7 +286,7 @@
 			     focuses it the instant the window opens; a fade starting
 			     at 0 makes it untargetable for the length of the delay
 			     and Kodi logs "has been asked to focus, but it can't". -->
-			<animation effect="slide" start="0,40" end="0,0" time="400" delay="0" tween="cubic" easing="out">WindowOpen</animation>
+			<animation effect="slide" start="0,40" end="0,0" time="400" delay="0" tween="cubic" easing="out" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 		</control>
 
 	</controls>

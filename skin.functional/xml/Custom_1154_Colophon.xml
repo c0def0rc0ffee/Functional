@@ -41,8 +41,8 @@
 	<onload condition="String.EndsWith(System.Time(ss),7)">SetProperty(line,7)</onload>
 	<onload condition="String.EndsWith(System.Time(ss),8)">SetProperty(line,8)</onload>
 	<onload condition="String.EndsWith(System.Time(ss),9)">SetProperty(line,9)</onload>
-	<animation effect="fade" time="250">WindowOpen</animation>
-	<animation effect="fade" time="200">WindowClose</animation>
+	<animation effect="fade" time="250" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<controls>
 
 		<!-- ========== BACKDROP ========== -->
@@ -62,15 +62,15 @@
 			<height>620</height>
 			<texture colordiffuse="$VAR[AccentColor]">colophon/glow.png</texture>
 			<animation effect="fade" start="22" end="22" time="0" condition="true">Conditional</animation>
-			<animation effect="zoom" start="92" end="104" center="450,490" time="5200" pulse="true" condition="true">Conditional</animation>
+			<animation effect="zoom" start="92" end="104" center="450,490" time="5200" pulse="true" condition="!Skin.HasSetting(reduce_motion)">Conditional</animation>
 		</control>
 
 		<!-- ========== LEFT: THE CUP ========== -->
 		<control type="group">
 			<left>0</left>
 			<top>0</top>
-			<animation effect="slide" start="0,40" end="0,0" time="500" tween="cubic" easing="out">WindowOpen</animation>
-			<animation effect="fade" start="0" end="100" time="500">WindowOpen</animation>
+			<animation effect="slide" start="0,40" end="0,0" time="500" tween="cubic" easing="out" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+			<animation effect="fade" start="0" end="100" time="500" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 
 			<!-- Steam: drawn before the cup so the rim sits over its foot.
 			     Rises and fades out together on one loop each; the lengths
@@ -81,8 +81,9 @@
 				<width>96</width>
 				<height>240</height>
 				<texture colordiffuse="text">colophon/steam.png</texture>
-				<animation effect="slide" start="0,60" end="0,-150" time="3400" loop="true" condition="true">Conditional</animation>
-				<animation effect="fade" start="80" end="0" time="3400" loop="true" condition="true">Conditional</animation>
+				<visible>!Skin.HasSetting(reduce_motion)</visible>
+				<animation effect="slide" start="0,60" end="0,-150" time="3400" loop="true" condition="!Skin.HasSetting(reduce_motion)">Conditional</animation>
+				<animation effect="fade" start="80" end="0" time="3400" loop="true" condition="!Skin.HasSetting(reduce_motion)">Conditional</animation>
 			</control>
 			<control type="image">
 				<left>370</left>
@@ -90,8 +91,9 @@
 				<width>96</width>
 				<height>240</height>
 				<texture colordiffuse="text">colophon/steam.png</texture>
-				<animation effect="slide" start="0,60" end="0,-170" time="4100" loop="true" condition="true">Conditional</animation>
-				<animation effect="fade" start="85" end="0" time="4100" loop="true" condition="true">Conditional</animation>
+				<visible>!Skin.HasSetting(reduce_motion)</visible>
+				<animation effect="slide" start="0,60" end="0,-170" time="4100" loop="true" condition="!Skin.HasSetting(reduce_motion)">Conditional</animation>
+				<animation effect="fade" start="85" end="0" time="4100" loop="true" condition="!Skin.HasSetting(reduce_motion)">Conditional</animation>
 			</control>
 			<control type="image">
 				<left>440</left>
@@ -99,8 +101,9 @@
 				<width>96</width>
 				<height>240</height>
 				<texture colordiffuse="text">colophon/steam.png</texture>
-				<animation effect="slide" start="0,60" end="0,-140" time="3700" loop="true" condition="true">Conditional</animation>
-				<animation effect="fade" start="75" end="0" time="3700" loop="true" condition="true">Conditional</animation>
+				<visible>!Skin.HasSetting(reduce_motion)</visible>
+				<animation effect="slide" start="0,60" end="0,-140" time="3700" loop="true" condition="!Skin.HasSetting(reduce_motion)">Conditional</animation>
+				<animation effect="fade" start="75" end="0" time="3700" loop="true" condition="!Skin.HasSetting(reduce_motion)">Conditional</animation>
 			</control>
 
 			<!-- The cup's solid silhouette in the background colour, between
@@ -127,7 +130,7 @@
 			<control type="group">
 				<left>120</left>
 				<top>870</top>
-				<animation effect="fade" start="0" end="100" time="500" delay="700">WindowOpen</animation>
+				<animation effect="fade" start="0" end="100" time="500" delay="700" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 				<include content="CreditsLine"><param name="n" value="0"/><param name="text" value="$LOCALIZE[31670]"/></include>
 				<include content="CreditsLine"><param name="n" value="1"/><param name="text" value="$LOCALIZE[31671]"/></include>
 				<include content="CreditsLine"><param name="n" value="2"/><param name="text" value="$LOCALIZE[31672]"/></include>
@@ -155,14 +158,14 @@
 				<textcolor>$VAR[AccentColor]</textcolor>
 				<aligny>center</aligny>
 				<label>31666</label>
-				<animation effect="fade" start="0" end="100" time="300" delay="150">WindowOpen</animation>
+				<animation effect="fade" start="0" end="100" time="300" delay="150" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 			</control>
 
 			<control type="group">
 				<left>0</left>
 				<top>150</top>
-				<animation effect="slide" start="60,0" end="0,0" time="420" delay="200" tween="cubic" easing="out">WindowOpen</animation>
-				<animation effect="fade" start="0" end="100" time="420" delay="200">WindowOpen</animation>
+				<animation effect="slide" start="60,0" end="0,0" time="420" delay="200" tween="cubic" easing="out" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+				<animation effect="fade" start="0" end="100" time="420" delay="200" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 				<control type="label">
 					<left>0</left>
 					<top>0</top>
@@ -217,8 +220,8 @@
 				<top>96</top>
 				<visible>!String.IsEmpty(Window(home).Property(colophon_photo))</visible>
 				<animation effect="rotate" end="-4" center="155,215" time="0" condition="true">Conditional</animation>
-				<animation effect="zoom" start="85" end="100" center="155,215" time="600" delay="300" tween="back" easing="out">WindowOpen</animation>
-				<animation effect="fade" start="0" end="100" time="500" delay="300">WindowOpen</animation>
+				<animation effect="zoom" start="85" end="100" center="155,215" time="600" delay="300" tween="back" easing="out" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+				<animation effect="fade" start="0" end="100" time="500" delay="300" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 				<control type="image">
 					<left>0</left>
 					<top>0</top>
@@ -245,7 +248,7 @@
 				<textcolor>$VAR[AccentColor]</textcolor>
 				<aligny>center</aligny>
 				<label>31668</label>
-				<animation effect="fade" start="0" end="100" time="300" delay="400">WindowOpen</animation>
+				<animation effect="fade" start="0" end="100" time="300" delay="400" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 			</control>
 
 			<control type="group">
@@ -271,7 +274,7 @@
 			<textcolor>text_dim</textcolor>
 			<aligny>center</aligny>
 			<label>31680</label>
-			<animation effect="fade" start="0" end="100" time="400" delay="900">WindowOpen</animation>
+			<animation effect="fade" start="0" end="100" time="400" delay="900" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 		</control>
 
 		<control type="button" id="9000">
@@ -296,7 +299,7 @@
 			<!-- Slide, not fade: this is the default control, and a fade from
 			     0 would leave it untargetable while Kodi tries to focus it
 			     (the same note as the About page's Close). -->
-			<animation effect="slide" start="0,40" end="0,0" time="400" tween="cubic" easing="out">WindowOpen</animation>
+			<animation effect="slide" start="0,40" end="0,0" time="400" tween="cubic" easing="out" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 		</control>
 
 	</controls>

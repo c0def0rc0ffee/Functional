@@ -39,8 +39,8 @@
 -->
 <window type="dialog">
 	<defaultcontrol always="true">9000</defaultcontrol>
-	<animation effect="fade" time="150">WindowOpen</animation>
-	<animation effect="fade" time="150">WindowClose</animation>
+	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<coordinates>
 		<system>1</system>
 		<posx>360</posx>
@@ -81,6 +81,18 @@
 			<height>240</height>
 			<aspectratio>scale</aspectratio>
 			<texture fallback="DefaultAddon.png" background="true">$INFO[ListItem.Art(thumb)]</texture>
+			<visible>!Skin.HasSetting(rounded_corners)</visible>
+		</control>
+		<!-- Rounded Corners: the same art through a corner mask. Kodi takes the
+		     diffuse file name literally, so the switch is a second control. -->
+		<control type="image">
+			<left>30</left>
+			<top>30</top>
+			<width>240</width>
+			<height>240</height>
+			<aspectratio scalediffuse="false">scale</aspectratio>
+			<texture fallback="DefaultAddon.png" background="true" diffuse="masks/square.png">$INFO[ListItem.Art(thumb)]</texture>
+			<visible>Skin.HasSetting(rounded_corners)</visible>
 		</control>
 
 		<!-- Title -->

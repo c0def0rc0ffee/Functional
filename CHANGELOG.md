@@ -24,6 +24,27 @@ Newest first. Releases before 0.12.0 are described in their GitHub release notes
   fanart until something has been watched. An existing setup keeps its
   own choice, Off included.
 
+## 0.23.11 (05/11/2026)
+
+- New Rounded Corners switch under Skin Settings, Library, below Compact
+  Posters, off by default. Switched on, the posters in the Movies and TV
+  Shows gallery and the art on the video, music and add-on info screens,
+  the version manager and the full screen info card are drawn with
+  rounded corners, the focus frame, the watched badge and the watched count
+  strip following the poster's shape. Left off, every poster is square as
+  before. The rows below it on the Library settings page sit 40 px lower to
+  make room.
+
+## 0.23.10 (04/11/2026)
+
+- New Reduce Motion switch under Skin Settings, Overall, off by default.
+  Switched on, the slide and fade effects when windows, menus and pop-ups
+  open, close, appear or go are skipped, so everything changes in one
+  step, the moving art on the About and credits pages holds still, and the
+  steam over the cup on the credits page is not drawn.
+  The seasonal theme decorations keep their own switches. Left off, the
+  skin moves exactly as before.
+
 ## 0.23.9 (04/11/2026)
 
 - A list row whose library id had moved to another film, as happens when a

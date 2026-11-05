@@ -7,8 +7,8 @@
 -->
 <window type="dialog">
 	<defaultcontrol always="true">11</defaultcontrol>
-	<animation effect="fade" time="150">WindowOpen</animation>
-	<animation effect="fade" time="150">WindowClose</animation>
+	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<coordinates>
 		<system>1</system>
 		<posx>560</posx>

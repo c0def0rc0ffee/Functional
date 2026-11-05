@@ -846,7 +846,7 @@
 			     already full when the tab is clicked (so the click can focus
 			     one) and they drop a marked or finished row while closed. -->
 			<animation effect="slide" end="0,3000" time="0" condition="!Skin.HasSetting(continue_open)">Conditional</animation>
-			<animation effect="fade" time="200">VisibleChange</animation>
+			<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 
 			<!-- The band: above the bottom tab, or slid up below the top one -->
 			<control type="group">
@@ -1605,7 +1605,7 @@
 			<!-- Anything but "top" is bottom, so a left or right value saved by
 			     0.11.1 still shows a tab. -->
 			<visible>$EXP[continue_tab_shown] + !$EXP[continue_tab_top]</visible>
-			<animation effect="fade" time="200">VisibleChange</animation>
+			<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 			<!-- Makes room for the Recently Added tab on the same edge. -->
 			<animation effect="slide" end="-160,0" time="0" condition="$EXP[recent_tab_shown]">Conditional</animation>
 			<left>810</left>
@@ -1645,7 +1645,7 @@
 		<!-- Top edge -->
 		<control type="button" id="9211">
 			<visible>$EXP[continue_tab_shown] + $EXP[continue_tab_top]</visible>
-			<animation effect="fade" time="200">VisibleChange</animation>
+			<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 			<!-- Makes room for the Recently Added tab on the same edge. -->
 			<animation effect="slide" end="-160,0" time="0" condition="$EXP[recent_tab_shown]">Conditional</animation>
 			<left>810</left>
@@ -1684,7 +1684,7 @@
 
 		<control type="button" id="9212">
 			<visible>$EXP[recent_tab_shown] + !$EXP[continue_tab_top]</visible>
-			<animation effect="fade" time="200">VisibleChange</animation>
+			<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 			<!-- Alone on the edge (nothing to continue) it takes the centre. -->
 			<animation effect="slide" end="-160,0" time="0" condition="!$EXP[continue_tab_shown]">Conditional</animation>
 			<left>970</left>
@@ -1715,7 +1715,7 @@
 
 		<control type="button" id="9213">
 			<visible>$EXP[recent_tab_shown] + $EXP[continue_tab_top]</visible>
-			<animation effect="fade" time="200">VisibleChange</animation>
+			<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 			<!-- Alone on the edge (nothing to continue) it takes the centre. -->
 			<animation effect="slide" end="-160,0" time="0" condition="!$EXP[continue_tab_shown]">Conditional</animation>
 			<left>970</left>
