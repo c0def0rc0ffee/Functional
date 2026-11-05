@@ -27,7 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New Reduce Motion switch under Skin Settings, Overall, off by default. Switched on, the slide and fade effects when windows, menus and pop-ups open, close, appear or go are skipped, so everything changes in one step, and the moving art on the About and credits pages holds still. The seasonal theme decorations keep their own switches. Left off, the skin moves exactly as before.</news>
+		<news>New Reduce Motion switch under Skin Settings, Overall, off by default. Switched on, the slide and fade effects when windows, menus and pop-ups open, close, appear or go are skipped, so everything changes in one step, the moving art on the About and credits pages holds still, and the steam over the cup on the credits page is not drawn. The seasonal theme decorations keep their own switches. Left off, the skin moves exactly as before.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

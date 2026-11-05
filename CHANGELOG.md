@@ -16,7 +16,8 @@ Newest first. Releases before 0.12.0 are described in their GitHub release notes
 - New Reduce Motion switch under Skin Settings, Overall, off by default.
   Switched on, the slide and fade effects when windows, menus and pop-ups
   open, close, appear or go are skipped, so everything changes in one
-  step, and the moving art on the About and credits pages holds still.
+  step, the moving art on the About and credits pages holds still, and the
+  steam over the cup on the credits page is not drawn.
   The seasonal theme decorations keep their own switches. Left off, the
   skin moves exactly as before.
 

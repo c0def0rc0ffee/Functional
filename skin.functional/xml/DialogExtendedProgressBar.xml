@@ -12,7 +12,9 @@
 	     toast is in its default bottom right position (1240..1880 by
 	     890..1040), so it steps up 160 px while a toast is showing there.
 	     The other five toast positions do not reach it. -->
-	<animation effect="slide" end="0,-160" time="150" condition="Window.IsVisible(notification) + !String.IsEqual(Skin.String(notification_position),tl) + !String.IsEqual(Skin.String(notification_position),tc) + !String.IsEqual(Skin.String(notification_position),tr) + !String.IsEqual(Skin.String(notification_position),bl) + !String.IsEqual(Skin.String(notification_position),bc)">Conditional</animation>
+	<animation effect="slide" end="0,-160" time="150" condition="!Skin.HasSetting(reduce_motion) + Window.IsVisible(notification) + !String.IsEqual(Skin.String(notification_position),tl) + !String.IsEqual(Skin.String(notification_position),tc) + !String.IsEqual(Skin.String(notification_position),tr) + !String.IsEqual(Skin.String(notification_position),bl) + !String.IsEqual(Skin.String(notification_position),bc)">Conditional</animation>
+	<!-- Reduce Motion: the same step up, in one go. -->
+	<animation effect="slide" end="0,-160" time="0" condition="Skin.HasSetting(reduce_motion) + Window.IsVisible(notification) + !String.IsEqual(Skin.String(notification_position),tl) + !String.IsEqual(Skin.String(notification_position),tc) + !String.IsEqual(Skin.String(notification_position),tr) + !String.IsEqual(Skin.String(notification_position),bl) + !String.IsEqual(Skin.String(notification_position),bc)">Conditional</animation>
 	<coordinates>
 		<system>1</system>
 		<posx>1300</posx>
