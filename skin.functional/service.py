@@ -367,6 +367,24 @@ def _reset_skin_string(key):
     xbmc.executebuiltin("Skin.Reset({0})".format(key))
 
 
+def greeting_part(hour):
+    """
+    <summary>
+    GREETING (roadmap item 38): the part of day a greeting names for an hour.
+    </summary>
+    <param name="hour">The local hour, 0 to 23.</param>
+    <returns>"morning" from 05:00, "afternoon" from 12:00, "evening" from
+    18:00 and through the small hours, which is how the greeting beside the
+    clock reads them. Done here rather than with System.Time ranges in the
+    XML, which did not match on a box with a 12 hour clock.</returns>
+    """
+    if 5 <= hour < 12:
+        return "morning"
+    if 12 <= hour < 18:
+        return "afternoon"
+    return "evening"
+
+
 def _set_home_property(key, value):
     """
     <summary>
@@ -917,6 +935,12 @@ class FunctionalHelper(xbmc.Monitor):
         # BG-DEFAULT: true while the Recently Watched list is empty and the
         # library at random is standing in for it, see _bg_fetch_worker.
         self._bg_recent_fallback = False
+        # BG-DEFAULT: while the library itself is empty the stand-in has
+        # nothing either; its query waits this long before trying again,
+        # so an empty box is not asked three times every BG_EMPTY_RETRY.
+        self._bg_fallback_quiet_until = 0.0
+        # GREETING: the part of day last published, see update_greeting.
+        self._greeting_last = None
         # Set ALL state up front and do NOTHING blocking here. Library
         # queries used to run in the constructor; on a box whose video DB
         # is slow/unreachable (shared MySQL with the server off, etc.)
@@ -2918,7 +2942,11 @@ class FunctionalHelper(xbmc.Monitor):
                 # asks for the recent list again. Logged on the change only.
                 fallback = not items
                 if fallback:
-                    items = self._fetch_random_library()
+                    quiet_until = getattr(self, "_bg_fallback_quiet_until", 0.0)
+                    if time.time() >= quiet_until:
+                        items = self._fetch_random_library()
+                        if not items:
+                            self._bg_fallback_quiet_until = time.time() + self.BG_LIST_REFRESH
                 if fallback != self._bg_recent_fallback:
                     self._bg_recent_fallback = fallback
                     _dlog("bg slideshow (recent): " + (
@@ -8001,6 +8029,23 @@ class FunctionalHelper(xbmc.Monitor):
         else:
             home.clearProperty(key)
 
+    def update_greeting(self):
+        """
+        <summary>
+        GREETING: publish the part of day as the Home property greeting_part,
+        on the change only.
+        </summary>
+        <remarks>
+        Slow tick. The XML gates everything else on the Show Greeting
+        switch, so the property is published whether or not the switch is
+        on; it is one short string once a day part changes.
+        </remarks>
+        """
+        part = greeting_part(time.localtime().tm_hour)
+        if part != getattr(self, "_greeting_last", None):
+            self._greeting_last = part
+            _set_home_property("greeting_part", part)
+
     def update_theme(self):
         """
         <summary>
@@ -9298,6 +9343,8 @@ def run():
         # Once a second is plenty: the date, a reload of the skin colours
         # held back until nothing is playing, and the crow's next move.
         helper.update_theme,
+        # Once a second: the greeting's part of day, published on the change.
+        helper.update_greeting,
         helper.maybe_refresh_stats,
         # Once a second: Engage rewrites its rows on its own schedule.
         helper.update_coming_up_lines,

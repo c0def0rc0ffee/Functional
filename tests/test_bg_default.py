@@ -152,6 +152,21 @@ def test_recent_items_win():
     check(not h._bg_recent_fallback, "fallback cleared once the recent list has items")
 
 
+def test_empty_library_is_not_hammered():
+    """<summary>Nothing watched and nothing in the library: the stand-in query waits BG_LIST_REFRESH.</summary>"""
+    h = _helper(recent=[])
+    asked = []
+    h._fetch_random_library = lambda unwatched=False: asked.append(1) or []
+    h._bg_fetch_worker("recent")
+    h._bg_fetch_worker("recent")
+    h._bg_fetch_worker("recent")
+    check(len(asked) == 1, "the empty stand-in is asked once, not on every retry")
+    check(h._bg_items == [], "nothing to show while both lists are empty")
+    h._bg_fallback_quiet_until = 0.0
+    h._bg_fetch_worker("recent")
+    check(len(asked) == 2, "the stand-in is asked again once the quiet period is over")
+
+
 def test_seed_waits_for_live_skin():
     """<summary>Seeding does nothing under another skin and runs once under this one.</summary>"""
     del CALLS[:]
@@ -208,6 +223,7 @@ def test_seed_after_init_under_another_skin():
 def main():
     """<summary>Run every check and exit non zero on any failure.</summary>"""
     for test in (test_recent_empty_shows_random, test_recent_items_win,
+                 test_empty_library_is_not_hammered,
                  test_seed_waits_for_live_skin, test_seed_keeps_an_existing_setup,
                  test_seed_after_init_under_another_skin):
         print("running " + test.__name__)

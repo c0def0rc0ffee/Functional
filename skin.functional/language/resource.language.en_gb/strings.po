@@ -3019,5 +3019,5 @@ msgid "Rounds the corners of the posters and thumbnails. Square as before until 
 msgstr ""
 
 msgctxt "#31813"
-msgid "Puts Good morning, Good afternoon or Good evening in front of the time, by the hour, with your profile name when Kodi has more than one profile. It goes with the clock, so Show Date and Time off hides it too.[CR]Where: Home screen, top right, beside the time."
+msgid "Puts Good morning, Good afternoon or Good evening in front of the time, by the hour, with your profile name when Kodi has more than one profile. It goes with the clock, so Show Date and Time off hides it too, and with the main menu at the top and five or more tiles there is no room beside the clock, so the time shows alone there.[CR]Where: Home screen, top right, beside the time."
 msgstr ""
