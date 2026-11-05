@@ -105,6 +105,23 @@
 	     in it (9006) sits inside a group: Control.IsVisible(9006) reads the
 	     button's own state and stays true while the group is hidden. -->
 	<expression name="weather_widget_shown">Skin.HasSetting(show_weather_widget) + Weather.IsFetched</expression>
+	<!-- GREETING, 05/11/2026 (roadmap item 38): the text of the Home clock
+	     label. With show_greeting off it is the time alone, exactly as
+	     before. On, a greeting by the hour goes in front of it, and the
+	     profile name too when Kodi has more than one profile. System.Time
+	     with two times is true from the first up to the second; evening is
+	     the fallback so the hours either side of midnight need no wrapped
+	     range. Morning starts at 05:00, afternoon at 12:00, evening at
+	     18:00. -->
+	<variable name="HomeClockLine">
+		<value condition="Skin.HasSetting(show_greeting) + Integer.IsGreater(System.ProfileCount,1) + System.Time(05:00,12:00)">$LOCALIZE[31241], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
+		<value condition="Skin.HasSetting(show_greeting) + Integer.IsGreater(System.ProfileCount,1) + System.Time(12:00,18:00)">$LOCALIZE[31242], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
+		<value condition="Skin.HasSetting(show_greeting) + Integer.IsGreater(System.ProfileCount,1)">$LOCALIZE[31243], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
+		<value condition="Skin.HasSetting(show_greeting) + System.Time(05:00,12:00)">$LOCALIZE[31241]  ·  $INFO[System.Time]</value>
+		<value condition="Skin.HasSetting(show_greeting) + System.Time(12:00,18:00)">$LOCALIZE[31242]  ·  $INFO[System.Time]</value>
+		<value condition="Skin.HasSetting(show_greeting)">$LOCALIZE[31243]  ·  $INFO[System.Time]</value>
+		<value>$INFO[System.Time]</value>
+	</variable>
 	<!-- Any block of the stats column on the right of Home is showing, in
 	     which case a centred menu row moves left to stay clear of it. -->
 	<!-- The two add-on blocks of the Home stats column. Each is gated on

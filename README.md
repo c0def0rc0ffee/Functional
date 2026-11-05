@@ -39,7 +39,7 @@ One unified **Background** selector so the modes can never conflict:
 
 - **Off**: plain background
 - **Static Image**: pick any image; its filename can show as a caption
-- **Slideshow: Recently Watched**: cycles fanart from your recently watched movies
+- **Slideshow: Recently Watched**: cycles fanart from your recently watched movies, and shows random library fanart until something has been watched. A new install starts here
 - **Slideshow: Random Library**: random fanart from across your movies and TV shows
 - **Slideshow: Genre**: random fanart from one library genre of your choice (movies, TV shows, or both)
 - **Slideshow: Folder**: cycles every picture in a folder you choose (browse with thumbnails and tap any image in the target folder)
@@ -144,7 +144,7 @@ All settings live in **Settings > Skin Settings**, organised into seven categori
 - **Overall**: accent colour (Blue, Red, Green, Orange, Amber, Purple, Teal, Pink, or any colour from a picker, with the highlight shade following it), notification position (6 placements), Seasonal Themes (Halloween and Devil's Night from 29 to 31 October, Christmas and Christmas Eve from the first Saturday of December to Boxing Day, each on by itself unless switched off, or picked by hand), Diagnostics (debug logging + log folder), and Skin Settings Backup (Back Up Now and Restore from Backup, with the age of the snapshot shown)
 - **Background**: the unified background mode, image/folder picker, dim, slideshow interval, caption position, the time-of-day schedule, and whether the background (or live video) shows on every screen
 - **Main Menu**: show/hide each menu item (incl. Weather, Lists and Stats) and the main menu position; the corner bar position, its Favourites/Add-ons/Power buttons and Lists/Stats icons, and invisible round buttons
-- **Home Screen**: the stats panels and Continue Watching; logo, date/time, weather widget, footer and loading splash; the sleep timer and its countdown
+- **Home Screen**: the stats panels and Continue Watching; logo, date/time, weather widget, greeting beside the clock (off by default), footer and loading splash; the sleep timer and its countdown
 - **Library**: gallery thumbnail size, small-grid column count, poster shape, context menu position (centre or left edge), default sort order and direction for Movies and TV Shows, info bar position and toggles for every metadata field, and title age on the info screens
 - **Lists and Favourites**: where the Lists screen keeps its action buttons, what porting a list does to the current queue, and the default Favourites filter
 - **Playback**: OSD position, OSD thumbnail, the video dim level, and the Playback Buffer section (buffer level on the OSD, the Full Buffer button, reset to Kodi defaults)

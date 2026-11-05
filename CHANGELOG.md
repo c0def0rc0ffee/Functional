@@ -11,6 +11,19 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.12 (05/11/2026)
+
+- New Show Greeting switch under Skin Settings, Home Screen, at the foot
+  of the Around the Screen list, off by default. Switched on, the clock
+  on Home reads Good morning, Good afternoon or Good evening by the hour
+  in front of the time, with your profile name when Kodi has more than
+  one profile. It goes with the clock, so Show Date and Time off hides it
+  too. Left off, the clock reads exactly as before.
+- A new install starts with the background on Slideshow: Recently
+  Watched rather than Off, and Recently Watched shows random library
+  fanart until something has been watched. An existing setup keeps its
+  own choice, Off included.
+
 ## 0.23.9 (04/11/2026)
 
 - A list row whose library id had moved to another film, as happens when a

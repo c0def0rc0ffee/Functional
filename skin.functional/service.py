@@ -903,6 +903,20 @@ class FunctionalHelper(xbmc.Monitor):
         """
         super().__init__()
         _dlog("helper initialising")
+        # BG-DEFAULT: a fresh install is one whose clearance string is still
+        # empty, read here before _bootstrap_layout_defaults fills it as it
+        # has on every first run. Kodi writes the settings file itself at
+        # skin load, so the file's existence says nothing. The read is only
+        # worth anything if this skin is the live one now, so the live skin
+        # is kept with it; the seeding waits for a tick on which this skin
+        # is live, see _seed_bg_default.
+        self._bg_seed_pending = True
+        self._bg_seed_skin = xbmc.getSkinDir()
+        self._bg_seed_fresh = not xbmc.getInfoLabel(
+            "Skin.String(infobar_clearance_top)")
+        # BG-DEFAULT: true while the Recently Watched list is empty and the
+        # library at random is standing in for it, see _bg_fetch_worker.
+        self._bg_recent_fallback = False
         # Set ALL state up front and do NOTHING blocking here. Library
         # queries used to run in the constructor; on a box whose video DB
         # is slow/unreachable (shared MySQL with the server off, etc.)
@@ -1097,6 +1111,39 @@ class FunctionalHelper(xbmc.Monitor):
         elif xbmc.getInfoLabel("Skin.String(home_background)"):
             xbmc.executebuiltin("Skin.SetString(bg_mode,image)")
             _dlog("migrated bg_mode <- static image")
+
+    def _seed_bg_default(self):
+        """
+        <summary>
+        BG-DEFAULT: on a fresh install, start the background on Recently
+        Watched rather than Off, once this skin is the live one.
+        </summary>
+        <remarks>
+        The helper starts when the add-on is enabled, which on a zip install
+        is while the previous skin is still on screen, and a Skin.SetString
+        sent then lands in that skin's strings. So the seeding waits for a
+        tick with skin.functional live, and runs once. Fresh means the
+        clearance string was still empty before the bootstrap in __init__
+        wrote it, as it has on every first run; when __init__ ran under
+        another skin that read was of the wrong store, and this skin's
+        store, which nothing has bootstrapped, is read here instead. An
+        existing setup keeps whatever it had, Off included, because Off
+        and never set are the same empty string. The legacy migration in
+        _migrate_bg_mode ran first and wins if it set anything.
+        </remarks>
+        """
+        if not self._bg_seed_pending:
+            return
+        if xbmc.getSkinDir() != "skin.functional":
+            return
+        self._bg_seed_pending = False
+        fresh = self._bg_seed_fresh
+        if self._bg_seed_skin != "skin.functional":
+            fresh = not xbmc.getInfoLabel("Skin.String(infobar_clearance_top)")
+        if not fresh or xbmc.getInfoLabel("Skin.String(bg_mode)"):
+            return
+        _set_skin_string("bg_mode", "recent")
+        _dlog("fresh install: bg_mode seeded to recent")
 
     def _bootstrap_layout_defaults(self):
         """
@@ -2603,7 +2650,8 @@ class FunctionalHelper(xbmc.Monitor):
         "recent" (recently watched movies), "random" (random library fanart),
         "genre" (random fanart from Skin.String(bg_genre), restricted to
         Skin.String(bg_genre_type)), "folder" (images from
-        Skin.String(bg_slideshow_folder)). Empty/unset = off. Cadence:
+        Skin.String(bg_slideshow_folder)). Empty/unset = off, except that a
+        fresh install is seeded to "recent" (see _seed_bg_default). Cadence:
         Skin.String(bg_slideshow_interval) in seconds, falling back to
         BG_INTERVAL when empty/unset.
         </summary>
@@ -2616,6 +2664,9 @@ class FunctionalHelper(xbmc.Monitor):
         Python cannot read still gets its slideshow, just without buttons.
         </remarks>
         """
+        # BG-DEFAULT: a fresh install gets its starting mode here, on the
+        # first tick with this skin live, before the mode is read.
+        self._seed_bg_default()
         # Unified selector: bg_mode is one of off(empty)/image/recent/
         # random/genre/folder. Only the slideshow modes drive this handler;
         # for image/off we clear the fanart property so the static image (or
@@ -2861,6 +2912,18 @@ class FunctionalHelper(xbmc.Monitor):
         try:
             if source == "recent":
                 items = self._fetch_recent_movies()
+                # BG-DEFAULT: nothing watched yet leaves the list empty, so
+                # the library at random stands in until there is. The next
+                # refresh, BG_LIST_REFRESH on or the first library event,
+                # asks for the recent list again. Logged on the change only.
+                fallback = not items
+                if fallback:
+                    items = self._fetch_random_library()
+                if fallback != self._bg_recent_fallback:
+                    self._bg_recent_fallback = fallback
+                    _dlog("bg slideshow (recent): " + (
+                        "nothing watched yet, showing the library at random"
+                        if fallback else "watched items found, leaving the fallback"))
             elif source.startswith("genre:"):
                 _, gtype, gname = source.split(":", 2)
                 items = self._fetch_genre_library(gname, gtype)
