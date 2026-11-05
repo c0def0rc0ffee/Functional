@@ -30,7 +30,7 @@
 			<width>96</width>
 			<height>96</height>
 			<visible>SlideShow.IsPaused + !SlideShow.IsVideo</visible>
-			<animation effect="fade" time="200">VisibleChange</animation>
+			<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 
 			<control type="image">
 				<left>0</left>

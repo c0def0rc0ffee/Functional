@@ -8,8 +8,8 @@
 -->
 <window>
 	<defaultcontrol always="true">999</defaultcontrol>
-	<animation effect="fade" time="200">WindowOpen</animation>
-	<animation effect="fade" time="200">WindowClose</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<controls>
 
 		<!-- Click-trap behind the card so the video keeps receiving seek/skip keys

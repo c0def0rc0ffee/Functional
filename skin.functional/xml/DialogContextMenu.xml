@@ -17,8 +17,8 @@
 	<onload condition="Control.IsVisible(952) + !Control.IsVisible(950) + !Control.IsVisible(951)">SetFocus(952)</onload>
 	<!-- Continue Watching rows (960 to 962) replace Kodi's list entirely. -->
 	<onload condition="Control.IsVisible(960)">SetFocus(960)</onload>
-	<animation effect="fade" time="150">WindowOpen</animation>
-	<animation effect="fade" time="150">WindowClose</animation>
+	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<!-- Origin MUST stay at 0,0. Kodi repositions this window itself, centred
 	     on the focused container, and it adds that offset to whatever origin
 	     is declared here: a posx/posy of 660,140 pushed the menu off the

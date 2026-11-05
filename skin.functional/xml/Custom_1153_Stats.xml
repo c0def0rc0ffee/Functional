@@ -25,8 +25,8 @@
 -->
 <window id="1153" type="window">
 	<defaultcontrol always="true">9001</defaultcontrol>
-	<animation effect="fade" time="200">WindowOpen</animation>
-	<animation effect="fade" time="200">WindowClose</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<controls>
 		<include content="WindowBackground"/>
 		<include content="HeaderBar">
