@@ -1467,6 +1467,9 @@
 	<include name="GalleryTileBody">
 		<param name="poster_w">200</param>
 		<param name="poster_h">300</param>
+		<!-- Rounded Corners: which mask fits the layout, poster (2:3) or tall. A
+		     default= attribute, the only form Kodi reads as a default. -->
+		<param name="mask" default="poster"/>
 		<definition>
 			<control type="image">
 				<left>4</left>
@@ -1479,7 +1482,22 @@
 				     only 80 per cent opaque, so the fallback film icon used
 				     to show through it under the item's name. The fallback
 				     still covers a poster that is named but fails to load. -->
-				<visible>!String.IsEmpty(ListItem.Art(poster))</visible>
+				<visible>!String.IsEmpty(ListItem.Art(poster)) + !Skin.HasSetting(rounded_corners)</visible>
+			</control>
+			<!-- Rounded Corners: the same art through a corner mask. Kodi takes the
+			     diffuse file name literally, so the switch is a second control. -->
+			<control type="image">
+				<left>4</left>
+				<top>4</top>
+				<width>$PARAM[poster_w]</width>
+				<height>$PARAM[poster_h]</height>
+				<aspectratio scalediffuse="false">scale</aspectratio>
+				<texture fallback="DefaultVideoCover.png" background="true" diffuse="masks/$PARAM[mask].png">$INFO[ListItem.Art(poster)]</texture>
+				<!-- Hidden when there is no poster at all: the panel below is
+				     only 80 per cent opaque, so the fallback film icon used
+				     to show through it under the item's name. The fallback
+				     still covers a poster that is named but fails to load. -->
+				<visible>!String.IsEmpty(ListItem.Art(poster)) + Skin.HasSetting(rounded_corners)</visible>
 			</control>
 			<!-- Items without poster art (add-on / plugin menu entries) get a
 			     name label so the tile isn't a blank square. Library items with
@@ -1490,7 +1508,17 @@
 				<width>$PARAM[poster_w]</width>
 				<height>$PARAM[poster_h]</height>
 				<texture colordiffuse="bg_panel">white.png</texture>
-				<visible>String.IsEmpty(ListItem.Art(poster))</visible>
+				<visible>String.IsEmpty(ListItem.Art(poster)) + !Skin.HasSetting(rounded_corners)</visible>
+			</control>
+			<!-- Rounded Corners: the same art through a corner mask. Kodi takes the
+			     diffuse file name literally, so the switch is a second control. -->
+			<control type="image">
+				<left>4</left>
+				<top>4</top>
+				<width>$PARAM[poster_w]</width>
+				<height>$PARAM[poster_h]</height>
+				<texture colordiffuse="bg_panel" diffuse="masks/$PARAM[mask].png">white.png</texture>
+				<visible>String.IsEmpty(ListItem.Art(poster)) + Skin.HasSetting(rounded_corners)</visible>
 			</control>
 			<control type="image">
 				<centerleft>50%</centerleft>
@@ -1549,6 +1577,16 @@
 					<width>$PARAM[poster_w]</width>
 					<height>30</height>
 					<texture colordiffuse="C0000000">white.png</texture>
+					<visible>!Skin.HasSetting(rounded_corners)</visible>
+				</control>
+				<!-- Rounded Corners: the strip's bottom corners follow the poster's. -->
+				<control type="image">
+					<left>4</left>
+					<bottom>4</bottom>
+					<width>$PARAM[poster_w]</width>
+					<height>30</height>
+					<texture colordiffuse="C0000000" diffuse="masks/strip.png">white.png</texture>
+					<visible>Skin.HasSetting(rounded_corners)</visible>
 				</control>
 				<control type="label">
 					<left>4</left>
@@ -1570,6 +1608,7 @@
 		<param name="bg_h">308</param>
 		<param name="poster_w">200</param>
 		<param name="poster_h">300</param>
+		<param name="mask" default="poster"/>
 		<definition>
 			<!-- Focused tile background (sits behind poster, clipped 4px shorter at bottom) -->
 			<control type="image">
@@ -1578,10 +1617,22 @@
 				<width>$PARAM[tile_w]</width>
 				<height>$PARAM[bg_h]</height>
 				<texture colordiffuse="$VAR[AccentHiColor]">white.png</texture>
+				<visible>!Skin.HasSetting(rounded_corners)</visible>
+			</control>
+			<!-- Rounded Corners: the same art through a corner mask. Kodi takes the
+			     diffuse file name literally, so the switch is a second control. -->
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>$PARAM[tile_w]</width>
+				<height>$PARAM[bg_h]</height>
+				<texture colordiffuse="$VAR[AccentHiColor]" diffuse="masks/$PARAM[mask].png">white.png</texture>
+				<visible>Skin.HasSetting(rounded_corners)</visible>
 			</control>
 			<include content="GalleryTileBody">
 				<param name="poster_w" value="$PARAM[poster_w]"/>
 				<param name="poster_h" value="$PARAM[poster_h]"/>
+				<param name="mask" value="$PARAM[mask]"/>
 			</include>
 		</definition>
 	</include>
@@ -2925,6 +2976,18 @@
 				<height>480</height>
 				<aspectratio>keep</aspectratio>
 				<texture fallback="DefaultVideo.png" background="true">$VAR[PlayerPosterArt]</texture>
+				<visible>!Skin.HasSetting(rounded_corners)</visible>
+			</control>
+			<!-- Rounded Corners: the same art through a corner mask. Kodi takes the
+			     diffuse file name literally, so the switch is a second control. -->
+			<control type="image">
+				<left>30</left>
+				<top>30</top>
+				<width>320</width>
+				<height>480</height>
+				<aspectratio>keep</aspectratio>
+				<texture fallback="DefaultVideo.png" background="true" diffuse="masks/poster.png">$VAR[PlayerPosterArt]</texture>
+				<visible>Skin.HasSetting(rounded_corners)</visible>
 			</control>
 
 			<!-- Right column: title + metadata + plot -->

@@ -2538,6 +2538,10 @@ msgctxt "#31696"
 msgid "%d list item(s) matched to the library again"
 msgstr ""
 
+msgctxt "#31699"
+msgid "Rounded Corners"
+msgstr ""
+
 msgctxt "#31700"
 msgid "Overall: the accent colour, seasonal themes, where notifications appear, logging for fault finding, and a backup of every setting on these pages."
 msgstr ""
@@ -2980,4 +2984,8 @@ msgstr ""
 
 msgctxt "#31810"
 msgid "Focus the Coming up list and press Down to scroll on through the next seven days, a day at a time. It goes back to the top when you move away.[CR]Where: Home screen, the Coming up list on the left."
+msgstr ""
+
+msgctxt "#31812"
+msgid "Rounds the corners of the posters and thumbnails. Square as before until switched on.[CR]Where: the Movies and TV Shows gallery, the video, music and add-on info screens, the version manager and the full screen info card."
 msgstr ""

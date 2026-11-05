@@ -50,6 +50,18 @@
 			<height>750</height>
 			<aspectratio>scale</aspectratio>
 			<texture fallback="DefaultVideo.png" background="true">$VAR[ItemPosterArt]</texture>
+			<visible>!Skin.HasSetting(rounded_corners)</visible>
+		</control>
+		<!-- Rounded Corners: the same art through a corner mask. Kodi takes the
+		     diffuse file name literally, so the switch is a second control. -->
+		<control type="image">
+			<left>80</left>
+			<top>80</top>
+			<width>500</width>
+			<height>750</height>
+			<aspectratio scalediffuse="false">scale</aspectratio>
+			<texture fallback="DefaultVideo.png" background="true" diffuse="masks/poster.png">$VAR[ItemPosterArt]</texture>
+			<visible>Skin.HasSetting(rounded_corners)</visible>
 		</control>
 
 		<!-- Title and meta right. Stops 300px short of the edge so a long,

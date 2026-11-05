@@ -55,6 +55,18 @@
 			<height>600</height>
 			<aspectratio>scale</aspectratio>
 			<texture fallback="DefaultAlbumCover.png" background="true">$INFO[ListItem.Art(thumb)]</texture>
+			<visible>!Skin.HasSetting(rounded_corners)</visible>
+		</control>
+		<!-- Rounded Corners: the same art through a corner mask. Kodi takes the
+		     diffuse file name literally, so the switch is a second control. -->
+		<control type="image">
+			<left>80</left>
+			<top>80</top>
+			<width>600</width>
+			<height>600</height>
+			<aspectratio scalediffuse="false">scale</aspectratio>
+			<texture fallback="DefaultAlbumCover.png" background="true" diffuse="masks/square.png">$INFO[ListItem.Art(thumb)]</texture>
+			<visible>Skin.HasSetting(rounded_corners)</visible>
 		</control>
 
 		<!-- Title -->
