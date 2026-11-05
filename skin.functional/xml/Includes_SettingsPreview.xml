@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  The settings preview map (roadmap item 47, 05/11/2026): which Skin
+  Settings rows have a preview under the help text, and for the live stage
+  which region of Home each row changes. The sister of Includes_SettingsHelp
+  and kept in step with it by tests/test_settings_preview.py.
+  </summary>
+  <remarks>
+  settings_preview_shown lists every row with a preview; a row is in
+  exactly one stage_region_* expression, or in settings_preview_image
+  when its effect is on another screen and a picture pair shows it. The rows of later sub
+  items join these lists as they are built, and settings_preview_none
+  names the action rows that have no preview on purpose.
+  </remarks>
+-->
+<includes>
+	<expression name="preview_panel_shown">Skin.HasSetting(settings_preview) + $EXP[settings_preview_shown]</expression>
+	<expression name="settings_preview_shown">Control.HasFocus(7107) | Control.HasFocus(7108) | Control.HasFocus(7128) | Control.HasFocus(7129) | Control.HasFocus(7143) | Control.HasFocus(7144) | Control.HasFocus(7104) | Control.HasFocus(7106) | Control.HasFocus(7122) | Control.HasFocus(7105) | Control.HasFocus(7319)</expression>
+	<expression name="stage_region_logo">Control.HasFocus(7104)</expression>
+	<expression name="stage_region_clock">Control.HasFocus(7106) | Control.HasFocus(7122) | Control.HasFocus(7319)</expression>
+	<expression name="stage_region_stats">Control.HasFocus(7107) | Control.HasFocus(7108)</expression>
+	<expression name="stage_region_tabs">Control.HasFocus(7128) | Control.HasFocus(7129) | Control.HasFocus(7143) | Control.HasFocus(7144)</expression>
+	<expression name="stage_region_footer">Control.HasFocus(7105)</expression>
+	<!-- Rows whose effect is not on Home, so they take the picture form: the
+	     sleep timer in the power menu (7141), the sleep countdown on the
+	     player's display (7142) and the loading splash on the start screen
+	     (7115). Their pictures come with sub item 4; until then they are
+	     listed here and have no panel, so the stage is never shown for a
+	     setting it cannot show. -->
+	<expression name="settings_preview_image">Control.HasFocus(7115) | Control.HasFocus(7141) | Control.HasFocus(7142)</expression>
+	<!-- Action rows with no preview on purpose: none on the pages built so far. -->
+	<expression name="settings_preview_none">false</expression>
+</includes>
