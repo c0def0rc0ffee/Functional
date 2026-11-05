@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.10" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.11" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New Reduce Motion switch under Skin Settings, Overall, off by default. Switched on, the slide and fade effects when windows, menus and pop-ups open, close, appear or go are skipped, so everything changes in one step, the moving art on the About and credits pages holds still, and the steam over the cup on the credits page is not drawn. The seasonal theme decorations keep their own switches. Left off, the skin moves exactly as before.</news>
+		<news>New Rounded Corners switch under Skin Settings, Library, below Compact Posters, off by default. Switched on, the posters in the Movies and TV Shows gallery and the art on the video, music and add-on info screens, the version manager and the full screen info card are drawn with rounded corners, the focus frame, the watched badge and the watched count strip following the poster's shape. Left off, every poster is square as before. The rows below it on the Library settings page sit 40 px lower to make room.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

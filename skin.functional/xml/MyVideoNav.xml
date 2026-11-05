@@ -155,34 +155,41 @@
 			</itemlayout>
 
 			<!-- ===== TALL (default) variants ===== -->
+			<!-- These pass mask=tall so Rounded Corners uses the taller mask;
+			     the compact 2:3 layouts above take the include's default. -->
 			<itemlayout height="312" width="169" condition="String.IsEqual(Skin.String(gallery_size),small) + String.IsEqual(Skin.String(small_cols),11)">
 				<include content="GalleryTileBody">
 					<param name="poster_w" value="161"/>
 					<param name="poster_h" value="304"/>
+					<param name="mask" value="tall"/>
 				</include>
 			</itemlayout>
 			<itemlayout height="312" width="155" condition="String.IsEqual(Skin.String(gallery_size),small)">
 				<include content="GalleryTileBody">
 					<param name="poster_w" value="147"/>
 					<param name="poster_h" value="304"/>
+					<param name="mask" value="tall"/>
 				</include>
 			</itemlayout>
 			<itemlayout height="494" width="232" condition="String.IsEqual(Skin.String(gallery_size),large)">
 				<include content="GalleryTileBody">
 					<param name="poster_w" value="224"/>
 					<param name="poster_h" value="486"/>
+					<param name="mask" value="tall"/>
 				</include>
 			</itemlayout>
 			<itemlayout height="585" width="310" condition="String.IsEqual(Skin.String(gallery_size),xlarge)">
 				<include content="GalleryTileBody">
 					<param name="poster_w" value="302"/>
 					<param name="poster_h" value="577"/>
+					<param name="mask" value="tall"/>
 				</include>
 			</itemlayout>
 			<itemlayout height="403" width="206">
 				<include content="GalleryTileBody">
 					<param name="poster_w" value="198"/>
 					<param name="poster_h" value="395"/>
+					<param name="mask" value="tall"/>
 				</include>
 			</itemlayout>
 
@@ -235,6 +242,7 @@
 					<param name="bg_h" value="312"/>
 					<param name="poster_w" value="161"/>
 					<param name="poster_h" value="304"/>
+					<param name="mask" value="tall"/>
 				</include>
 			</focusedlayout>
 			<focusedlayout height="312" width="155" condition="String.IsEqual(Skin.String(gallery_size),small)">
@@ -243,6 +251,7 @@
 					<param name="bg_h" value="312"/>
 					<param name="poster_w" value="147"/>
 					<param name="poster_h" value="304"/>
+					<param name="mask" value="tall"/>
 				</include>
 			</focusedlayout>
 			<focusedlayout height="494" width="232" condition="String.IsEqual(Skin.String(gallery_size),large)">
@@ -251,6 +260,7 @@
 					<param name="bg_h" value="494"/>
 					<param name="poster_w" value="224"/>
 					<param name="poster_h" value="486"/>
+					<param name="mask" value="tall"/>
 				</include>
 			</focusedlayout>
 			<focusedlayout height="585" width="310" condition="String.IsEqual(Skin.String(gallery_size),xlarge)">
@@ -259,6 +269,7 @@
 					<param name="bg_h" value="585"/>
 					<param name="poster_w" value="302"/>
 					<param name="poster_h" value="577"/>
+					<param name="mask" value="tall"/>
 				</include>
 			</focusedlayout>
 			<focusedlayout height="403" width="206">
@@ -267,6 +278,7 @@
 					<param name="bg_h" value="403"/>
 					<param name="poster_w" value="198"/>
 					<param name="poster_h" value="395"/>
+					<param name="mask" value="tall"/>
 				</include>
 			</focusedlayout>
 		</control>

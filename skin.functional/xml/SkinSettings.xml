@@ -2523,13 +2523,43 @@
 				<onleft>7000</onleft>
 				<onright>7200</onright>
 				<onup>7221</onup>
+				<ondown>7318</ondown>
+			</control>
+			<!-- ROUNDED-CORNERS, 05/11/2026 (roadmap item 44): rounds the posters
+			     and thumbnails in the gallery and on the info screens through a
+			     corner mask. Off by default. Everything from CONTEXT MENU down
+			     moved 40 px to make room; the sort note lost 35 px of slack. -->
+			<control type="radiobutton" id="7318">
+				<left>440</left>
+				<top>385</top>
+				<width>680</width>
+				<height>40</height>
+				<font>font_small</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31699</label>
+				<selected>Skin.HasSetting(rounded_corners)</selected>
+				<onclick>Skin.ToggleSetting(rounded_corners)</onclick>
+				<onleft>7000</onleft>
+				<onright>7200</onright>
+				<onup>7222</onup>
 				<ondown>7223</ondown>
 			</control>
 
 			<!-- ===== Left column: CONTEXT MENU ===== -->
 			<control type="label">
 				<left>440</left>
-				<top>400</top>
+				<top>440</top>
 				<width>680</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -2538,7 +2568,7 @@
 			</control>
 			<control type="button" id="7223">
 				<left>440</left>
-				<top>440</top>
+				<top>480</top>
 				<width>680</width>
 				<height>60</height>
 				<font>font_reg</font>
@@ -2553,7 +2583,7 @@
 				<label>$LOCALIZE[31275] $VAR[ContextMenuPositionLabel]</label>
 				<onleft>7000</onleft>
 				<onright>7021</onright>
-				<onup>7222</onup>
+				<onup>7318</onup>
 				<ondown>7230</ondown>
 				<onclick condition="String.IsEqual(Skin.String(context_menu_pos),left)">Skin.Reset(context_menu_pos)</onclick>
 				<onclick condition="!String.IsEqual(Skin.String(context_menu_pos),left)">Skin.SetString(context_menu_pos,left)</onclick>
@@ -2561,7 +2591,7 @@
 
 			<control type="label">
 				<left>440</left>
-				<top>510</top>
+				<top>550</top>
 				<width>680</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -2581,7 +2611,7 @@
 			     skin behaved before. -->
 			<control type="label">
 				<left>440</left>
-				<top>570</top>
+				<top>610</top>
 				<width>680</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -2590,7 +2620,7 @@
 			</control>
 			<control type="button" id="7230">
 				<left>440</left>
-				<top>610</top>
+				<top>650</top>
 				<width>680</width>
 				<height>60</height>
 				<font>font_small</font>
@@ -2617,7 +2647,7 @@
 
 			<control type="button" id="7231">
 				<left>440</left>
-				<top>675</top>
+				<top>715</top>
 				<width>680</width>
 				<height>50</height>
 				<font>font_small</font>
@@ -2641,7 +2671,7 @@
 
 			<control type="button" id="7232">
 				<left>440</left>
-				<top>740</top>
+				<top>780</top>
 				<width>680</width>
 				<height>60</height>
 				<font>font_small</font>
@@ -2668,7 +2698,7 @@
 
 			<control type="button" id="7233">
 				<left>440</left>
-				<top>805</top>
+				<top>845</top>
 				<width>680</width>
 				<height>50</height>
 				<font>font_small</font>
@@ -2692,9 +2722,9 @@
 
 			<control type="label">
 				<left>440</left>
-				<top>865</top>
+				<top>905</top>
 				<width>680</width>
-				<height>120</height>
+				<height>85</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
 				<wrapmultiline>true</wrapmultiline>
@@ -2703,7 +2733,7 @@
 
 			<!-- LIB-COLLECTIONS: Collections and "Collection: <name>" rows in
 			     the library side menu's filter section (MyVideoNav 8012 and
-			     8013). Sits under the sort description, which ends at 985. -->
+			     8013). Sits under the sort description, which ends at 990. -->
 			<control type="radiobutton" id="7224">
 				<left>440</left>
 				<top>990</top>
