@@ -203,10 +203,15 @@ def test_clock_variable():
     for v in values[3:]:
         if "ProfileName" in (v.text or ""):
             fail("%s: a plain value names the profile" % VARIABLE)
-    home = parse("Home.xml")
-    users = [l for l in home.iter("label") if "$VAR[%s]" % VARIABLE in (l.text or "")]
+    # The clock lives in the HomeClock include (Includes_Home.xml) since the
+    # settings preview groundwork; Home.xml draws it through that include.
+    users = [l for name in ("Home.xml", "Includes_Home.xml") for l in parse(name).iter("label")
+             if "$VAR[%s]" % VARIABLE in (l.text or "")]
     if len(users) != 1:
-        fail("Home.xml should read $VAR[%s] in exactly one label, found %d" % (VARIABLE, len(users)))
+        fail("the clock variable should be read by exactly one label, found %d" % len(users))
+    home = parse("Home.xml")
+    if not any(i.get("content") == "HomeClock" for i in home.iter("include")):
+        fail("Home.xml does not draw the HomeClock include")
 
 
 def test_off_by_default():
