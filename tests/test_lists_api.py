@@ -197,6 +197,7 @@ xbmc.log = lambda *a, **k: None
 xbmc.executeJSONRPC = fake_jsonrpc
 xbmc.getCondVisibility = _cond
 xbmc.getInfoLabel = lambda label: "0.23.0" if label.startswith("System.AddonVersion") else ""
+xbmc.getSkinDir = lambda: "skin.functional"
 xbmc.getLocalizedString = lambda sid: STRINGS.get(sid, "")
 xbmc.executebuiltin = lambda *a, **k: None
 xbmc.Monitor = _Monitor

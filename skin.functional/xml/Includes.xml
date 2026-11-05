@@ -105,6 +105,30 @@
 	     in it (9006) sits inside a group: Control.IsVisible(9006) reads the
 	     button's own state and stays true while the group is hidden. -->
 	<expression name="weather_widget_shown">Skin.HasSetting(show_weather_widget) + Weather.IsFetched</expression>
+	<!-- GREETING, 05/11/2026 (roadmap item 38): the text of the Home clock
+	     label. With show_greeting off it is the time alone, exactly as
+	     before. On, a greeting by the hour goes in front of it, and the
+	     profile name too when Kodi has more than one profile. The part of
+	     day is Window(home).Property(greeting_part), published by
+	     service.py:update_greeting (morning from 05:00, afternoon from 12:00,
+	     evening from 18:00 and through the small hours); until the helper
+	     has published it the time shows alone. System.Time ranges were
+	     tried first and did not match on a 12 hour clock. -->
+	<expression name="greeting_part_morning">String.IsEqual(Window(home).Property(greeting_part),morning)</expression>
+	<expression name="greeting_part_afternoon">String.IsEqual(Window(home).Property(greeting_part),afternoon)</expression>
+	<expression name="greeting_part_evening">String.IsEqual(Window(home).Property(greeting_part),evening)</expression>
+	<!-- Room for the greeting: with the main menu at the top, a row of five
+	     or more tiles reaches the clock, so the time shows alone there. -->
+	<expression name="greeting_room">Skin.HasSetting(show_greeting) + [!String.IsEqual(Skin.String(menu_position),top) | !Integer.IsGreater(Window(home).Property(Tile.Count),4)]</expression>
+	<variable name="HomeClockLine">
+		<value condition="$EXP[greeting_room] + Integer.IsGreater(System.ProfileCount,1) + $EXP[greeting_part_morning]">$LOCALIZE[31241], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
+		<value condition="$EXP[greeting_room] + Integer.IsGreater(System.ProfileCount,1) + $EXP[greeting_part_afternoon]">$LOCALIZE[31242], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
+		<value condition="$EXP[greeting_room] + Integer.IsGreater(System.ProfileCount,1) + $EXP[greeting_part_evening]">$LOCALIZE[31243], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
+		<value condition="$EXP[greeting_room] + $EXP[greeting_part_morning]">$LOCALIZE[31241]  ·  $INFO[System.Time]</value>
+		<value condition="$EXP[greeting_room] + $EXP[greeting_part_afternoon]">$LOCALIZE[31242]  ·  $INFO[System.Time]</value>
+		<value condition="$EXP[greeting_room] + $EXP[greeting_part_evening]">$LOCALIZE[31243]  ·  $INFO[System.Time]</value>
+		<value>$INFO[System.Time]</value>
+	</variable>
 	<!-- Any block of the stats column on the right of Home is showing, in
 	     which case a centred menu row moves left to stay clear of it. -->
 	<!-- The two add-on blocks of the Home stats column. Each is gated on

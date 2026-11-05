@@ -980,6 +980,22 @@ msgctxt "#31240"
 msgid "MAIN MENU"
 msgstr ""
 
+msgctxt "#31241"
+msgid "Good morning"
+msgstr ""
+
+msgctxt "#31242"
+msgid "Good afternoon"
+msgstr ""
+
+msgctxt "#31243"
+msgid "Good evening"
+msgstr ""
+
+msgctxt "#31244"
+msgid "Show Greeting (beside the clock)"
+msgstr ""
+
 msgctxt "#31246"
 msgid "Show Weather Widget (beside the clock)"
 msgstr ""
@@ -2887,7 +2903,7 @@ msgid "Sets when the slot being edited starts. It runs until the next slot start
 msgstr ""
 
 msgctxt "#31784"
-msgid "Chooses the background: off, a picture, recently watched, random from the library, a folder, or a genre.[CR]Where: the background behind Home."
+msgid "Chooses the background: off, a picture, recently watched, random from the library, a folder, or a genre. A new install starts on recently watched, which shows the library at random until something has been watched.[CR]Where: the background behind Home."
 msgstr ""
 
 msgctxt "#31785"
@@ -3000,4 +3016,8 @@ msgstr ""
 
 msgctxt "#31812"
 msgid "Rounds the corners of the posters and thumbnails. Square as before until switched on.[CR]Where: the Movies and TV Shows gallery, the video, music and add-on info screens, the version manager and the full screen info card."
+msgstr ""
+
+msgctxt "#31813"
+msgid "Puts Good morning, Good afternoon or Good evening in front of the time, by the hour, with your profile name when Kodi has more than one profile. It goes with the clock, so Show Date and Time off hides it too, and with the main menu at the top and five or more tiles there is no room beside the clock, so the time shows alone there.[CR]Where: Home screen, top right, beside the time."
 msgstr ""
