@@ -11,8 +11,8 @@
 	<!-- Plain fade for open/close. Conditional animations (both these open/close
 	     slides and the old position-shifting Conditional slide) proved unreliable
 	     on some builds, so nothing position-critical uses them any more. -->
-	<animation effect="fade" time="200">WindowOpen</animation>
-	<animation effect="fade" time="200">WindowClose</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<controls>
 
 	<!-- Wrapper group. All content inside is bottom-anchored (draws at the

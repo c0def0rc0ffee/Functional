@@ -237,7 +237,7 @@
 				<onleft>9310</onleft>
 				<onright>9311</onright>
 				<visible>!String.IsEmpty(Window(home).Property(home_bg_label)) + String.IsEqual(Skin.String(bg_label_position),$PARAM[pos])</visible>
-				<animation effect="fade" time="400">VisibleChange</animation>
+				<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				<animation effect="slide" end="$PARAM[by1]" time="0" condition="$PARAM[shift1]">Conditional</animation>
 				<animation effect="slide" end="$PARAM[by2]" time="0" condition="$PARAM[shift2]">Conditional</animation>
 				<control type="label">
@@ -373,7 +373,7 @@
 	<include name="BgStepButtons">
 		<control type="group">
 			<visible>Skin.HasSetting(bg_step_buttons) + !String.IsEmpty(Window(home).Property(home_bg_fanart)) + !$EXP[bg_video_showing]</visible>
-			<animation effect="fade" time="400">VisibleChange</animation>
+			<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 			<include content="BgStepButton"><param name="id" value="9310"/><param name="left" value="0"/><param name="command" value="bg_prev"/><param name="icon" value="prev.png"/><param name="onleft" value="9341"/><param name="onright" value="9000"/></include>
 			<include content="BgStepButton"><param name="id" value="9311"/><param name="left" value="1870"/><param name="command" value="bg_next"/><param name="icon" value="next.png"/><param name="onleft" value="9000"/><param name="onright" value="9320"/></include>
 		</control>
@@ -1725,7 +1725,7 @@
 					     home_bg_fanart in non-slideshow modes, so there's never a
 					     clash with the slideshow. -->
 					<visible>[String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))] + !$EXP[bg_video_showing]</visible>
-					<animation effect="fade" time="400">VisibleChange</animation>
+					<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				</control>
 
 				<!-- Folder slideshow (mode = folder). One instance per interval preset;
@@ -3423,8 +3423,8 @@
 		<definition>
 			<control type="group">
 				<visible>$PARAM[visible]</visible>
-				<animation effect="fade" start="0" end="100" time="100">Visible</animation>
-				<animation effect="fade" start="100" end="0" time="250">Hidden</animation>
+				<animation effect="fade" start="0" end="100" time="100" condition="!Skin.HasSetting(reduce_motion)">Visible</animation>
+				<animation effect="fade" start="100" end="0" time="250" condition="!Skin.HasSetting(reduce_motion)">Hidden</animation>
 				<control type="image">
 					<right>50</right>
 					<top>$PARAM[top]</top>
@@ -3531,8 +3531,8 @@
 				<top>$PARAM[top]</top>
 				<width>960</width>
 				<height>54</height>
-				<animation effect="slide" start="60,0" end="0,0" time="340" delay="$PARAM[delay]" tween="cubic" easing="out">WindowOpen</animation>
-				<animation effect="fade" start="0" end="100" time="340" delay="$PARAM[delay]">WindowOpen</animation>
+				<animation effect="slide" start="60,0" end="0,0" time="340" delay="$PARAM[delay]" tween="cubic" easing="out" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+				<animation effect="fade" start="0" end="100" time="340" delay="$PARAM[delay]" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 
 				<control type="label">
 					<left>0</left>
@@ -3682,7 +3682,7 @@
 					<texturefocus colordiffuse="white">icons/home_power.png</texturefocus>
 					<texturenofocus colordiffuse="$VAR[AccentColor]">icons/home_power.png</texturenofocus>
 					<onclick>ActivateWindow(ShutdownMenu)</onclick>
-					<animation effect="fade" time="200">VisibleChange</animation>
+					<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				</control>
 
 				<control type="label" id="$PARAM[id_sleep]">
@@ -3693,7 +3693,7 @@
 					<textcolor>text</textcolor>
 					<aligny>center</aligny>
 					<label>$INFO[Window(home).Property(sleep_remaining)]</label>
-					<animation effect="fade" time="200">VisibleChange</animation>
+					<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				</control>
 
 				<!-- Resume / now playing button (only visible when media is playing) -->
@@ -3713,7 +3713,7 @@
 					<label>$LOCALIZE[31096] $INFO[VideoPlayer.Title]$INFO[MusicPlayer.Title]</label>
 					<onclick condition="Player.HasVideo">ActivateWindow(fullscreenvideo)</onclick>
 					<onclick condition="Player.HasAudio + !Player.HasVideo">ActivateWindow(visualisation)</onclick>
-					<animation effect="fade" time="200">VisibleChange</animation>
+					<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				</control>
 
 				<!-- Queue (only visible when there's something queued) -->
@@ -3733,7 +3733,7 @@
 					<label>$VAR[QueueCountLabel]</label>
 					<onclick condition="Integer.IsGreater(Playlist.Length(video),0)">ActivateWindow(VideoPlaylist)</onclick>
 					<onclick condition="!Integer.IsGreater(Playlist.Length(video),0) + Integer.IsGreater(Playlist.Length(music),0)">ActivateWindow(MusicPlaylist)</onclick>
-					<animation effect="fade" time="200">VisibleChange</animation>
+					<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				</control>
 
 				<!-- Round icon buttons (Stats / Lists / Favourites / Add-ons / Settings / Power).
