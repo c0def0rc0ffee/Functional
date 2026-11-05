@@ -43,6 +43,8 @@ HOME_INCLUDES = ("HomeStatsColumn", "HomeLogo", "HomeWeather", "HomeClock",
 FLIP_READS = {
     "flip_movies": "Skin.HasSetting(hide_movies_count)",
     "flip_tvshows": "Skin.HasSetting(hide_tvshows_count)",
+    "flip_jellystat": "Skin.HasSetting(hide_jellystat)",
+    "flip_engage": "$EXP[engage_block_shown]",
     "flip_logo": "Skin.HasSetting(hide_logo)",
     "flip_weather": "$EXP[weather_widget_shown]",
     "flip_datetime": "Skin.HasSetting(hide_datetime)",
@@ -61,7 +63,7 @@ FLIP_READS = {
 PAIR_FLIPS = {"flip_greeting": ("$VAR[HomeClockLine]", "$VAR[HomeClockLineFlipped]")}
 # Which Skin Settings row each flip follows in the stage.
 STAGE_FLIPS = {
-    "flip_movies": "7107", "flip_tvshows": "7108", "flip_logo": "7104", "flip_weather": "7122",
+    "flip_movies": "7107", "flip_tvshows": "7108", "flip_jellystat": "7137", "flip_engage": "7149", "flip_logo": "7104", "flip_weather": "7122",
     "flip_datetime": "7106", "flip_greeting": "7319", "flip_version": "7105",
     "flip_continue": "7128", "flip_recent": "7144", "flip_add": "7147", "flip_step": "7148",
     "flip_fav": "7123", "flip_addons": "7109", "flip_power": "7112", "flip_lists": "7136", "flip_stats": "7139",
@@ -69,7 +71,8 @@ STAGE_FLIPS = {
 SWITCH = "settings_preview"
 SWITCH_ID = "7322"
 HELP_STRING = "31814"
-STAGE_PAGES = ("home", "background", "mainmenu", "overall", "media", "video")
+# every page: since sub item 5 each row is on the stage, a picture row, or named as having no preview
+STAGE_PAGES = ("home", "background", "mainmenu", "overall", "media", "video", "lists", "addons", "radarr")
 ROW_TYPES = ("button", "radiobutton", "spincontrolex", "spincontrol", "slider", "edit")
 TOKEN = r"(?:\$EXP\[\w+\]|\$PARAM\[\w+\]|[^\[\]|+ ]+)"
 # One operand: the exclusive or sits in its own brackets, because Kodi binds
@@ -306,7 +309,7 @@ def test_preview_map():
                     fail("row %s on page %s has no preview on purpose and must not be mapped" % (rid, page))
                 continue
             if rid in images:
-                # the picture form: no stage, and no panel until sub item 4 ships its pictures
+                # the picture form: a pair of pictures in the panel, never the stage
                 if homes or rid in shown:
                     fail("row %s on page %s is a picture row and must not be on the stage" % (rid, page))
                 continue
