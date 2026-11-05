@@ -835,7 +835,6 @@
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_clock]"/><param name="left" value="960"/><param name="top" value="16"/><param name="width" value="940"/><param name="height" value="150"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_stats]"/><param name="left" value="1530"/><param name="top" value="160"/><param name="width" value="360"/><param name="height" value="640"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_tabs]"/><param name="left" value="560"/><param name="top" value="920"/><param name="width" value="800"/><param name="height" value="160"/></include>
-				<include content="StageRegion"><param name="when" value="$EXP[stage_region_corner]"/><param name="left" value="1360"/><param name="top" value="880"/><param name="width" value="540"/><param name="height" value="190"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_footer]"/><param name="left" value="20"/><param name="top" value="990"/><param name="width" value="640"/><param name="height" value="80"/></include>
 			</control>
 		</definition>

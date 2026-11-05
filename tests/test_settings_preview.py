@@ -249,8 +249,9 @@ def test_switch_off_by_default():
 
 def test_preview_map():
     """
-    <summary>Checks every row on the stage pages is in the preview map and in
-    exactly one stage region, and that every mapped id is a real row.</summary>
+    <summary>Checks every row on the stage pages is either on the stage, in the
+    preview map and exactly one region, or a picture row kept off the stage,
+    and that every mapped id is a real row.</summary>
     """
     print("running test_preview_map")
     settings = parse("SkinSettings.xml")
@@ -260,14 +261,20 @@ def test_preview_map():
     exprs = {e.get("name"): e.text or "" for e in preview.iter("expression")}
     shown = focus_ids(exprs.get("settings_preview_shown"))
     regions = {n: focus_ids(x) for n, x in exprs.items() if n.startswith("stage_region_")}
+    images = focus_ids(exprs.get("settings_preview_image"))
     for page in STAGE_PAGES:
         for rid in pages.get(page, []):
+            homes = [n for n, ids in regions.items() if rid in ids]
+            if rid in images:
+                # the picture form: no stage, and no panel until sub item 4 ships its pictures
+                if homes or rid in shown:
+                    fail("row %s on page %s is a picture row and must not be on the stage" % (rid, page))
+                continue
             if rid not in shown:
                 fail("row %s on page %s is not in settings_preview_shown" % (rid, page))
-            homes = [n for n, ids in regions.items() if rid in ids]
             if len(homes) != 1:
                 fail("row %s on page %s is in %d stage regions, expected one" % (rid, page, len(homes)))
-    for rid in shown | {i for ids in regions.values() for i in ids}:
+    for rid in shown | images | {i for ids in regions.values() for i in ids}:
         if rid not in all_rows:
             fail("preview map names %s, which is not a settings row" % rid)
     print("  %d regions, %d rows mapped" % (len(regions), len(shown)))
