@@ -3027,5 +3027,5 @@ msgid "Puts Good morning, Good afternoon or Good evening in front of the time, b
 msgstr ""
 
 msgctxt "#31814"
-msgid "Shows what the focused setting does, under this help: a small live copy of your Home screen with the part that changes outlined, and a switch shown the other way round so you see what OK would do.[CR]Where: Skin Settings, under the help text."
+msgid "Shows what the focused setting does, under this help: a small live copy of your Home screen with the part that changes outlined, and a switch shown the other way round so you see what OK would do. Settings on other screens show a picture instead: the large one is what OK would give, the small one how it is now.[CR]Where: Skin Settings, under the help text."
 msgstr ""
