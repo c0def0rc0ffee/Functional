@@ -142,7 +142,7 @@ def test_flip_parameters():
             fail("%s: unbalanced brackets in its definition" % inc.get("name"))
     home = parse("Home.xml")
     for inc in home.iter("include"):
-        if inc.get("content") in HOME_INCLUDES:
+        if inc.get("content") in HOME_INCLUDES + ("BgCaptions", "BgStepButtons", "HomeCornerBar"):
             passed = [p.get("name") for p in inc.findall("param") if p.get("name", "").startswith("flip_")]
             if passed:
                 fail("Home.xml passes %s to %s; Home never flips" % (passed, inc.get("content")))
@@ -198,20 +198,34 @@ def test_stage_wiring():
     for inc in stage.iter("include"):
         for p in inc.findall("param"):
             if p.get("name", "").startswith("flip_"):
-                passed[p.get("name")] = p.get("value")
+                passed.setdefault(p.get("name"), set()).add(p.get("value"))
     for pname, row in STAGE_FLIPS.items():
-        if passed.get(pname) != "Control.HasFocus(%s)" % row:
-            fail("HomeStage passes %s as %r, expected the focus of row %s" % (pname, passed.get(pname), row))
+        if passed.get(pname) != {"Control.HasFocus(%s)" % row}:
+            fail("HomeStage passes %s as %r, expected the focus of row %s on every instance" % (pname, passed.get(pname), row))
     for pname in passed:
         if pname not in STAGE_FLIPS:
             fail("HomeStage passes an unknown flip %s" % pname)
+    bars = [i for i in stage.iter("include") if i.get("content") == "HomeCornerBar"]
+    for bar in bars:
+        got = {p.get("name") for p in bar.findall("param") if p.get("name", "").startswith("flip_")}
+        if got != {"flip_fav", "flip_addons", "flip_power", "flip_lists", "flip_stats"}:
+            fail("a HomeCornerBar instance in the stage lacks a flip: %s" % sorted(got))
+    if len(bars) != 3:
+        fail("HomeStage should draw HomeCornerBar three times, found %d" % len(bars))
     settings = parse("SkinSettings.xml")
     settings_ids = {c.get("id") for c in settings.iter("control") if c.get("id")}
     stage_ids = set()
+    drawn = {i.get("content") for i in stage.iter("include")}
     for inc in stage.iter("include"):
         for p in inc.findall("param"):
             if p.get("name", "").startswith("id") and (p.get("value") or "").isdigit():
                 stage_ids.add(p.get("value"))
+    # ids fixed inside the includes the stage draws, one level down
+    for inc in root.findall("include"):
+        if inc.get("name") in drawn:
+            stage_ids |= set(re.findall(r'id="(\d+)"', ET.tostring(inc, encoding="unicode")))
+            stage_ids |= {p.get("value") for p in inc.iter("param")
+                          if p.get("name", "").startswith("id") and (p.get("value") or "").isdigit()}
     clash = stage_ids & settings_ids
     if clash:
         fail("HomeStage ids collide with Skin Settings ids: %s" % sorted(clash))

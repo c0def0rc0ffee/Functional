@@ -769,18 +769,20 @@
 	     line has itself moved up to y 920 to 960 by then. -->
 	<include name="BgCaptions">
 		<param name="flip_add" default="false"/>
-		<control type="group">
-			<visible>!$EXP[bg_video_showing]</visible>
-			<left>0</left>
-			<top>0</top>
-			<width>1920</width>
-			<height>1080</height>
-			<include content="BgCaption"><param name="flip_add" value="$PARAM[flip_add]"/><param name="pos" value="topleft"/><param name="id" value="9300"/><param name="top" value="40"/><param name="align" value="left"/><param name="shift1" value="!Skin.HasSetting(hide_logo)"/><param name="by1" value="120,0"/></include>
-			<include content="BgCaption"><param name="flip_add" value="$PARAM[flip_add]"/><param name="pos" value="topright"/><param name="id" value="9301"/><param name="top" value="40"/><param name="align" value="right"/><param name="shift1" value="!Skin.HasSetting(hide_datetime)"/><param name="by1" value="-240,0"/></include>
-			<include content="BgCaption"><param name="flip_add" value="$PARAM[flip_add]"/><param name="pos" value="bottomleft"/><param name="id" value="9302"/><param name="top" value="980"/><param name="align" value="left"/><param name="shift1" value="$EXP[corner_bar_bottom_left]"/><param name="by1" value="0,-110"/><param name="shift2" value="!$EXP[corner_bar_bottom_left] + [!Skin.HasSetting(hide_version) | !$EXP[corner_bar_top]]"/><param name="by2" value="0,-60"/></include>
-			<include content="BgCaption"><param name="flip_add" value="$PARAM[flip_add]"/><param name="pos" value="bottomright"/><param name="id" value="9303"/><param name="top" value="980"/><param name="align" value="right"/><param name="shift1" value="!$EXP[corner_bar_top]"/><param name="by1" value="0,-60"/></include>
-			<include content="BgCaption"><param name="flip_add" value="$PARAM[flip_add]"/><param name="pos" value="bottomcenter"/><param name="id" value="9304"/><param name="top" value="980"/><param name="align" value="center"/><param name="shift1" value="!$EXP[corner_bar_top]"/><param name="by1" value="0,-60"/></include>
-		</control>
+		<definition>
+			<control type="group">
+				<visible>!$EXP[bg_video_showing]</visible>
+				<left>0</left>
+				<top>0</top>
+				<width>1920</width>
+				<height>1080</height>
+				<include content="BgCaption"><param name="flip_add" value="$PARAM[flip_add]"/><param name="pos" value="topleft"/><param name="id" value="9300"/><param name="top" value="40"/><param name="align" value="left"/><param name="shift1" value="!Skin.HasSetting(hide_logo)"/><param name="by1" value="120,0"/></include>
+				<include content="BgCaption"><param name="flip_add" value="$PARAM[flip_add]"/><param name="pos" value="topright"/><param name="id" value="9301"/><param name="top" value="40"/><param name="align" value="right"/><param name="shift1" value="!Skin.HasSetting(hide_datetime)"/><param name="by1" value="-240,0"/></include>
+				<include content="BgCaption"><param name="flip_add" value="$PARAM[flip_add]"/><param name="pos" value="bottomleft"/><param name="id" value="9302"/><param name="top" value="980"/><param name="align" value="left"/><param name="shift1" value="$EXP[corner_bar_bottom_left]"/><param name="by1" value="0,-110"/><param name="shift2" value="!$EXP[corner_bar_bottom_left] + [!Skin.HasSetting(hide_version) | !$EXP[corner_bar_top]]"/><param name="by2" value="0,-60"/></include>
+				<include content="BgCaption"><param name="flip_add" value="$PARAM[flip_add]"/><param name="pos" value="bottomright"/><param name="id" value="9303"/><param name="top" value="980"/><param name="align" value="right"/><param name="shift1" value="!$EXP[corner_bar_top]"/><param name="by1" value="0,-60"/></include>
+				<include content="BgCaption"><param name="flip_add" value="$PARAM[flip_add]"/><param name="pos" value="bottomcenter"/><param name="id" value="9304"/><param name="top" value="980"/><param name="align" value="center"/><param name="shift1" value="!$EXP[corner_bar_top]"/><param name="by1" value="0,-60"/></include>
+			</control>
+		</definition>
 	</include>
 	<!-- BG-STEP: previous and next at the screen edges, centred on the
 	     menu band (y 470 to 630), 50 wide at x 0 and x 1870. The right one
@@ -848,12 +850,14 @@
 	</include>
 	<include name="BgStepButtons">
 		<param name="flip_step" default="false"/>
-		<control type="group">
-			<visible>[[Skin.HasSetting(bg_step_buttons) + !$PARAM[flip_step]] | [!Skin.HasSetting(bg_step_buttons) + $PARAM[flip_step]]] + !String.IsEmpty(Window(home).Property(home_bg_fanart)) + !$EXP[bg_video_showing]</visible>
-			<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
-			<include content="BgStepButton"><param name="flip_step" value="$PARAM[flip_step]"/><param name="id" value="9310"/><param name="left" value="0"/><param name="command" value="bg_prev"/><param name="icon" value="prev.png"/><param name="onleft" value="9341"/><param name="onright" value="9000"/></include>
-			<include content="BgStepButton"><param name="flip_step" value="$PARAM[flip_step]"/><param name="id" value="9311"/><param name="left" value="1870"/><param name="command" value="bg_next"/><param name="icon" value="next.png"/><param name="onleft" value="9000"/><param name="onright" value="9320"/></include>
-		</control>
+		<definition>
+			<control type="group">
+				<visible>[[Skin.HasSetting(bg_step_buttons) + !$PARAM[flip_step]] | [!Skin.HasSetting(bg_step_buttons) + $PARAM[flip_step]]] + !String.IsEmpty(Window(home).Property(home_bg_fanart)) + !$EXP[bg_video_showing]</visible>
+				<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
+				<include content="BgStepButton"><param name="flip_step" value="$PARAM[flip_step]"/><param name="id" value="9310"/><param name="left" value="0"/><param name="command" value="bg_prev"/><param name="icon" value="prev.png"/><param name="onleft" value="9341"/><param name="onright" value="9000"/></include>
+				<include content="BgStepButton"><param name="flip_step" value="$PARAM[flip_step]"/><param name="id" value="9311"/><param name="left" value="1870"/><param name="command" value="bg_next"/><param name="icon" value="next.png"/><param name="onleft" value="9000"/><param name="onright" value="9320"/></include>
+			</control>
+		</definition>
 	</include>
 	<!--
 	  <summary>
@@ -1270,14 +1274,21 @@
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_all] | $EXP[stage_region_background]"/><param name="left" value="10"/><param name="top" value="10"/><param name="width" value="1900"/><param name="height" value="1060"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),topleft)"/><param name="left" value="20"/><param name="top" value="20"/><param name="width" value="900"/><param name="height" value="100"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),topright)"/><param name="left" value="1000"/><param name="top" value="20"/><param name="width" value="900"/><param name="height" value="100"/></include>
-				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),bottomleft)"/><param name="left" value="20"/><param name="top" value="960"/><param name="width" value="900"/><param name="height" value="100"/></include>
-				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),bottomright)"/><param name="left" value="1000"/><param name="top" value="960"/><param name="width" value="900"/><param name="height" value="100"/></include>
-				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),bottomcenter)"/><param name="left" value="510"/><param name="top" value="960"/><param name="width" value="900"/><param name="height" value="100"/></include>
+				<!-- The bottom captions slide up 60 under a bottom corner bar, and the
+				     bottom left one 110 under a bottom left bar, as BgCaption says. -->
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),bottomleft) + $EXP[corner_bar_bottom_left]"/><param name="left" value="20"/><param name="top" value="850"/><param name="width" value="900"/><param name="height" value="100"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),bottomleft) + !$EXP[corner_bar_top] + !$EXP[corner_bar_bottom_left]"/><param name="left" value="20"/><param name="top" value="900"/><param name="width" value="900"/><param name="height" value="100"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),bottomleft) + $EXP[corner_bar_top]"/><param name="left" value="20"/><param name="top" value="960"/><param name="width" value="900"/><param name="height" value="100"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),bottomright) + !$EXP[corner_bar_top]"/><param name="left" value="1000"/><param name="top" value="900"/><param name="width" value="900"/><param name="height" value="100"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),bottomright) + $EXP[corner_bar_top]"/><param name="left" value="1000"/><param name="top" value="960"/><param name="width" value="900"/><param name="height" value="100"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),bottomcenter) + !$EXP[corner_bar_top]"/><param name="left" value="510"/><param name="top" value="900"/><param name="width" value="900"/><param name="height" value="100"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),bottomcenter) + $EXP[corner_bar_top]"/><param name="left" value="510"/><param name="top" value="960"/><param name="width" value="900"/><param name="height" value="100"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_steps]"/><param name="left" value="0"/><param name="top" value="420"/><param name="width" value="70"/><param name="height" value="240"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_steps]"/><param name="left" value="1850"/><param name="top" value="420"/><param name="width" value="70"/><param name="height" value="240"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_menu] + $EXP[menu_top]"/><param name="left" value="160"/><param name="top" value="30"/><param name="width" value="1600"/><param name="height" value="160"/></include>
-				<include content="StageRegion"><param name="when" value="$EXP[stage_region_menu] + $EXP[menu_bottom]"/><param name="left" value="160"/><param name="top" value="810"/><param name="width" value="1600"/><param name="height" value="160"/></include>
-				<include content="StageRegion"><param name="when" value="$EXP[stage_region_menu] + !$EXP[menu_top] + !$EXP[menu_bottom]"/><param name="left" value="160"/><param name="top" value="440"/><param name="width" value="1600"/><param name="height" value="160"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_menu] + $EXP[menu_bottom] + !$EXP[corner_bar_top]"/><param name="left" value="160"/><param name="top" value="810"/><param name="width" value="1600"/><param name="height" value="160"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_menu] + $EXP[menu_bottom] + $EXP[corner_bar_top]"/><param name="left" value="160"/><param name="top" value="910"/><param name="width" value="1600"/><param name="height" value="160"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_menu] + !$EXP[menu_top] + !$EXP[menu_bottom]"/><param name="left" value="160"/><param name="top" value="470"/><param name="width" value="1600"/><param name="height" value="160"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_cornerbar] + $EXP[corner_bar_top]"/><param name="left" value="20"/><param name="top" value="170"/><param name="width" value="1880"/><param name="height" value="90"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_cornerbar] + !$EXP[corner_bar_top]"/><param name="left" value="20"/><param name="top" value="960"/><param name="width" value="1880"/><param name="height" value="90"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_notify] + String.IsEqual(Skin.String(notification_position),tl)"/><param name="left" value="40"/><param name="top" value="40"/><param name="width" value="640"/><param name="height" value="150"/></include>
