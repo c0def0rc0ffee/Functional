@@ -1468,7 +1468,7 @@
 		<param name="poster_w">200</param>
 		<param name="poster_h">300</param>
 		<!-- Rounded Corners: which mask fits the layout, poster (2:3) or tall. A
-		     default= attribute, the only form Kodi reads as a default. -->
+		     default= attribute; Kodi also reads element text as a default. -->
 		<param name="mask" default="poster"/>
 		<definition>
 			<control type="image">
@@ -1551,7 +1551,20 @@
 				<height>64</height>
 				<aspectratio>stretch</aspectratio>
 				<texture colordiffuse="$VAR[AccentColor]">corner_triangle.png</texture>
-				<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
+				<visible>Integer.IsGreater(ListItem.PlayCount,0) + !Skin.HasSetting(rounded_corners)</visible>
+			</control>
+			<!-- Rounded Corners: the badge's outer corner follows the poster's.
+			     The mask is 64 px with a 10 px radius, the poster's radius on
+			     the medium tile; the other sizes differ by a few pixels at the
+			     very tip, under the tick. -->
+			<control type="image">
+				<right>4</right>
+				<top>4</top>
+				<width>64</width>
+				<height>64</height>
+				<aspectratio>stretch</aspectratio>
+				<texture colordiffuse="$VAR[AccentColor]" diffuse="masks/badge.png">corner_triangle.png</texture>
+				<visible>Integer.IsGreater(ListItem.PlayCount,0) + Skin.HasSetting(rounded_corners)</visible>
 			</control>
 			<!-- Texture, not a "✓" label: NotoSans has no U+2713 glyph, so the
 			     text version rendered as a missing-glyph box. -->

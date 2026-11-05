@@ -17,9 +17,11 @@ Newest first. Releases before 0.12.0 are described in their GitHub release notes
   Posters, off by default. Switched on, the posters in the Movies and TV
   Shows gallery and the art on the video, music and add-on info screens,
   the version manager and the full screen info card are drawn with
-  rounded corners, the focus frame and the watched count strip following
-  the poster's shape. Left off, every poster is square as before. The
-  rows below it on the Library settings page sit 40 px lower to make room.
+  rounded corners, the focus frame, the watched badge and the watched count
+  strip following the poster's shape. Left off, every poster is square as
+  before. The rows below it on the Library settings page sit 40 px lower to
+  make room.
+
 ## 0.23.10 (04/11/2026)
 
 - New Reduce Motion switch under Skin Settings, Overall, off by default.

@@ -2529,7 +2529,7 @@
 			     and thumbnails in the gallery and on the info screens through a
 			     corner mask. Off by default. Everything from CONTEXT MENU down
 			     moved 40 px to make room; the sort note lost 35 px of slack. -->
-<control type="radiobutton" id="7318">
+			<control type="radiobutton" id="7318">
 				<left>440</left>
 				<top>385</top>
 				<width>680</width>
@@ -2733,7 +2733,7 @@
 
 			<!-- LIB-COLLECTIONS: Collections and "Collection: <name>" rows in
 			     the library side menu's filter section (MyVideoNav 8012 and
-			     8013). Sits under the sort description, which ends at 985. -->
+			     8013). Sits under the sort description, which ends at 990. -->
 			<control type="radiobutton" id="7224">
 				<left>440</left>
 				<top>990</top>
