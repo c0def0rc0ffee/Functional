@@ -42,6 +42,13 @@ FLIP_READS = {
     "flip_version": "Skin.HasSetting(hide_version)",
     "flip_continue": "$PARAM[shown_continue]",
     "flip_recent": "$PARAM[shown_recent]",
+    "flip_add": "Skin.HasSetting(bg_add_button)",
+    "flip_step": "Skin.HasSetting(bg_step_buttons)",
+    "flip_fav": "Skin.HasSetting(hide_favourites)",
+    "flip_addons": "Skin.HasSetting(hide_addons)",
+    "flip_power": "Skin.HasSetting(hide_power)",
+    "flip_lists": "Skin.HasSetting(show_lists_icon)",
+    "flip_stats": "Skin.HasSetting(show_stats_icon)",
 }
 # A flip done as a pair of labels, plain and flipped, rather than an exclusive or.
 PAIR_FLIPS = {"flip_greeting": ("$VAR[HomeClockLine]", "$VAR[HomeClockLineFlipped]")}
@@ -49,12 +56,13 @@ PAIR_FLIPS = {"flip_greeting": ("$VAR[HomeClockLine]", "$VAR[HomeClockLineFlippe
 STAGE_FLIPS = {
     "flip_movies": "7107", "flip_tvshows": "7108", "flip_logo": "7104", "flip_weather": "7122",
     "flip_datetime": "7106", "flip_greeting": "7319", "flip_version": "7105",
-    "flip_continue": "7128", "flip_recent": "7144",
+    "flip_continue": "7128", "flip_recent": "7144", "flip_add": "7147", "flip_step": "7148",
+    "flip_fav": "7123", "flip_addons": "7109", "flip_power": "7112", "flip_lists": "7136", "flip_stats": "7139",
 }
 SWITCH = "settings_preview"
 SWITCH_ID = "7322"
 HELP_STRING = "31814"
-STAGE_PAGES = ("home",)
+STAGE_PAGES = ("home", "background", "mainmenu", "overall")
 ROW_TYPES = ("button", "radiobutton", "spincontrolex", "spincontrol", "slider", "edit")
 TOKEN = r"(?:\$EXP\[\w+\]|\$PARAM\[\w+\]|[^\[\]|+ ]+)"
 # One operand: the exclusive or sits in its own brackets, because Kodi binds
@@ -99,7 +107,8 @@ def test_flip_parameters():
         for pname, default in flips.items():
             if default != "false":
                 fail("%s: flip %s defaults to %r, not false" % (inc.get("name"), pname, default))
-        body = ET.tostring(inc.find("definition"), encoding="unicode")
+        definition = inc.find("definition")
+        body = ET.tostring(definition if definition is not None else inc, encoding="unicode")
         used = set(re.findall(r"\$PARAM\[(flip_\w+)\]", body))
         for pname in flips:
             if pname not in used:
@@ -108,6 +117,8 @@ def test_flip_parameters():
             if pname not in flips:
                 fail("%s: flip %s is read but not declared" % (inc.get("name"), pname))
         stripped = XOR.sub("", body)
+        # a flip handed on to a nested include is a pass through, not a read
+        stripped = re.sub(r'<param name="(flip_\w+)" value="\$PARAM\[\1\]" ?/>', "", stripped)
         for pname in set(re.findall(r"\$PARAM\[(flip_\w+)\]", stripped)):
             if pname in PAIR_FLIPS:
                 plain, flipped = PAIR_FLIPS[pname]
@@ -131,7 +142,7 @@ def test_flip_parameters():
             fail("%s: unbalanced brackets in its definition" % inc.get("name"))
     home = parse("Home.xml")
     for inc in home.iter("include"):
-        if inc.get("content") in HOME_INCLUDES:
+        if inc.get("content") in HOME_INCLUDES + ("BgCaptions", "BgStepButtons", "HomeCornerBar"):
             passed = [p.get("name") for p in inc.findall("param") if p.get("name", "").startswith("flip_")]
             if passed:
                 fail("Home.xml passes %s to %s; Home never flips" % (passed, inc.get("content")))
@@ -187,20 +198,34 @@ def test_stage_wiring():
     for inc in stage.iter("include"):
         for p in inc.findall("param"):
             if p.get("name", "").startswith("flip_"):
-                passed[p.get("name")] = p.get("value")
+                passed.setdefault(p.get("name"), set()).add(p.get("value"))
     for pname, row in STAGE_FLIPS.items():
-        if passed.get(pname) != "Control.HasFocus(%s)" % row:
-            fail("HomeStage passes %s as %r, expected the focus of row %s" % (pname, passed.get(pname), row))
+        if passed.get(pname) != {"Control.HasFocus(%s)" % row}:
+            fail("HomeStage passes %s as %r, expected the focus of row %s on every instance" % (pname, passed.get(pname), row))
     for pname in passed:
         if pname not in STAGE_FLIPS:
             fail("HomeStage passes an unknown flip %s" % pname)
+    bars = [i for i in stage.iter("include") if i.get("content") == "HomeCornerBar"]
+    for bar in bars:
+        got = {p.get("name") for p in bar.findall("param") if p.get("name", "").startswith("flip_")}
+        if got != {"flip_fav", "flip_addons", "flip_power", "flip_lists", "flip_stats"}:
+            fail("a HomeCornerBar instance in the stage lacks a flip: %s" % sorted(got))
+    if len(bars) != 3:
+        fail("HomeStage should draw HomeCornerBar three times, found %d" % len(bars))
     settings = parse("SkinSettings.xml")
     settings_ids = {c.get("id") for c in settings.iter("control") if c.get("id")}
     stage_ids = set()
+    drawn = {i.get("content") for i in stage.iter("include")}
     for inc in stage.iter("include"):
         for p in inc.findall("param"):
             if p.get("name", "").startswith("id") and (p.get("value") or "").isdigit():
                 stage_ids.add(p.get("value"))
+    # ids fixed inside the includes the stage draws, one level down
+    for inc in root.findall("include"):
+        if inc.get("name") in drawn:
+            stage_ids |= set(re.findall(r'id="(\d+)"', ET.tostring(inc, encoding="unicode")))
+            stage_ids |= {p.get("value") for p in inc.iter("param")
+                          if p.get("name", "").startswith("id") and (p.get("value") or "").isdigit()}
     clash = stage_ids & settings_ids
     if clash:
         fail("HomeStage ids collide with Skin Settings ids: %s" % sorted(clash))
@@ -262,9 +287,17 @@ def test_preview_map():
     shown = focus_ids(exprs.get("settings_preview_shown"))
     regions = {n: focus_ids(x) for n, x in exprs.items() if n.startswith("stage_region_")}
     images = focus_ids(exprs.get("settings_preview_image"))
+    none = focus_ids(exprs.get("settings_preview_none"))
     for page in STAGE_PAGES:
+        if page not in pages:
+            fail("no settings page is called %s" % page)
         for rid in pages.get(page, []):
             homes = [n for n, ids in regions.items() if rid in ids]
+            if rid in none:
+                # named as having no preview on purpose: nowhere else
+                if homes or rid in shown or rid in images:
+                    fail("row %s on page %s has no preview on purpose and must not be mapped" % (rid, page))
+                continue
             if rid in images:
                 # the picture form: no stage, and no panel until sub item 4 ships its pictures
                 if homes or rid in shown:
@@ -274,7 +307,7 @@ def test_preview_map():
                 fail("row %s on page %s is not in settings_preview_shown" % (rid, page))
             if len(homes) != 1:
                 fail("row %s on page %s is in %d stage regions, expected one" % (rid, page, len(homes)))
-    for rid in shown | images | {i for ids in regions.values() for i in ids}:
+    for rid in shown | images | none | {i for ids in regions.values() for i in ids}:
         if rid not in all_rows:
             fail("preview map names %s, which is not a settings row" % rid)
     print("  %d regions, %d rows mapped" % (len(regions), len(shown)))
