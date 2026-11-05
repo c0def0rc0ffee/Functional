@@ -4411,12 +4411,12 @@
 			</control>
 		</control>
 
-		<!-- Footer hint; steps right of the column while Preview Settings is
-		     on, where the panel would otherwise sit under it. -->
+		<!-- Footer hint; hidden while the preview panel is drawn, which sits
+		     where the hint's text would be. -->
 		<control type="label">
 			<left>40</left>
 			<bottom>30</bottom>
-			<animation effect="slide" end="400,0" time="0" condition="Skin.HasSetting(settings_preview)">Conditional</animation>
+			<visible>!$EXP[preview_panel_shown]</visible>
 			<width>1840</width>
 			<height>40</height>
 			<font>font_small</font>

@@ -521,6 +521,9 @@
 	<include name="HomeContinueTabs">
 		<param name="shown_continue" default="$EXP[continue_tab_shown]"/>
 		<param name="shown_recent" default="$EXP[recent_tab_shown]"/>
+		<!-- The recent tab also needs the continue tab; Home has that inside
+		     recent_tab_shown, the stage passes the continue tab as it is flipped. -->
+		<param name="recent_gate" default="true"/>
 		<param name="flip_continue" default="false"/>
 		<param name="flip_recent" default="false"/>
 		<definition>
@@ -609,7 +612,7 @@
 			</control>
 
 			<control type="button" id="9212">
-				<visible>[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]] + !$EXP[continue_tab_top]</visible>
+				<visible>[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]] + $PARAM[recent_gate] + !$EXP[continue_tab_top]</visible>
 				<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				<!-- Alone on the edge (nothing to continue) it takes the centre. -->
 				<animation effect="slide" end="-160,0" time="0" condition="[[!$PARAM[shown_continue] + !$PARAM[flip_continue]] | [$PARAM[shown_continue] + $PARAM[flip_continue]]]">Conditional</animation>
@@ -640,7 +643,7 @@
 			</control>
 
 			<control type="button" id="9213">
-				<visible>[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]] + $EXP[continue_tab_top]</visible>
+				<visible>[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]] + $PARAM[recent_gate] + $EXP[continue_tab_top]</visible>
 				<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				<!-- Alone on the edge (nothing to continue) it takes the centre. -->
 				<animation effect="slide" end="-160,0" time="0" condition="[[!$PARAM[shown_continue] + !$PARAM[flip_continue]] | [$PARAM[shown_continue] + $PARAM[flip_continue]]]">Conditional</animation>
@@ -813,12 +816,17 @@
 		<definition>
 			<control type="group">
 				<description>display only: the settings preview stage, never focused, its buttons and their targets are Home's</description>
+				<!-- Disabled: a group that cannot focus passes no mouse event to its
+				     children, so a hover or click on the panel reaches nothing. The
+				     children keep their own enabled state, so they draw as on Home. -->
+				<enable>false</enable>
 				<left>$PARAM[left]</left>
 				<top>$PARAM[top]</top>
 				<width>1920</width>
 				<height>1080</height>
 				<animation effect="zoom" start="100" end="18.75" center="0,0" time="0" condition="true">Conditional</animation>
-				<include content="SkinBackground"/>
+				<!-- No second video window: while video plays the stage shows no background. -->
+				<include content="SkinBackground"><param name="visible" value="!Player.HasVideo"/></include>
 				<include content="BgCaptions"/>
 				<include content="HomeStatsColumn"><param name="flip_movies" value="Control.HasFocus(7107)"/><param name="flip_tvshows" value="Control.HasFocus(7108)"/></include>
 				<include content="HomeLogo"><param name="flip_logo" value="Control.HasFocus(7104)"/></include>
@@ -829,12 +837,13 @@
 				<include content="HomeCornerBar"><param name="id_bar" value="9950"/><param name="id_sleep" value="9951"/><param name="id_sleep_btn" value="9952"/><param name="id_resume" value="9953"/><param name="id_queue" value="9954"/><param name="id_stats" value="9955"/><param name="id_lists" value="9956"/><param name="id_fav" value="9957"/><param name="id_addons" value="9958"/><param name="id_settings" value="9959"/><param name="id_power" value="9960"/><param name="align" value="left"/><param name="left" value="40"/><param name="visible" value="$EXP[corner_bar_left]"/></include>
 				<include content="HomeCornerBar"><param name="id_bar" value="9970"/><param name="id_sleep" value="9971"/><param name="id_sleep_btn" value="9972"/><param name="id_resume" value="9973"/><param name="id_queue" value="9974"/><param name="id_stats" value="9975"/><param name="id_lists" value="9976"/><param name="id_fav" value="9977"/><param name="id_addons" value="9978"/><param name="id_settings" value="9979"/><param name="id_power" value="9980"/><param name="align" value="center"/><param name="left" value="260"/><param name="visible" value="$EXP[corner_bar_centre]"/></include>
 				<include content="HomeFooter"><param name="flip_version" value="Control.HasFocus(7105)"/></include>
-				<include content="HomeContinueTabs"><param name="flip_continue" value="Control.HasFocus(7128)"/><param name="flip_recent" value="Control.HasFocus(7144)"/><param name="shown_continue" value="!Skin.HasSetting(hide_continue)"/><param name="shown_recent" value="!Skin.HasSetting(hide_continue) + !Skin.HasSetting(hide_recent)"/></include>
+				<include content="HomeContinueTabs"><param name="flip_continue" value="Control.HasFocus(7128)"/><param name="flip_recent" value="Control.HasFocus(7144)"/><param name="shown_continue" value="!Skin.HasSetting(hide_continue)"/><param name="shown_recent" value="!Skin.HasSetting(hide_recent)"/><param name="recent_gate" value="[[!Skin.HasSetting(hide_continue) + !Control.HasFocus(7128)] | [Skin.HasSetting(hide_continue) + Control.HasFocus(7128)]]"/></include>
 				<!-- Region outlines: one per region, on the rows that change it. -->
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_logo]"/><param name="left" value="20"/><param name="top" value="10"/><param name="width" value="160"/><param name="height" value="160"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_clock]"/><param name="left" value="960"/><param name="top" value="16"/><param name="width" value="940"/><param name="height" value="150"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_stats]"/><param name="left" value="1530"/><param name="top" value="160"/><param name="width" value="360"/><param name="height" value="640"/></include>
-				<include content="StageRegion"><param name="when" value="$EXP[stage_region_tabs]"/><param name="left" value="560"/><param name="top" value="920"/><param name="width" value="800"/><param name="height" value="160"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_tabs] + !$EXP[continue_tab_top]"/><param name="left" value="560"/><param name="top" value="920"/><param name="width" value="800"/><param name="height" value="160"/></include>
+				<include content="StageRegion"><param name="when" value="$EXP[stage_region_tabs] + $EXP[continue_tab_top]"/><param name="left" value="560"/><param name="top" value="0"/><param name="width" value="800"/><param name="height" value="160"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_footer]"/><param name="left" value="20"/><param name="top" value="990"/><param name="width" value="640"/><param name="height" value="80"/></include>
 			</control>
 		</definition>
