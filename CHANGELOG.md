@@ -11,6 +11,18 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.13 (06/11/2026)
+
+- New Preview Settings switch under Skin Settings, Overall, off by
+  default. Switched on, the panel under the help text shows what the
+  focused setting does: the Home Screen drawn live, or a picture of each
+  value, following the value as you change it. A setting with nothing to
+  show says so. Left off, Skin Settings looks as before.
+- Fixed the dim settings at their no dim step. Video Dim, the Home
+  background dim and the dim for other windows covered the screen in
+  white at 0, in every earlier release. They now leave the picture at
+  full brightness.
+
 ## 0.23.12 (05/11/2026)
 
 - New Show Greeting switch under Skin Settings, Home Screen, at the foot

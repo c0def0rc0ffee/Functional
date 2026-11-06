@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.12" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.13" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,8 +27,8 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New Show Greeting switch under Skin Settings, Home Screen, at the foot of the Around the Screen list, off by default. Switched on, the clock on Home reads Good morning, Good afternoon or Good evening by the hour in front of the time, with your profile name when Kodi has more than one profile. It goes with the clock, so Show Date and Time off hides it too, and with the main menu at the top and five or more tiles there is no room beside the clock, so the time shows alone there. Left off, the clock reads exactly as before.
-A new install starts with the background on Slideshow: Recently Watched rather than Off, and Recently Watched shows random library fanart until something has been watched. An existing setup keeps its own choice, Off included.</news>
+		<news>New Preview Settings switch under Skin Settings, Overall, off by default. Switched on, the panel under the help text shows what the focused setting does: the Home Screen drawn live, or a picture of each value, following the value as you change it. A setting with nothing to show says so. Left off, Skin Settings looks as before.
+Fixed the dim settings at their no dim step. Video Dim, the Home background dim and the dim for other windows covered the screen in white at 0, in every earlier release. They now leave the picture at full brightness.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
