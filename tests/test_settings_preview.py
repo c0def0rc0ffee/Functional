@@ -9,6 +9,9 @@ always did. Sub item 2: the Preview Settings switch is off by default and
 set only by its own row, the stage wires every flip to the focus of the row
 that switches that setting, every Home Screen row is in the preview map and
 in exactly one stage region, and every settings row has its help entry.
+Sub item 4: the picture rows in the map are exactly the generator's table,
+every picture exists at panel size with no text chunk and is named by the
+picture variables, and the two pictures of one setting really differ.
 </summary>
 <remarks>
 No Kodi is needed; the XML is read with ElementTree and as text. The flip
@@ -23,9 +26,13 @@ Usage:
 </remarks>
 """
 
+import importlib.util
+import itertools
 import os
 import re
+import struct
 import sys
+import zlib
 import xml.etree.ElementTree as ET
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -62,7 +69,7 @@ STAGE_FLIPS = {
 SWITCH = "settings_preview"
 SWITCH_ID = "7322"
 HELP_STRING = "31814"
-STAGE_PAGES = ("home", "background", "mainmenu", "overall")
+STAGE_PAGES = ("home", "background", "mainmenu", "overall", "media", "video")
 ROW_TYPES = ("button", "radiobutton", "spincontrolex", "spincontrol", "slider", "edit")
 TOKEN = r"(?:\$EXP\[\w+\]|\$PARAM\[\w+\]|[^\[\]|+ ]+)"
 # One operand: the exclusive or sits in its own brackets, because Kodi binds
@@ -313,6 +320,206 @@ def test_preview_map():
     print("  %d regions, %d rows mapped" % (len(regions), len(shown)))
 
 
+def load_picture_table():
+    """
+    <summary>Imports the generator's table of picture rows without running it.</summary>
+    <returns>The build_preview_art module.</returns>
+    """
+    spec = importlib.util.spec_from_file_location("build_preview_art", os.path.join(ROOT, "build_preview_art.py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def png_info(path):
+    """
+    <summary>Reads a PNG's size and whether it carries a text chunk.</summary>
+    <param name="path">The file.</param>
+    <returns>(width, height, has_text) or None when it is not a PNG.</returns>
+    """
+    with open(path, "rb") as fh:
+        data = fh.read()
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        return None
+    width, height = struct.unpack(">II", data[16:24])
+    pos, has_text = 8, False
+    while pos + 8 <= len(data):
+        length, kind = struct.unpack(">I4s", data[pos:pos + 8])
+        if kind in (b"tEXt", b"iTXt", b"zTXt"):
+            has_text = True
+        pos += 12 + length
+    return width, height, has_text
+
+
+def png_pixels(path):
+    """
+    <summary>Decodes a PNG to its pixels, for telling two pictures apart.</summary>
+    <param name="path">The PNG file.</param>
+    <returns>(width, height, channels, pixel bytes), the scanlines unfiltered.</returns>
+    <remarks>
+    Standard library only, so the test runs under python3 -I: 8 bit RGB or
+    RGBA, not interlaced, which is what the generator writes. Comparing the
+    inflated stream byte for byte is not enough, since two captures a clock
+    tick apart never match byte for byte even when nothing in them changed.
+    </remarks>
+    """
+    with open(path, "rb") as handle:
+        data = handle.read()
+    pos, idat, header = 8, [], None
+    while pos + 8 <= len(data):
+        length = int.from_bytes(data[pos:pos + 4], "big")
+        kind = data[pos + 4:pos + 8]
+        body = data[pos + 8:pos + 8 + length]
+        if kind == b"IHDR":
+            header = struct.unpack(">IIBBBBB", body)
+        elif kind == b"IDAT":
+            idat.append(body)
+        pos += 12 + length
+    width, height, depth, colour, _, _, interlace = header
+    if depth != 8 or colour not in (2, 6) or interlace:
+        fail("%s is not an 8 bit RGB or RGBA PNG without interlace" % os.path.basename(path))
+        return width, height, 3, b""
+    channels = 3 if colour == 2 else 4
+    stride = width * channels
+    raw = zlib.decompress(b"".join(idat))
+    out, previous = bytearray(), bytearray(stride)
+    for row in range(height):
+        start = row * (stride + 1)
+        kind, line = raw[start], bytearray(raw[start + 1:start + 1 + stride])
+        for i in range(stride):
+            left = line[i - channels] if i >= channels else 0
+            up = previous[i]
+            upleft = previous[i - channels] if i >= channels else 0
+            if kind == 1:
+                line[i] = (line[i] + left) & 255
+            elif kind == 2:
+                line[i] = (line[i] + up) & 255
+            elif kind == 3:
+                line[i] = (line[i] + ((left + up) >> 1)) & 255
+            elif kind == 4:
+                p = left + up - upleft
+                pa, pb, pc = abs(p - left), abs(p - up), abs(p - upleft)
+                line[i] = (line[i] + (left if pa <= pb and pa <= pc else up if pb <= pc else upleft)) & 255
+        out += line
+        previous = line
+    return width, height, channels, bytes(out)
+
+
+def pixels_differing(first, second, tolerance=16):
+    """
+    <summary>Counts the pixels at which two decoded pictures differ.</summary>
+    <param name="first">A png_pixels() result.</param>
+    <param name="second">Another, of the same size.</param>
+    <param name="tolerance">How far one channel must move to count: above the
+    few levels by which a poster ghosting through a menu, or a dim over the
+    dark backdrop, moves a pixel between two captures of the same thing.</param>
+    <returns>The number of differing pixels, or the whole picture when the
+    sizes differ.</returns>
+    """
+    if first[:3] != second[:3]:
+        return first[0] * first[1]
+    channels, a, b = first[2], first[3], second[3]
+    count = 0
+    for i in range(0, len(a), channels):
+        for c in range(channels):
+            if abs(a[i + c] - b[i + c]) > tolerance:
+                count += 1
+                break
+    return count
+
+
+def check_picker_cycle(entry, settings):
+    """
+    <summary>Checks a picker row's pictured values are exactly the values its
+    own row in Skin Settings cycles through.</summary>
+    <param name="entry">A picker row of the generator's table.</param>
+    <param name="settings">SkinSettings.xml parsed.</param>
+    <remarks>A value the row can reach but the table does not know would be
+    shown the default picture by the map's fallback line, labelled as that
+    value; the windows dim's 60 step was found that way.</remarks>
+    """
+    control = next((c for c in settings.iter("control") if c.get("id") == entry["row"]), None)
+    if control is None:
+        fail("no control %s in SkinSettings.xml for %s" % (entry["row"], entry["setting"]))
+        return
+    cycle = set()
+    for click in control.iter("onclick"):
+        text = click.text or ""
+        for match in re.finditer(r"Skin\.SetString\(%s,([^)]*)\)" % re.escape(entry["setting"]), text):
+            cycle.add(match.group(1))
+        if "Skin.Reset(%s)" % entry["setting"] in text:
+            cycle.add("")
+    if cycle and cycle != set(entry["values"]):
+        fail("%s pictures %s but its row cycles through %s" % (entry["setting"], sorted(entry["values"]), sorted(cycle)))
+
+
+def test_pictures():
+    """
+    <summary>Checks the picture rows in the map are exactly the generator's table,
+    every picture exists at panel size with no text chunk, and the picture
+    variables name each one.</summary>
+    """
+    print("running test_pictures")
+    art = load_picture_table()
+    preview = parse("Includes_SettingsPreview.xml")
+    exprs = {e.get("name"): e.text or "" for e in preview.iter("expression")}
+    mapped = focus_ids(exprs.get("settings_preview_image"))
+    table = {e["row"] for e in art.PICTURES}
+    if mapped != table:
+        fail("picture rows in the map %s differ from the generator's table %s" % (sorted(mapped - table), sorted(table - mapped)))
+    toggles = focus_ids(exprs.get("settings_preview_image_toggle"))
+    if toggles != {e["row"] for e in art.PICTURES if e["kind"] == "toggle"}:
+        fail("settings_preview_image_toggle does not list exactly the toggle rows")
+    variables = {v.get("name"): [(x.get("condition") or "", (x.text or "").strip()) for x in v.findall("value")]
+                 for v in preview.iter("variable")}
+    large = variables.get("SettingsPreviewPicture", [])
+    now = variables.get("SettingsPreviewPictureNow", [])
+    folder = os.path.join(ROOT, "skin.functional", "media", "preview")
+    settings = parse("SkinSettings.xml")
+    count = 0
+    for e in art.PICTURES:
+        for value in art.picture_values(e):
+            name = art.picture_name(e["setting"], value)
+            path = os.path.join(folder, name)
+            count += 1
+            if not os.path.isfile(path):
+                fail("picture %s is missing" % name)
+                continue
+            info = png_info(path)
+            if info is None or (info[0], info[1]) != tuple(art.PANEL):
+                fail("picture %s is not a %dx%d PNG" % (name, art.PANEL[0], art.PANEL[1]))
+            elif info[2]:
+                fail("picture %s carries a text chunk" % name)
+            if not any("Control.HasFocus(%s)" % e["row"] in c and v == "preview/" + name for c, v in large):
+                fail("SettingsPreviewPicture has no line giving %s for row %s" % (name, e["row"]))
+            if e["kind"] == "toggle" and not any("Control.HasFocus(%s)" % e["row"] in c and v == "preview/" + name for c, v in now):
+                fail("SettingsPreviewPictureNow has no line giving %s for row %s" % (name, e["row"]))
+        # a toggle's two pictures, or a picker's, must differ by more than a
+        # clock tick or a video frame: two the same mean the capture missed the
+        # setting (a leaked value, a crop off the control, a label not yet up)
+        decoded = {}
+        for value in art.picture_values(e):
+            path = os.path.join(folder, art.picture_name(e["setting"], value))
+            if os.path.isfile(path):
+                decoded[value] = png_pixels(path)
+        alike = {tuple(sorted(pair)) for pair in e.get("alike", [])}
+        for pair in alike:
+            if not set(pair) <= set(art.picture_values(e)):
+                fail("%s declares an alike pair %s that is not among its values" % (e["setting"], pair))
+        for first, second in itertools.combinations(sorted(decoded), 2):
+            if (first, second) in alike:
+                continue
+            if pixels_differing(decoded[first], decoded[second]) < 50:
+                fail("pictures for %s at %s and %s are the same" % (e["setting"], first, second))
+        if e["kind"] == "picker":
+            check_picker_cycle(e, settings)
+    named = {v for _, v in large + now}
+    for v in named:
+        if not os.path.isfile(os.path.join(ROOT, "skin.functional", "media", v)):
+            fail("the picture variables name %s, which does not exist" % v)
+    print("  %d pictures checked" % count)
+
+
 def test_every_row_has_a_help_entry():
     """
     <summary>Checks every settings row on every page is in the help expression
@@ -344,6 +551,7 @@ if __name__ == "__main__":
     test_stage_wiring()
     test_switch_off_by_default()
     test_preview_map()
+    test_pictures()
     test_every_row_has_a_help_entry()
     if FAILURES:
         print("test_settings_preview: %d check(s) failed" % len(FAILURES))

@@ -4401,7 +4401,48 @@
 				<height>203</height>
 				<texture colordiffuse="bg_panel">white.png</texture>
 			</control>
-			<include content="HomeStage"><param name="left" value="0"/><param name="top" value="0"/></include>
+			<control type="group">
+				<visible>$EXP[settings_preview_shown]</visible>
+				<include content="HomeStage"><param name="left" value="0"/><param name="top" value="0"/></include>
+			</control>
+			<!-- PREVIEW pictures: the large one is what OK would give, the small
+			     inset how a toggle is now. -->
+			<control type="group">
+				<visible>$EXP[settings_preview_image]</visible>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>360</width>
+					<height>203</height>
+					<aspectratio>keep</aspectratio>
+					<texture background="true">$VAR[SettingsPreviewPicture]</texture>
+				</control>
+				<control type="group">
+					<visible>$EXP[settings_preview_image_toggle]</visible>
+					<control type="image">
+						<left>234</left>
+						<top>6</top>
+						<width>120</width>
+						<height>68</height>
+						<texture colordiffuse="bg_panel">white.png</texture>
+					</control>
+					<control type="image">
+						<left>236</left>
+						<top>8</top>
+						<width>116</width>
+						<height>64</height>
+						<aspectratio>keep</aspectratio>
+						<texture background="true">$VAR[SettingsPreviewPictureNow]</texture>
+					</control>
+					<control type="image">
+						<left>234</left>
+						<top>6</top>
+						<width>120</width>
+						<height>68</height>
+						<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+					</control>
+				</control>
+			</control>
 			<control type="image">
 				<left>0</left>
 				<top>0</top>

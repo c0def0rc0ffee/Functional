@@ -7,15 +7,17 @@
   and kept in step with it by tests/test_settings_preview.py.
   </summary>
   <remarks>
-  settings_preview_shown lists every row with a preview; a row is in
-  exactly one stage_region_* expression, or in settings_preview_image
-  when its effect is on another screen and a picture pair shows it. The rows of later sub
+  settings_preview_shown lists the rows previewed on the live stage, each
+  in exactly one stage_region_* expression; settings_preview_image lists
+  the rows a picture pair shows instead, their pictures named by the
+  SettingsPreviewPicture and SettingsPreviewPictureNow variables, which
+  build_preview_art.py writes from its own table. The rows of later sub
   items join these lists as they are built, and settings_preview_none
-  names the action rows that have no preview on purpose.
+  names the rows that have no preview on purpose.
   </remarks>
 -->
 <includes>
-	<expression name="preview_panel_shown">Skin.HasSetting(settings_preview) + $EXP[settings_preview_shown]</expression>
+	<expression name="preview_panel_shown">Skin.HasSetting(settings_preview) + [$EXP[settings_preview_shown] | $EXP[settings_preview_image]]</expression>
 	<expression name="settings_preview_shown">Control.HasFocus(7107) | Control.HasFocus(7108) | Control.HasFocus(7128) | Control.HasFocus(7129) | Control.HasFocus(7143) | Control.HasFocus(7144) | Control.HasFocus(7104) | Control.HasFocus(7106) | Control.HasFocus(7122) | Control.HasFocus(7105) | Control.HasFocus(7319) | Control.HasFocus(7130) | Control.HasFocus(7131) | Control.HasFocus(7132) | Control.HasFocus(7116) | Control.HasFocus(7110) | Control.HasFocus(7111) | Control.HasFocus(7120) | Control.HasFocus(7125) | Control.HasFocus(7126) | Control.HasFocus(7145) | Control.HasFocus(7114) | Control.HasFocus(7117) | Control.HasFocus(7118) | Control.HasFocus(7146) | Control.HasFocus(7147) | Control.HasFocus(7148) | Control.HasFocus(7151) | Control.HasFocus(7152) | Control.HasFocus(7153) | Control.HasFocus(7154) | Control.HasFocus(7155) | Control.HasFocus(7156) | Control.HasFocus(7157) | Control.HasFocus(7158) | Control.HasFocus(7161) | Control.HasFocus(7162) | Control.HasFocus(7163) | Control.HasFocus(7164) | Control.HasFocus(7165) | Control.HasFocus(7166) | Control.HasFocus(7167) | Control.HasFocus(7168) | Control.HasFocus(7171) | Control.HasFocus(7172) | Control.HasFocus(7173) | Control.HasFocus(7174) | Control.HasFocus(7175) | Control.HasFocus(7176) | Control.HasFocus(7177) | Control.HasFocus(7178) | Control.HasFocus(7113) | Control.HasFocus(7140) | Control.HasFocus(7123) | Control.HasFocus(7109) | Control.HasFocus(7112) | Control.HasFocus(7136) | Control.HasFocus(7139) | Control.HasFocus(7119) | Control.HasFocus(7300) | Control.HasFocus(7301)</expression>
 	<expression name="stage_region_logo">Control.HasFocus(7104)</expression>
 	<expression name="stage_region_clock">Control.HasFocus(7106) | Control.HasFocus(7122) | Control.HasFocus(7319)</expression>
@@ -41,9 +43,138 @@
 	<!-- Also pictures: show on all screens (7133), the windows dim (7134), video
 	     behind menus (7135), the three theme rows (7330 to 7332) and the filter
 	     debug overlay (7208), none of which the stage can show. -->
-	<expression name="settings_preview_image">Control.HasFocus(7115) | Control.HasFocus(7141) | Control.HasFocus(7142) | Control.HasFocus(7133) | Control.HasFocus(7134) | Control.HasFocus(7135) | Control.HasFocus(7330) | Control.HasFocus(7331) | Control.HasFocus(7332) | Control.HasFocus(7208)</expression>
+	<!-- Sub item 4: the Library and Playback pages join. The rows here are
+	     exactly the generator's table; the test keeps the two in step. -->
+	<expression name="settings_preview_image">Control.HasFocus(7115) | Control.HasFocus(7133) | Control.HasFocus(7134) | Control.HasFocus(7135) | Control.HasFocus(7141) | Control.HasFocus(7142) | Control.HasFocus(7200) | Control.HasFocus(7201) | Control.HasFocus(7202) | Control.HasFocus(7203) | Control.HasFocus(7204) | Control.HasFocus(7205) | Control.HasFocus(7206) | Control.HasFocus(7208) | Control.HasFocus(7209) | Control.HasFocus(7220) | Control.HasFocus(7222) | Control.HasFocus(7223) | Control.HasFocus(7224) | Control.HasFocus(7302) | Control.HasFocus(7303) | Control.HasFocus(7304) | Control.HasFocus(7305) | Control.HasFocus(7313) | Control.HasFocus(7318) | Control.HasFocus(7330) | Control.HasFocus(7331) | Control.HasFocus(7332)</expression>
 	<!-- Rows with no preview on purpose: the custom accent picker, the log
 	     folder rows, debug logging, the backup rows, Reduce Motion (motion is
 	     not a picture) and Preview Settings itself. -->
-	<expression name="settings_preview_none">Control.HasFocus(7320) | Control.HasFocus(7310) | Control.HasFocus(7311) | Control.HasFocus(7312) | Control.HasFocus(7314) | Control.HasFocus(7315) | Control.HasFocus(7317) | Control.HasFocus(7322)</expression>
+	<!-- Also no preview: the small grid column count (a count that reads from
+	     its label), the four sort order rows (an order is not a picture) and
+	     the four cache rows (numbers and an action), and the last played date,
+	     which no picture run can show since nothing it sets up has been played,
+	     and the title age on the info screens, which always draw the focused
+	     film's own fanart behind the line, so no picture of it can be taken
+	     that does not ship a slice of the user's library. -->
+	<expression name="settings_preview_none">Control.HasFocus(7320) | Control.HasFocus(7310) | Control.HasFocus(7311) | Control.HasFocus(7312) | Control.HasFocus(7314) | Control.HasFocus(7315) | Control.HasFocus(7317) | Control.HasFocus(7322) | Control.HasFocus(7221) | Control.HasFocus(7230) | Control.HasFocus(7231) | Control.HasFocus(7232) | Control.HasFocus(7233) | Control.HasFocus(7306) | Control.HasFocus(7307) | Control.HasFocus(7308) | Control.HasFocus(7309) | Control.HasFocus(7207) | Control.HasFocus(7316)</expression>
+	<!-- The pictures, written by the generator's table in build_preview_art.py:
+	     the large one is what OK would give (a toggle the other way round, a
+	     picker as it is), the small one how a toggle is now. -->
+	<expression name="settings_preview_image_toggle">Control.HasFocus(7222) | Control.HasFocus(7318) | Control.HasFocus(7224) | Control.HasFocus(7200) | Control.HasFocus(7201) | Control.HasFocus(7202) | Control.HasFocus(7203) | Control.HasFocus(7204) | Control.HasFocus(7205) | Control.HasFocus(7206) | Control.HasFocus(7209) | Control.HasFocus(7303) | Control.HasFocus(7305) | Control.HasFocus(7313) | Control.HasFocus(7115) | Control.HasFocus(7141) | Control.HasFocus(7142) | Control.HasFocus(7133) | Control.HasFocus(7135) | Control.HasFocus(7331) | Control.HasFocus(7332) | Control.HasFocus(7208)</expression>
+	<variable name="SettingsPreviewPicture">
+		<value condition="Control.HasFocus(7220) + String.IsEqual(Skin.String(gallery_size),small)">preview/gallery_size_small.png</value>
+		<value condition="Control.HasFocus(7220) + String.IsEqual(Skin.String(gallery_size),large)">preview/gallery_size_large.png</value>
+		<value condition="Control.HasFocus(7220) + String.IsEqual(Skin.String(gallery_size),xlarge)">preview/gallery_size_xlarge.png</value>
+		<value condition="Control.HasFocus(7220) + !String.IsEqual(Skin.String(gallery_size),small) + !String.IsEqual(Skin.String(gallery_size),large) + !String.IsEqual(Skin.String(gallery_size),xlarge)">preview/gallery_size_default.png</value>
+		<value condition="Control.HasFocus(7222) + Skin.HasSetting(compact_posters)">preview/compact_posters_off.png</value>
+		<value condition="Control.HasFocus(7222) + !Skin.HasSetting(compact_posters)">preview/compact_posters_on.png</value>
+		<value condition="Control.HasFocus(7318) + Skin.HasSetting(rounded_corners)">preview/rounded_corners_off.png</value>
+		<value condition="Control.HasFocus(7318) + !Skin.HasSetting(rounded_corners)">preview/rounded_corners_on.png</value>
+		<value condition="Control.HasFocus(7223) + String.IsEqual(Skin.String(context_menu_pos),left)">preview/context_menu_pos_left.png</value>
+		<value condition="Control.HasFocus(7223) + !String.IsEqual(Skin.String(context_menu_pos),left)">preview/context_menu_pos_default.png</value>
+		<value condition="Control.HasFocus(7224) + Skin.HasSetting(library_collections)">preview/library_collections_off.png</value>
+		<value condition="Control.HasFocus(7224) + !Skin.HasSetting(library_collections)">preview/library_collections_on.png</value>
+		<value condition="Control.HasFocus(7200) + Skin.HasSetting(infobar_top)">preview/infobar_top_off.png</value>
+		<value condition="Control.HasFocus(7200) + !Skin.HasSetting(infobar_top)">preview/infobar_top_on.png</value>
+		<value condition="Control.HasFocus(7201) + Skin.HasSetting(hide_genre)">preview/hide_genre_off.png</value>
+		<value condition="Control.HasFocus(7201) + !Skin.HasSetting(hide_genre)">preview/hide_genre_on.png</value>
+		<value condition="Control.HasFocus(7202) + Skin.HasSetting(hide_duration)">preview/hide_duration_off.png</value>
+		<value condition="Control.HasFocus(7202) + !Skin.HasSetting(hide_duration)">preview/hide_duration_on.png</value>
+		<value condition="Control.HasFocus(7203) + Skin.HasSetting(hide_rating)">preview/hide_rating_off.png</value>
+		<value condition="Control.HasFocus(7203) + !Skin.HasSetting(hide_rating)">preview/hide_rating_on.png</value>
+		<value condition="Control.HasFocus(7204) + Skin.HasSetting(hide_mpaa)">preview/hide_mpaa_off.png</value>
+		<value condition="Control.HasFocus(7204) + !Skin.HasSetting(hide_mpaa)">preview/hide_mpaa_on.png</value>
+		<value condition="Control.HasFocus(7205) + Skin.HasSetting(hide_resolution)">preview/hide_resolution_off.png</value>
+		<value condition="Control.HasFocus(7205) + !Skin.HasSetting(hide_resolution)">preview/hide_resolution_on.png</value>
+		<value condition="Control.HasFocus(7206) + Skin.HasSetting(show_age)">preview/show_age_off.png</value>
+		<value condition="Control.HasFocus(7206) + !Skin.HasSetting(show_age)">preview/show_age_on.png</value>
+		<value condition="Control.HasFocus(7209) + Skin.HasSetting(hide_endsat)">preview/hide_endsat_off.png</value>
+		<value condition="Control.HasFocus(7209) + !Skin.HasSetting(hide_endsat)">preview/hide_endsat_on.png</value>
+		<value condition="Control.HasFocus(7302) + String.IsEqual(Skin.String(osd_position),top)">preview/osd_position_top.png</value>
+		<value condition="Control.HasFocus(7302) + !String.IsEqual(Skin.String(osd_position),top)">preview/osd_position_default.png</value>
+		<value condition="Control.HasFocus(7303) + Skin.HasSetting(hide_osd_thumb)">preview/hide_osd_thumb_off.png</value>
+		<value condition="Control.HasFocus(7303) + !Skin.HasSetting(hide_osd_thumb)">preview/hide_osd_thumb_on.png</value>
+		<value condition="Control.HasFocus(7304) + String.IsEqual(Skin.String(video_dim),0)">preview/video_dim_0.png</value>
+		<value condition="Control.HasFocus(7304) + String.IsEqual(Skin.String(video_dim),25)">preview/video_dim_25.png</value>
+		<value condition="Control.HasFocus(7304) + String.IsEqual(Skin.String(video_dim),50)">preview/video_dim_50.png</value>
+		<value condition="Control.HasFocus(7304) + String.IsEqual(Skin.String(video_dim),90)">preview/video_dim_90.png</value>
+		<value condition="Control.HasFocus(7304) + !String.IsEqual(Skin.String(video_dim),0) + !String.IsEqual(Skin.String(video_dim),25) + !String.IsEqual(Skin.String(video_dim),50) + !String.IsEqual(Skin.String(video_dim),90)">preview/video_dim_default.png</value>
+		<value condition="Control.HasFocus(7305) + Skin.HasSetting(hide_osd_buffer)">preview/hide_osd_buffer_off.png</value>
+		<value condition="Control.HasFocus(7305) + !Skin.HasSetting(hide_osd_buffer)">preview/hide_osd_buffer_on.png</value>
+		<value condition="Control.HasFocus(7313) + Skin.HasSetting(hide_osd_fullbuffer)">preview/hide_osd_fullbuffer_off.png</value>
+		<value condition="Control.HasFocus(7313) + !Skin.HasSetting(hide_osd_fullbuffer)">preview/hide_osd_fullbuffer_on.png</value>
+		<value condition="Control.HasFocus(7115) + Skin.HasSetting(hide_loading)">preview/hide_loading_off.png</value>
+		<value condition="Control.HasFocus(7115) + !Skin.HasSetting(hide_loading)">preview/hide_loading_on.png</value>
+		<value condition="Control.HasFocus(7141) + Skin.HasSetting(hide_sleep_timer)">preview/hide_sleep_timer_off.png</value>
+		<value condition="Control.HasFocus(7141) + !Skin.HasSetting(hide_sleep_timer)">preview/hide_sleep_timer_on.png</value>
+		<value condition="Control.HasFocus(7142) + Skin.HasSetting(hide_sleep_countdown)">preview/hide_sleep_countdown_off.png</value>
+		<value condition="Control.HasFocus(7142) + !Skin.HasSetting(hide_sleep_countdown)">preview/hide_sleep_countdown_on.png</value>
+		<value condition="Control.HasFocus(7133) + Skin.HasSetting(bg_all_windows)">preview/bg_all_windows_off.png</value>
+		<value condition="Control.HasFocus(7133) + !Skin.HasSetting(bg_all_windows)">preview/bg_all_windows_on.png</value>
+		<value condition="Control.HasFocus(7134) + String.IsEqual(Skin.String(bg_windows_dim),0)">preview/bg_windows_dim_0.png</value>
+		<value condition="Control.HasFocus(7134) + String.IsEqual(Skin.String(bg_windows_dim),25)">preview/bg_windows_dim_25.png</value>
+		<value condition="Control.HasFocus(7134) + String.IsEqual(Skin.String(bg_windows_dim),50)">preview/bg_windows_dim_50.png</value>
+		<value condition="Control.HasFocus(7134) + String.IsEqual(Skin.String(bg_windows_dim),60)">preview/bg_windows_dim_60.png</value>
+		<value condition="Control.HasFocus(7134) + String.IsEqual(Skin.String(bg_windows_dim),90)">preview/bg_windows_dim_90.png</value>
+		<value condition="Control.HasFocus(7134) + !String.IsEqual(Skin.String(bg_windows_dim),0) + !String.IsEqual(Skin.String(bg_windows_dim),25) + !String.IsEqual(Skin.String(bg_windows_dim),50) + !String.IsEqual(Skin.String(bg_windows_dim),60) + !String.IsEqual(Skin.String(bg_windows_dim),90)">preview/bg_windows_dim_default.png</value>
+		<value condition="Control.HasFocus(7135) + Skin.HasSetting(bg_video_behind)">preview/bg_video_behind_off.png</value>
+		<value condition="Control.HasFocus(7135) + !Skin.HasSetting(bg_video_behind)">preview/bg_video_behind_on.png</value>
+		<value condition="Control.HasFocus(7330) + String.IsEqual(Skin.String(theme),halloween)">preview/theme_halloween.png</value>
+		<value condition="Control.HasFocus(7330) + String.IsEqual(Skin.String(theme),devilsnight)">preview/theme_devilsnight.png</value>
+		<value condition="Control.HasFocus(7330) + String.IsEqual(Skin.String(theme),christmas)">preview/theme_christmas.png</value>
+		<value condition="Control.HasFocus(7330) + String.IsEqual(Skin.String(theme),christmaseve)">preview/theme_christmaseve.png</value>
+		<value condition="Control.HasFocus(7330) + !String.IsEqual(Skin.String(theme),halloween) + !String.IsEqual(Skin.String(theme),devilsnight) + !String.IsEqual(Skin.String(theme),christmas) + !String.IsEqual(Skin.String(theme),christmaseve)">preview/theme_default.png</value>
+		<value condition="Control.HasFocus(7331) + Skin.HasSetting(theme_seasonal_off)">preview/theme_seasonal_off_off.png</value>
+		<value condition="Control.HasFocus(7331) + !Skin.HasSetting(theme_seasonal_off)">preview/theme_seasonal_off_on.png</value>
+		<value condition="Control.HasFocus(7332) + Skin.HasSetting(theme_christmas_off)">preview/theme_christmas_off_off.png</value>
+		<value condition="Control.HasFocus(7332) + !Skin.HasSetting(theme_christmas_off)">preview/theme_christmas_off_on.png</value>
+		<value condition="Control.HasFocus(7208) + Skin.HasSetting(filter_debug)">preview/filter_debug_off.png</value>
+		<value condition="Control.HasFocus(7208) + !Skin.HasSetting(filter_debug)">preview/filter_debug_on.png</value>
+	</variable>
+	<variable name="SettingsPreviewPictureNow">
+		<value condition="Control.HasFocus(7222) + Skin.HasSetting(compact_posters)">preview/compact_posters_on.png</value>
+		<value condition="Control.HasFocus(7222) + !Skin.HasSetting(compact_posters)">preview/compact_posters_off.png</value>
+		<value condition="Control.HasFocus(7318) + Skin.HasSetting(rounded_corners)">preview/rounded_corners_on.png</value>
+		<value condition="Control.HasFocus(7318) + !Skin.HasSetting(rounded_corners)">preview/rounded_corners_off.png</value>
+		<value condition="Control.HasFocus(7224) + Skin.HasSetting(library_collections)">preview/library_collections_on.png</value>
+		<value condition="Control.HasFocus(7224) + !Skin.HasSetting(library_collections)">preview/library_collections_off.png</value>
+		<value condition="Control.HasFocus(7200) + Skin.HasSetting(infobar_top)">preview/infobar_top_on.png</value>
+		<value condition="Control.HasFocus(7200) + !Skin.HasSetting(infobar_top)">preview/infobar_top_off.png</value>
+		<value condition="Control.HasFocus(7201) + Skin.HasSetting(hide_genre)">preview/hide_genre_on.png</value>
+		<value condition="Control.HasFocus(7201) + !Skin.HasSetting(hide_genre)">preview/hide_genre_off.png</value>
+		<value condition="Control.HasFocus(7202) + Skin.HasSetting(hide_duration)">preview/hide_duration_on.png</value>
+		<value condition="Control.HasFocus(7202) + !Skin.HasSetting(hide_duration)">preview/hide_duration_off.png</value>
+		<value condition="Control.HasFocus(7203) + Skin.HasSetting(hide_rating)">preview/hide_rating_on.png</value>
+		<value condition="Control.HasFocus(7203) + !Skin.HasSetting(hide_rating)">preview/hide_rating_off.png</value>
+		<value condition="Control.HasFocus(7204) + Skin.HasSetting(hide_mpaa)">preview/hide_mpaa_on.png</value>
+		<value condition="Control.HasFocus(7204) + !Skin.HasSetting(hide_mpaa)">preview/hide_mpaa_off.png</value>
+		<value condition="Control.HasFocus(7205) + Skin.HasSetting(hide_resolution)">preview/hide_resolution_on.png</value>
+		<value condition="Control.HasFocus(7205) + !Skin.HasSetting(hide_resolution)">preview/hide_resolution_off.png</value>
+		<value condition="Control.HasFocus(7206) + Skin.HasSetting(show_age)">preview/show_age_on.png</value>
+		<value condition="Control.HasFocus(7206) + !Skin.HasSetting(show_age)">preview/show_age_off.png</value>
+		<value condition="Control.HasFocus(7209) + Skin.HasSetting(hide_endsat)">preview/hide_endsat_on.png</value>
+		<value condition="Control.HasFocus(7209) + !Skin.HasSetting(hide_endsat)">preview/hide_endsat_off.png</value>
+		<value condition="Control.HasFocus(7303) + Skin.HasSetting(hide_osd_thumb)">preview/hide_osd_thumb_on.png</value>
+		<value condition="Control.HasFocus(7303) + !Skin.HasSetting(hide_osd_thumb)">preview/hide_osd_thumb_off.png</value>
+		<value condition="Control.HasFocus(7305) + Skin.HasSetting(hide_osd_buffer)">preview/hide_osd_buffer_on.png</value>
+		<value condition="Control.HasFocus(7305) + !Skin.HasSetting(hide_osd_buffer)">preview/hide_osd_buffer_off.png</value>
+		<value condition="Control.HasFocus(7313) + Skin.HasSetting(hide_osd_fullbuffer)">preview/hide_osd_fullbuffer_on.png</value>
+		<value condition="Control.HasFocus(7313) + !Skin.HasSetting(hide_osd_fullbuffer)">preview/hide_osd_fullbuffer_off.png</value>
+		<value condition="Control.HasFocus(7115) + Skin.HasSetting(hide_loading)">preview/hide_loading_on.png</value>
+		<value condition="Control.HasFocus(7115) + !Skin.HasSetting(hide_loading)">preview/hide_loading_off.png</value>
+		<value condition="Control.HasFocus(7141) + Skin.HasSetting(hide_sleep_timer)">preview/hide_sleep_timer_on.png</value>
+		<value condition="Control.HasFocus(7141) + !Skin.HasSetting(hide_sleep_timer)">preview/hide_sleep_timer_off.png</value>
+		<value condition="Control.HasFocus(7142) + Skin.HasSetting(hide_sleep_countdown)">preview/hide_sleep_countdown_on.png</value>
+		<value condition="Control.HasFocus(7142) + !Skin.HasSetting(hide_sleep_countdown)">preview/hide_sleep_countdown_off.png</value>
+		<value condition="Control.HasFocus(7133) + Skin.HasSetting(bg_all_windows)">preview/bg_all_windows_on.png</value>
+		<value condition="Control.HasFocus(7133) + !Skin.HasSetting(bg_all_windows)">preview/bg_all_windows_off.png</value>
+		<value condition="Control.HasFocus(7135) + Skin.HasSetting(bg_video_behind)">preview/bg_video_behind_on.png</value>
+		<value condition="Control.HasFocus(7135) + !Skin.HasSetting(bg_video_behind)">preview/bg_video_behind_off.png</value>
+		<value condition="Control.HasFocus(7331) + Skin.HasSetting(theme_seasonal_off)">preview/theme_seasonal_off_on.png</value>
+		<value condition="Control.HasFocus(7331) + !Skin.HasSetting(theme_seasonal_off)">preview/theme_seasonal_off_off.png</value>
+		<value condition="Control.HasFocus(7332) + Skin.HasSetting(theme_christmas_off)">preview/theme_christmas_off_on.png</value>
+		<value condition="Control.HasFocus(7332) + !Skin.HasSetting(theme_christmas_off)">preview/theme_christmas_off_off.png</value>
+		<value condition="Control.HasFocus(7208) + Skin.HasSetting(filter_debug)">preview/filter_debug_on.png</value>
+		<value condition="Control.HasFocus(7208) + !Skin.HasSetting(filter_debug)">preview/filter_debug_off.png</value>
+	</variable>
 </includes>
