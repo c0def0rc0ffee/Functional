@@ -11,7 +11,8 @@ that switches that setting, every Home Screen row is in the preview map and
 in exactly one stage region, and every settings row has its help entry.
 Sub item 4: the picture rows in the map are exactly the generator's table,
 every picture exists at panel size with no text chunk and is named by the
-picture variables, and the two pictures of one setting really differ.
+picture variables, and the two pictures of one setting really differ. No
+step of a dim ladder is the all zero colour Kodi draws as white.
 </summary>
 <remarks>
 No Kodi is needed; the XML is read with ElementTree and as text. The flip
@@ -39,6 +40,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 XML = os.path.join(ROOT, "skin.functional", "xml")
 HOME_INCLUDES = ("HomeStatsColumn", "HomeLogo", "HomeWeather", "HomeClock",
                  "HomeMenu", "HomeFooter", "HomeContinueTabs")
+# <summary>The variable that wants Kodi's opaque white from an all zero colour:
+# the idle round buttons on Home, as the comment beside it says.</summary>
+WHITE_BY_CHOICE = ("HomeRoundButtonIdleColor",)
 # Which setting or expression each flip wraps; a flip round the wrong read is a defect.
 FLIP_READS = {
     "flip_movies": "Skin.HasSetting(hide_movies_count)",
@@ -523,6 +527,52 @@ def test_pictures():
     print("  %d pictures checked" % count)
 
 
+def test_no_dim_step_draws_white():
+    """
+    <summary>Keeps the white sheet from coming back at a no dim step.</summary>
+    <remarks>
+    Kodi draws an all zero colordiffuse as opaque white, so a dim ladder whose
+    clear step is 00000000 covers the screen instead of leaving it alone. It
+    was found through the picture of value 0, and a picture that shows it
+    passes every other check here, so both the colours and the pictures are
+    read. WHITE_BY_CHOICE names the one variable that wants the white. A
+    picture fails at a fifth white: no good one passes a tenth, and the two
+    sheets this caught were 37 and 57 per cent, the rest being the dialog or
+    gallery on top of the sheet.
+    </remarks>
+    """
+    print("running test_no_dim_step_draws_white")
+    zero = r"(?:0x)?0{8}"
+    for name in sorted(os.listdir(XML)):
+        if not name.endswith(".xml"):
+            continue
+        for variable in parse(name).iter("variable"):
+            if variable.get("name") in WHITE_BY_CHOICE:
+                continue
+            for value in variable.findall("value"):
+                if re.fullmatch(zero, (value.text or "").strip()):
+                    fail("%s in %s has an all zero step, which Kodi draws as opaque white; use 00FFFFFF" % (variable.get("name"), name))
+        with open(os.path.join(XML, name), encoding="utf-8") as handle:
+            text = handle.read()
+        if re.search(r"""(?:colordiffuse(?:=["']|>)|<param [^>]*value=["'])%s\b""" % zero, text):
+            fail("%s sets an all zero colour, which Kodi draws as opaque white; use 00FFFFFF" % name)
+    colours = os.path.join(ROOT, "skin.functional", "colors")
+    for name in sorted(os.listdir(colours)):
+        for colour in ET.parse(os.path.join(colours, name)).getroot():
+            if re.fullmatch(zero, (colour.text or "").strip()):
+                fail("colour %s in %s is all zero, which Kodi draws as opaque white; use 00FFFFFF" % (colour.get("name"), name))
+    table = load_picture_table()
+    for entry in table.PICTURES:
+        if not entry["setting"].endswith("_dim"):
+            continue
+        for value in table.picture_values(entry):
+            path = os.path.join(ROOT, "skin.functional", "media", "preview", table.picture_name(entry["setting"], value))
+            width, height, channels, pixels = png_pixels(path)
+            white = sum(1 for i in range(0, len(pixels), channels) if min(pixels[i:i + 3]) >= 240)
+            if white * 5 > width * height:
+                fail("%s is over a fifth white: the dim is covering the screen" % os.path.basename(path))
+
+
 def test_every_row_has_a_help_entry():
     """
     <summary>Checks every settings row on every page is in the help expression
@@ -555,6 +605,7 @@ if __name__ == "__main__":
     test_switch_off_by_default()
     test_preview_map()
     test_pictures()
+    test_no_dim_step_draws_white()
     test_every_row_has_a_help_entry()
     if FAILURES:
         print("test_settings_preview: %d check(s) failed" % len(FAILURES))

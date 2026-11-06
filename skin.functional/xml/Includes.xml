@@ -878,12 +878,14 @@
 		<value>$LOCALIZE[31138]</value>
 	</variable>
 
-	<!-- Dim level for the video-playing backdrop behind the video
-	     settings dialog. Stored as a 0-100 string; the variable maps
-	     to a 0xAA000000 alpha byte. 0 = no dim (video at full
-	     brightness), 100 = solid black. -->
+	<!-- <summary>Dim level for the video-playing backdrop behind the video
+	     settings dialog. Stored as a percentage string, each step mapping
+	     to an alpha byte over black. 0 = no dim (video at full brightness).
+	     The no dim step is 00FFFFFF, not 00000000: Kodi draws an all zero
+	     colordiffuse as opaque white, so clear has to be spelt with some
+	     colour in it.</summary> -->
 	<variable name="VideoDimColor">
-		<value condition="String.IsEqual(Skin.String(video_dim),0)">00000000</value>
+		<value condition="String.IsEqual(Skin.String(video_dim),0)">00FFFFFF</value>
 		<value condition="String.IsEqual(Skin.String(video_dim),25)">40000000</value>
 		<value condition="String.IsEqual(Skin.String(video_dim),50)">80000000</value>
 		<value condition="String.IsEqual(Skin.String(video_dim),90)">E5000000</value>
@@ -1086,21 +1088,22 @@
 	<!-- Notification placement (notification dialog 460x140; screen 1920x1080)
 	     Setting: notification_position = tl | tc | tr | bl | bc | br (default br)
 	     Centre x: (1920-460)/2 = 730 -->
-	<!-- Background dim overlay (alpha-on-black).
+	<!-- <summary>Background dim overlay, alpha over black.
 
 	     Two ladders in one variable. Off the home screen (only reachable
 	     when bg_all_windows is on) the background sits under list rows and
 	     settings labels rather than a mostly-empty screen, so it reads from
 	     bg_windows_dim and defaults heavier, 75% against Home's 60%. Those
-	     conditions come first because they are the more specific case. -->
+	     conditions come first because they are the more specific case.
+	     Both no dim steps are 00FFFFFF for the reason at VideoDimColor.</summary> -->
 	<variable name="BgOverlayColor">
-		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),0)">00000000</value>
+		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),0)">00FFFFFF</value>
 		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),25)">40000000</value>
 		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),50)">80000000</value>
 		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),60)">A0000000</value>
 		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),90)">E6000000</value>
 		<value condition="Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)">C0000000</value>
-		<value condition="String.IsEqual(Skin.String(bg_dim),0)">00000000</value>
+		<value condition="String.IsEqual(Skin.String(bg_dim),0)">00FFFFFF</value>
 		<value condition="String.IsEqual(Skin.String(bg_dim),25)">40000000</value>
 		<value condition="String.IsEqual(Skin.String(bg_dim),50)">80000000</value>
 		<value condition="String.IsEqual(Skin.String(bg_dim),75)">C0000000</value>
