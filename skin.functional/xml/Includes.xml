@@ -780,6 +780,30 @@
 		<value></value>
 	</variable>
 
+	<!-- <summary>Text of the resolution badge on a gallery poster. Short, for a
+	     62 wide pill; the 480, 540 and 576 lines all read SD.</summary> -->
+	<variable name="GalleryBadgeResLabel">
+		<value condition="String.IsEqual(ListItem.VideoResolution,8K)">8K</value>
+		<value condition="String.IsEqual(ListItem.VideoResolution,4K)">4K</value>
+		<value condition="String.IsEqual(ListItem.VideoResolution,1080)">1080</value>
+		<value condition="String.IsEqual(ListItem.VideoResolution,720)">720</value>
+		<value>SD</value>
+	</variable>
+	<!-- <summary>Text of the HDR badge on a gallery poster, from the types Kodi
+	     reports: hdr10, dolbyvision and hlg.</summary> -->
+	<variable name="GalleryBadgeHdrLabel">
+		<value condition="String.IsEqual(ListItem.HdrType,dolbyvision)">DV</value>
+		<value condition="String.IsEqual(ListItem.HdrType,hlg)">HLG</value>
+		<value>HDR</value>
+	</variable>
+	<!-- <summary>Whether the top badge shows. Each mark is its own switch: 4K and
+	     8K belong to the 4K switch, every lower line to the resolution switch.
+	     Only a tile with a poster gets one, because a tile without draws its
+	     icon where the badges sit, which is every episode.</summary> -->
+	<expression name="gallery_badge_res">!String.IsEmpty(ListItem.Art(poster)) + [[Skin.HasSetting(show_badge_4k) + [String.IsEqual(ListItem.VideoResolution,4K) | String.IsEqual(ListItem.VideoResolution,8K)]] | [Skin.HasSetting(show_badge_res) + !String.IsEmpty(ListItem.VideoResolution) + !String.IsEqual(ListItem.VideoResolution,4K) + !String.IsEqual(ListItem.VideoResolution,8K)]]</expression>
+	<!-- <summary>Whether the HDR badge shows.</summary> -->
+	<expression name="gallery_badge_hdr">!String.IsEmpty(ListItem.Art(poster)) + Skin.HasSetting(show_badge_hdr) + !String.IsEmpty(ListItem.HdrType)</expression>
+
 	<!-- POSTER-FALLBACK. Poster for whatever is playing (video OSD and the
 	     full screen info card) and for the item the video info dialog is
 	     about. A library episode has no "poster" art of its own, only its
@@ -1331,6 +1355,45 @@
 		<value>$LOCALIZE[31173]</value>
 	</variable>
 
+	<!-- <summary>One release badge on a gallery poster: a dark pill with a short
+	     mark on it. Inside the poster's own margin, so Rounded Corners does not
+	     touch it.</summary>
+	     <param name="top">Distance from the top of the tile.</param>
+	     <param name="label">The text, a $VAR.</param>
+	     <param name="shown">The visible condition.</param> -->
+	<include name="GalleryBadge">
+		<param name="top">10</param>
+		<param name="label"/>
+		<param name="shown">false</param>
+		<definition>
+			<control type="group">
+				<left>10</left>
+				<top>$PARAM[top]</top>
+				<width>62</width>
+				<height>30</height>
+				<visible>$PARAM[shown]</visible>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>62</width>
+					<height>30</height>
+					<texture colordiffuse="C0000000">white.png</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>62</width>
+					<height>30</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<align>center</align>
+					<aligny>center</aligny>
+					<label>$PARAM[label]</label>
+				</control>
+			</control>
+		</definition>
+	</include>
+
 	<include name="GalleryTileBody">
 		<param name="poster_w">200</param>
 		<param name="poster_h">300</param>
@@ -1444,6 +1507,23 @@
 				<texture colordiffuse="white">tick.png</texture>
 				<visible>Integer.IsGreater(ListItem.PlayCount,0)</visible>
 			</control>
+			<!-- Release badges, top left so they never meet the watched corner or
+			     its tick. A stack, not a row: the narrowest tile is 147 wide. -->
+			<include content="GalleryBadge">
+				<param name="top" value="10"/>
+				<param name="label" value="$VAR[GalleryBadgeResLabel]"/>
+				<param name="shown" value="$EXP[gallery_badge_res]"/>
+			</include>
+			<include content="GalleryBadge">
+				<param name="top" value="10"/>
+				<param name="label" value="$VAR[GalleryBadgeHdrLabel]"/>
+				<param name="shown" value="$EXP[gallery_badge_hdr] + !$EXP[gallery_badge_res]"/>
+			</include>
+			<include content="GalleryBadge">
+				<param name="top" value="44"/>
+				<param name="label" value="$VAR[GalleryBadgeHdrLabel]"/>
+				<param name="shown" value="$EXP[gallery_badge_hdr] + $EXP[gallery_badge_res]"/>
+			</include>
 			<!-- A show or season part way through: watched of total episodes
 			     on a strip along the poster's foot. Kodi gives a show a play
 			     count only once every episode is played, so until then this
