@@ -3029,3 +3029,27 @@ msgstr ""
 msgctxt "#31814"
 msgid "Shows what the focused setting does, under this help: a small live copy of your Home screen with the part that changes outlined, and a switch shown the other way round so you see what OK would do. Settings on other screens show a picture instead: the large one is what OK would give, the small one how it is now.[CR]Where: Skin Settings, under the help text."
 msgstr ""
+
+msgctxt "#31815"
+msgid "4K Badge"
+msgstr ""
+
+msgctxt "#31816"
+msgid "HDR Badge"
+msgstr ""
+
+msgctxt "#31817"
+msgid "Resolution Badge"
+msgstr ""
+
+msgctxt "#31818"
+msgid "Marks 4K and 8K films with a badge on the poster, so they stand out while you browse.[CR]Where: the movies gallery, top left of the poster."
+msgstr ""
+
+msgctxt "#31819"
+msgid "Marks HDR films with a badge on the poster: HDR, DV for Dolby Vision or HLG.[CR]Where: the movies gallery, top left of the poster."
+msgstr ""
+
+msgctxt "#31820"
+msgid "Marks films below 4K with their resolution on the poster: 1080, 720 or SD. 4K and 8K films have the 4K Badge of their own.[CR]Where: the movies gallery, top left of the poster."
+msgstr ""

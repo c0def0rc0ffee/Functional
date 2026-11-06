@@ -14,7 +14,8 @@ keypresses; no web server needed) and reads nothing back except the
 screenshots TakeScreenshot writes. Needs Kodi running on this machine with
 skin.functional live, a library with movies in it for the gallery and info
 screen pictures, and ffmpeg for a silent test clip the player pictures play,
-so no real film is ever played or marked.
+so no real film is ever played or marked; the release badge rows also need
+its libx265, for a real 4K HDR10 clip.
 
 Every setting the table touches is read from the helper's own settings
 backup (special://profile/addon_data/skin.functional/backups/settings-backup.xml,
@@ -69,7 +70,8 @@ MOVIES = "videodb://movies/titles/"
 # "default"), the screen to show, and the crop in 1920 by 1080 screen units.
 # Toggles are pictured as "on" and "off", the state of the setting itself.
 # Screens: "sample" is a folder of neutral sample films the run makes itself
-# (the user's posters never ship); "library" is the user's movie library
+# (the user's posters never ship); "badges" is a second such folder of real
+# 4K HDR10, 1080 and 720 clips; "library" is the user's movie library
 # cropped to field text alone, and "libraryfilter" its side menu cropped to
 # the filter rows. A "mask" lists areas painted over before the picture is
 # scaled. Two rows have no picture and are named as having no preview in the
@@ -83,6 +85,8 @@ GALLERY, INFOBAR_LEFT, INFOBAR_RIGHT = (0, 0, 1920, 1080), (0, 960, 640, 120), (
 # sets how many posters a gallery row holds)
 BASELINE = ("small_cols",)
 OSD = (0, 740, 1920, 340)
+# The first tiles of the gallery, near enough for a badge to read at panel size.
+BADGES = (0, 0, 880, 496)
 PICTURES = [
     # Library page
     {"row": "7220", "setting": "gallery_size", "kind": "picker", "values": ["", "small", "large", "xlarge"], "screen": "sample", "crop": GALLERY},
@@ -101,6 +105,11 @@ PICTURES = [
     # age by design, and in this library the first two are this year's
     {"row": "7206", "setting": "show_age", "kind": "toggle", "screen": "library", "crop": (0, 1027, 700, 53), "settle": 4, "item": 3},
     {"row": "7209", "setting": "hide_endsat", "kind": "toggle", "screen": "sample", "crop": INFOBAR_LEFT},
+    # Release badges: the "badges" folder holds real 4K HDR10, 1080 and 720 clips,
+    # since a badge reads the file's own details and the one test clip is 1080
+    {"row": "7210", "setting": "show_badge_4k", "kind": "toggle", "screen": "badges", "crop": BADGES, "settle": 4},
+    {"row": "7211", "setting": "show_badge_hdr", "kind": "toggle", "screen": "badges", "crop": BADGES, "settle": 4},
+    {"row": "7212", "setting": "show_badge_res", "kind": "toggle", "screen": "badges", "crop": BADGES, "settle": 4},
     # Playback page
     {"row": "7302", "setting": "osd_position", "kind": "picker", "values": ["", "top"], "screen": "osd", "crop": GALLERY, "reload": True},
     {"row": "7303", "setting": "hide_osd_thumb", "kind": "toggle", "screen": "osd", "crop": OSD, "settle": 3},
@@ -404,6 +413,35 @@ def make_clip(path):
     return subprocess.run(cmd).returncode == 0 and os.path.isfile(path)
 
 
+def make_badge_folder(folder):
+    """
+    <summary>Makes a folder of short neutral clips for the release badge pictures,
+    one per thing a badge can say: 4K with HDR10, 1080 and 720.</summary>
+    <param name="folder">Where to make it.</param>
+    <returns>True when ffmpeg made them all.</returns>
+    <remarks>Kodi reads a plain file's resolution and HDR type from the file itself,
+    so these are real encodes rather than links to the one test clip. HDR10 is
+    only the HEVC stream's own signalling; the picture is the same test pattern.</remarks>
+    """
+    os.makedirs(folder, exist_ok=True)
+    hdr = ["-c:v", "libx265", "-preset", "ultrafast", "-pix_fmt", "yuv420p10le", "-tag:v", "hvc1", "-x265-params",
+           "log-level=error:hdr10=1:colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc:"
+           "master-display=G(13250,34500)B(7500,3000)R(34000,16000)WP(15635,16450)L(10000000,1):max-cll=1000,400"]
+    sdr = ["-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p"]
+    films = [("Sample Film 1", "3840x2160", hdr, (30, 136, 229)), ("Sample Film 2", "1920x1080", sdr, (67, 160, 71)),
+             ("Sample Film 3", "1280x720", sdr, (251, 140, 0))]
+    for name, size, codec, colour in films:
+        path = os.path.join(folder, name + ".mp4")
+        cmd = ["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=size=%s:rate=25:duration=2" % size] + codec + [path]
+        if subprocess.run(cmd).returncode != 0:
+            return False
+        im = Image.new("RGB", (400, 600), colour)
+        ImageDraw.Draw(im).rectangle((30, 30, 370, 570), outline=(255, 255, 255), width=4)
+        im.save(os.path.join(folder, name + "-poster.jpg"), quality=88)
+    SAMPLE["badges"] = folder + "/"
+    return True
+
+
 # ---- the screens -------------------------------------------------------------
 def show(kodi, screen, clip, settle, item=1):
     """
@@ -415,8 +453,8 @@ def show(kodi, screen, clip, settle, item=1):
     <param name="item">For the list screens, which title to focus, counted
     from the top of the list.</param>
     """
-    if screen in ("sample", "gallerybg", "samplecontext", "library", "libraryfilter"):
-        path = MOVIES if screen.startswith("library") else SAMPLE["path"]
+    if screen in ("sample", "gallerybg", "samplecontext", "library", "libraryfilter", "badges"):
+        path = MOVIES if screen.startswith("library") else SAMPLE["badges" if screen == "badges" else "path"]
         kodi.builtin("ActivateWindow(Videos,%s,return)" % path)
         time.sleep(3)
         kodi.builtin("Container.SetViewMode(51)")
@@ -542,6 +580,8 @@ def main(argv):
     if not make_clip(clip):
         sys.exit("ffmpeg is needed for the test clip the pictures use; install it and run again")
     make_sample_folder(os.path.join(work, "sample"), clip)
+    if any(e["screen"] == "badges" for e in wanted) and not make_badge_folder(os.path.join(work, "badges")):
+        sys.exit("ffmpeg could not make the badge clips; it needs libx264 and libx265")
     os.makedirs(OUT, exist_ok=True)
     touched = {"bg_mode", "home_background", "bg_all_windows", "bg_video_behind", "theme", "left_menu_open", "filter_menu_open"}
     # every pictured setting at the skin's default for the whole run, whatever
