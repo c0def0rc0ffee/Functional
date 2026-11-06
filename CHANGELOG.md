@@ -11,6 +11,15 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.14 (06/11/2026)
+
+- New release badges on the movie gallery, three switches under Skin
+  Settings, Library, Visible Fields, all off by default. 4K Badge marks
+  4K and 8K films, HDR Badge shows HDR, DV for Dolby Vision or HLG, and
+  Resolution Badge shows 1080, 720 or SD for films below 4K. The badges
+  sit at the top left of the poster. Left off, the gallery looks as
+  before.
+
 ## 0.23.13 (06/11/2026)
 
 - New Preview Settings switch under Skin Settings, Overall, off by
