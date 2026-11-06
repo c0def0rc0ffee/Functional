@@ -27,10 +27,12 @@
   </remarks>
 -->
 <includes>
-	<!-- <summary>STAGE-GROUNDWORK, 05/11/2026: the stats column, moved out of Home.xml unchanged. flip_movies and flip_tvshows show a block the other way round while true; Home leaves them false.</summary> -->
+	<!-- <summary>STAGE-GROUNDWORK, 05/11/2026: the stats column, moved out of Home.xml unchanged. flip_movies, flip_tvshows, flip_jellystat and flip_engage show a block the other way round while true; Home leaves them false.</summary> -->
 	<include name="HomeStatsColumn">
 		<param name="flip_movies" default="false"/>
 		<param name="flip_tvshows" default="false"/>
+		<param name="flip_jellystat" default="false"/>
+		<param name="flip_engage" default="false"/>
 		<definition>
 			<!-- Right-side fixed stats panel (always visible) -->
 			<control type="group">
@@ -212,9 +214,9 @@
 				     no dependency. Gated on the add-on being installed AND a
 				     figure being present, so a box with JellyStat installed but
 				     not yet reporting shows nothing rather than zeroes. Hidden
-				     by hide_jellystat (Home Screen). -->
+				     by hide_jellystat (Add-ons page). -->
 				<control type="group">
-					<visible>!Skin.HasSetting(hide_jellystat) + System.HasAddon(script.jellystat) + !String.IsEmpty(Window(home).Property(JellyStat.AllTime.Hours))</visible>
+					<visible>[[!Skin.HasSetting(hide_jellystat) + !$PARAM[flip_jellystat]] | [Skin.HasSetting(hide_jellystat) + $PARAM[flip_jellystat]]] + System.HasAddon(script.jellystat) + !String.IsEmpty(Window(home).Property(JellyStat.AllTime.Hours))</visible>
 					<!-- Packs up by one block for each of the two library blocks above
 					     it that is hidden. The two conditions are exclusive. -->
 					<animation effect="slide" end="0,-220" time="0" condition="[[[Skin.HasSetting(hide_movies_count) + !$PARAM[flip_movies]] | [!Skin.HasSetting(hide_movies_count) + $PARAM[flip_movies]]] + [[!Skin.HasSetting(hide_tvshows_count) + !$PARAM[flip_tvshows]] | [Skin.HasSetting(hide_tvshows_count) + $PARAM[flip_tvshows]]]] | [[[!Skin.HasSetting(hide_movies_count) + !$PARAM[flip_movies]] | [Skin.HasSetting(hide_movies_count) + $PARAM[flip_movies]]] + [[Skin.HasSetting(hide_tvshows_count) + !$PARAM[flip_tvshows]] | [!Skin.HasSetting(hide_tvshows_count) + $PARAM[flip_tvshows]]]]">Conditional</animation>
@@ -313,7 +315,7 @@
 				     stack). 650 to 780 here is 830 to 960 on screen, 10 clear of
 				     a corner bar on the bottom edge. -->
 				<control type="group">
-					<visible>$EXP[engage_block_shown]</visible>
+					<visible>[[$EXP[engage_block_shown] + !$PARAM[flip_engage]] | [!$EXP[engage_block_shown] + $PARAM[flip_engage]]]</visible>
 					<animation effect="slide" end="0,-220" time="0" condition="[[Skin.HasSetting(hide_movies_count) + !$PARAM[flip_movies]] | [!Skin.HasSetting(hide_movies_count) + $PARAM[flip_movies]]]">Conditional</animation>
 					<animation effect="slide" end="0,-220" time="0" condition="[[Skin.HasSetting(hide_tvshows_count) + !$PARAM[flip_tvshows]] | [!Skin.HasSetting(hide_tvshows_count) + $PARAM[flip_tvshows]]]">Conditional</animation>
 					<animation effect="slide" end="0,-220" time="0" condition="!$EXP[jellystat_block_shown]">Conditional</animation>
@@ -326,7 +328,7 @@
 						<texturenofocus>-</texturenofocus>
 						<disabledcolor>disabled</disabledcolor>
 						<label></label>
-						<visible>$EXP[engage_block_shown]</visible>
+						<visible>[[$EXP[engage_block_shown] + !$PARAM[flip_engage]] | [!$EXP[engage_block_shown] + $PARAM[flip_engage]]]</visible>
 						<onclick>RunScript(service.engage)</onclick>
 						<onleft>9311</onleft>
 						<onright>9001</onright>
@@ -1260,7 +1262,7 @@
 				<include content="SkinBackground"><param name="visible" value="!Player.HasVideo"/></include>
 				<include content="BgCaptions"><param name="flip_add" value="Control.HasFocus(7147)"/></include>
 				<include content="BgStepButtons"><param name="flip_step" value="Control.HasFocus(7148)"/></include>
-				<include content="HomeStatsColumn"><param name="flip_movies" value="Control.HasFocus(7107)"/><param name="flip_tvshows" value="Control.HasFocus(7108)"/></include>
+				<include content="HomeStatsColumn"><param name="flip_movies" value="Control.HasFocus(7107)"/><param name="flip_tvshows" value="Control.HasFocus(7108)"/><param name="flip_jellystat" value="Control.HasFocus(7137)"/><param name="flip_engage" value="Control.HasFocus(7149)"/></include>
 				<include content="HomeLogo"><param name="flip_logo" value="Control.HasFocus(7104)"/></include>
 				<include content="HomeWeather"><param name="flip_weather" value="Control.HasFocus(7122)"/><param name="id_weather" value="9906"/></include>
 				<include content="HomeClock"><param name="flip_datetime" value="Control.HasFocus(7106)"/><param name="flip_greeting" value="Control.HasFocus(7319)"/></include>

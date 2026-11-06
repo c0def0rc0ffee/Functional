@@ -11,7 +11,8 @@ that switches that setting, every Home Screen row is in the preview map and
 in exactly one stage region, and every settings row has its help entry.
 Sub item 4: the picture rows in the map are exactly the generator's table,
 every picture exists at panel size with no text chunk and is named by the
-picture variables, and the two pictures of one setting really differ.
+picture variables, and the two pictures of one setting really differ. No
+step of a dim ladder is the all zero colour Kodi draws as white.
 </summary>
 <remarks>
 No Kodi is needed; the XML is read with ElementTree and as text. The flip
@@ -39,10 +40,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 XML = os.path.join(ROOT, "skin.functional", "xml")
 HOME_INCLUDES = ("HomeStatsColumn", "HomeLogo", "HomeWeather", "HomeClock",
                  "HomeMenu", "HomeFooter", "HomeContinueTabs")
+# <summary>The variable that wants Kodi's opaque white from an all zero colour:
+# the idle round buttons on Home, as the comment beside it says.</summary>
+WHITE_BY_CHOICE = ("HomeRoundButtonIdleColor",)
 # Which setting or expression each flip wraps; a flip round the wrong read is a defect.
 FLIP_READS = {
     "flip_movies": "Skin.HasSetting(hide_movies_count)",
     "flip_tvshows": "Skin.HasSetting(hide_tvshows_count)",
+    "flip_jellystat": "Skin.HasSetting(hide_jellystat)",
+    "flip_engage": "$EXP[engage_block_shown]",
     "flip_logo": "Skin.HasSetting(hide_logo)",
     "flip_weather": "$EXP[weather_widget_shown]",
     "flip_datetime": "Skin.HasSetting(hide_datetime)",
@@ -61,7 +67,7 @@ FLIP_READS = {
 PAIR_FLIPS = {"flip_greeting": ("$VAR[HomeClockLine]", "$VAR[HomeClockLineFlipped]")}
 # Which Skin Settings row each flip follows in the stage.
 STAGE_FLIPS = {
-    "flip_movies": "7107", "flip_tvshows": "7108", "flip_logo": "7104", "flip_weather": "7122",
+    "flip_movies": "7107", "flip_tvshows": "7108", "flip_jellystat": "7137", "flip_engage": "7149", "flip_logo": "7104", "flip_weather": "7122",
     "flip_datetime": "7106", "flip_greeting": "7319", "flip_version": "7105",
     "flip_continue": "7128", "flip_recent": "7144", "flip_add": "7147", "flip_step": "7148",
     "flip_fav": "7123", "flip_addons": "7109", "flip_power": "7112", "flip_lists": "7136", "flip_stats": "7139",
@@ -69,7 +75,8 @@ STAGE_FLIPS = {
 SWITCH = "settings_preview"
 SWITCH_ID = "7322"
 HELP_STRING = "31814"
-STAGE_PAGES = ("home", "background", "mainmenu", "overall", "media", "video")
+# every page: since sub item 5 each row is on the stage, a picture row, or named as having no preview
+STAGE_PAGES = ("home", "background", "mainmenu", "overall", "media", "video", "lists", "addons", "radarr")
 ROW_TYPES = ("button", "radiobutton", "spincontrolex", "spincontrol", "slider", "edit")
 TOKEN = r"(?:\$EXP\[\w+\]|\$PARAM\[\w+\]|[^\[\]|+ ]+)"
 # One operand: the exclusive or sits in its own brackets, because Kodi binds
@@ -306,7 +313,7 @@ def test_preview_map():
                     fail("row %s on page %s has no preview on purpose and must not be mapped" % (rid, page))
                 continue
             if rid in images:
-                # the picture form: no stage, and no panel until sub item 4 ships its pictures
+                # the picture form: a pair of pictures in the panel, never the stage
                 if homes or rid in shown:
                     fail("row %s on page %s is a picture row and must not be on the stage" % (rid, page))
                 continue
@@ -520,6 +527,52 @@ def test_pictures():
     print("  %d pictures checked" % count)
 
 
+def test_no_dim_step_draws_white():
+    """
+    <summary>Keeps the white sheet from coming back at a no dim step.</summary>
+    <remarks>
+    Kodi draws an all zero colordiffuse as opaque white, so a dim ladder whose
+    clear step is 00000000 covers the screen instead of leaving it alone. It
+    was found through the picture of value 0, and a picture that shows it
+    passes every other check here, so both the colours and the pictures are
+    read. WHITE_BY_CHOICE names the one variable that wants the white. A
+    picture fails at a fifth white: no good one passes a tenth, and the two
+    sheets this caught were 37 and 57 per cent, the rest being the dialog or
+    gallery on top of the sheet.
+    </remarks>
+    """
+    print("running test_no_dim_step_draws_white")
+    zero = r"(?:0x)?0{8}"
+    for name in sorted(os.listdir(XML)):
+        if not name.endswith(".xml"):
+            continue
+        for variable in parse(name).iter("variable"):
+            if variable.get("name") in WHITE_BY_CHOICE:
+                continue
+            for value in variable.findall("value"):
+                if re.fullmatch(zero, (value.text or "").strip()):
+                    fail("%s in %s has an all zero step, which Kodi draws as opaque white; use 00FFFFFF" % (variable.get("name"), name))
+        with open(os.path.join(XML, name), encoding="utf-8") as handle:
+            text = handle.read()
+        if re.search(r"""(?:colordiffuse(?:=["']|>)|<param [^>]*value=["'])%s\b""" % zero, text):
+            fail("%s sets an all zero colour, which Kodi draws as opaque white; use 00FFFFFF" % name)
+    colours = os.path.join(ROOT, "skin.functional", "colors")
+    for name in sorted(os.listdir(colours)):
+        for colour in ET.parse(os.path.join(colours, name)).getroot():
+            if re.fullmatch(zero, (colour.text or "").strip()):
+                fail("colour %s in %s is all zero, which Kodi draws as opaque white; use 00FFFFFF" % (colour.get("name"), name))
+    table = load_picture_table()
+    for entry in table.PICTURES:
+        if not entry["setting"].endswith("_dim"):
+            continue
+        for value in table.picture_values(entry):
+            path = os.path.join(ROOT, "skin.functional", "media", "preview", table.picture_name(entry["setting"], value))
+            width, height, channels, pixels = png_pixels(path)
+            white = sum(1 for i in range(0, len(pixels), channels) if min(pixels[i:i + 3]) >= 240)
+            if white * 5 > width * height:
+                fail("%s is over a fifth white: the dim is covering the screen" % os.path.basename(path))
+
+
 def test_every_row_has_a_help_entry():
     """
     <summary>Checks every settings row on every page is in the help expression
@@ -552,6 +605,7 @@ if __name__ == "__main__":
     test_switch_off_by_default()
     test_preview_map()
     test_pictures()
+    test_no_dim_step_draws_white()
     test_every_row_has_a_help_entry()
     if FAILURES:
         print("test_settings_preview: %d check(s) failed" % len(FAILURES))
