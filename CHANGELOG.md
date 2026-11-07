@@ -11,6 +11,15 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.19 (07/11/2026)
+
+- New Offer to Power Down After Port by Time switch under Skin Settings,
+  Lists and Favourites, off by default. Switched on, Port by Time asks
+  whether to power the box down when the queue finishes. It powers down
+  only after the last item ends by itself, with ten seconds' warning in
+  which any key keeps it on; stopping it yourself or playing something
+  else calls it off. Left off, Port by Time asks nothing new.
+
 ## 0.23.18 (07/11/2026)
 
 - New Show Start Badge switch under Skin Settings, Playback, off by
