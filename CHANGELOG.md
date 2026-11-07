@@ -11,6 +11,14 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.18 (07/11/2026)
+
+- New Show Start Badge switch under Skin Settings, Playback, off by
+  default. Switched on, the first six seconds of a video show its picture
+  mode (Dolby Vision, HDR10, HLG or SDR), its resolution and its age
+  rating at the top right. Live TV never shows it. Left off, playback
+  looks as before.
+
 ## 0.23.17 (07/11/2026)
 
 - New Close Info Panel After setting under Skin Settings, Playback, Off
