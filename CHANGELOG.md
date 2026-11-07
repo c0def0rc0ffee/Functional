@@ -11,6 +11,14 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.16 (07/11/2026)
+
+- New Show Sleep Button switch under Skin Settings, Playback, off by
+  default. Switched on, the video OSD gets a moon button left of Previous
+  that opens the sleep timer choices, so a timer can be set or cancelled
+  without leaving the film. Left off, the OSD and the power menu look as
+  before.
+
 ## 0.23.15 (07/11/2026)
 
 - New Show Chapter Marks switch under Skin Settings, Playback, off by
