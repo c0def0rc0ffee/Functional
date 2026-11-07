@@ -3097,3 +3097,32 @@ msgstr ""
 msgctxt "#31831"
 msgid "For a few seconds after a video starts, shows its picture mode (Dolby Vision, HDR10, HLG or SDR), its resolution and its age rating.[CR]Where: the top right of the video, as it starts."
 msgstr ""
+
+# LISTS-TIME-SLEEP (07/11/2026): Port by Time offers to power down after the queue.
+msgctxt "#31832"
+msgid "Offer to Power Down After Port by Time"
+msgstr ""
+
+msgctxt "#31833"
+msgid "After Port by Time fills the queue, asks whether to power the box down once the last item finishes, with ten seconds' warning in which any key keeps it on. Stopping it yourself or playing something else calls it off.[CR]Where: a question after Port by Time, then the sleep timer on Home."
+msgstr ""
+
+msgctxt "#31834"
+msgid "Power the box down when this queue finishes?"
+msgstr ""
+
+msgctxt "#31835"
+msgid "Powering down when the queue finishes"
+msgstr ""
+
+msgctxt "#31836"
+msgid "Queue"
+msgstr ""
+
+msgctxt "#31837"
+msgid "The queue has finished. Powering down in ten seconds; press any key to stay on."
+msgstr ""
+
+msgctxt "#31838"
+msgid "No queue of videos is playing, so the box will not power down after it."
+msgstr ""
