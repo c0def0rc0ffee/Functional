@@ -7,7 +7,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.18" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.19" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -28,7 +28,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New Show Start Badge switch under Skin Settings, Playback, off by default. Switched on, the first six seconds of a video show its picture mode (Dolby Vision, HDR10, HLG or SDR), its resolution and its age rating at the top right. Live TV never shows it. Left off, playback looks as before.</news>
+		<news>New Offer to Power Down After Port by Time switch under Skin Settings, Lists and Favourites, off by default. Switched on, Port by Time asks whether to power the box down when the queue finishes. It powers down only after the last item ends by itself, with ten seconds' warning in which any key keeps it on; stopping it yourself or playing something else calls it off. Left off, Port by Time asks nothing new.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
