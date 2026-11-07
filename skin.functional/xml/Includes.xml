@@ -2936,6 +2936,16 @@
 	     with no known length (live, some add-ons) has an empty duration and
 	     a progress of 0, which read "12:34 / " and "0%"; it now shows the
 	     elapsed time alone. -->
+	<!-- INFO-AUTO-CLOSE, item 19 (07/11/2026)
+	     <summary>Value shown on the Close Info Panel After row: Off, or the
+	     seconds without the leading zero they are stored with.</summary> -->
+	<variable name="FsInfoCloseLabel">
+		<value condition="String.IsEqual(Skin.String(fsinfo_close),05)">5s</value>
+		<value condition="String.IsEqual(Skin.String(fsinfo_close),10)">10s</value>
+		<value condition="String.IsEqual(Skin.String(fsinfo_close),20)">20s</value>
+		<value condition="String.IsEqual(Skin.String(fsinfo_close),30)">30s</value>
+		<value>$LOCALIZE[31103]</value>
+	</variable>
 	<variable name="FsInfoProgressLabel">
 		<value condition="!String.IsEmpty(Player.Duration)">$INFO[Player.Time(hh:mm:ss)] / $INFO[Player.Duration(hh:mm:ss)]  ·  $INFO[Player.Progress]%</value>
 		<value>$INFO[Player.Time(hh:mm:ss)]</value>
@@ -2993,7 +3003,43 @@
 				     between the commas is kept verbatim, and " ( " read
 				     "Title ( 2003)". -->
 				<label>$INFO[VideoPlayer.Title]$INFO[VideoPlayer.Year, (,)]</label>
-				<visible>String.IsEmpty(VideoPlayer.TVShowTitle)</visible>
+				<visible>String.IsEmpty(VideoPlayer.TVShowTitle) + ![Skin.HasSetting(fsinfo_logo) + VideoPlayer.Content(movies) + !String.IsEmpty(Player.Art(clearlogo))]</visible>
+			</control>
+			<!-- INFO-AUTO-CLOSE, item 19 (07/11/2026)
+			     <summary>
+			     A film's logo in place of its title, when Title Logo on Info
+			     Panel is on and the film has one; the year moves up into the
+			     line an episode uses for its show, empty for a film.
+			     </summary>
+			     <remarks>
+			     Films only, by VideoPlayer.Content(movies): an episode's logo
+			     would be its show's, and the episode's own title is what the
+			     card is for, and anything else that is not an episode (a
+			     music video, an add-on stream, live TV, a plain file) keeps
+			     its title too. The logo keeps its shape, left aligned in the
+			     title's box and 2 lower, 56 to 108, so the metadata row at
+			     112 stays where it is. A logo that fails to load leaves the
+			     line empty: the skin cannot see a failed image, so this is a
+			     known limit.
+			     </remarks> -->
+			<control type="image">
+				<left>380</left>
+				<top>56</top>
+				<width>990</width>
+				<height>52</height>
+				<aspectratio align="left" aligny="center">keep</aspectratio>
+				<texture background="true">$INFO[Player.Art(clearlogo)]</texture>
+				<visible>Skin.HasSetting(fsinfo_logo) + VideoPlayer.Content(movies) + !String.IsEmpty(Player.Art(clearlogo))</visible>
+			</control>
+			<control type="label">
+				<left>380</left>
+				<top>30</top>
+				<width>990</width>
+				<height>26</height>
+				<font>font_reg</font>
+				<textcolor>$VAR[AccentHiColor]</textcolor>
+				<label>$INFO[VideoPlayer.Year]</label>
+				<visible>Skin.HasSetting(fsinfo_logo) + VideoPlayer.Content(movies) + !String.IsEmpty(Player.Art(clearlogo))</visible>
 			</control>
 			<control type="label">
 				<left>380</left>

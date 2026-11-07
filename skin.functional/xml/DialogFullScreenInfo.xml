@@ -5,9 +5,30 @@
   overlay above the OSD with the playing item's details and cast, built
   from the FsInfoCardBody include. Button 999 takes default focus.
   </summary>
+  <remarks>
+  Item 19 (07/11/2026): it can close itself after a chosen number of
+  seconds, and FsInfoCardBody can show a film's logo in place of its title.
+  Both are off by default.
+  </remarks>
 -->
 <window>
 	<defaultcontrol always="true">999</defaultcontrol>
+	<!-- INFO-AUTO-CLOSE, item 19 (07/11/2026)
+	     <summary>
+	     Closes the card by itself after the seconds chosen in Skin Settings
+	     (Playback, Close Info Panel After); Off, the default, leaves it open
+	     until it is closed, as before.
+	     </summary>
+	     <remarks>
+	     The time goes to the alarm as 00:SS, minutes and seconds, as
+	     Startup.xml does with 0:01; a bare number would be taken as
+	     minutes. The values are stored two digits wide (05, 10, 20, 30)
+	     only so they read alike. Closing the card any other way cancels the
+	     alarm, so a card opened again starts its own count and is never
+	     shut early by the last one's.
+	     </remarks> -->
+	<onload condition="!String.IsEmpty(Skin.String(fsinfo_close))">AlarmClock(fsinfo_close,Dialog.Close(fullscreeninfo),00:$INFO[Skin.String(fsinfo_close)],silent)</onload>
+	<onunload>CancelAlarm(fsinfo_close,true)</onunload>
 	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<controls>
