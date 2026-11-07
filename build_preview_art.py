@@ -71,7 +71,8 @@ MOVIES = "videodb://movies/titles/"
 # Toggles are pictured as "on" and "off", the state of the setting itself.
 # Screens: "sample" is a folder of neutral sample films the run makes itself
 # (the user's posters never ship); "badges" is a second such folder of real
-# 4K HDR10, 1080 and 720 clips; "library" is the user's movie library
+# 4K HDR10, 1080 and 720 clips; "osdchapters" is the OSD over a copy of the
+# test clip with four chapters in it; "library" is the user's movie library
 # cropped to field text alone, and "libraryfilter" its side menu cropped to
 # the filter rows. A "mask" lists areas painted over before the picture is
 # scaled. Two rows have no picture and are named as having no preview in the
@@ -116,6 +117,11 @@ PICTURES = [
     {"row": "7304", "setting": "video_dim", "kind": "picker", "values": ["", "0", "25", "50", "90"], "screen": "videosettings", "crop": GALLERY},
     {"row": "7305", "setting": "hide_osd_buffer", "kind": "toggle", "screen": "osd", "crop": OSD},
     {"row": "7313", "setting": "hide_osd_fullbuffer", "kind": "toggle", "screen": "osd", "crop": OSD},
+    # Chapter marks: the OSD bar and its ticks need a file with chapters, which
+    # the plain test clip has none of, so this row plays its own chaptered copy;
+    # cropped to the middle of the panel, where two ticks fall, since at the
+    # whole OSD crop the 6 pixel bar shrinks to one pixel on the panel
+    {"row": "7323", "setting": "show_chapter_marks", "kind": "toggle", "screen": "osdchapters", "crop": (440, 840, 800, 240)},
     # Rows from the Home Screen, Background and Overall pages
     {"row": "7115", "setting": "hide_loading", "kind": "toggle", "screen": "startup", "crop": GALLERY},
     {"row": "7141", "setting": "hide_sleep_timer", "kind": "toggle", "screen": "powermenu", "crop": (560, 240, 800, 450)},
@@ -413,6 +419,26 @@ def make_clip(path):
     return subprocess.run(cmd).returncode == 0 and os.path.isfile(path)
 
 
+def make_chapter_clip(clip, path):
+    """
+    <summary>Copies the test clip into a Matroska file with four chapters, at 0,
+    22.5, 45 and 67.5 seconds, for the chapter marks pictures.</summary>
+    <param name="clip">The plain test clip from make_clip.</param>
+    <param name="path">Where to write the copy.</param>
+    <returns>True when ffmpeg made it.</returns>
+    <remarks>A stream copy, so it is quick and the picture is the same test
+    pattern; only the chapter table is added. Matroska rather than MP4
+    because Kodi reads Matroska chapters without question.</remarks>
+    """
+    meta = os.path.splitext(path)[0] + ".txt"
+    with open(meta, "w", encoding="utf-8") as f:
+        f.write(";FFMETADATA1\n")
+        for i, start in enumerate((0, 22500, 45000, 67500)):
+            f.write("[CHAPTER]\nTIMEBASE=1/1000\nSTART=%d\nEND=%d\ntitle=Chapter %d\n" % (start, start + 22500, i + 1))
+    cmd = ["ffmpeg", "-v", "error", "-y", "-i", clip, "-i", meta, "-map", "0", "-map_chapters", "1", "-c", "copy", path]
+    return subprocess.run(cmd).returncode == 0 and os.path.isfile(path)
+
+
 def make_badge_folder(folder):
     """
     <summary>Makes a folder of short neutral clips for the release badge pictures,
@@ -477,9 +503,12 @@ def show(kodi, screen, clip, settle, item=1):
             kodi.builtin("Skin.SetBool(left_menu_open)")
             kodi.builtin("Skin.SetBool(filter_menu_open)")
             time.sleep(2)
-    elif screen in ("osd", "osdsleep"):
+    elif screen in ("osd", "osdsleep", "osdchapters"):
         kodi.builtin("PlayMedia(%s)" % clip)
         time.sleep(4)
+        if screen == "osdchapters":
+            kodi.builtin("PlayerControl(SeekPercentage(35))")
+            time.sleep(2.5)
         if screen == "osdsleep":
             kodi.builtin("Skin.SetString(sleep_command,episode)")
             time.sleep(1.5)
@@ -522,7 +551,7 @@ def leave(kodi, screen):
     if screen == "libraryfilter":
         kodi.builtin("Skin.Reset(filter_menu_open)")
         kodi.builtin("Skin.Reset(left_menu_open)")
-    if screen in ("osd", "osdsleep", "homevideo", "videosettings"):
+    if screen in ("osd", "osdsleep", "osdchapters", "homevideo", "videosettings"):
         if screen == "osdsleep":
             kodi.builtin("Skin.SetString(sleep_command,cancel)")
         kodi.action("back")
@@ -580,6 +609,9 @@ def main(argv):
     if not make_clip(clip):
         sys.exit("ffmpeg is needed for the test clip the pictures use; install it and run again")
     make_sample_folder(os.path.join(work, "sample"), clip)
+    chapters = os.path.join(work, "chapters.mkv")
+    if any(e["screen"] == "osdchapters" for e in wanted) and not make_chapter_clip(clip, chapters):
+        sys.exit("ffmpeg could not add chapters to the test clip")
     if any(e["screen"] == "badges" for e in wanted) and not make_badge_folder(os.path.join(work, "badges")):
         sys.exit("ffmpeg could not make the badge clips; it needs libx264 and libx265")
     os.makedirs(OUT, exist_ok=True)
@@ -616,7 +648,7 @@ def main(argv):
                 if entry.get("reload"):
                     kodi.builtin("ReloadSkin()")
                     time.sleep(4)
-                show(kodi, entry["screen"], clip, entry.get("settle", 1.5), entry.get("item", 1))
+                show(kodi, entry["screen"], chapters if entry["screen"] == "osdchapters" else clip, entry.get("settle", 1.5), entry.get("item", 1))
                 shot = os.path.join(work, "shot.png")
                 if not kodi.screenshot(shot):
                     print("  no screenshot for %s %s, skipped" % (setting, value))

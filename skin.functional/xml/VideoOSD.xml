@@ -67,6 +67,61 @@
 			<texture fallback="DefaultVideo.png" background="true">$VAR[PlayerPosterArt]</texture>
 		</control>
 
+		<!-- CHAPTER-MARKS, item 40 (07/11/2026)
+		     <summary>
+		     A progress bar along the top of the panel with a tick at each
+		     chapter start, both behind show_chapter_marks (off by default),
+		     so with the switch off the OSD is exactly as it was.
+		     </summary>
+		     <remarks>
+		     The bar sits in the one free band of the panel, y 892 to 908
+		     on the bottom OSD (the accent stripe ends at 890, the title and
+		     clock start at 900 and their glyphs at about 910): bar 897 to
+		     903, ticks 893 to 907. It runs x 240 to 1880, the title's left
+		     edge to the clock's right edge, so the poster never covers it.
+		     Drawn like the seek bar: cache layer, then the fill. The ticks
+		     are a ranges control on Player.Chapters, which Kodi 21 fills
+		     with start,end percentage pairs, one pair per chapter after the
+		     first, ending at that chapter's start: only the right texture
+		     is drawn, so each tick lands on a chapter start and the first
+		     chapter, at 0, gets none. A file with fewer than two chapters
+		     hides the ticks outright rather than trusting an empty list.
+		     The bar stands down without a duration, as the percentage does.
+		     </remarks> -->
+		<control type="group">
+			<visible>Skin.HasSetting(show_chapter_marks) + !String.IsEmpty(Player.Duration)</visible>
+			<control type="progress">
+				<left>240</left>
+				<bottom>177</bottom>
+				<width>1640</width>
+				<height>6</height>
+				<info>Player.ProgressCache</info>
+				<texturebg colordiffuse="20FFFFFF">white.png</texturebg>
+				<midtexture colordiffuse="40FFFFFF">white.png</midtexture>
+				<overlaytexture>-</overlaytexture>
+			</control>
+			<control type="progress">
+				<left>240</left>
+				<bottom>177</bottom>
+				<width>1640</width>
+				<height>6</height>
+				<info>Player.Progress</info>
+				<texturebg colordiffuse="00FFFFFF">white.png</texturebg>
+				<midtexture colordiffuse="$VAR[AccentHiColor]">white.png</midtexture>
+				<overlaytexture>-</overlaytexture>
+			</control>
+			<control type="ranges">
+				<left>240</left>
+				<bottom>173</bottom>
+				<width>1640</width>
+				<height>14</height>
+				<texturebg colordiffuse="00FFFFFF">white.png</texturebg>
+				<righttexture>chapter_tick.png</righttexture>
+				<info>Player.Chapters</info>
+				<visible>Integer.IsGreater(Player.ChapterCount,1)</visible>
+			</control>
+		</control>
+
 		<!-- ========== TITLE ROW ========== -->
 
 		<control type="label">

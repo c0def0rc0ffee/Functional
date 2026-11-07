@@ -76,6 +76,25 @@
 			<midtexture colordiffuse="$VAR[AccentHiColor]">white.png</midtexture>
 			<overlaytexture>-</overlaytexture>
 		</control>
+		<!-- CHAPTER-MARKS, item 40 (07/11/2026)
+		     <summary>
+		     A tick at each chapter start over the bar, 4 above and below
+		     it. Off unless show_chapter_marks.
+		     </summary>
+		     <remarks>
+		     See VideoOSD.xml for how Player.Chapters is read and why only
+		     the right texture is drawn.
+		     </remarks> -->
+		<control type="ranges">
+			<left>260</left>
+			<bottom>70</bottom>
+			<width>1400</width>
+			<height>14</height>
+			<texturebg colordiffuse="00FFFFFF">white.png</texturebg>
+			<righttexture>chapter_tick.png</righttexture>
+			<info>Player.Chapters</info>
+			<visible>Skin.HasSetting(show_chapter_marks) + Integer.IsGreater(Player.ChapterCount,1)</visible>
+		</control>
 
 		<control type="label">
 			<left>0</left>
@@ -218,6 +237,25 @@
 			<texturebg colordiffuse="00FFFFFF">white.png</texturebg>
 			<midtexture colordiffuse="$VAR[AccentHiColor]">white.png</midtexture>
 			<overlaytexture>-</overlaytexture>
+		</control>
+		<!-- CHAPTER-MARKS, item 40 (07/11/2026)
+		     <summary>
+		     A tick at each chapter start over the bar, 4 above and below
+		     it. Off unless show_chapter_marks.
+		     </summary>
+		     <remarks>
+		     See VideoOSD.xml for how Player.Chapters is read and why only
+		     the right texture is drawn.
+		     </remarks> -->
+		<control type="ranges">
+			<left>260</left>
+			<top>56</top>
+			<width>1400</width>
+			<height>14</height>
+			<texturebg colordiffuse="00FFFFFF">white.png</texturebg>
+			<righttexture>chapter_tick.png</righttexture>
+			<info>Player.Chapters</info>
+			<visible>Skin.HasSetting(show_chapter_marks) + Integer.IsGreater(Player.ChapterCount,1)</visible>
 		</control>
 
 		<control type="label">
