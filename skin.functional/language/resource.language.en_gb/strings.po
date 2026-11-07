@@ -3053,3 +3053,11 @@ msgstr ""
 msgctxt "#31820"
 msgid "Marks films below 4K with their resolution on the poster: 1080, 720 or SD. 4K and 8K films have the 4K Badge of their own.[CR]Where: the movies gallery, top left of the poster."
 msgstr ""
+
+msgctxt "#31821"
+msgid "Show Chapter Marks"
+msgstr ""
+
+msgctxt "#31822"
+msgid "Adds a progress bar to the on screen display with a mark at each chapter start, and the same marks on the seek bar.[CR]Where: the video player's on screen display and seek bar."
+msgstr ""

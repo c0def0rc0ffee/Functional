@@ -4155,6 +4155,7 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[31313] $VAR[OsdPositionLabel]</label>
 				<onleft>7000</onleft>
+				<onright>7323</onright>
 				<onup>7309</onup>
 				<ondown>7303</ondown>
 				<!-- Cycle: bottom → top → bottom. ReloadSkin makes the load-time
@@ -4193,6 +4194,7 @@
 				<selected>!Skin.HasSetting(hide_osd_thumb)</selected>
 				<onclick>Skin.ToggleSetting(hide_osd_thumb)</onclick>
 				<onleft>7000</onleft>
+				<onright>7323</onright>
 				<onup>7302</onup>
 				<ondown>7304</ondown>
 			</control>
@@ -4215,6 +4217,7 @@
 				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 				<label>$LOCALIZE[31315] $VAR[VideoDimLabel]</label>
 				<onleft>7000</onleft>
+				<onright>7323</onright>
 				<onup>7303</onup>
 				<ondown>7305</ondown>
 				<onclick condition="String.IsEmpty(Skin.String(video_dim))">Skin.SetString(video_dim,0)</onclick>
@@ -4246,6 +4249,7 @@
 				<selected>!Skin.HasSetting(hide_osd_buffer)</selected>
 				<onclick>Skin.ToggleSetting(hide_osd_buffer)</onclick>
 				<onleft>7000</onleft>
+				<onright>7323</onright>
 				<onup>7304</onup>
 				<ondown>7313</ondown>
 			</control>
@@ -4277,8 +4281,44 @@
 				<selected>!Skin.HasSetting(hide_osd_fullbuffer)</selected>
 				<onclick>Skin.ToggleSetting(hide_osd_fullbuffer)</onclick>
 				<onleft>7000</onleft>
+				<onright>7323</onright>
 				<onup>7305</onup>
 				<ondown>7306</ondown>
+			</control>
+
+			<!-- CHAPTER-MARKS, item 40 (07/11/2026)
+			     <summary>
+			     The switch for the OSD progress bar and the chapter ticks on
+			     it and on the seek bar.
+			     </summary>
+			     <remarks>
+			     The left column is full to the footer, so the row sits in the
+			     right column beside the video OSD rows, which all reach it
+			     with right. Left goes back to the top of them; right does
+			     nothing, as on the other right column rows.
+			     </remarks> -->
+			<control type="radiobutton" id="7323">
+				<left>1380</left>
+				<top>230</top>
+				<width>460</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31821</label>
+				<selected>Skin.HasSetting(show_chapter_marks)</selected>
+				<onclick>Skin.ToggleSetting(show_chapter_marks)</onclick>
+				<onleft>7302</onleft>
 			</control>
 
 			<!-- Sub-header: playback buffer. These buttons drive Kodi's own
