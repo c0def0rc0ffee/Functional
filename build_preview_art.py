@@ -72,7 +72,8 @@ MOVIES = "videodb://movies/titles/"
 # Screens: "sample" is a folder of neutral sample films the run makes itself
 # (the user's posters never ship); "badges" is a second such folder of real
 # 4K HDR10, 1080 and 720 clips; "osdchapters" is the OSD over a copy of the
-# test clip with four chapters in it; "library" is the user's movie library
+# test clip with four chapters in it; "startbadge" is the first seconds of a
+# ten second 4K HDR10 clip; "library" is the user's movie library
 # cropped to field text alone, and "libraryfilter" its side menu cropped to
 # the filter rows. A "mask" lists areas painted over before the picture is
 # scaled. Two rows have no picture and are named as having no preview in the
@@ -125,6 +126,9 @@ PICTURES = [
     # Sleep button: the left end of the transport row, where the moon hangs
     # off the centred buttons, at the same scale as the chapter marks crop
     {"row": "7324", "setting": "show_osd_sleep_button", "kind": "toggle", "screen": "osd", "crop": (240, 840, 800, 240)},
+    # Start badge: the top right corner a few seconds into a 4K HDR10 clip,
+    # while the badge is up; the clip has no age rating, so none shows
+    {"row": "7327", "setting": "show_start_badge", "kind": "toggle", "screen": "startbadge", "crop": (1120, 0, 800, 240)},
     # Rows from the Home Screen, Background and Overall pages
     {"row": "7115", "setting": "hide_loading", "kind": "toggle", "screen": "startup", "crop": GALLERY},
     {"row": "7141", "setting": "hide_sleep_timer", "kind": "toggle", "screen": "powermenu", "crop": (560, 240, 800, 450)},
@@ -442,6 +446,23 @@ def make_chapter_clip(clip, path):
     return subprocess.run(cmd).returncode == 0 and os.path.isfile(path)
 
 
+def make_start_badge_clip(path):
+    """
+    <summary>Makes a ten second 4K HDR10 clip for the start badge pictures.</summary>
+    <param name="path">Where to write it.</param>
+    <returns>True when ffmpeg made it.</returns>
+    <remarks>START-BADGE, item 18 (07/11/2026). The badge stays up for six seconds
+    from the start, longer than the two second badge clips run, so it gets a
+    clip of its own, encoded the way make_badge_folder encodes its 4K one.</remarks>
+    """
+    cmd = ["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=size=3840x2160:rate=25:duration=10",
+           "-c:v", "libx265", "-preset", "ultrafast", "-pix_fmt", "yuv420p10le", "-tag:v", "hvc1", "-x265-params",
+           "log-level=error:hdr10=1:colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc:"
+           "master-display=G(13250,34500)B(7500,3000)R(34000,16000)WP(15635,16450)L(10000000,1):max-cll=1000,400",
+           path]
+    return subprocess.run(cmd).returncode == 0 and os.path.isfile(path)
+
+
 def make_badge_folder(folder):
     """
     <summary>Makes a folder of short neutral clips for the release badge pictures,
@@ -517,6 +538,10 @@ def show(kodi, screen, clip, settle, item=1):
             time.sleep(1.5)
         kodi.action("osd")
         time.sleep(2)
+    elif screen == "startbadge":
+        # START-BADGE: the badge is up for six seconds from the start
+        kodi.builtin("PlayMedia(%s)" % clip)
+        time.sleep(3)
     elif screen == "videosettings":
         kodi.builtin("PlayMedia(%s)" % clip)
         time.sleep(4)
@@ -554,7 +579,7 @@ def leave(kodi, screen):
     if screen == "libraryfilter":
         kodi.builtin("Skin.Reset(filter_menu_open)")
         kodi.builtin("Skin.Reset(left_menu_open)")
-    if screen in ("osd", "osdsleep", "osdchapters", "homevideo", "videosettings"):
+    if screen in ("osd", "osdsleep", "osdchapters", "startbadge", "homevideo", "videosettings"):
         if screen == "osdsleep":
             kodi.builtin("Skin.SetString(sleep_command,cancel)")
         kodi.action("back")
@@ -612,6 +637,9 @@ def main(argv):
     if not make_clip(clip):
         sys.exit("ffmpeg is needed for the test clip the pictures use; install it and run again")
     make_sample_folder(os.path.join(work, "sample"), clip)
+    badge_clip = os.path.join(work, "startbadge.mp4")
+    if any(e["screen"] == "startbadge" for e in wanted) and not make_start_badge_clip(badge_clip):
+        sys.exit("ffmpeg could not make the start badge clip; it needs libx265")
     chapters = os.path.join(work, "chapters.mkv")
     if any(e["screen"] == "osdchapters" for e in wanted) and not make_chapter_clip(clip, chapters):
         sys.exit("ffmpeg could not add chapters to the test clip")
@@ -651,7 +679,7 @@ def main(argv):
                 if entry.get("reload"):
                     kodi.builtin("ReloadSkin()")
                     time.sleep(4)
-                show(kodi, entry["screen"], chapters if entry["screen"] == "osdchapters" else clip, entry.get("settle", 1.5), entry.get("item", 1))
+                show(kodi, entry["screen"], chapters if entry["screen"] == "osdchapters" else badge_clip if entry["screen"] == "startbadge" else clip, entry.get("settle", 1.5), entry.get("item", 1))
                 shot = os.path.join(work, "shot.png")
                 if not kodi.screenshot(shot):
                     print("  no screenshot for %s %s, skipped" % (setting, value))

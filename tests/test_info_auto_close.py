@@ -178,7 +178,8 @@ def test_rows():
     """
     <summary>Checks rows 7325 and 7326: labels, help lines with a Where line,
     form None, the right column under 7324 clear of the text below, Up and
-    Down between them and 7324, and Left to the rows beside them.</summary>
+    Down between them and 7324, Down from 7326 only to a row straight under
+    it that leads back, and Left to the rows beside them.</summary>
     <remarks>Right from the left column goes to the top of the right column,
     as everywhere on the page, so it is not checked to reach these rows.</remarks>
     """
@@ -218,8 +219,13 @@ def test_rows():
     for rid, (tag, want) in nav.items():
         if settings[rid].findtext(tag) != want:
             fail("%s from row %s should reach %s" % (tag, rid, want))
-    if picker.findtext("ondown") != "7326" or toggle.findtext("onup") != "7325" or toggle.find("ondown") is not None:
-        fail("rows 7325 and 7326 do not lead to each other, or 7326 leads further down")
+    if picker.findtext("ondown") != "7326" or toggle.findtext("onup") != "7325":
+        fail("rows 7325 and 7326 do not lead to each other")
+    below = settings.get(toggle.findtext("ondown") or "")
+    if toggle.find("ondown") is not None and (below is None or below.findtext("left") != toggle.findtext("left")
+                                              or int(below.findtext("top")) != int(toggle.findtext("top")) + 80
+                                              or below.findtext("onup") != "7326"):
+        fail("down from row 7326 should go nowhere, or to the row straight under it, which leads back")
     if picker.findtext("onleft") != "7304" or toggle.findtext("onleft") != "7305" or \
             picker.find("onright") is not None or toggle.find("onright") is not None:
         fail("left from 7325 and 7326 should reach the rows beside them, and right nowhere")

@@ -1094,6 +1094,9 @@ class FunctionalHelper(xbmc.Monitor):
         self._sleep_fire_pending = False  # the last end arrived on the notification thread
         self._sleep_warned = False    # the one-minute toast has been shown
         self._sleep_published = ""    # countdown label currently on screen
+        # START-BADGE, item 18 (see update_start_badge)
+        self._badge_pending = False   # a video started, noted on the notification thread
+        self._badge_until = None      # time.monotonic() the badge comes down, None = not up
         self._list_item_slots_used = 0  # LI.N.* slots written last publish
         # Seasonal themes (THEME-SEASON, see update_theme)
         self._theme_seen = None          # theme last logged
@@ -1214,6 +1217,9 @@ class FunctionalHelper(xbmc.Monitor):
             # Finishing an episode is exactly what moves a show along.
             self._nextup_last = 0.0
             self._sleep_on_stop(data)
+        if method == "Player.OnAVStart":
+            # START-BADGE: only a flag here; update_start_badge decides on the loop.
+            self._badge_pending = True
 
     # -- Handlers -----------------------------------------------------------
 
@@ -7022,6 +7028,54 @@ class FunctionalHelper(xbmc.Monitor):
     # How long before power off the one warning toast appears.
     SLEEP_WARN_SECS = 60
 
+    START_BADGE_SECS = 6.0   # how long the start of film badge stays up
+
+    def update_start_badge(self):
+        """
+        <summary>
+        START-BADGE, item 18 (07/11/2026): raise the start of film badge for
+        START_BADGE_SECS after a video starts, then take it down.
+        </summary>
+        <remarks>
+        Window(home).Property(start_badge) is the whole contract with the XML
+        (the custom dialog Custom_1155_StartBadge.xml, which Kodi opens and
+        closes by its window level visible conditions): "1" while the badge
+        is up, empty otherwise. What the badge says (display mode,
+        resolution, age rating) is read by the XML from VideoPlayer.*
+        itself, so this method owns only the timing. That is the pattern the
+        next timed overlays reuse: a property the service raises and clears,
+        and a dialog of its own to show it. A group inside VideoFullScreen.xml
+        was tried first and never drew, although Kodi reported it visible.
+
+        Player.OnAVStart arrives on the notification thread, which only sets
+        _badge_pending; the work happens here, on the loop. The badge is raised
+        only with Show Start Badge on, and only for video that is not live
+        TV, where every change of channel is a new start. A start that is
+        turned away takes down a badge already up, since what it would now
+        describe is the new start. It also comes down early when playback
+        stops, when the video gives way to something else or when the switch
+        is turned off, and run() clears the property after its start grace,
+        so a "1" left by a service that stopped mid badge never outlives it.
+        Fast tick: one flag and one clock read unless the badge is up.
+        </remarks>
+        """
+        if self._badge_pending:
+            self._badge_pending = False
+            if xbmc.getCondVisibility("Skin.HasSetting(show_start_badge) + Player.HasVideo + !VideoPlayer.Content(livetv)"):
+                self._badge_until = time.monotonic() + self.START_BADGE_SECS
+                _set_home_property("start_badge", "1")
+                return
+            if self._badge_until is not None:
+                self._badge_until = None
+                _set_home_property("start_badge", "")
+                return
+        if self._badge_until is None:
+            return
+        if (time.monotonic() >= self._badge_until
+                or not xbmc.getCondVisibility("Skin.HasSetting(show_start_badge) + Player.HasVideo")):
+            self._badge_until = None
+            _set_home_property("start_badge", "")
+
     def update_sleep_timer(self):
         """
         <summary>
@@ -9281,6 +9335,11 @@ def run():
         return
     # Once, after the grace: a file write and one Home property.
     helper.write_dedication()
+    # START-BADGE: a badge left up by a service that stopped mid count would
+    # never be taken down by this one, which never raised it. Written only
+    # when there is something to clear, and after the grace like the rest.
+    if xbmcgui.Window(HOME_WINDOW_ID).getProperty("start_badge"):
+        _set_home_property("start_badge", "")
 
     # Polling loop for things Kodi doesn't notify on (focused item changes etc.).
     # waitForAbort returns True if Kodi is shutting down.
@@ -9328,6 +9387,9 @@ def run():
         # power menu's command must be picked up while the menu is still in
         # front of the user.
         helper.update_sleep_timer,
+        # START-BADGE: the badge goes up the tick after a video starts and
+        # comes down to the quarter second.
+        helper.update_start_badge,
         # Fast as well: it only compares a timestamp unless a refresh is
         # due, and a toggled hide_nextup should refill the row at once.
         helper.update_next_up,

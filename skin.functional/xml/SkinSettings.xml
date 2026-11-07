@@ -4422,6 +4422,42 @@
 				<onclick>Skin.ToggleSetting(fsinfo_logo)</onclick>
 				<onleft>7305</onleft>
 				<onup>7325</onup>
+				<ondown>7327</ondown>
+			</control>
+
+			<!-- START-BADGE, item 18 (07/11/2026)
+			     <summary>
+			     The switch for the start of film badge: display mode,
+			     resolution and age rating, top right for the first seconds
+			     of a video.
+			     </summary>
+			     <remarks>
+			     Under the info card rows in the right column. Left goes to the
+			     row beside it.
+			     </remarks> -->
+			<control type="radiobutton" id="7327">
+				<left>1380</left>
+				<top>550</top>
+				<width>460</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31830</label>
+				<selected>Skin.HasSetting(show_start_badge)</selected>
+				<onclick>Skin.ToggleSetting(show_start_badge)</onclick>
+				<onleft>7313</onleft>
+				<onup>7326</onup>
 			</control>
 
 			<!-- Sub-header: playback buffer. These buttons drive Kodi's own
