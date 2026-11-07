@@ -3293,6 +3293,34 @@
 				<onclick>Skin.ToggleSetting(lists_quick_buttons)</onclick>
 				<onleft>7000</onleft>
 				<onup>7235</onup>
+				<ondown>7239</ondown>
+			</control>
+			<!-- LISTS-TIME-SLEEP (07/11/2026): Port by Time asks
+			     whether to power down when the queue finishes. Off by
+			     default; read by service.py:_lists_port_time. -->
+			<control type="radiobutton" id="7239">
+				<left>440</left>
+				<top>510</top>
+				<width>900</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31832</label>
+				<selected>Skin.HasSetting(lists_time_sleep)</selected>
+				<onclick>Skin.ToggleSetting(lists_time_sleep)</onclick>
+				<onleft>7000</onleft>
+				<onup>7238</onup>
 				<ondown>7236</ondown>
 			</control>
 			<!-- Lists on another box: export copies lists.json to a folder Kodi
@@ -3300,7 +3328,7 @@
 			     (service.py:_lists_export, _lists_import). -->
 			<control type="button" id="7236">
 				<left>440</left>
-				<top>510</top>
+				<top>580</top>
 				<width>440</width>
 				<height>60</height>
 				<font>font_reg</font>
@@ -3316,12 +3344,12 @@
 				<onclick>Skin.SetString(list_command,export)</onclick>
 				<onleft>7000</onleft>
 				<onright>7237</onright>
-				<onup>7238</onup>
+				<onup>7239</onup>
 				<ondown>7124</ondown>
 			</control>
 			<control type="button" id="7237">
 				<left>900</left>
-				<top>510</top>
+				<top>580</top>
 				<width>440</width>
 				<height>60</height>
 				<font>font_reg</font>
@@ -3337,14 +3365,14 @@
 				<onclick>Skin.SetString(list_command,import)</onclick>
 				<onleft>7236</onleft>
 				<onright>7237</onright>
-				<onup>7238</onup>
+				<onup>7239</onup>
 				<ondown>7124</ondown>
 			</control>
 
 			<!-- ===== FAVOURITES ===== -->
 			<control type="label">
 				<left>440</left>
-				<top>590</top>
+				<top>660</top>
 				<width>900</width>
 				<height>40</height>
 				<font>font_small</font>
@@ -3356,7 +3384,7 @@
 			     from. Cycle: All, Movies, TV, Music, Apps, Other. -->
 			<control type="button" id="7124">
 				<left>440</left>
-				<top>630</top>
+				<top>700</top>
 				<width>900</width>
 				<height>60</height>
 				<font>font_reg</font>
@@ -3382,7 +3410,7 @@
 
 			<control type="label">
 				<left>440</left>
-				<top>700</top>
+				<top>770</top>
 				<width>900</width>
 				<height>60</height>
 				<font>font_small</font>

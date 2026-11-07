@@ -1091,6 +1091,19 @@ class FunctionalHelper(xbmc.Monitor):
         # ran late by the size of the step.
         self._sleep_deadline = None
         self._sleep_episodes = 0      # natural playback ends still to wait for, 0 = not in that mode
+        # LISTS-TIME-SLEEP (07/11/2026): power down when the queue
+        # runs out, the third mode, never with either of the other two.
+        self._sleep_queue = False
+        self._sleep_queue_check = None  # time.monotonic() the warning runs out, None = last item not ended
+        self._sleep_queue_len = None    # Playlist.Length(video) of the queue, None = not seen yet
+        self._sleep_queue_on_last = False  # the item playing at the last tick was the queue's last
+        self._sleep_queue_stopped = False  # the viewer stopped the last item by hand
+        self._sleep_queue_started = False  # Kodi announced a start while the warning ran
+        # One lock for the timer's state, which three threads touch: the
+        # loop, the dialog thread (the prompts, Port by Time) and Kodi's
+        # notification thread (Player.OnStop). Reentrant, because arming
+        # disarms first.
+        self._sleep_lock = threading.RLock()
         self._sleep_fire_pending = False  # the last end arrived on the notification thread
         self._sleep_warned = False    # the one-minute toast has been shown
         self._sleep_published = ""    # countdown label currently on screen
@@ -1220,6 +1233,12 @@ class FunctionalHelper(xbmc.Monitor):
         if method == "Player.OnAVStart":
             # START-BADGE: only a flag here; update_start_badge decides on the loop.
             self._badge_pending = True
+        if method in ("Player.OnPlay", "Player.OnAVStart") and self._sleep_queue_check is not None:
+            # LISTS-TIME-SLEEP: something started during the warning, so
+            # somebody is there or the evening has moved on. Kodi's own
+            # announcement, because Player.HasMedia can still read true for
+            # a moment while the player that just ended closes down.
+            self._sleep_queue_started = True
 
     # -- Handlers -----------------------------------------------------------
 
@@ -5153,7 +5172,16 @@ class FunctionalHelper(xbmc.Monitor):
         evening set to three hours runs slightly over rather than short.
         A list whose whole content is shorter than the target is queued
         in full, and the notification reports what was actually
-        achieved.</remarks>"""
+        achieved.
+
+        LISTS-TIME-SLEEP: with Skin.HasSetting(lists_time_sleep) on, a
+        queue that went in with videos in it (a music list is not asked
+        about: the timer follows the video playlist) is followed by a yes
+        or no question, and yes
+        arms the sleep timer for the end of the queue (_sleep_arm_queue).
+        No calls off a queue timer armed for an earlier Port by Time and
+        leaves the other two modes alone; the switch off asks nothing and
+        changes nothing.</remarks>"""
         idx, lst = self._lists_selected()
         if not lst:
             return
@@ -5183,8 +5211,18 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("list fill: %s target %s picked %d of %d, total %s" % (
             lst["name"], self._fmt_hhmm(minutes), len(picked), len(items),
             self._fmt_secs(total)))
-        self._lists_queue(lst, picked, _L(31380),
-                          extra=[self._fmt_secs(total)] if total else None)
+        queued = self._lists_queue(lst, picked, _L(31380),
+                                   extra=[self._fmt_secs(total)] if total else None)
+        # LISTS-TIME-SLEEP (07/11/2026): off by default. With the
+        # switch on, a filled evening offers to power the box down after it.
+        if (queued and xbmc.getCondVisibility("Skin.HasSetting(lists_time_sleep)")
+                and self._safe_int(xbmc.getInfoLabel("Playlist.Length(video)"), 0) > 0):
+            if xbmcgui.Dialog().yesno(_L(31424), _L(31834)):
+                self._sleep_arm_queue()
+            elif self._sleep_queue:
+                # No is an answer about this queue: a power down armed for
+                # an earlier one must not carry over to it.
+                self._sleep_disarm(announce=True)
 
     @staticmethod
     def _lists_pick_for_duration(items, target_secs):
@@ -5217,9 +5255,11 @@ class FunctionalHelper(xbmc.Monitor):
         the existing queue goes first; unset means ask, with a Cancel. Video
         items go to the video queue and songs to the music queue; the video
         queue starts if it got anything, else the music one. With "keep"
-        and something already playing, the items are only appended.</remarks>"""
+        and something already playing, the items are only appended.</remarks>
+        <returns>True when the items went into the queue, False when there
+        were none or the clear or keep question was cancelled.</returns>"""
         if not items:
-            return
+            return False
         mode = xbmc.getInfoLabel("Skin.String(list_port_clear)")
         if mode not in ("clear", "keep"):
             answer = xbmcgui.Dialog().yesnocustom(
@@ -5227,7 +5267,7 @@ class FunctionalHelper(xbmc.Monitor):
                 _L(31347),
                 customlabel=_L(31348), nolabel=_L(31349), yeslabel=_L(31350))
             if answer in (-1, 2):
-                return
+                return False
             mode = "clear" if answer == 1 else "keep"
         groups = {"video": [it for it in items if it["kind"] == "video"],
                   "music": [it for it in items if it["kind"] == "music"]}
@@ -5268,6 +5308,7 @@ class FunctionalHelper(xbmc.Monitor):
         counts.extend(extra or [])
         self._lists_notify(_L(31357) % (verb, lst["name"], ", ".join(counts)))
         _dlog("list queued: %s mode=%s %s" % (lst["name"], mode, counts))
+        return True
 
     def _lists_item_menu(self, row):
         """<summary>Action menu for one row of the selected list: play it
@@ -7027,6 +7068,9 @@ class FunctionalHelper(xbmc.Monitor):
     SLEEP_EPISODES_DEFAULT = 2
     # How long before power off the one warning toast appears.
     SLEEP_WARN_SECS = 60
+    # LISTS-TIME-SLEEP: the warning after the queue's last item ends by
+    # itself; the box powers down at its end only if it ran undisturbed.
+    SLEEP_QUEUE_GRACE_SECS = 10
 
     START_BADGE_SECS = 6.0   # how long the start of film badge stays up
 
@@ -7091,13 +7135,17 @@ class FunctionalHelper(xbmc.Monitor):
         blocking Python dialogs and go through _spawn_dialog, or they would
         stall every other handler for as long as they are open.
 
-        Two modes, never both: a clock deadline, or a count of natural
-        playback ends. The count is driven by Player.OnStop with "end" true
-        (Kodi's own flag for "reached the end", a manual stop leaves the
-        count alone), decremented on the notification thread and acted on
-        here, on the loop, through _sleep_fire_pending. In episode mode the
-        countdown label is "1 ep" or "N eps", and the one minute warning
-        comes from Player.TimeRemaining of the last episode.
+        Three modes, only ever one at a time: a clock deadline, a count of
+        natural playback ends, or the end of a queue from Port by Time
+        (LISTS-TIME-SLEEP, see _sleep_queue_tick). The count is driven by
+        Player.OnStop with "end" true (Kodi's own flag for "reached the
+        end", a manual stop leaves the count alone), decremented on the
+        notification thread and acted on here, on the loop, through
+        _sleep_fire_pending. In episode mode the countdown label is "1 ep"
+        or "N eps", and the one minute warning comes from
+        Player.TimeRemaining of the last episode. In queue mode it is
+        "Queue", and the warning is the ten seconds after the last item
+        ends.
 
         The deadline lives in memory, not in a skin string, on purpose. A
         sleep timer means "power this box down in a while", so it has nothing
@@ -7115,7 +7163,9 @@ class FunctionalHelper(xbmc.Monitor):
         _sleep_deadline is written by the dialog thread and read here. A bare
         float assignment is atomic under the GIL, and a tick that reads the
         old value simply publishes one countdown that is a quarter-second
-        stale, so no lock is warranted.
+        stale. What does need _sleep_lock is a read then write across
+        threads that can end in a power down: the stop handler's count and
+        queue checks against a Cancel or a new arm landing in between.
         </remarks>
         """
         cmd = self._take_command("sleep_command")
@@ -7134,6 +7184,10 @@ class FunctionalHelper(xbmc.Monitor):
         if self._sleep_fire_pending:
             self._sleep_fire_pending = False
             self._sleep_fire()
+            return
+
+        if self._sleep_queue:
+            self._sleep_queue_tick()
             return
 
         if self._sleep_episodes > 0:
@@ -7221,41 +7275,58 @@ class FunctionalHelper(xbmc.Monitor):
         # in update_sleep_timer, so a clock timer set over it was confirmed
         # with a toast and then ignored: the label flipped back to the
         # episode count and the box never powered down on the clock.
-        self._sleep_episodes = 0
-        self._sleep_fire_pending = False
-        self._sleep_warned = minutes * 60 <= self.SLEEP_WARN_SECS
-        self._sleep_published = self._fmt_countdown(minutes * 60)
-        _set_home_property("sleep_remaining", self._sleep_published)
-        self._sleep_deadline = time.monotonic() + minutes * 60
+        with self._sleep_lock:
+            self._sleep_disarm()
+            self._sleep_warned = minutes * 60 <= self.SLEEP_WARN_SECS
+            self._sleep_published = self._fmt_countdown(minutes * 60)
+            _set_home_property("sleep_remaining", self._sleep_published)
+            self._sleep_deadline = time.monotonic() + minutes * 60
         _dlog("sleep timer: armed for {0}".format(self._fmt_hhmm(minutes)))
         self._sleep_notify(_L(31427).format(self._fmt_hhmm(minutes)))
 
     def _sleep_on_stop(self, data):
         """
         <summary>
-        Player.OnStop handler for episode mode: count a natural end, and ask
-        the loop to fire when the count reaches zero.
+        Player.OnStop handler for episode and queue mode: count a natural
+        end, or note that the queue's last item has ended or been stopped.
         </summary>
         <param name="data">The event's JSON payload; "end" is Kodi's flag for playback having reached the end.</param>
         <remarks>
         Runs on Kodi's notification thread, so it only moves a counter and
-        sets a flag; the loop republishes the label and does the powering
+        sets flags; the loop republishes the label and does the powering
         down. A stop the viewer made is not an end: the count waits for the
-        next episode to finish instead.
+        next episode to finish instead. In queue mode only the last item
+        counts (_sleep_queue_on_last, kept by the loop): its natural end
+        starts the warning, a stop by hand calls the timer off, and an end
+        between items is ignored, however long the next one takes to start.
+
+        Everything is read and written under _sleep_lock, so a Cancel or a
+        new arm on another thread cannot land between the check and the
+        decrement and leave a power down pending that nobody asked for.
         </remarks>
         """
-        if self._sleep_episodes <= 0:
-            return
         try:
             ended = bool((json.loads(data or "{}") or {}).get("end"))
         except (TypeError, ValueError):
             ended = False
-        if not ended:
-            return
-        self._sleep_episodes -= 1
-        _dlog("sleep timer: playback ended, {0} to go".format(self._sleep_episodes))
-        if self._sleep_episodes <= 0:
-            self._sleep_fire_pending = True
+        with self._sleep_lock:
+            if self._sleep_queue:
+                if not self._sleep_queue_on_last:
+                    return
+                if ended:
+                    self._sleep_queue_started = False
+                    self._sleep_queue_check = time.monotonic() + self.SLEEP_QUEUE_GRACE_SECS
+                    _dlog("sleep timer: the queue's last item ended, warning for {0}s".format(
+                        self.SLEEP_QUEUE_GRACE_SECS))
+                else:
+                    self._sleep_queue_stopped = True
+                return
+            if self._sleep_episodes <= 0 or not ended:
+                return
+            self._sleep_episodes -= 1
+            _dlog("sleep timer: playback ended, {0} to go".format(self._sleep_episodes))
+            if self._sleep_episodes <= 0:
+                self._sleep_fire_pending = True
 
     def _sleep_arm_episodes(self, count):
         """
@@ -7268,12 +7339,130 @@ class FunctionalHelper(xbmc.Monitor):
         if count <= 0:
             self._sleep_disarm(announce=True)
             return
-        self._sleep_disarm()
-        self._sleep_episodes = count
-        self._sleep_published = (_L(31475) if count == 1 else _L(31476)).format(count)
-        _set_home_property("sleep_remaining", self._sleep_published)
+        with self._sleep_lock:
+            self._sleep_disarm()
+            self._sleep_episodes = count
+            self._sleep_published = (_L(31475) if count == 1 else _L(31476)).format(count)
+            _set_home_property("sleep_remaining", self._sleep_published)
         _dlog("sleep timer: armed for {0} episode(s)".format(count))
         self._sleep_notify(_L(31473) if count == 1 else _L(31474).format(count))
+
+    def _sleep_arm_queue(self):
+        """
+        <summary>
+        LISTS-TIME-SLEEP (07/11/2026): arm the timer to power down
+        when the queue runs out.
+        </summary>
+        <remarks>
+        Armed from Port by Time when the viewer says yes to the question
+        Skin.HasSetting(lists_time_sleep) turns on. The queue is known by
+        the video playlist's length, read here, and the timer is armed only
+        while an item of it plays: a queue that finished while the question
+        was open, or one of music, is refused with a toast rather than left
+        to latch on to whatever plays next. See _sleep_queue_tick for when
+        it fires and what calls it off.
+        </remarks>
+        """
+        pos = self._safe_int(xbmc.getInfoLabel("Playlist.Position(video)"), 0)
+        length = self._safe_int(xbmc.getInfoLabel("Playlist.Length(video)"), 0)
+        if not xbmc.getCondVisibility("Player.HasMedia") or pos <= 0 or length <= 0:
+            _dlog("sleep timer: no video queue is playing, not arming")
+            self._sleep_notify(_L(31838))
+            return
+        with self._sleep_lock:
+            self._sleep_disarm()
+            self._sleep_queue = True
+            self._sleep_queue_len = length
+            self._sleep_published = _L(31836)
+            _set_home_property("sleep_remaining", self._sleep_published)
+        _dlog("sleep timer: armed for the end of the queue")
+        self._sleep_notify(_L(31835))
+
+    def _sleep_queue_tick(self):
+        """
+        <summary>
+        LISTS-TIME-SLEEP (07/11/2026): queue mode's part of the loop. Power
+        down only after the queue's last item has ended by itself, nobody
+        has touched the box for the ten seconds after, and nothing is
+        playing.
+        </summary>
+        <remarks>
+        While something plays, the tick reads Playlist.Position(video) and
+        Playlist.Length(video). Kodi counts the position from 1 and blanks
+        it once the player is empty (seen live, 07/11/2026), so a position
+        of 0 while something plays, or a length other than the queue's,
+        means something other than the queue is playing: a film picked
+        from the library replaces the playlist with itself. That calls the
+        timer off, since the evening is no longer the one the question was
+        about. Otherwise the tick notes whether the item playing is the
+        last one, which is all the stop handler needs: an end between items
+        is never acted on, so a slow next item cannot power the box down.
+
+        After the last item's natural end a toast gives ten seconds' warning
+        (SLEEP_QUEUE_GRACE_SECS) and stays up for all of them. Every tick of
+        it looks for a key (System.IdleTime(1), which a keypress holds false
+        for a second, so four ticks see it) and for a start Kodi announced
+        (_sleep_queue_started, from onNotification); either calls the timer
+        off with a toast, since somebody is there. Player.HasMedia is not
+        read during the warning, because the player that just ended can
+        still show for a moment while it closes; at the end, anything still
+        playing calls it off too. Under repeat there is no warning: the
+        queue never ends. A stop by hand on the last item calls it off as
+        well. Kodi clears the finished playlist about three seconds after
+        the end; nothing here needs it by then.
+
+        A ReloadSkin drops Home properties, and with them the "Queue"
+        readout and the power menu's Cancel row, so the label is put back
+        whenever the property has lost it, under the lock so a disarm on
+        the dialog thread cannot be undone by it.
+        </remarks>
+        """
+        fire = False
+        with self._sleep_lock:
+            if not self._sleep_queue:
+                return  # disarmed on another thread since the loop looked
+            if xbmcgui.Window(HOME_WINDOW_ID).getProperty("sleep_remaining") != self._sleep_published:
+                _set_home_property("sleep_remaining", self._sleep_published)
+            if self._sleep_queue_stopped:
+                _dlog("sleep timer: the queue's last item was stopped by hand")
+                self._sleep_disarm(announce=True)
+                return
+            if self._sleep_queue_check is not None:
+                # The warning. Player.HasMedia is not read until its end:
+                # the player that just ended can still show for a moment.
+                if self._sleep_queue_started:
+                    _dlog("sleep timer: something started during the warning, not powering down")
+                    self._sleep_disarm(announce=True)
+                    return
+                if not self._sleep_warned:
+                    if xbmc.getCondVisibility("Playlist.IsRepeat | Playlist.IsRepeatOne"):
+                        # Repeat never ends; the next item is on its way.
+                        self._sleep_queue_check = None
+                        return
+                    self._sleep_warned = True
+                    self._sleep_notify(_L(31837), self.SLEEP_QUEUE_GRACE_SECS * 1000)
+                if not xbmc.getCondVisibility("System.IdleTime(1)"):
+                    _dlog("sleep timer: a key was pressed during the warning, not powering down")
+                    self._sleep_disarm(announce=True)
+                    return
+                if time.monotonic() < self._sleep_queue_check:
+                    return
+                self._sleep_queue_check = None
+                if xbmc.getCondVisibility("Player.HasMedia"):
+                    _dlog("sleep timer: something is playing after the warning, not powering down")
+                    self._sleep_disarm(announce=True)
+                    return
+                fire = True
+            elif xbmc.getCondVisibility("Player.HasMedia"):
+                pos = self._safe_int(xbmc.getInfoLabel("Playlist.Position(video)"), 0)
+                length = self._safe_int(xbmc.getInfoLabel("Playlist.Length(video)"), 0)
+                if pos <= 0 or length != self._sleep_queue_len:
+                    _dlog("sleep timer: something other than the queue is playing")
+                    self._sleep_disarm(announce=True)
+                    return
+                self._sleep_queue_on_last = pos == length
+        if fire:
+            self._sleep_fire()
 
     def _sleep_pick_episodes(self):
         """
@@ -7301,18 +7490,27 @@ class FunctionalHelper(xbmc.Monitor):
     def _sleep_disarm(self, announce=False):
         """
         <summary>
-        Stop any running timer, in either mode, and clear the countdown.
+        Stop any running timer, in whichever of the three modes, and clear
+        the countdown.
         </summary>
         <param name="announce">True to toast, but only if a timer was actually
         running, so "cancel" on an idle skin stays silent.</param>
         """
-        was_armed = self._sleep_deadline is not None or self._sleep_episodes > 0
-        self._sleep_deadline = None
-        self._sleep_episodes = 0
-        self._sleep_fire_pending = False
-        self._sleep_warned = False
-        self._sleep_published = ""
-        _set_home_property("sleep_remaining", "")
+        with self._sleep_lock:
+            was_armed = (self._sleep_deadline is not None or self._sleep_episodes > 0
+                         or self._sleep_queue)
+            self._sleep_deadline = None
+            self._sleep_episodes = 0
+            self._sleep_queue = False
+            self._sleep_queue_check = None
+            self._sleep_queue_len = None
+            self._sleep_queue_on_last = False
+            self._sleep_queue_stopped = False
+            self._sleep_queue_started = False
+            self._sleep_fire_pending = False
+            self._sleep_warned = False
+            self._sleep_published = ""
+            _set_home_property("sleep_remaining", "")
         if was_armed:
             _dlog("sleep timer: cancelled")
             if announce:
@@ -7321,8 +7519,9 @@ class FunctionalHelper(xbmc.Monitor):
     def _sleep_fire(self):
         """
         <summary>
-        The timer has run out, or the last episode has ended: stop
-        playback, then power the box down.
+        The timer has run out, the last episode has ended, or the queue's
+        last item has ended with nobody at the box: stop playback, then
+        power the box down.
         </summary>
         <remarks>
         Disarmed first, so a Powerdown that the platform refuses (no
@@ -7344,14 +7543,17 @@ class FunctionalHelper(xbmc.Monitor):
         xbmc.executebuiltin("Powerdown")
 
     @staticmethod
-    def _sleep_notify(text):
+    def _sleep_notify(text, ms=3500):
         """
         <summary>
         Short toast from the sleep timer, under the timer's own heading.
         </summary>
+        <param name="text">The message.</param>
+        <param name="ms">How long it stays up; the queue's ten second
+        warning stays for all ten.</param>
         """
         xbmcgui.Dialog().notification(_L(31424), text,
-                                      xbmcgui.NOTIFICATION_INFO, 3500)
+                                      xbmcgui.NOTIFICATION_INFO, ms)
 
     # ---- Background command handler -------------------------------------
 
