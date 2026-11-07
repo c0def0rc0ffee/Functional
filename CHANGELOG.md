@@ -11,6 +11,16 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.17 (07/11/2026)
+
+- New Close Info Panel After setting under Skin Settings, Playback, Off
+  by default. Set to 5, 10, 20 or 30 seconds, the info panel you open with
+  Info during a video closes itself after that time.
+- New Title Logo on Info Panel switch beside it, off by default. Switched
+  on, the info panel shows a film's logo in place of its title when the
+  film has one. Episodes and other videos keep their title. Left off,
+  the info panel looks as before.
+
 ## 0.23.16 (07/11/2026)
 
 - New Show Sleep Button switch under Skin Settings, Playback, off by

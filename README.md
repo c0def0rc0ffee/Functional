@@ -147,7 +147,7 @@ All settings live in **Settings > Skin Settings**, organised into seven categori
 - **Home Screen**: the stats panels and Continue Watching; logo, date/time, weather widget, greeting beside the clock (off by default), footer and loading splash; the sleep timer and its countdown
 - **Library**: gallery thumbnail size, small-grid column count, poster shape, rounded corners for posters and thumbnails (off by default), context menu position (centre or left edge), default sort order and direction for Movies and TV Shows, info bar position and toggles for every metadata field, 4K, HDR and resolution badges on the gallery posters (off by default), and title age on the info screens
 - **Lists and Favourites**: where the Lists screen keeps its action buttons, what porting a list does to the current queue, and the default Favourites filter
-- **Playback**: OSD position, OSD thumbnail, the video dim level, a progress bar with chapter marks on the OSD and seek bar (off by default), a sleep timer button on the OSD (off by default), and the Playback Buffer section (buffer level on the OSD, the Full Buffer button, reset to Kodi defaults)
+- **Playback**: OSD position, OSD thumbnail, the video dim level, a progress bar with chapter marks on the OSD and seek bar (off by default), a sleep timer button on the OSD (off by default), an info panel that closes itself and a film's logo on it (both off by default), and the Playback Buffer section (buffer level on the OSD, the Full Buffer button, reset to Kodi defaults)
 
 Toggle settings show an accent **dot** when on. Most changes apply immediately; a few service-backed ones take effect on the next launch.
 

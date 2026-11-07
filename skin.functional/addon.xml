@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.16" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.17" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,8 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New Show Sleep Button switch under Skin Settings, Playback, off by default. Switched on, the video OSD gets a moon button left of Previous that opens the sleep timer choices, so a timer can be set or cancelled without leaving the film. Left off, the OSD and the power menu look as before.</news>
+		<news>New Close Info Panel After setting under Skin Settings, Playback, Off by default. Set to 5, 10, 20 or 30 seconds, the info panel you open with Info during a video closes itself after that time.
+New Title Logo on Info Panel switch beside it, off by default. Switched on, the info panel shows a film's logo in place of its title when the film has one. Episodes and other videos keep their title. Left off, the info panel looks as before.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
