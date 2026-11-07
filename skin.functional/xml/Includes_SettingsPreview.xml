@@ -66,7 +66,12 @@
 	     the three coming up rows, which change the coming up list drawn in
 	     Home.xml outside the stage's includes from another add-on's live
 	     data. Radarr: four form fields and two actions. -->
-	<expression name="settings_preview_none">Control.HasFocus(7320) | Control.HasFocus(7310) | Control.HasFocus(7311) | Control.HasFocus(7312) | Control.HasFocus(7314) | Control.HasFocus(7315) | Control.HasFocus(7317) | Control.HasFocus(7322) | Control.HasFocus(7221) | Control.HasFocus(7230) | Control.HasFocus(7231) | Control.HasFocus(7232) | Control.HasFocus(7233) | Control.HasFocus(7306) | Control.HasFocus(7307) | Control.HasFocus(7308) | Control.HasFocus(7309) | Control.HasFocus(7207) | Control.HasFocus(7316) | Control.HasFocus(7234) | Control.HasFocus(7235) | Control.HasFocus(7238) | Control.HasFocus(7236) | Control.HasFocus(7237) | Control.HasFocus(7124) | Control.HasFocus(7406) | Control.HasFocus(7150) | Control.HasFocus(7179) | Control.HasFocus(7180) | Control.HasFocus(7181) | Control.HasFocus(7400) | Control.HasFocus(7401) | Control.HasFocus(7402) | Control.HasFocus(7403) | Control.HasFocus(7404) | Control.HasFocus(7405)</expression>
+	<!-- INFO-AUTO-CLOSE, item 19 (07/11/2026)
+	     <summary>No preview for the info card's two rows: how long the card
+	     stays is a time, not a picture, and a film's logo exists only on a
+	     film in the user's library, so no picture of it can be taken that
+	     does not ship a slice of the user's library.</summary> -->
+	<expression name="settings_preview_none">Control.HasFocus(7325) | Control.HasFocus(7326) | Control.HasFocus(7320) | Control.HasFocus(7310) | Control.HasFocus(7311) | Control.HasFocus(7312) | Control.HasFocus(7314) | Control.HasFocus(7315) | Control.HasFocus(7317) | Control.HasFocus(7322) | Control.HasFocus(7221) | Control.HasFocus(7230) | Control.HasFocus(7231) | Control.HasFocus(7232) | Control.HasFocus(7233) | Control.HasFocus(7306) | Control.HasFocus(7307) | Control.HasFocus(7308) | Control.HasFocus(7309) | Control.HasFocus(7207) | Control.HasFocus(7316) | Control.HasFocus(7234) | Control.HasFocus(7235) | Control.HasFocus(7238) | Control.HasFocus(7236) | Control.HasFocus(7237) | Control.HasFocus(7124) | Control.HasFocus(7406) | Control.HasFocus(7150) | Control.HasFocus(7179) | Control.HasFocus(7180) | Control.HasFocus(7181) | Control.HasFocus(7400) | Control.HasFocus(7401) | Control.HasFocus(7402) | Control.HasFocus(7403) | Control.HasFocus(7404) | Control.HasFocus(7405)</expression>
 	<!-- The pictures, written by the generator's table in build_preview_art.py:
 	     the large one is what OK would give (a toggle the other way round, a
 	     picker as it is), the small one how a toggle is now. -->

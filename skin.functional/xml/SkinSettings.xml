@@ -4357,6 +4357,71 @@
 				<enable>!Skin.HasSetting(hide_sleep_timer)</enable>
 				<onleft>7303</onleft>
 				<onup>7323</onup>
+				<ondown>7325</ondown>
+			</control>
+
+			<!-- INFO-AUTO-CLOSE, item 19 (07/11/2026)
+			     <summary>
+			     The fullscreen info card's two switches: how long it stays
+			     before closing itself, and a film's logo in place of its
+			     title.
+			     </summary>
+			     <remarks>
+			     Under the sleep button row in the right column. Left goes to
+			     the row beside each. The picker cycles Off, 5, 10, 20, 30
+			     seconds and back to Off; see DialogFullScreenInfo.xml for the
+			     alarm.
+			     </remarks> -->
+			<control type="button" id="7325">
+				<left>1380</left>
+				<top>390</top>
+				<width>460</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[31826] $VAR[FsInfoCloseLabel]</label>
+				<onclick condition="String.IsEmpty(Skin.String(fsinfo_close))">Skin.SetString(fsinfo_close,05)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(fsinfo_close),05)">Skin.SetString(fsinfo_close,10)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(fsinfo_close),10)">Skin.SetString(fsinfo_close,20)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(fsinfo_close),20)">Skin.SetString(fsinfo_close,30)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(fsinfo_close),30)">Skin.Reset(fsinfo_close)</onclick>
+				<!-- Any other value, which only a hand edit can leave, shows
+				     as Off and goes back to Off on OK, so the row never sticks. -->
+				<onclick condition="!String.IsEmpty(Skin.String(fsinfo_close)) + !String.IsEqual(Skin.String(fsinfo_close),05) + !String.IsEqual(Skin.String(fsinfo_close),10) + !String.IsEqual(Skin.String(fsinfo_close),20) + !String.IsEqual(Skin.String(fsinfo_close),30)">Skin.Reset(fsinfo_close)</onclick>
+				<onleft>7304</onleft>
+				<onup>7324</onup>
+				<ondown>7326</ondown>
+			</control>
+			<control type="radiobutton" id="7326">
+				<left>1380</left>
+				<top>470</top>
+				<width>460</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31828</label>
+				<selected>Skin.HasSetting(fsinfo_logo)</selected>
+				<onclick>Skin.ToggleSetting(fsinfo_logo)</onclick>
+				<onleft>7305</onleft>
+				<onup>7325</onup>
 			</control>
 
 			<!-- Sub-header: playback buffer. These buttons drive Kodi's own

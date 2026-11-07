@@ -9,7 +9,8 @@ the row and is reached with Left from Previous; it opens the power menu in
 its sleep only form, which hides the power rows, leaves the sleep rows'
 visibility alone, renames the first of them, and is cleared by the menu's
 onunload and by every other opener; the settings row toggles its own
-switch, has its label and help line, and leads to and from the row above.
+switch, has its label and help line, and leads to and from the rows above and
+below it.
 </summary>
 <remarks>
 No Kodi is needed; the XML is read with ElementTree and as text. Whether the
@@ -298,8 +299,13 @@ def test_row():
         fail("row %s runs past the page edge or into the caching note at y 680" % ROW)
     if above.findtext("ondown") != ROW or row.findtext("onup") != "7323":
         fail("rows 7323 and %s do not lead to each other" % ROW)
-    if row.findtext("onleft") != "7303" or row.find("onright") is not None or row.find("ondown") is not None:
-        fail("row %s should go left to 7303 and nowhere right or down" % ROW)
+    if row.findtext("onleft") != "7303" or row.find("onright") is not None:
+        fail("row %s should go left to 7303 and nowhere right" % ROW)
+    below = settings.get(row.findtext("ondown") or "")
+    if row.find("ondown") is not None and (below is None or below.findtext("left") != row.findtext("left")
+                                           or int(below.findtext("top")) != top + int(row.findtext("height")) + 10
+                                           or below.findtext("onup") != ROW):
+        fail("down from row %s should go nowhere, or to the row straight under it, which leads back" % ROW)
 
 
 if __name__ == "__main__":

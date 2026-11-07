@@ -3073,3 +3073,19 @@ msgstr ""
 msgctxt "#31825"
 msgid "Sleep After a Set Time…"
 msgstr ""
+
+msgctxt "#31826"
+msgid "Close Info Panel After:"
+msgstr ""
+
+msgctxt "#31827"
+msgid "Closes the info panel you open with Info during a video after this many seconds. Off leaves it open until you close it.[CR]Where: the full screen info card."
+msgstr ""
+
+msgctxt "#31828"
+msgid "Title Logo on Info Panel"
+msgstr ""
+
+msgctxt "#31829"
+msgid "Shows a film's logo in place of its title on the info panel, when the film has one. Episodes and other videos keep their title.[CR]Where: the full screen info card."
+msgstr ""
