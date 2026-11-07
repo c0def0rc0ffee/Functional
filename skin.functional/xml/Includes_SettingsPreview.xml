@@ -46,7 +46,7 @@
 	     debug overlay (7208), none of which the stage can show. -->
 	<!-- Sub item 4: the Library and Playback pages join. The rows here are
 	     exactly the generator's table; the test keeps the two in step. -->
-	<expression name="settings_preview_image">Control.HasFocus(7323) | Control.HasFocus(7115) | Control.HasFocus(7133) | Control.HasFocus(7134) | Control.HasFocus(7135) | Control.HasFocus(7141) | Control.HasFocus(7142) | Control.HasFocus(7200) | Control.HasFocus(7201) | Control.HasFocus(7202) | Control.HasFocus(7203) | Control.HasFocus(7204) | Control.HasFocus(7205) | Control.HasFocus(7206) | Control.HasFocus(7208) | Control.HasFocus(7209) | Control.HasFocus(7210) | Control.HasFocus(7211) | Control.HasFocus(7212) | Control.HasFocus(7220) | Control.HasFocus(7222) | Control.HasFocus(7223) | Control.HasFocus(7224) | Control.HasFocus(7302) | Control.HasFocus(7303) | Control.HasFocus(7304) | Control.HasFocus(7305) | Control.HasFocus(7313) | Control.HasFocus(7318) | Control.HasFocus(7330) | Control.HasFocus(7331) | Control.HasFocus(7332)</expression>
+	<expression name="settings_preview_image">Control.HasFocus(7324) | Control.HasFocus(7323) | Control.HasFocus(7115) | Control.HasFocus(7133) | Control.HasFocus(7134) | Control.HasFocus(7135) | Control.HasFocus(7141) | Control.HasFocus(7142) | Control.HasFocus(7200) | Control.HasFocus(7201) | Control.HasFocus(7202) | Control.HasFocus(7203) | Control.HasFocus(7204) | Control.HasFocus(7205) | Control.HasFocus(7206) | Control.HasFocus(7208) | Control.HasFocus(7209) | Control.HasFocus(7210) | Control.HasFocus(7211) | Control.HasFocus(7212) | Control.HasFocus(7220) | Control.HasFocus(7222) | Control.HasFocus(7223) | Control.HasFocus(7224) | Control.HasFocus(7302) | Control.HasFocus(7303) | Control.HasFocus(7304) | Control.HasFocus(7305) | Control.HasFocus(7313) | Control.HasFocus(7318) | Control.HasFocus(7330) | Control.HasFocus(7331) | Control.HasFocus(7332)</expression>
 	<!-- Rows with no preview on purpose: the custom accent picker, the log
 	     folder rows, debug logging, the backup rows, Reduce Motion (motion is
 	     not a picture) and Preview Settings itself. -->
@@ -70,7 +70,7 @@
 	<!-- The pictures, written by the generator's table in build_preview_art.py:
 	     the large one is what OK would give (a toggle the other way round, a
 	     picker as it is), the small one how a toggle is now. -->
-	<expression name="settings_preview_image_toggle">Control.HasFocus(7323) | Control.HasFocus(7222) | Control.HasFocus(7318) | Control.HasFocus(7224) | Control.HasFocus(7200) | Control.HasFocus(7201) | Control.HasFocus(7202) | Control.HasFocus(7203) | Control.HasFocus(7204) | Control.HasFocus(7205) | Control.HasFocus(7206) | Control.HasFocus(7209) | Control.HasFocus(7210) | Control.HasFocus(7211) | Control.HasFocus(7212) | Control.HasFocus(7303) | Control.HasFocus(7305) | Control.HasFocus(7313) | Control.HasFocus(7115) | Control.HasFocus(7141) | Control.HasFocus(7142) | Control.HasFocus(7133) | Control.HasFocus(7135) | Control.HasFocus(7331) | Control.HasFocus(7332) | Control.HasFocus(7208)</expression>
+	<expression name="settings_preview_image_toggle">Control.HasFocus(7324) | Control.HasFocus(7323) | Control.HasFocus(7222) | Control.HasFocus(7318) | Control.HasFocus(7224) | Control.HasFocus(7200) | Control.HasFocus(7201) | Control.HasFocus(7202) | Control.HasFocus(7203) | Control.HasFocus(7204) | Control.HasFocus(7205) | Control.HasFocus(7206) | Control.HasFocus(7209) | Control.HasFocus(7210) | Control.HasFocus(7211) | Control.HasFocus(7212) | Control.HasFocus(7303) | Control.HasFocus(7305) | Control.HasFocus(7313) | Control.HasFocus(7115) | Control.HasFocus(7141) | Control.HasFocus(7142) | Control.HasFocus(7133) | Control.HasFocus(7135) | Control.HasFocus(7331) | Control.HasFocus(7332) | Control.HasFocus(7208)</expression>
 	<variable name="SettingsPreviewPicture">
 		<value condition="Control.HasFocus(7220) + String.IsEqual(Skin.String(gallery_size),small)">preview/gallery_size_small.png</value>
 		<value condition="Control.HasFocus(7220) + String.IsEqual(Skin.String(gallery_size),large)">preview/gallery_size_large.png</value>
@@ -121,6 +121,8 @@
 		<value condition="Control.HasFocus(7313) + !Skin.HasSetting(hide_osd_fullbuffer)">preview/hide_osd_fullbuffer_on.png</value>
 		<value condition="Control.HasFocus(7323) + Skin.HasSetting(show_chapter_marks)">preview/show_chapter_marks_off.png</value>
 		<value condition="Control.HasFocus(7323) + !Skin.HasSetting(show_chapter_marks)">preview/show_chapter_marks_on.png</value>
+		<value condition="Control.HasFocus(7324) + Skin.HasSetting(show_osd_sleep_button)">preview/show_osd_sleep_button_off.png</value>
+		<value condition="Control.HasFocus(7324) + !Skin.HasSetting(show_osd_sleep_button)">preview/show_osd_sleep_button_on.png</value>
 		<value condition="Control.HasFocus(7115) + Skin.HasSetting(hide_loading)">preview/hide_loading_off.png</value>
 		<value condition="Control.HasFocus(7115) + !Skin.HasSetting(hide_loading)">preview/hide_loading_on.png</value>
 		<value condition="Control.HasFocus(7141) + Skin.HasSetting(hide_sleep_timer)">preview/hide_sleep_timer_off.png</value>
@@ -186,6 +188,8 @@
 		<value condition="Control.HasFocus(7313) + !Skin.HasSetting(hide_osd_fullbuffer)">preview/hide_osd_fullbuffer_off.png</value>
 		<value condition="Control.HasFocus(7323) + Skin.HasSetting(show_chapter_marks)">preview/show_chapter_marks_on.png</value>
 		<value condition="Control.HasFocus(7323) + !Skin.HasSetting(show_chapter_marks)">preview/show_chapter_marks_off.png</value>
+		<value condition="Control.HasFocus(7324) + Skin.HasSetting(show_osd_sleep_button)">preview/show_osd_sleep_button_on.png</value>
+		<value condition="Control.HasFocus(7324) + !Skin.HasSetting(show_osd_sleep_button)">preview/show_osd_sleep_button_off.png</value>
 		<value condition="Control.HasFocus(7115) + Skin.HasSetting(hide_loading)">preview/hide_loading_on.png</value>
 		<value condition="Control.HasFocus(7115) + !Skin.HasSetting(hide_loading)">preview/hide_loading_off.png</value>
 		<value condition="Control.HasFocus(7141) + Skin.HasSetting(hide_sleep_timer)">preview/hide_sleep_timer_on.png</value>

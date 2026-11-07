@@ -6,9 +6,21 @@
   own action and visibility, over a dimmed background. The panel shows
   eight rows; scrollbar 60 appears when there are more.
   </summary>
+  <remarks>
+  The OSD sleep button (item 41) opens it in a sleep only form: with
+  Window(home).Property(sleep_menu_only) set, the power rows hide, the
+  title reads Sleep Timer and the panel behind is cut to the four rows the
+  timer can have.
+  </remarks>
 -->
 <window type="dialog">
 	<defaultcontrol always="true">9000</defaultcontrol>
+	<!-- OSD-SLEEP-BUTTON, item 41 (07/11/2026)
+	     <summary>
+	     The sleep only form ends with the menu: whichever row closed it, or
+	     Back, the next opening is the whole power menu again.
+	     </summary> -->
+	<onunload>ClearProperty(sleep_menu_only,home)</onunload>
 	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<coordinates>
@@ -32,6 +44,30 @@
 			<width>600</width>
 			<height>600</height>
 			<texture colordiffuse="bg_panel">white.png</texture>
+			<visible>String.IsEmpty(Window(home).Property(sleep_menu_only))</visible>
+		</control>
+		<!-- OSD-SLEEP-BUTTON, item 41 (07/11/2026)
+		     <summary>
+		     The sleep only panel: the title, the rows and the same 20 below
+		     them. The OSD only opens during video, so the form always has
+		     the three setting rows, and Cancel as a fourth while a timer is
+		     armed: 80 + 180 + 20, or 80 + 240 + 20.
+		     </summary> -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>600</width>
+			<height>280</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+			<visible>!String.IsEmpty(Window(home).Property(sleep_menu_only)) + !$EXP[sleep_armed]</visible>
+		</control>
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>600</width>
+			<height>340</height>
+			<texture colordiffuse="bg_panel">white.png</texture>
+			<visible>!String.IsEmpty(Window(home).Property(sleep_menu_only)) + $EXP[sleep_armed]</visible>
 		</control>
 
 		<control type="label" id="2">
@@ -42,7 +78,7 @@
 			<font>font_med</font>
 			<align>center</align>
 			<textcolor>text</textcolor>
-			<label>31040</label>
+			<label>$VAR[PowerMenuTitle]</label>
 		</control>
 
 		<!-- Panel: Kodi populates with item entries from this skin's content list.
@@ -99,32 +135,32 @@
 				<item>
 					<label>31041</label>
 					<onclick>Quit()</onclick>
-					<visible>System.ShowExitButton</visible>
+					<visible>System.ShowExitButton + String.IsEmpty(Window(home).Property(sleep_menu_only))</visible>
 				</item>
 				<item>
 					<label>31042</label>
 					<onclick>Powerdown()</onclick>
-					<visible>System.CanPowerDown</visible>
+					<visible>System.CanPowerDown + String.IsEmpty(Window(home).Property(sleep_menu_only))</visible>
 				</item>
 				<item>
 					<label>31043</label>
 					<onclick>Suspend()</onclick>
-					<visible>System.CanSuspend</visible>
+					<visible>System.CanSuspend + String.IsEmpty(Window(home).Property(sleep_menu_only))</visible>
 				</item>
 				<item>
 					<label>31044</label>
 					<onclick>Hibernate()</onclick>
-					<visible>System.CanHibernate</visible>
+					<visible>System.CanHibernate + String.IsEmpty(Window(home).Property(sleep_menu_only))</visible>
 				</item>
 				<item>
 					<label>31045</label>
 					<onclick>Reset()</onclick>
-					<visible>System.CanReboot</visible>
+					<visible>System.CanReboot + String.IsEmpty(Window(home).Property(sleep_menu_only))</visible>
 				</item>
 				<item>
 					<label>31046</label>
 					<onclick>System.LogOff</onclick>
-					<visible>System.HasLoginScreen | Integer.IsGreater(System.ProfileCount,1)</visible>
+					<visible>[System.HasLoginScreen | Integer.IsGreater(System.ProfileCount,1)] + String.IsEmpty(Window(home).Property(sleep_menu_only))</visible>
 				</item>
 				<!-- Sleep timer. The row hands the work to service.py through
 				     Skin.String(sleep_command), because the hours and minutes
