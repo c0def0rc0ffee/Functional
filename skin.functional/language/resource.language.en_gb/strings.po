@@ -3089,3 +3089,11 @@ msgstr ""
 msgctxt "#31829"
 msgid "Shows a film's logo in place of its title on the info panel, when the film has one. Episodes and other videos keep their title.[CR]Where: the full screen info card."
 msgstr ""
+
+msgctxt "#31830"
+msgid "Show Start Badge"
+msgstr ""
+
+msgctxt "#31831"
+msgid "For a few seconds after a video starts, shows its picture mode (Dolby Vision, HDR10, HLG or SDR), its resolution and its age rating.[CR]Where: the top right of the video, as it starts."
+msgstr ""

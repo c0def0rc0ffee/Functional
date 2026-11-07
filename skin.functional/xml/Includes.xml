@@ -769,6 +769,20 @@
 		<value></value>
 	</variable>
 
+	<!-- START-BADGE, item 18 (07/11/2026)
+	     <summary>Display mode on the start of film badge, from the values
+	     Kodi 21 reports for VideoPlayer.HdrType: dolbyvision, hdr10 and hlg,
+	     and empty for SDR.</summary>
+	     <remarks>Any other HDR value a later Kodi adds reads as plain HDR
+	     rather than as SDR.</remarks> -->
+	<variable name="StartBadgeModeLabel">
+		<value condition="String.IsEqual(VideoPlayer.HdrType,dolbyvision)">Dolby Vision</value>
+		<value condition="String.IsEqual(VideoPlayer.HdrType,hdr10)">HDR10</value>
+		<value condition="String.IsEqual(VideoPlayer.HdrType,hlg)">HLG</value>
+		<value condition="!String.IsEmpty(VideoPlayer.HdrType)">HDR</value>
+		<value>SDR</value>
+	</variable>
+
 	<!-- Pretty resolution label (ListItem.VideoResolution returns 480/540/576/720/1080/4K/8K) -->
 	<variable name="ItemResolutionLabel">
 		<value condition="String.IsEqual(ListItem.VideoResolution,8K)">8K</value>

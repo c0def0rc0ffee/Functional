@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  START-BADGE, item 18 (07/11/2026). The start of film badge (custom dialog
+  1155): top right for the first seconds of a video, a pill for the
+  display mode (Dolby Vision, HDR10, HLG, SDR) and one for the
+  resolution, in the OSD resolution pill's style, and the age rating under
+  them when the video has one.
+  </summary>
+  <remarks>
+  Off unless show_start_badge. service.py raises and clears
+  Window(home).Property(start_badge) (update_start_badge); the badge reads
+  everything it says from VideoPlayer.* itself. It stands down while the
+  OSD, the seek bar or the info card is open, since each of them reaches
+  this corner or covers the screen.
+
+  A dialog of its own, opened and closed by Kodi through its window level
+  visible conditions as DialogSeekBar is, rather than a group inside
+  VideoFullScreen.xml. Drawn there, the badge never appeared although Kodi
+  reported it visible (seen live, 07/11/2026): the fullscreen video window
+  does not redraw for a change it does not watch. It takes no focus and
+  has no controls that can, so every key still reaches the player.
+
+  No parents guide line: no source for one was found (roadmap item 18).
+  The mode pill has a second place for a video with no resolution, so the
+  row still ends at the right edge.
+  </remarks>
+-->
+<window id="1155" type="dialog">
+	<visible>Window.IsActive(fullscreenvideo)</visible>
+	<visible>Skin.HasSetting(show_start_badge) + !String.IsEmpty(Window(home).Property(start_badge))</visible>
+	<visible>!Window.IsActive(videoosd) + !Window.IsActive(seekbar) + !Window.IsActive(fullscreeninfo)</visible>
+	<animation effect="fade" time="300" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
+	<controls>
+		<control type="group">
+			<left>1280</left>
+			<top>40</top>
+			<width>600</width>
+			<height>100</height>
+			<control type="group">
+				<left>270</left>
+				<top>0</top>
+				<width>200</width>
+				<height>44</height>
+				<visible>!String.IsEmpty(VideoPlayer.VideoResolution)</visible>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>200</width>
+					<height>44</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>200</width>
+					<height>44</height>
+					<font>font_reg</font>
+					<align>center</align>
+					<aligny>center</aligny>
+					<textcolor>white</textcolor>
+					<label>$VAR[StartBadgeModeLabel]</label>
+				</control>
+			</control>
+			<control type="group">
+				<left>400</left>
+				<top>0</top>
+				<width>200</width>
+				<height>44</height>
+				<visible>String.IsEmpty(VideoPlayer.VideoResolution)</visible>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>200</width>
+					<height>44</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>200</width>
+					<height>44</height>
+					<font>font_reg</font>
+					<align>center</align>
+					<aligny>center</aligny>
+					<textcolor>white</textcolor>
+					<label>$VAR[StartBadgeModeLabel]</label>
+				</control>
+			</control>
+			<control type="group">
+				<left>480</left>
+				<top>0</top>
+				<width>120</width>
+				<height>44</height>
+				<visible>!String.IsEmpty(VideoPlayer.VideoResolution)</visible>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>120</width>
+					<height>44</height>
+					<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>120</width>
+					<height>44</height>
+					<font>font_reg</font>
+					<align>center</align>
+					<aligny>center</aligny>
+					<textcolor>white</textcolor>
+					<label>$VAR[OsdResolutionLabel]</label>
+				</control>
+			</control>
+			<control type="label">
+				<left>0</left>
+				<top>54</top>
+				<width>600</width>
+				<height>36</height>
+				<font>font_reg</font>
+				<align>right</align>
+				<aligny>center</aligny>
+				<textcolor>white</textcolor>
+				<shadowcolor>FF000000</shadowcolor>
+				<label>$INFO[VideoPlayer.MPAA]</label>
+				<visible>!String.IsEmpty(VideoPlayer.MPAA)</visible>
+			</control>
+		</control>
+	</controls>
+</window>
