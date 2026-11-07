@@ -301,6 +301,47 @@
 		     1406 and is not part of the centring: it can be switched off.
 		-->
 
+		<!-- OSD-SLEEP-BUTTON, item 41 (07/11/2026)
+		     <summary>
+		     215 Sleep timer (x=434): a moon that opens the power menu in its
+		     sleep only form, the same timer rows the power menu has, so a
+		     timer can be set or cancelled without leaving the film. The
+		     countdown is already on the OSD, left of the clock.
+		     </summary>
+		     <remarks>
+		     Hangs off the left of the centred row as 214 hangs off the
+		     right, 14 apart, and is not part of the centring: it is off
+		     unless show_osd_sleep_button, and it stands down with the
+		     timer rows when hide_sleep_timer hides them, since the menu
+		     would then have nothing to offer. The power menu clears
+		     sleep_menu_only when it closes. Hidden, it is skipped: Left on
+		     Previous then stays put, as before.
+		     </remarks> -->
+		<control type="button" id="215">
+			<visible>Skin.HasSetting(show_osd_sleep_button) + !Skin.HasSetting(hide_sleep_timer)</visible>
+			<left>434</left>
+			<bottom>10</bottom>
+			<width>80</width>
+			<height>56</height>
+			<label></label>
+			<disabledcolor>disabled</disabledcolor>
+			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+			<onclick>SetProperty(sleep_menu_only,true,home)</onclick>
+			<onclick>ActivateWindow(shutdownmenu)</onclick>
+			<onleft>215</onleft>
+			<onright>200</onright>
+		</control>
+		<control type="image">
+			<visible>Skin.HasSetting(show_osd_sleep_button) + !Skin.HasSetting(hide_sleep_timer)</visible>
+			<left>450</left>
+			<bottom>14</bottom>
+			<width>48</width>
+			<height>48</height>
+			<aspectratio align="center" aligny="center">keep</aspectratio>
+			<texture>icons/sleep.png</texture>
+		</control>
+
 		<!-- 200 Previous (x=528) -->
 		<control type="button" id="200">
 			<left>528</left>
@@ -312,7 +353,7 @@
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 			<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
 			<onclick>PlayerControl(Previous)</onclick>
-			<onleft>200</onleft>
+			<onleft>215</onleft>
 			<onright>202</onright>
 		</control>
 		<control type="image">

@@ -1243,8 +1243,22 @@
 	     once one is, so the menu itself reports what is running.</summary>
 	     <remarks>service.py owns the property; see update_sleep_timer.</remarks> -->
 	<variable name="SleepTimerMenuLabel">
+		<!-- OSD-SLEEP-BUTTON, item 41 (07/11/2026). SleepOnlyFirstRow
+		     <summary>In the sleep only form the title already says Sleep
+		     Timer, so the row says what it does, in the words of the two
+		     rows under it.</summary> -->
+		<value condition="!String.IsEmpty(Window(home).Property(sleep_menu_only)) + $EXP[sleep_armed]">$LOCALIZE[31825]  $INFO[Window(home).Property(sleep_remaining)]</value>
+		<value condition="!String.IsEmpty(Window(home).Property(sleep_menu_only))">$LOCALIZE[31825]</value>
 		<value condition="$EXP[sleep_armed]">$LOCALIZE[31424]  $INFO[Window(home).Property(sleep_remaining)]</value>
 		<value>$LOCALIZE[31424]</value>
+	</variable>
+
+	<!-- OSD-SLEEP-BUTTON, item 41 (07/11/2026)
+	     <summary>Title of the power menu: Power, or Sleep Timer in the sleep
+	     only form the OSD moon opens.</summary> -->
+	<variable name="PowerMenuTitle">
+		<value condition="!String.IsEmpty(Window(home).Property(sleep_menu_only))">$LOCALIZE[31424]</value>
+		<value>$LOCALIZE[31040]</value>
 	</variable>
 
 	<variable name="NotificationPositionLabel">

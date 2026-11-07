@@ -976,6 +976,8 @@
 					<disabledcolor>disabled</disabledcolor>
 					<texturefocus colordiffuse="white">icons/home_power.png</texturefocus>
 					<texturenofocus colordiffuse="$VAR[AccentColor]">icons/home_power.png</texturenofocus>
+					<!-- OSD-SLEEP-BUTTON, item 41 (07/11/2026): <summary>Opened from here the power menu is always whole, even if a sleep only opening from the OSD never reached the menu to clear its form.</summary> -->
+					<onclick>ClearProperty(sleep_menu_only,home)</onclick>
 					<onclick>ActivateWindow(ShutdownMenu)</onclick>
 					<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				</control>
@@ -1100,6 +1102,8 @@
 					<disabledcolor>disabled</disabledcolor>
 					<texturefocus colordiffuse="$VAR[AccentColor]">icons/home_power.png</texturefocus>
 					<texturenofocus colordiffuse="$VAR[HomeRoundButtonIdleColor]">icons/home_power.png</texturenofocus>
+					<!-- OSD-SLEEP-BUTTON, item 41 (07/11/2026): <summary>Opened from here the power menu is always whole, even if a sleep only opening from the OSD never reached the menu to clear its form.</summary> -->
+					<onclick>ClearProperty(sleep_menu_only,home)</onclick>
 					<onclick>ActivateWindow(ShutdownMenu)</onclick>
 				</control>
 

@@ -4319,6 +4319,44 @@
 				<selected>Skin.HasSetting(show_chapter_marks)</selected>
 				<onclick>Skin.ToggleSetting(show_chapter_marks)</onclick>
 				<onleft>7302</onleft>
+				<ondown>7324</ondown>
+			</control>
+
+			<!-- OSD-SLEEP-BUTTON, item 41 (07/11/2026)
+			     <summary>
+			     The switch for the moon button on the video OSD, which opens
+			     the sleep timer rows of the power menu.
+			     </summary>
+			     <remarks>
+			     Under the chapter marks row in the right column. Left goes to
+			     the row beside it. Greyed while the power menu's sleep timer
+			     is hidden (Home Screen, row 7141), because the button stands
+			     down with it.
+			     </remarks> -->
+			<control type="radiobutton" id="7324">
+				<left>1380</left>
+				<top>310</top>
+				<width>460</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31823</label>
+				<selected>Skin.HasSetting(show_osd_sleep_button)</selected>
+				<onclick>Skin.ToggleSetting(show_osd_sleep_button)</onclick>
+				<enable>!Skin.HasSetting(hide_sleep_timer)</enable>
+				<onleft>7303</onleft>
+				<onup>7323</onup>
 			</control>
 
 			<!-- Sub-header: playback buffer. These buttons drive Kodi's own

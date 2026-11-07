@@ -1,11 +1,14 @@
 """
 <summary>
-Generate the Lists quick button glyphs and the volume ring frames.
+Generate the OSD sleep glyph, the Lists quick button glyphs and the volume
+ring frames.
 </summary>
 <remarks>
 Everything is drawn in white on a transparent canvas so the skin tints it
 with colordiffuse, the same idea as build_home_icons.py.
 
+  * media/icons/sleep.png: the crescent moon on the OSD sleep timer button
+    (OSD-SLEEP-BUTTON in VideoOSD.xml).
   * media/icons/list_up.png, list_down.png, list_remove.png: the up arrow,
     down arrow and cross on a focused row of the Lists screen (LISTS-QUICK
     in Custom_1151_Lists.xml).
@@ -29,6 +32,7 @@ WHITE = (255, 255, 255, 255)
 TRANS = (0, 0, 0, 0)
 
 ICON = 64           # quick button glyph size
+OSD_ICON = 80       # OSD transport glyph size, as the hand made ones
 RING = 360          # ring frame size on screen
 RING_WIDTH = 22     # stroke on screen
 SCALE = 4           # supersampling factor
@@ -109,9 +113,31 @@ def _disc(path):
     _save(img.resize((RING, RING), Image.LANCZOS), path)
 
 
+def _moon(path):
+    """
+    <summary>A crescent moon, the OSD sleep timer button's glyph.</summary>
+    <param name="path">Destination path.</param>
+    <remarks>OSD-SLEEP-BUTTON, item 41 (07/11/2026). Drawn at the 80 pixel
+    size of the hand made transport glyphs beside it, with the same 36 pixel
+    body, so it sits level with them in the OSD row. The crescent is a disc
+    with a second, offset disc cut out of it, opening to the upper
+    right.</remarks>
+    """
+    size = OSD_ICON * SCALE
+    img = Image.new("RGBA", (size, size), TRANS)
+    d = ImageDraw.Draw(img)
+    r = size * 0.24
+    cx = cy = size / 2
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=WHITE)
+    off = r * 0.55
+    d.ellipse([cx - r + off, cy - r - off * 0.7, cx + r + off, cy + r - off * 0.7], fill=TRANS)
+    _save(img.resize((OSD_ICON, OSD_ICON), Image.LANCZOS), path)
+
+
 def main():
     """<summary>Write every glyph and frame.</summary>"""
     icons = MEDIA / "icons"
+    _moon(icons / "sleep.png")
     _arrow(icons / "list_up.png", True)
     _arrow(icons / "list_down.png", False)
     _cross(icons / "list_remove.png")

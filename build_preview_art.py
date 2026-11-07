@@ -122,6 +122,9 @@ PICTURES = [
     # cropped to the middle of the panel, where two ticks fall, since at the
     # whole OSD crop the 6 pixel bar shrinks to one pixel on the panel
     {"row": "7323", "setting": "show_chapter_marks", "kind": "toggle", "screen": "osdchapters", "crop": (440, 840, 800, 240)},
+    # Sleep button: the left end of the transport row, where the moon hangs
+    # off the centred buttons, at the same scale as the chapter marks crop
+    {"row": "7324", "setting": "show_osd_sleep_button", "kind": "toggle", "screen": "osd", "crop": (240, 840, 800, 240)},
     # Rows from the Home Screen, Background and Overall pages
     {"row": "7115", "setting": "hide_loading", "kind": "toggle", "screen": "startup", "crop": GALLERY},
     {"row": "7141", "setting": "hide_sleep_timer", "kind": "toggle", "screen": "powermenu", "crop": (560, 240, 800, 450)},

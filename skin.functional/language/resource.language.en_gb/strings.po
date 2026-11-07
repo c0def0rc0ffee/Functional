@@ -3061,3 +3061,15 @@ msgstr ""
 msgctxt "#31822"
 msgid "Adds a progress bar to the on screen display with a mark at each chapter start, and the same marks on the seek bar.[CR]Where: the video player's on screen display and seek bar."
 msgstr ""
+
+msgctxt "#31823"
+msgid "Show Sleep Button"
+msgstr ""
+
+msgctxt "#31824"
+msgid "Adds a moon button to the on screen display that opens the sleep timer. Needs the sleep timer on in Home Screen.[CR]Where: the video player's on screen display, left of the buttons."
+msgstr ""
+
+msgctxt "#31825"
+msgid "Sleep After a Set Time…"
+msgstr ""
