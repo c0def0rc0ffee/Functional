@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.14" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.15" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New release badges on the movie gallery, three switches under Skin Settings, Library, Visible Fields, all off by default. 4K Badge marks 4K and 8K films, HDR Badge shows HDR, DV for Dolby Vision or HLG, and Resolution Badge shows 1080, 720 or SD for films below 4K. The badges sit at the top left of the poster. Left off, the gallery looks as before.</news>
+		<news>New Show Chapter Marks switch under Skin Settings, Playback, off by default. Switched on, the video OSD gets a progress bar with a mark at the start of each chapter, and the seek bar shows the same marks. A file without chapters shows the bar alone. Left off, the OSD and the seek bar look as before.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

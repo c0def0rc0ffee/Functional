@@ -11,6 +11,14 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.15 (07/11/2026)
+
+- New Show Chapter Marks switch under Skin Settings, Playback, off by
+  default. Switched on, the video OSD gets a progress bar with a mark at
+  the start of each chapter, and the seek bar shows the same marks. A
+  file without chapters shows the bar alone. Left off, the OSD and the
+  seek bar look as before.
+
 ## 0.23.14 (06/11/2026)
 
 - New release badges on the movie gallery, three switches under Skin
