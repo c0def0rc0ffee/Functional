@@ -11,6 +11,15 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.22 (08/11/2026)
+
+- New Text on Accent row under Skin Settings, Overall, beside Custom
+  Accent Colour. Left on White, every screen looks as before. Set to Auto,
+  the text on a focused row or button, a selected list row and the badge
+  pills turns dark when the accent is light: Amber, Orange, or a custom
+  colour that is light, so a yellow accent stays readable. Text on the
+  skin's dark panels is not touched.
+
 ## 0.23.21 (08/11/2026)
 
 - With the next episode card switched on, a show's info screen has a

@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.21" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.22" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>With the next episode card switched on, a show's info screen has a Next Card button: each show can use the default, Unwatched, In Order or no card at all. The choice stays with the show when the library is refreshed. With the card switched off nothing changes.</news>
+		<news>New Text on Accent row under Skin Settings, Overall, beside Custom Accent Colour. Left on White, every screen looks as before. Set to Auto, the text on a focused row or button, a selected list row and the badge pills turns dark when the accent is light: Amber, Orange, or a custom colour that is light, so a yellow accent stays readable. Text on the skin's dark panels is not touched.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
