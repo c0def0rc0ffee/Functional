@@ -4486,6 +4486,70 @@
 				<onclick>Skin.ToggleSetting(show_start_badge)</onclick>
 				<onleft>7313</onleft>
 				<onup>7326</onup>
+				<ondown>7328</ondown>
+			</control>
+
+			<!-- NEXT-CARD, item 17 phase E1 (08/11/2026)
+			     <summary>
+			     The next episode card: Off, Next Unwatched or Next in Order,
+			     and under it, only while the card is on, how long before the
+			     end it goes up when the chapters do not decide it.
+			     </summary>
+			     <remarks>
+			     Under the start badge row in the right column; the caching
+			     note moved down to y 800 to make room. Left goes to 7313, as
+			     from the start badge row, since the buffer rows beside them
+			     have no way back right. Any value only a hand edit can leave reads as Off
+			     (the first row) or 60s (the second) and goes back to the
+			     start of the cycle on OK. service.py:update_next_card reads
+			     both.
+			     </remarks> -->
+			<control type="button" id="7328">
+				<left>1380</left>
+				<top>630</top>
+				<width>460</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[31842] $VAR[NextCardLabel]</label>
+				<onclick condition="String.IsEmpty(Skin.String(next_card))">Skin.SetString(next_card,unwatched)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(next_card),unwatched)">Skin.SetString(next_card,inorder)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(next_card),inorder)">Skin.Reset(next_card)</onclick>
+				<onclick condition="!String.IsEmpty(Skin.String(next_card)) + !String.IsEqual(Skin.String(next_card),unwatched) + !String.IsEqual(Skin.String(next_card),inorder)">Skin.Reset(next_card)</onclick>
+				<onleft>7313</onleft>
+				<onup>7327</onup>
+				<ondown>7329</ondown>
+			</control>
+			<control type="button" id="7329">
+				<left>1380</left>
+				<top>710</top>
+				<width>460</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>white</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>$LOCALIZE[31844] $VAR[NextCardSecsLabel]</label>
+				<visible>!String.IsEmpty(Skin.String(next_card))</visible>
+				<onclick condition="String.IsEmpty(Skin.String(next_card_secs))">Skin.SetString(next_card_secs,90)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(next_card_secs),30)">Skin.Reset(next_card_secs)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(next_card_secs),90)">Skin.SetString(next_card_secs,120)</onclick>
+				<onclick condition="String.IsEqual(Skin.String(next_card_secs),120)">Skin.SetString(next_card_secs,30)</onclick>
+				<onclick condition="!String.IsEmpty(Skin.String(next_card_secs)) + !String.IsEqual(Skin.String(next_card_secs),30) + !String.IsEqual(Skin.String(next_card_secs),90) + !String.IsEqual(Skin.String(next_card_secs),120)">Skin.Reset(next_card_secs)</onclick>
+				<onleft>7313</onleft>
+				<onup>7328</onup>
 			</control>
 
 			<!-- Sub-header: playback buffer. These buttons drive Kodi's own
@@ -4586,11 +4650,13 @@
 				<ondown>7302</ondown>
 			</control>
 
+			<!-- NEXT-CARD: down from y 680 to make room for the card's rows;
+			     it wraps to about eight lines, so it still ends near y 1025. -->
 			<control type="label">
 				<left>1380</left>
-				<top>680</top>
+				<top>800</top>
 				<width>460</width>
-				<height>400</height>
+				<height>270</height>
 				<font>font_small</font>
 				<textcolor>text_dim</textcolor>
 				<wrapmultiline>true</wrapmultiline>
