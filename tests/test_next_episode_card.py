@@ -199,6 +199,13 @@ class Box:
         <returns>A reply shaped as Kodi's.</returns>
         """
         self.rpc.append((method, params))
+        if method == "VideoLibrary.GetTVShowDetails":
+            # E2 reads the show's key before the episodes; show 31 has a TVDB
+            # id, and any other id is a show the library does not have.
+            if (params or {}).get("tvshowid") != 31:
+                return {"result": {}}
+            return {"result": {"tvshowdetails": {"title": "Show", "year": 2024,
+                                                 "uniqueid": {"tvdb": "31031"}}}}
         if method == "VideoLibrary.GetEpisodes":
             eps = [
                 {"episodeid": 101, "season": 1, "episode": 1, "playcount": 1, "title": "One"},
@@ -542,7 +549,7 @@ def test_off_by_default():
         if not name.endswith(".xml") or name == "SkinSettings.xml":
             continue
         text = read(os.path.join(XML, name))
-        if re.search(r"Skin\.(SetString|SetBool|ToggleSetting)\(next_card", text):
+        if re.search(r"Skin\.(SetString|SetBool|ToggleSetting|Reset)\(next_card(_secs)?[,)]", text):
             fail("%s sets the card's settings" % name)
         if name != CARD_XML and "script-functional-nextcard" in text.lower():
             fail("%s opens or names the card" % name)

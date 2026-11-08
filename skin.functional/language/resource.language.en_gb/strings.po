@@ -3144,7 +3144,7 @@ msgid "Next Episode Card:"
 msgstr ""
 
 msgctxt "#31843"
-msgid "Near the end of an episode, shows the next one with Play Now: OK plays it at once, Back hides the card. Unwatched skips what you have seen; In Order does not.[CR]Where: bottom right of the video, as the credits start."
+msgid "Near the end of an episode, shows the next one with Play Now: OK plays it at once, Back hides the card. Unwatched skips what you have seen; In Order does not. A show's info screen can choose its own.[CR]Where: bottom right of the video, as the credits start."
 msgstr ""
 
 msgctxt "#31844"
@@ -3165,4 +3165,24 @@ msgstr ""
 
 msgctxt "#31848"
 msgid "Before End"
+msgstr ""
+
+msgctxt "#31849"
+msgid "Use the Default (%s)"
+msgstr ""
+
+msgctxt "#31850"
+msgid "No Card"
+msgstr ""
+
+msgctxt "#31851"
+msgid "Next Episode Card for %s"
+msgstr ""
+
+msgctxt "#31852"
+msgid "Next Card"
+msgstr ""
+
+msgctxt "#31853"
+msgid "The choice could not be saved."
 msgstr ""
