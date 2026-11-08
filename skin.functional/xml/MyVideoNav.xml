@@ -400,8 +400,8 @@
 					<width>1340</width>
 					<height>60</height>
 					<font>font_reg</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
+					<textcolor>$VAR[AccentTextColor]</textcolor>
+					<selectedcolor>$VAR[AccentTextColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -420,7 +420,7 @@
 					<width>140</width>
 					<height>60</height>
 					<font>font_small</font>
-					<textcolor>white</textcolor>
+					<textcolor>$VAR[AccentTextColor]</textcolor>
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Property(WatchedEpisodes)]$INFO[ListItem.Property(TotalEpisodes), / ,]</label>
@@ -432,8 +432,8 @@
 					<width>240</width>
 					<height>60</height>
 					<font>font_small</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
+					<textcolor>$VAR[AccentTextColor]</textcolor>
+					<selectedcolor>$VAR[AccentTextColor]</selectedcolor>
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label2]</label>
@@ -749,7 +749,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>20</textoffsetx>
@@ -771,7 +771,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -795,7 +795,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -822,7 +822,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>20</textoffsetx>
@@ -844,7 +844,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -876,7 +876,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -902,7 +902,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -928,7 +928,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -958,7 +958,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -983,7 +983,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>20</textoffsetx>
@@ -1011,7 +1011,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>20</textoffsetx>
@@ -1041,7 +1041,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -1073,7 +1073,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -1104,7 +1104,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -1139,7 +1139,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -1184,7 +1184,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -1209,7 +1209,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -1240,7 +1240,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -1261,7 +1261,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>70</textoffsetx>
@@ -1284,7 +1284,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>20</textoffsetx>
@@ -1322,7 +1322,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>20</textoffsetx>
@@ -1345,7 +1345,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>20</textoffsetx>
@@ -1371,7 +1371,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>20</textoffsetx>
@@ -1395,7 +1395,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>20</textoffsetx>
@@ -1418,7 +1418,7 @@
 					<font>font_small</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
@@ -1439,7 +1439,7 @@
 					<font>font_small</font>
 					<textcolor>$VAR[AccentColor]</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
@@ -1460,7 +1460,7 @@
 					<font>font_small</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
@@ -1480,7 +1480,7 @@
 					<font>font_small</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
@@ -1502,7 +1502,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>20</textoffsetx>
@@ -1644,7 +1644,7 @@
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>

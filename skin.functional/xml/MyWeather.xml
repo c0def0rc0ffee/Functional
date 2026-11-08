@@ -48,7 +48,7 @@
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
@@ -64,7 +64,7 @@
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
@@ -80,7 +80,7 @@
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>

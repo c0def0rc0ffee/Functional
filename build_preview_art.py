@@ -143,6 +143,10 @@ PICTURES = [
     {"row": "7330", "setting": "theme", "kind": "picker", "values": ["", "halloween", "devilsnight", "christmas", "christmaseve"], "screen": "home", "crop": GALLERY, "settle": 4},
     {"row": "7331", "setting": "theme_seasonal_off", "kind": "toggle", "screen": "home", "crop": GALLERY, "shows": {"off": [("theme", "halloween")], "on": [("theme", "")]}, "settle": 4},
     {"row": "7332", "setting": "theme_christmas_off", "kind": "toggle", "screen": "home", "crop": GALLERY, "shows": {"off": [("theme", "christmas")], "on": [("theme", "")]}, "settle": 4},
+    # ACCENT-TEXT (roadmap item 48): the power menu with the accent forced to
+    # Amber for both pictures, so the pair differs by the text colour alone; on
+    # the default blue accent Auto changes nothing and the pair would be alike
+    {"row": "7333", "setting": "accent_text", "kind": "picker", "values": ["", "auto"], "screen": "powermenu", "crop": (560, 240, 800, 450), "shows": {"": [("accent_color", "amber")], "auto": [("accent_color", "amber")]}},
     {"row": "7208", "setting": "filter_debug", "kind": "toggle", "screen": "sample", "crop": GALLERY},
 ]
 

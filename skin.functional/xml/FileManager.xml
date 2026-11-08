@@ -127,8 +127,8 @@
 					<width>660</width>
 					<height>50</height>
 					<font>font_reg</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
+					<textcolor>$VAR[AccentTextColor]</textcolor>
+					<selectedcolor>$VAR[AccentTextColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -138,8 +138,8 @@
 					<width>160</width>
 					<height>50</height>
 					<font>font_small</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
+					<textcolor>$VAR[AccentTextColor]</textcolor>
+					<selectedcolor>$VAR[AccentTextColor]</selectedcolor>
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label2]</label>
@@ -247,8 +247,8 @@
 					<width>660</width>
 					<height>50</height>
 					<font>font_reg</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
+					<textcolor>$VAR[AccentTextColor]</textcolor>
+					<selectedcolor>$VAR[AccentTextColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>
@@ -258,8 +258,8 @@
 					<width>160</width>
 					<height>50</height>
 					<font>font_small</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
+					<textcolor>$VAR[AccentTextColor]</textcolor>
+					<selectedcolor>$VAR[AccentTextColor]</selectedcolor>
 					<align>right</align>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label2]</label>

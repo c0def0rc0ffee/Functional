@@ -59,7 +59,7 @@
 					<font>font_reg</font>
 					<align>center</align>
 					<aligny>center</aligny>
-					<textcolor>white</textcolor>
+					<textcolor>$VAR[AccentTextColor]</textcolor>
 					<label>$VAR[StartBadgeModeLabel]</label>
 				</control>
 			</control>
@@ -84,7 +84,7 @@
 					<font>font_reg</font>
 					<align>center</align>
 					<aligny>center</aligny>
-					<textcolor>white</textcolor>
+					<textcolor>$VAR[AccentTextColor]</textcolor>
 					<label>$VAR[StartBadgeModeLabel]</label>
 				</control>
 			</control>
@@ -109,7 +109,7 @@
 					<font>font_reg</font>
 					<align>center</align>
 					<aligny>center</aligny>
-					<textcolor>white</textcolor>
+					<textcolor>$VAR[AccentTextColor]</textcolor>
 					<label>$VAR[OsdResolutionLabel]</label>
 				</control>
 			</control>

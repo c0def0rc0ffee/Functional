@@ -94,7 +94,7 @@
 				<height>58</height>
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<align>center</align>
 				<aligny>center</aligny>
