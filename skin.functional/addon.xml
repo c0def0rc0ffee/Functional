@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.19" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.20" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New Offer to Power Down After Port by Time switch under Skin Settings, Lists and Favourites, off by default. Switched on, Port by Time asks whether to power the box down when the queue finishes. It powers down only after the last item ends by itself, with ten seconds' warning in which any key keeps it on; stopping it yourself or playing something else calls it off. Left off, Port by Time asks nothing new.</news>
+		<news>New Next Episode Card row under Skin Settings, Playback, off by default. Set to Unwatched or In Order, a card shows the next episode bottom right near the end of a library episode, as the credits start or at the time set on At the Latest. OK plays it at once and Back hides the card. Live TV, specials and a queue that already has a next item get no card. Left off, playback looks as before.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

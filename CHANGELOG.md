@@ -11,6 +11,15 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.20 (08/11/2026)
+
+- New Next Episode Card row under Skin Settings, Playback, off by
+  default. Set to Unwatched or In Order, a card shows the next episode
+  bottom right near the end of a library episode, as the credits start
+  or at the time set on At the Latest. OK plays it at once and Back hides
+  the card. Live TV, specials and a queue that already has a next item
+  get no card. Left off, playback looks as before.
+
 ## 0.23.19 (07/11/2026)
 
 - New Offer to Power Down After Port by Time switch under Skin Settings,
