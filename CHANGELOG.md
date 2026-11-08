@@ -11,6 +11,13 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.21 (08/11/2026)
+
+- With the next episode card switched on, a show's info screen has a
+  Next Card button: each show can use the default, Unwatched, In Order or
+  no card at all. The choice stays with the show when the library is
+  refreshed. With the card switched off nothing changes.
+
 ## 0.23.20 (08/11/2026)
 
 - New Next Episode Card row under Skin Settings, Playback, off by
