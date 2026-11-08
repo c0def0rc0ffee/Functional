@@ -950,6 +950,163 @@ def pick_next_episode(episodes, season, episode, rule):
     return best[1] if best else None
 
 
+
+# ---- NEXT-CARD-SHOW, item 17 phase E2 (08/11/2026) -------------------------
+# <summary>
+# The per show choice for the next episode card: which keys a show is kept
+# under, reading and changing shows.json without disturbing anything else
+# in it, and how a choice bends the global rule.
+# shows.json is laid out per show so phase F can keep its skip choice beside
+# this one.
+# </summary>
+
+SHOW_CARD_CHOICES = ("unwatched", "inorder", "off")
+SHOW_KEY_SOURCES = ("tvdb", "tmdb", "imdb")
+
+
+def show_keys(uniqueid, title, year):
+    """
+    <summary>
+    Every key a show's choices may be kept under in shows.json, best first.
+    </summary>
+    <param name="uniqueid">The show's uniqueid map from the library.</param>
+    <param name="title">The show's title.</param>
+    <param name="year">The show's year, 0 when unknown.</param>
+    <returns>A list such as ["tvdb:411959", "imdb:tt13016388",
+    "title:3 body problem|2024"]; empty with no id and no title.</returns>
+    <remarks>
+    Not the library id: Jellyfin for Kodi drops and re-adds a Kodi row when
+    an item is replaced and hands its number to the next one added (see
+    LISTS-ID-CHECK), so a choice kept under it could land on another show.
+    A choice is written under the first key and found under any of them,
+    so a show that gains a TVDB id on a later scrape keeps the choice it
+    was given under its TMDb id. An id of all noughts, which some old
+    scrapes record, is no id: every such show would share it. Two shows
+    with one title and year and no ids share the last key; that is the
+    fallback's known limit.
+    </remarks>
+    """
+    ids = uniqueid if isinstance(uniqueid, dict) else {}
+    keys = []
+    for source in SHOW_KEY_SOURCES:
+        value = str(ids.get(source) or "").strip()
+        if value and value.strip("0"):
+            keys.append("%s:%s" % (source, value))
+    title = (title or "").strip().lower()
+    if title:
+        try:
+            year = int(year or 0)
+        except (TypeError, ValueError):
+            year = 0
+        keys.append("title:%s|%d" % (title, year))
+    return keys
+
+
+def show_key(uniqueid, title, year):
+    """
+    <summary>The key a show's choice is written under: the first of show_keys.</summary>
+    <param name="uniqueid">The show's uniqueid map from the library.</param>
+    <param name="title">The show's title.</param>
+    <param name="year">The show's year.</param>
+    <returns>The key, or None with no id and no title.</returns>
+    """
+    keys = show_keys(uniqueid, title, year)
+    return keys[0] if keys else None
+
+
+def parse_show_doc(text):
+    """
+    <summary>
+    Read the text of shows.json as a whole document, untouched.
+    </summary>
+    <param name="text">The file's text, a byte order mark allowed.</param>
+    <returns>The parsed object, every key and record as it was written.</returns>
+    <exception cref="ValueError">The text is not a JSON object with a shows object.</exception>
+    <remarks>
+    Nothing is dropped here. A save changes only the one show's choice and
+    writes the rest back as it came, so a later phase's fields, a top level
+    key this version does not know and a record it cannot read all survive.
+    </remarks>
+    """
+    data = json.loads(text.lstrip("\ufeff"))
+    if not isinstance(data, dict) or not isinstance(data.get("shows"), dict):
+        raise ValueError("shows.json has no shows object")
+    return data
+
+
+def show_choice(doc, keys):
+    """
+    <summary>A show's next card choice, found under any of its keys.</summary>
+    <param name="doc">The shows.json document.</param>
+    <param name="keys">The show's keys, best first, from show_keys.</param>
+    <returns>"unwatched", "inorder" or "off", or None when the show has none.</returns>
+    """
+    shows = (doc or {}).get("shows") or {}
+    for key in keys:
+        rec = shows.get(key)
+        if isinstance(rec, dict) and rec.get("next_card") in SHOW_CARD_CHOICES:
+            return rec["next_card"]
+    return None
+
+
+def set_show_choice(doc, keys, title, choice):
+    """
+    <summary>
+    Keep one show's choice in the document, or drop it for the default.
+    </summary>
+    <param name="doc">The shows.json document, changed in place.</param>
+    <param name="keys">The show's keys, best first; the choice goes under the first.</param>
+    <param name="title">The show's title, kept so the file can be read by eye.</param>
+    <param name="choice">"unwatched", "inorder", "off", or None for the default.</param>
+    <remarks>
+    A choice found under one of the show's other keys moves to the first,
+    so a show never holds two. A record of this show left with nothing but
+    its title is dropped; every other record, readable or not, and every
+    other field are left exactly as they were.
+    </remarks>
+    """
+    shows = doc.setdefault("shows", {})
+    for key in keys:
+        rec = shows.get(key)
+        if isinstance(rec, dict) and "next_card" in rec:
+            rec = dict(rec)
+            rec.pop("next_card")
+            if set(rec) - {"title"}:
+                shows[key] = rec
+            else:
+                del shows[key]
+    if choice not in SHOW_CARD_CHOICES:
+        return
+    rec = shows.get(keys[0])
+    rec = dict(rec) if isinstance(rec, dict) else {}
+    rec["next_card"] = choice
+    rec["title"] = title
+    shows[keys[0]] = rec
+
+
+def show_card_rule(global_rule, choice):
+    """
+    <summary>
+    The rule the card follows for one show.
+    </summary>
+    <param name="global_rule">Skin.String(next_card): "", "unwatched" or "inorder".</param>
+    <param name="choice">The show's stored choice, or None.</param>
+    <returns>"unwatched", "inorder", or "" for no card.</returns>
+    <remarks>
+    The switch on the Playback page wins: with it off there is no card for
+    any show, whatever the show says, so turning it off still turns the
+    whole feature off.
+    </remarks>
+    """
+    if not global_rule:
+        return ""
+    if choice == "off":
+        return ""
+    if choice in ("unwatched", "inorder"):
+        return choice
+    return global_rule
+
+
 def _next_card_dialog_class(helper):
     """
     <summary>
@@ -1291,6 +1448,11 @@ class FunctionalHelper(xbmc.Monitor):
         self._card_at = None          # play time in seconds the card goes up, None = not worked out
         self._card_done = False       # the card has gone up, or been turned away, for this start
         self._card_dialog = None      # the open card, None = not up
+        # NEXT-CARD-SHOW, phase E2 (see _shows_load)
+        self._shows = None            # the shows.json document, None = not read yet
+        self._shows_stamp = None      # (size, mtime) of the file as read, None = no file
+        self._shows_frozen = False    # a damaged file could not be set aside: never save
+        self._shows_lock = threading.Lock()
         self._list_item_slots_used = 0  # LI.N.* slots written last publish
         # Seasonal themes (THEME-SEASON, see update_theme)
         self._theme_seen = None          # theme last logged
@@ -7445,6 +7607,9 @@ class FunctionalHelper(xbmc.Monitor):
         <param name="episode">Number of the episode playing.</param>
         <param name="rule">"unwatched" or "inorder", see update_next_card.</param>
         <remarks>
+        The show's own choice (NEXT-CARD-SHOW, phase E2) is read first and
+        can turn the rule, or the card, off for this show; that costs one
+        more query, for the show's scraper id.
         One query for the episodes after the playing one (a later season, or
         this season with a higher number), unwatched only under that rule,
         then pick_next_episode chooses. Filtering past the playing episode
@@ -7454,6 +7619,12 @@ class FunctionalHelper(xbmc.Monitor):
         </remarks>
         """
         try:
+            # NEXT-CARD-SHOW: the show's own choice, if it has one.
+            keys, _title = self._show_keys_for(show)
+            rule = show_card_rule(rule, self._show_choice(keys))
+            if not rule:
+                _dlog("next card: no card for this show, by its own choice")
+                return
             resp = _jsonrpc("VideoLibrary.GetEpisodes", {
                 "tvshowid": show,
                 "filter": self._card_filter(season, episode, rule),
@@ -7540,6 +7711,190 @@ class FunctionalHelper(xbmc.Monitor):
             with self._card_lock:
                 self._card_dialog = None
             _dlog("next card failed:\n" + traceback.format_exc(), xbmc.LOGERROR)
+
+    # ---- NEXT-CARD-SHOW, item 17 phase E2 (08/11/2026) ---------------------
+
+    SHOWS_FILE = "special://profile/addon_data/skin.functional/shows.json"
+
+    def update_next_card_command(self):
+        """
+        <summary>
+        NEXT-CARD-SHOW: take a "show:N" from the info screen's Next Card
+        button and open the per show picker for that show.
+        </summary>
+        <remarks>
+        Skin.String(next_card_command) is the channel. The picker is a
+        blocking select dialog, so it runs through _spawn_dialog.
+        </remarks>
+        """
+        cmd = self._take_command("next_card_command")
+        if not cmd:
+            return
+        if not cmd.startswith("show:"):
+            _dlog("next card: unknown command %r ignored" % cmd)
+            return
+        dbid = self._safe_int(cmd[5:], 0)
+        if dbid <= 0:
+            _dlog("next card: %r names no show" % cmd)
+            return
+        self._spawn_dialog(lambda: self._show_card_pick(dbid))
+
+    def _show_card_pick(self, dbid):
+        """
+        <summary>
+        Ask which next episode card a show gets, and keep the answer.
+        </summary>
+        <param name="dbid">Library id of the show, from the info screen.</param>
+        <remarks>
+        Four choices: the default (the Playback page's choice, named in the
+        line), Unwatched, In Order, or no card. The current one is
+        preselected. The default removes the show's choice rather than
+        storing it, so a later change on the Playback page reaches the show.
+        A save that fails says so in a toast, so a choice is never thought
+        kept when it is not.
+        </remarks>
+        """
+        keys, title = self._show_keys_for(dbid)
+        if not keys:
+            _dlog("next card: show %d has no title or id to keep a choice under" % dbid)
+            return
+        current = self._show_choice(keys)
+        default = _L(31847) if xbmc.getInfoLabel("Skin.String(next_card)") == "inorder" else _L(31846)
+        options = [_L(31849) % default, _L(31846), _L(31847), _L(31850)]
+        values = [None, "unwatched", "inorder", "off"]
+        choice = xbmcgui.Dialog().select(_L(31851) % title, options,
+                                         preselect=values.index(current) if current in values else 0)
+        if choice < 0:
+            return
+        if self._show_choice_set(keys, title, values[choice]):
+            _dlog("next card: %s set to %s" % (keys[0], values[choice] or "the default"))
+        else:
+            xbmcgui.Dialog().notification(title, _L(31853), xbmcgui.NOTIFICATION_WARNING)
+
+    def _show_keys_for(self, tvshowid):
+        """
+        <summary>
+        The shows.json keys and the title of a show in the library.
+        </summary>
+        <param name="tvshowid">Library id of the show.</param>
+        <returns>(keys, title); keys is empty when the library has no such show.</returns>
+        """
+        resp = _jsonrpc("VideoLibrary.GetTVShowDetails", {
+            "tvshowid": tvshowid, "properties": ["title", "year", "uniqueid"]})
+        details = (resp.get("result") or {}).get("tvshowdetails") or {}
+        title = details.get("title") or details.get("label") or ""
+        return show_keys(details.get("uniqueid"), title, details.get("year")), title
+
+    def _shows_path(self):
+        """<summary>Absolute path of shows.json, creating its folder.</summary>
+        <returns>Filesystem path as a string.</returns>"""
+        folder = xbmcvfs.translatePath("special://profile/addon_data/skin.functional/")
+        if not xbmcvfs.exists(folder):
+            xbmcvfs.mkdirs(folder)
+        return xbmcvfs.translatePath(self.SHOWS_FILE)
+
+    @staticmethod
+    def _file_stamp(path):
+        """<summary>A file's size and change time, to notice an edit.</summary>
+        <param name="path">The file.</param>
+        <returns>(size, mtime_ns), or None when there is no file.</returns>"""
+        try:
+            st = os.stat(path)
+        except OSError:
+            return None
+        return (st.st_size, st.st_mtime_ns)
+
+    def _shows_load(self):
+        """
+        <summary>
+        Bring self._shows up to date with shows.json. Call with _shows_lock held.
+        </summary>
+        <remarks>
+        Read again whenever the file's size or change time differs from what
+        was read, so a hand edit made while Kodi runs is seen before the next
+        save rather than written over. A missing file is an empty store.
+
+        A file that cannot be read is renamed aside as
+        shows.json.bad-YYYYMMDD-HHMMSS (a number added if that is taken), so
+        no earlier set aside copy is ever replaced, and the store starts
+        empty. If even the rename fails, the store is frozen: it reads as
+        empty and refuses to save, so the damaged file is never written over.
+        </remarks>
+        """
+        path = self._shows_path()
+        stamp = self._file_stamp(path)
+        if self._shows is not None and stamp == self._shows_stamp:
+            return
+        self._shows, self._shows_stamp, self._shows_frozen = {"version": 1, "shows": {}}, stamp, False
+        if stamp is None:
+            return
+        try:
+            with open(path, encoding="utf-8-sig") as handle:
+                self._shows = parse_show_doc(handle.read())
+            return
+        except Exception:  # noqa: BLE001 - any failure to read means damaged
+            _dlog("shows.json unreadable:\n" + traceback.format_exc(), xbmc.LOGWARNING)
+        aside = path + time.strftime(".bad-%Y%m%d-%H%M%S")
+        n = 1
+        while os.path.exists(aside if n == 1 else "%s-%d" % (aside, n)):
+            n += 1
+        aside = aside if n == 1 else "%s-%d" % (aside, n)
+        try:
+            os.rename(path, aside)
+            self._shows_stamp = None
+            _dlog("shows.json set aside as %s" % os.path.basename(aside), xbmc.LOGWARNING)
+        except OSError:
+            self._shows_frozen = True
+            _dlog("shows.json could not be set aside, so nothing will be saved over it",
+                  xbmc.LOGERROR)
+
+    def _show_choice(self, keys):
+        """
+        <summary>A show's next card choice from shows.json.</summary>
+        <param name="keys">The show's keys, from show_keys; empty gives None.</param>
+        <returns>"unwatched", "inorder", "off" or None.</returns>
+        """
+        if not keys:
+            return None
+        with self._shows_lock:
+            self._shows_load()
+            return show_choice(self._shows, keys)
+
+    def _show_choice_set(self, keys, title, choice):
+        """
+        <summary>
+        Keep one show's choice, or drop it for the default, and write shows.json.
+        </summary>
+        <param name="keys">The show's keys, best first.</param>
+        <param name="title">The show's title.</param>
+        <param name="choice">"unwatched", "inorder", "off", or None for the default.</param>
+        <returns>True when the file was written.</returns>
+        <remarks>
+        Read again first if the file changed, then only this show's choice
+        is changed (set_show_choice) and the whole document written back.
+        Written beside itself, flushed to disk and renamed into place, so a
+        crash or a power cut leaves the old file. A failed write forgets the
+        change in memory too, so what the card does always matches the file.
+        </remarks>
+        """
+        with self._shows_lock:
+            self._shows_load()
+            if self._shows_frozen:
+                return False
+            set_show_choice(self._shows, keys, title, choice)
+            path = self._shows_path()
+            try:
+                with open(path + ".part", "w", encoding="utf-8") as handle:
+                    json.dump(self._shows, handle, indent=1, sort_keys=True)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                os.replace(path + ".part", path)
+                self._shows_stamp = self._file_stamp(path)
+                return True
+            except OSError:
+                _dlog("shows.json could not be written:\n" + traceback.format_exc(), xbmc.LOGERROR)
+                self._shows = None
+                return False
 
     def update_sleep_timer(self):
         """
@@ -10016,6 +10371,9 @@ def run():
         # NEXT-CARD: the card must go up on time and come down when
         # playback stops; one flag read unless an offer is waiting.
         helper.update_next_card,
+        # NEXT-CARD-SHOW: the info screen's Next Card button, answered
+        # while the screen is still up.
+        helper.update_next_card_command,
         # Fast as well: it only compares a timestamp unless a refresh is
         # due, and a toggled hide_nextup should refill the row at once.
         helper.update_next_up,
