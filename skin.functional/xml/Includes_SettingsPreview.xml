@@ -74,7 +74,14 @@
 	<!-- LISTS-TIME-SLEEP (07/11/2026)
 	     <summary>No preview for Offer to Power Down After Port by Time:
 	     the switch adds a question, and a question is not a picture.</summary> -->
-	<expression name="settings_preview_none">Control.HasFocus(7239) | Control.HasFocus(7325) | Control.HasFocus(7326) | Control.HasFocus(7320) | Control.HasFocus(7310) | Control.HasFocus(7311) | Control.HasFocus(7312) | Control.HasFocus(7314) | Control.HasFocus(7315) | Control.HasFocus(7317) | Control.HasFocus(7322) | Control.HasFocus(7221) | Control.HasFocus(7230) | Control.HasFocus(7231) | Control.HasFocus(7232) | Control.HasFocus(7233) | Control.HasFocus(7306) | Control.HasFocus(7307) | Control.HasFocus(7308) | Control.HasFocus(7309) | Control.HasFocus(7207) | Control.HasFocus(7316) | Control.HasFocus(7234) | Control.HasFocus(7235) | Control.HasFocus(7238) | Control.HasFocus(7236) | Control.HasFocus(7237) | Control.HasFocus(7124) | Control.HasFocus(7406) | Control.HasFocus(7150) | Control.HasFocus(7179) | Control.HasFocus(7180) | Control.HasFocus(7181) | Control.HasFocus(7400) | Control.HasFocus(7401) | Control.HasFocus(7402) | Control.HasFocus(7403) | Control.HasFocus(7404) | Control.HasFocus(7405)</expression>
+	<!-- NEXT-CARD, item 17 phase E1 (08/11/2026)
+	     <summary>No preview for the next episode card's two rows. The card
+	     is opened only by the service, from a library lookup on an episode
+	     that is playing, and the preview generator has no way to open it
+	     with sample values: it could be given one (the card reads plain
+	     NextCard.* properties), which is the open question for this row.
+	     The second row is a time, not a picture.</summary> -->
+	<expression name="settings_preview_none">Control.HasFocus(7328) | Control.HasFocus(7329) | Control.HasFocus(7239) | Control.HasFocus(7325) | Control.HasFocus(7326) | Control.HasFocus(7320) | Control.HasFocus(7310) | Control.HasFocus(7311) | Control.HasFocus(7312) | Control.HasFocus(7314) | Control.HasFocus(7315) | Control.HasFocus(7317) | Control.HasFocus(7322) | Control.HasFocus(7221) | Control.HasFocus(7230) | Control.HasFocus(7231) | Control.HasFocus(7232) | Control.HasFocus(7233) | Control.HasFocus(7306) | Control.HasFocus(7307) | Control.HasFocus(7308) | Control.HasFocus(7309) | Control.HasFocus(7207) | Control.HasFocus(7316) | Control.HasFocus(7234) | Control.HasFocus(7235) | Control.HasFocus(7238) | Control.HasFocus(7236) | Control.HasFocus(7237) | Control.HasFocus(7124) | Control.HasFocus(7406) | Control.HasFocus(7150) | Control.HasFocus(7179) | Control.HasFocus(7180) | Control.HasFocus(7181) | Control.HasFocus(7400) | Control.HasFocus(7401) | Control.HasFocus(7402) | Control.HasFocus(7403) | Control.HasFocus(7404) | Control.HasFocus(7405)</expression>
 	<!-- The pictures, written by the generator's table in build_preview_art.py:
 	     the large one is what OK would give (a toggle the other way round, a
 	     picker as it is), the small one how a toggle is now. -->

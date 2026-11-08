@@ -828,6 +828,179 @@ def coming_up_lines(slots, every=False):
     return lines
 
 
+# ---- NEXT-CARD, item 17 phase E1 (08/11/2026) ------------------------------
+# <summary>
+# The pure parts of the next episode card: when it goes up, and which
+# episode it offers. Kept outside the helper so the tests can drive them
+# without a player.
+# </summary>
+
+NEXT_CARD_WINDOW_SECS = 300.0   # a chapter this close to the end can be the credits
+NEXT_CARD_WINDOW_SHARE = 0.10   # but never more than this share of the runtime
+NEXT_CARD_FALLBACK_SECS = 60    # Skin.String(next_card_secs) when it is empty
+NEXT_CARD_MIN_SHARE = 0.92      # never earlier: Kodi counts a video watched from 92% (ignorepercentatend 8)
+NEXT_CARD_FALLBACK_CHOICES = (30, 60, 90, 120)
+
+
+def parse_chapter_starts(text, total):
+    """
+    <summary>
+    Turn Kodi's Player.Chapters label into chapter start times in seconds.
+    </summary>
+    <param name="text">Player.Chapters: start positions as percentages of
+    the runtime, separated by commas, for example "0.00000,93.25053".</param>
+    <param name="total">The runtime in seconds.</param>
+    <returns>The distinct start times above zero, in order. Empty when there
+    are no chapters, the runtime is unknown or the label cannot be read.</returns>
+    <remarks>
+    Seen live on a Jellyfin episode (08/11/2026): three chapters reported as
+    four positions, one of them twice, so repeats are dropped. The first
+    chapter starts at zero and can never be the credits, so it is dropped
+    too. A part that is not a number spoils the whole label rather than
+    leaving a shifted list behind.
+    </remarks>
+    """
+    if not text or not total or total <= 0:
+        return []
+    starts = set()
+    for part in text.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            pct = float(part)
+        except ValueError:
+            return []
+        if 0.0 < pct < 100.0:
+            starts.add(round(total * pct / 100.0, 3))
+    return sorted(starts)
+
+
+def next_card_at(total, chapter_starts, fallback_secs):
+    """
+    <summary>
+    The playing time in seconds at which the next episode card goes up.
+    </summary>
+    <param name="total">The runtime in seconds.</param>
+    <param name="chapter_starts">Chapter start times in seconds, from parse_chapter_starts.</param>
+    <param name="fallback_secs">How long before the end the card goes up when no chapter decides it.</param>
+    <returns>The time, or None when the runtime is unknown or too short to hold a card.</returns>
+    <remarks>
+    The earlier of two points: the first chapter that starts inside the
+    closing window, which on a file with real chapters is usually the
+    credits, and fallback_secs before the end. The window is
+    NEXT_CARD_WINDOW_SECS, cut to NEXT_CARD_WINDOW_SHARE of the runtime so
+    the last act of a short episode is not taken for its credits. Taking
+    the earlier point means a chapter only ever brings the card forward,
+    and a file whose only late chapter is a short sting after the credits
+    still gets the card at the fallback time.
+
+    Either way the card never goes up before NEXT_CARD_MIN_SHARE of the
+    runtime, Kodi's default watched point: Play Now stops this episode, and
+    stopped any earlier it would keep a resume point and stay unwatched, so
+    Next Up would offer it again. On an 11 minute cartoon a 2 minute fallback
+    is cut to about 53 seconds. A box with ignorepercentatend changed in
+    advancedsettings.xml is not followed.
+    </remarks>
+    """
+    if not total or total <= 0 or total <= fallback_secs * 2:
+        return None
+    window = min(NEXT_CARD_WINDOW_SECS, total * NEXT_CARD_WINDOW_SHARE)
+    at = total - fallback_secs
+    for start in chapter_starts:
+        if total - start <= window:
+            at = min(at, start)
+            break
+    return max(at, total * NEXT_CARD_MIN_SHARE)
+
+
+def pick_next_episode(episodes, season, episode, rule):
+    """
+    <summary>
+    Choose the episode the card offers after the one playing.
+    </summary>
+    <param name="episodes">Episode records of the show, each with season,
+    episode and playcount, in any order.</param>
+    <param name="season">Season of the episode playing.</param>
+    <param name="episode">Number of the episode playing.</param>
+    <param name="rule">"unwatched" for the first unwatched episode after
+    this one, the Next Up rule; anything else for simply the next one.</param>
+    <returns>The record, or None when there is nothing after this one.</returns>
+    <remarks>
+    Only regular episodes count, as on the Next Up row, so specials
+    (season 0) are never offered and a special playing gets no card. "After"
+    is by season, then episode number, so a double numbered pair or a gap
+    in the numbering still finds the next one along.
+    </remarks>
+    """
+    if season <= 0:
+        return None
+    best = None
+    for ep in episodes:
+        try:
+            key = (int(ep.get("season") or 0), int(ep.get("episode") or 0))
+        except (TypeError, ValueError):
+            continue
+        if key[0] <= 0 or key <= (season, episode):
+            continue
+        if rule == "unwatched" and int(ep.get("playcount") or 0) > 0:
+            continue
+        if best is None or key < best[0]:
+            best = (key, ep)
+    return best[1] if best else None
+
+
+def _next_card_dialog_class(helper):
+    """
+    <summary>
+    NEXT-CARD, item 17 phase E1: the next episode card's dialog class.
+    </summary>
+    <param name="helper">The FunctionalHelper, for its action ids and button id.</param>
+    <returns>A WindowXMLDialog subclass whose choice is "play", "back"
+    or empty once doModal returns.</returns>
+    <remarks>
+    Built when it is first needed rather than at import, so the tests can
+    import the service without a WindowXMLDialog. Only Back is handled here.
+    A key the card does not use goes on to Kodi, which acts on it as usual:
+    seen live 08/11/2026, volume reached the player with the card up, and
+    a pause forwarded by hand as well toggled twice and did nothing. Stop
+    ends the episode, and update_next_card then takes the card down. Left
+    and right move nowhere on the card's one button and do not seek, as
+    with Up Next. The methods close
+    through super() because checks/skin_checks.py cannot see what a class
+    nested in a function inherits.
+    </remarks>
+    """
+
+    class NextCardDialog(xbmcgui.WindowXMLDialog):
+        """<summary>The card: one button, OK plays the next episode.</summary>"""
+
+        def __init__(self, *args, **kwargs):
+            """<summary>Start with no choice made.</summary>"""
+            super().__init__(*args, **kwargs)
+            self.choice = ""
+
+        def onClick(self, control_id):  # noqa: N802 (Kodi API)
+            """
+            <summary>OK on the button: play the next episode.</summary>
+            <param name="control_id">The control clicked.</param>
+            """
+            if control_id == helper.NEXT_CARD_PLAY_ID:
+                self.choice = "play"
+                super().close()
+
+        def onAction(self, action):  # noqa: N802 (Kodi API)
+            """
+            <summary>Back hides the card; every other key is left to Kodi.</summary>
+            <param name="action">The Kodi action.</param>
+            """
+            if action.getId() in helper._ACTION_BACK:
+                self.choice = "back"
+                super().close()
+
+    return NextCardDialog
+
+
 class FunctionalHelper(xbmc.Monitor):
     """
     <summary>
@@ -1110,6 +1283,14 @@ class FunctionalHelper(xbmc.Monitor):
         # START-BADGE, item 18 (see update_start_badge)
         self._badge_pending = False   # a video started, noted on the notification thread
         self._badge_until = None      # time.monotonic() the badge comes down, None = not up
+        # NEXT-CARD, item 17 phase E1 (see update_next_card)
+        self._card_pending = False    # a video started, noted on the notification thread
+        self._card_lock = threading.Lock()
+        self._card_gen = 0            # bumped per start; older lookups and cards are dropped
+        self._card_next = None        # episode record the card offers, None = no card
+        self._card_at = None          # play time in seconds the card goes up, None = not worked out
+        self._card_done = False       # the card has gone up, or been turned away, for this start
+        self._card_dialog = None      # the open card, None = not up
         self._list_item_slots_used = 0  # LI.N.* slots written last publish
         # Seasonal themes (THEME-SEASON, see update_theme)
         self._theme_seen = None          # theme last logged
@@ -1233,6 +1414,8 @@ class FunctionalHelper(xbmc.Monitor):
         if method == "Player.OnAVStart":
             # START-BADGE: only a flag here; update_start_badge decides on the loop.
             self._badge_pending = True
+            # NEXT-CARD: the same, update_next_card acts on the loop.
+            self._card_pending = True
         if method in ("Player.OnPlay", "Player.OnAVStart") and self._sleep_queue_check is not None:
             # LISTS-TIME-SLEEP: something started during the warning, so
             # somebody is there or the evening has moved on. Kodi's own
@@ -7120,6 +7303,244 @@ class FunctionalHelper(xbmc.Monitor):
             self._badge_until = None
             _set_home_property("start_badge", "")
 
+    # NEXT-CARD, item 17 phase E1: the dialog the service opens, its one
+    # button, and the Kodi action ids that hide it.
+    NEXT_CARD_XML = "script-functional-nextcard.xml"
+    NEXT_CARD_PLAY_ID = 9351
+    NEXT_CARD_LOOKUP_MAX = 200   # episodes read per show from the season playing on
+    _ACTION_BACK = (10, 92)      # ACTION_PREVIOUS_MENU, ACTION_NAV_BACK
+
+    def update_next_card(self):
+        """
+        <summary>
+        NEXT-CARD, item 17 phase E1 (08/11/2026): put the next episode card
+        up near the end of an episode and take it down when it is done with.
+        </summary>
+        <remarks>
+        Skin.String(next_card) is the switch and the rule: empty is off,
+        "unwatched" offers the first unwatched regular episode after the one
+        playing (the Next Up rule) and "inorder" simply the next one.
+        Player.OnAVStart arrives on the notification thread, which only sets
+        _card_pending; here, on the loop, a start of a library episode
+        (VideoPlayer.TvShowDBID, which Jellyfin paths carry; their
+        VideoPlayer.DBTYPE is empty) starts a lookup on a daemon thread, and
+        each start bumps _card_gen so a lookup or a card from an earlier
+        start is dropped. Live TV, specials and anything not in the library
+        get no card.
+
+        When the card goes up is worked out once per start, from the runtime
+        and Player.Chapters (see next_card_at), and only once both are known.
+        It goes up only over the fullscreen video with nothing else open, so
+        a viewer in the OSD or a menu is never interrupted; it waits for them
+        instead. A queue that already holds a next item (Kodi's video
+        playlist) gets no card, since Kodi is about to play that anyway and
+        OK here would throw the queue away.
+
+        Unlike the start badge, the card has to take OK, and a dialog Kodi
+        opens by its visible condition never has the focus. So the service
+        opens it itself, a WindowXMLDialog run modal on a thread of its own
+        (_card_run), as Kodi's own Up Next add-on does. It comes down when
+        playback stops, when the switch goes off or when another start
+        arrives. Nothing is written to a property or a skin string, so a
+        stopped service leaves nothing behind. Fast tick: one flag read
+        with the switch off or no episode to offer; while an offer waits,
+        a label, a condition and two player reads each tick.
+        </remarks>
+        """
+        if self._card_pending:
+            self._card_pending = False
+            self._card_reset()
+            rule = xbmc.getInfoLabel("Skin.String(next_card)")
+            if not rule or not xbmc.getCondVisibility("Player.HasVideo + !VideoPlayer.Content(livetv)"):
+                return
+            show = self._safe_int(xbmc.getInfoLabel("VideoPlayer.TvShowDBID"), 0)
+            season = self._safe_int(xbmc.getInfoLabel("VideoPlayer.Season"), 0)
+            episode = self._safe_int(xbmc.getInfoLabel("VideoPlayer.Episode"), 0)
+            if show <= 0 or season <= 0 or episode <= 0:
+                return
+            with self._card_lock:
+                gen = self._card_gen
+            threading.Thread(target=self._card_lookup, args=(gen, show, season, episode, rule),
+                             name="functional-nextcard-lookup", daemon=True).start()
+            return
+        with self._card_lock:
+            dialog, offer, done = self._card_dialog, self._card_next, self._card_done
+        if dialog is not None:
+            if not xbmc.getInfoLabel("Skin.String(next_card)") or not xbmc.getCondVisibility("Player.HasVideo"):
+                self._card_reset()
+            return
+        if offer is None or done:
+            return
+        if not xbmc.getInfoLabel("Skin.String(next_card)") or not xbmc.getCondVisibility("Player.HasVideo"):
+            self._card_done = True
+            return
+        try:
+            player = xbmc.Player()
+            total = player.getTotalTime()
+            now = player.getTime()
+        except Exception:  # noqa: BLE001 - playback can stop between the calls
+            return
+        if self._card_at is None:
+            if total <= 0:
+                return
+            fallback = self._safe_int(xbmc.getInfoLabel("Skin.String(next_card_secs)"), NEXT_CARD_FALLBACK_SECS)
+            if fallback not in NEXT_CARD_FALLBACK_CHOICES:
+                fallback = NEXT_CARD_FALLBACK_SECS
+            self._card_at = next_card_at(
+                total, parse_chapter_starts(xbmc.getInfoLabel("Player.Chapters"), total), fallback)
+            if self._card_at is None:
+                self._card_done = True
+                return
+            _dlog("next card: due at {0:.0f} s of {1:.0f} s".format(self._card_at, total))
+        if now < self._card_at:
+            return
+        if now > total - 2:
+            self._card_done = True
+            return
+        if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) + !System.HasActiveModalDialog"
+                                      " + !Window.IsActive(videoosd) + !Window.IsActive(seekbar)"
+                                      " + !Window.IsActive(fullscreeninfo)"):
+            return
+        if (self._safe_int(xbmc.getInfoLabel("Playlist.Length(video)"), 0)
+                > self._safe_int(xbmc.getInfoLabel("Playlist.Position(video)"), 0)):
+            _dlog("next card: the queue holds a next item, no card")
+            self._card_done = True
+            return
+        self._card_done = True
+        with self._card_lock:
+            gen = self._card_gen
+        threading.Thread(target=self._card_run, args=(gen, offer),
+                         name="functional-nextcard", daemon=True).start()
+
+    def _card_reset(self):
+        """
+        <summary>
+        Forget the card for the start that is over, and take it down if it is up.
+        </summary>
+        <remarks>
+        Bumps _card_gen, so a lookup still running for the old start cannot
+        set an offer, and a card closed here does not play anything.
+        </remarks>
+        """
+        with self._card_lock:
+            self._card_gen += 1
+            dialog = self._card_dialog
+            self._card_next = None
+        self._card_at = None
+        self._card_done = False
+        if dialog is not None:
+            try:
+                dialog.close()
+            except Exception:  # noqa: BLE001
+                pass
+
+    def _card_lookup(self, gen, show, season, episode, rule):
+        """
+        <summary>
+        Daemon thread body: find the episode the card will offer for this start.
+        </summary>
+        <param name="gen">_card_gen of the start this lookup is for.</param>
+        <param name="show">Library id of the show playing.</param>
+        <param name="season">Season of the episode playing.</param>
+        <param name="episode">Number of the episode playing.</param>
+        <param name="rule">"unwatched" or "inorder", see update_next_card.</param>
+        <remarks>
+        One query for the episodes after the playing one (a later season, or
+        this season with a higher number), unwatched only under that rule,
+        then pick_next_episode chooses. Filtering past the playing episode
+        rather than reading the whole season keeps a long running season
+        (a daily show, an anime with hundreds of episodes) inside
+        NEXT_CARD_LOOKUP_MAX. A failure only means no card.
+        </remarks>
+        """
+        try:
+            resp = _jsonrpc("VideoLibrary.GetEpisodes", {
+                "tvshowid": show,
+                "filter": self._card_filter(season, episode, rule),
+                "sort": {"method": "episode", "order": "ascending"},
+                "limits": {"start": 0, "end": self.NEXT_CARD_LOOKUP_MAX},
+                "properties": ["title", "season", "episode", "showtitle", "playcount", "art", "resume"]})
+            offer = pick_next_episode(_result_rows(resp, "episodes"), season, episode, rule)
+        except Exception:  # noqa: BLE001
+            _dlog("next card: lookup failed:\n" + traceback.format_exc(), xbmc.LOGWARNING)
+            return
+        with self._card_lock:
+            if gen != self._card_gen:
+                return
+            self._card_next = offer
+        _dlog("next card: S{0}E{1} {2}".format(season, episode, "offers S{0}E{1}".format(
+            offer.get("season"), offer.get("episode")) if offer else "has nothing after it"))
+
+    @staticmethod
+    def _card_filter(season, episode, rule):
+        """
+        <summary>
+        The library filter for the episodes after the one playing.
+        </summary>
+        <param name="season">Season of the episode playing.</param>
+        <param name="episode">Number of the episode playing.</param>
+        <param name="rule">"unwatched" adds a play count of 0.</param>
+        <returns>A VideoLibrary.GetEpisodes filter.</returns>
+        """
+        after = {"or": [
+            {"field": "season", "operator": "greaterthan", "value": str(season)},
+            {"and": [
+                {"field": "season", "operator": "is", "value": str(season)},
+                {"field": "episode", "operator": "greaterthan", "value": str(episode)}]}]}
+        if rule != "unwatched":
+            return after
+        return {"and": [after, {"field": "playcount", "operator": "is", "value": "0"}]}
+
+    def _card_run(self, gen, offer):
+        """
+        <summary>
+        Thread body: show the card, modal, and play the offered episode if OK was pressed.
+        </summary>
+        <param name="gen">_card_gen of the start the card is for.</param>
+        <param name="offer">The episode record from _card_lookup.</param>
+        <remarks>
+        The card reads what it shows from its own window properties
+        (NextCard.*). An episode with a resume point carries on from it, as
+        the Continue row's resume does. If a new start arrived while the card
+        was being built, it is dropped before it opens.
+        </remarks>
+        """
+        try:
+            dialog = _next_card_dialog_class(self)(
+                self.NEXT_CARD_XML, xbmcvfs.translatePath("special://skin/"), "Default", "1080i")
+            art = offer.get("art") or {}
+            dialog.setProperty("NextCard.Title", offer.get("title") or "")
+            dialog.setProperty("NextCard.Marker", "S{0}E{1}".format(
+                self._safe_int(offer.get("season"), 0), self._safe_int(offer.get("episode"), 0)))
+            dialog.setProperty("NextCard.Show", offer.get("showtitle") or "")
+            dialog.setProperty("NextCard.Thumb", art.get("thumb") or art.get("tvshow.fanart") or "")
+            with self._card_lock:
+                if gen != self._card_gen:
+                    return
+                self._card_dialog = dialog
+            _dlog("next card: up")
+            dialog.doModal()
+            choice = dialog.choice
+            with self._card_lock:
+                self._card_dialog = None
+                current = gen == self._card_gen
+            _dlog("next card: down ({0})".format(choice or "closed"))
+            if choice != "play" or not current:
+                return
+            dbid = self._safe_int(offer.get("episodeid"), 0)
+            try:
+                position = float((offer.get("resume") or {}).get("position") or 0)
+            except (TypeError, ValueError):
+                position = 0.0
+            params = {"item": {"episodeid": dbid}}
+            if position > 0:
+                params["options"] = {"resume": True}
+            _jsonrpc("Player.Open", params)
+        except Exception:  # noqa: BLE001
+            with self._card_lock:
+                self._card_dialog = None
+            _dlog("next card failed:\n" + traceback.format_exc(), xbmc.LOGERROR)
+
     def update_sleep_timer(self):
         """
         <summary>
@@ -9592,6 +10013,9 @@ def run():
         # START-BADGE: the badge goes up the tick after a video starts and
         # comes down to the quarter second.
         helper.update_start_badge,
+        # NEXT-CARD: the card must go up on time and come down when
+        # playback stops; one flag read unless an offer is waiting.
+        helper.update_next_card,
         # Fast as well: it only compares a timestamp unless a refresh is
         # due, and a toggled hide_nextup should refill the row at once.
         helper.update_next_up,

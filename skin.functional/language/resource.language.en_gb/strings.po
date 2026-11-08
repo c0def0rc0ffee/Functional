@@ -3126,3 +3126,43 @@ msgstr ""
 msgctxt "#31838"
 msgid "No queue of videos is playing, so the box will not power down after it."
 msgstr ""
+
+msgctxt "#31839"
+msgid "Up Next"
+msgstr ""
+
+msgctxt "#31840"
+msgid "This one ends in"
+msgstr ""
+
+msgctxt "#31841"
+msgid "Play Now"
+msgstr ""
+
+msgctxt "#31842"
+msgid "Next Episode Card:"
+msgstr ""
+
+msgctxt "#31843"
+msgid "Near the end of an episode, shows the next one with Play Now: OK plays it at once, Back hides the card. Unwatched skips what you have seen; In Order does not.[CR]Where: bottom right of the video, as the credits start."
+msgstr ""
+
+msgctxt "#31844"
+msgid "At the Latest:"
+msgstr ""
+
+msgctxt "#31845"
+msgid "The card goes up when a chapter starts in the last few minutes, which is usually the credits, or this long before the end, whichever is sooner. Never before 92% of the episode, so it still counts as watched.[CR]Where: bottom right of the video."
+msgstr ""
+
+msgctxt "#31846"
+msgid "Unwatched"
+msgstr ""
+
+msgctxt "#31847"
+msgid "In Order"
+msgstr ""
+
+msgctxt "#31848"
+msgid "Before End"
+msgstr ""

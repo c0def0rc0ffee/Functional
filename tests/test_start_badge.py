@@ -299,8 +299,15 @@ def test_row():
         fail("row 7327 runs into the Playback Buffer heading at y 640")
     if above.findtext("ondown") != "7327" or row.findtext("onup") != "7326":
         fail("rows 7326 and 7327 do not lead to each other")
-    if row.findtext("onleft") != "7313" or row.find("onright") is not None or row.find("ondown") is not None:
-        fail("row 7327 should go left to 7313 and nowhere right or down")
+    if row.findtext("onleft") != "7313" or row.find("onright") is not None:
+        fail("row 7327 should go left to 7313 and nowhere right")
+    # NEXT-CARD (08/11/2026): down may now reach the row straight under it,
+    # as long as that row leads back up here.
+    below = settings.get(row.findtext("ondown") or "")
+    if row.find("ondown") is not None and (below is None or below.findtext("left") != row.findtext("left")
+                                           or int(below.findtext("top")) != int(row.findtext("top")) + 80
+                                           or below.findtext("onup") != "7327"):
+        fail("down from row 7327 should go nowhere, or to the row straight under it, which leads back")
 
 
 if __name__ == "__main__":

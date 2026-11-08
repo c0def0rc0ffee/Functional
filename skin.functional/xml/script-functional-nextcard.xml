@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  NEXT-CARD, item 17 phase E1 (08/11/2026). The next episode card: bottom
+  right over the closing minutes of an episode, the next episode's picture,
+  its number, title and show, the time left in this one, and a Play Now
+  button that has the focus, so OK plays the next episode at once.
+  </summary>
+  <remarks>
+  Off unless Skin.String(next_card) is set. Not a custom window with a
+  visible condition like the start badge: a dialog Kodi opens that way never
+  has the focus, and this one has to take OK. service.py opens it itself as
+  a WindowXMLDialog (update_next_card, _next_card_dialog_class), fills the
+  NextCard.* properties on it, and closes it when playback stops, the
+  switch goes off or Back is pressed. Keys the card does not use, pause,
+  stop and volume among them, still reach the player.
+  </remarks>
+-->
+<window type="dialog">
+	<defaultcontrol always="true">9351</defaultcontrol>
+	<animation effect="fade" time="300" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="300" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
+	<controls>
+		<control type="group">
+			<left>1300</left>
+			<top>700</top>
+			<width>580</width>
+			<height>330</height>
+			<control type="image">
+				<left>0</left>
+				<top>0</top>
+				<width>580</width>
+				<height>330</height>
+				<texture colordiffuse="bg_dialog">white.png</texture>
+			</control>
+			<control type="image">
+				<left>20</left>
+				<top>20</top>
+				<width>240</width>
+				<height>135</height>
+				<aspectratio>scale</aspectratio>
+				<texture background="true">$INFO[Window.Property(NextCard.Thumb)]</texture>
+			</control>
+			<control type="label">
+				<left>280</left>
+				<top>20</top>
+				<width>280</width>
+				<height>36</height>
+				<font>font_small</font>
+				<textcolor>$VAR[AccentColor]</textcolor>
+				<label>$LOCALIZE[31839]</label>
+			</control>
+			<control type="label">
+				<left>280</left>
+				<top>58</top>
+				<width>280</width>
+				<height>40</height>
+				<font>font_reg</font>
+				<textcolor>white</textcolor>
+				<label>$INFO[Window.Property(NextCard.Marker)]</label>
+			</control>
+			<control type="label">
+				<left>280</left>
+				<top>100</top>
+				<width>280</width>
+				<height>36</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>$INFO[Window.Property(NextCard.Show)]</label>
+			</control>
+			<control type="label">
+				<left>20</left>
+				<top>168</top>
+				<width>540</width>
+				<height>40</height>
+				<font>font_reg</font>
+				<textcolor>white</textcolor>
+				<scroll>true</scroll>
+				<label>$INFO[Window.Property(NextCard.Title)]</label>
+			</control>
+			<control type="label">
+				<left>20</left>
+				<top>208</top>
+				<width>540</width>
+				<height>32</height>
+				<font>font_small</font>
+				<textcolor>text_dim</textcolor>
+				<label>$LOCALIZE[31840] $INFO[Player.TimeRemaining(m:ss)]</label>
+			</control>
+			<control type="button" id="9351">
+				<left>20</left>
+				<top>252</top>
+				<width>540</width>
+				<height>58</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>white</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<label>31841</label>
+			</control>
+		</control>
+	</controls>
+</window>
