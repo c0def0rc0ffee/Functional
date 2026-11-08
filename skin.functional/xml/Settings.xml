@@ -59,8 +59,8 @@
 					<width>820</width>
 					<height>80</height>
 					<font>font_med</font>
-					<textcolor>white</textcolor>
-					<selectedcolor>white</selectedcolor>
+					<textcolor>$VAR[AccentTextColor]</textcolor>
+					<selectedcolor>$VAR[AccentTextColor]</selectedcolor>
 					<aligny>center</aligny>
 					<label>$INFO[ListItem.Label]</label>
 				</control>

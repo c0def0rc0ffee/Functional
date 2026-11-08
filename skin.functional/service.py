@@ -367,6 +367,32 @@ def _reset_skin_string(key):
     xbmc.executebuiltin("Skin.Reset({0})".format(key))
 
 
+def accent_text_shade(value):
+    """
+    <summary>
+    ACCENT-TEXT (roadmap item 48): whether text drawn on a custom accent
+    should be dark or light, from the accent's brightness.
+    </summary>
+    <param name="value">The accent as Kodi's colour picker stores it, eight
+    hex digits AARRGGBB, any case, surrounding spaces allowed.</param>
+    <returns>"dark" for a light accent, "light" for a dark one, "" for a
+    value that is not eight hex digits.</returns>
+    <remarks>
+    The YIQ brightness rule, 0.299 R + 0.587 G + 0.114 B, dark text from 128
+    up. On the presets it puts amber (181) and orange (157) on dark text and
+    leaves blue (115), green (122) and pink (122) white, which is the hand
+    written list in Includes.xml's accent_light expression; WCAG's contrast
+    ratio would have put green and pink on dark text too, which reads wrong
+    on a television. Alpha is ignored.
+    </remarks>
+    """
+    value = (value or "").strip().upper()
+    if not re.fullmatch(r"[0-9A-F]{8}", value):
+        return ""
+    red, green, blue = (int(value[i:i + 2], 16) for i in (2, 4, 6))
+    return "dark" if 299 * red + 587 * green + 114 * blue >= 128000 else "light"
+
+
 def greeting_part(hour):
     """
     <summary>
@@ -8972,7 +8998,10 @@ class FunctionalHelper(xbmc.Monitor):
         """
         <summary>
         Keep Skin.String(accent_custom_hi) as a lighter shade of the custom
-        accent the colour picker stored in Skin.String(accent_custom).
+        accent the colour picker stored in Skin.String(accent_custom), and
+        Skin.String(accent_custom_text) as the shade text on it should take
+        (ACCENT-TEXT, roadmap item 48: "dark" or "light", see
+        accent_text_shade).
         </summary>
         <remarks>
         Fast ticker, one infolabel read a tick, a write only when the picked
@@ -8989,11 +9018,16 @@ class FunctionalHelper(xbmc.Monitor):
         self._accent_custom_seen = value
         if not re.fullmatch(r"[0-9A-F]{8}", value):
             _set_skin_string("accent_custom_hi", "")
+            _set_skin_string("accent_custom_text", "")
             return
         channels = [int(value[i:i + 2], 16) for i in (2, 4, 6)]
         lighter = "".join("{0:02X}".format(c + (255 - c) // 3) for c in channels)
         _set_skin_string("accent_custom_hi", value[:2] + lighter)
-        _dlog("accent: custom {0} -> highlight {1}".format(value, value[:2] + lighter))
+        # ACCENT-TEXT: the XML's accent_light expression reads this for a
+        # custom accent; the presets are judged in the XML itself.
+        shade = accent_text_shade(value)
+        _set_skin_string("accent_custom_text", shade)
+        _dlog("accent: custom {0} -> highlight {1}, text {2}".format(value, value[:2] + lighter, shade))
 
     # THEME-SEASON. Seasonal themes: see update_theme.
     THEME_NAMES = ("halloween", "devilsnight", "christmas", "christmaseve")

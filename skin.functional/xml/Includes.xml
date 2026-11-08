@@ -1354,6 +1354,25 @@
 		<value condition="String.IsEqual(Skin.String(accent_color),amber)">FFFFCA28</value>
 		<value>FF42A5F5</value>
 	</variable>
+	<!-- ACCENT-TEXT (roadmap item 48). The colour of text drawn on an accent
+	     fill: the focused row or button, the selected list row, the badge
+	     pills. White, today's look, unless Text on Accent is Auto and the
+	     accent in force is light: amber or orange among the presets, or a
+	     custom accent service.py:update_accent has judged light into
+	     Skin.String(accent_custom_text). Then the skin's own near black, bg,
+	     so the palette gains no colour. The seasonal theme reds win over the
+	     accent in AccentColor and are dark, so they stay white here too.
+	     Text on the skin's dark panels, over video or over fanart never
+	     reads this variable and stays white. -->
+	<expression name="accent_light">!$EXP[theme_halloween] + !$EXP[theme_christmas] + [String.IsEqual(Skin.String(accent_color),amber) | String.IsEqual(Skin.String(accent_color),orange) | [String.IsEqual(Skin.String(accent_color),custom) + !String.IsEmpty(Skin.String(accent_custom)) + String.IsEqual(Skin.String(accent_custom_text),dark)]]</expression>
+	<variable name="AccentTextColor">
+		<value condition="String.IsEqual(Skin.String(accent_text),auto) + $EXP[accent_light]">FF101418</value>
+		<value>FFFFFFFF</value>
+	</variable>
+	<variable name="AccentTextLabel">
+		<value condition="String.IsEqual(Skin.String(accent_text),auto)">$LOCALIZE[31857]</value>
+		<value>$LOCALIZE[31856]</value>
+	</variable>
 	<variable name="QueueCountLabel">
 		<value condition="Integer.IsGreater(Playlist.Length(video),0)">$LOCALIZE[31160]$INFO[Playlist.Length(video)])</value>
 		<value condition="Integer.IsGreater(Playlist.Length(music),0)">$LOCALIZE[31160]$INFO[Playlist.Length(music)])</value>
@@ -1979,7 +1998,7 @@
 				<font>font_med</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
@@ -1996,7 +2015,7 @@
 		<height>85</height>
 		<font>font_med</font>
 		<textcolor>text</textcolor>
-		<focusedcolor>white</focusedcolor>
+		<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 		<disabledcolor>disabled</disabledcolor>
 		<align>center</align>
 		<aligny>center</aligny>
@@ -2101,8 +2120,8 @@
 						<width>$PARAM[label_width]</width>
 						<height>60</height>
 						<font>font_reg</font>
-						<textcolor>white</textcolor>
-						<selectedcolor>white</selectedcolor>
+						<textcolor>$VAR[AccentTextColor]</textcolor>
+						<selectedcolor>$VAR[AccentTextColor]</selectedcolor>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label]</label>
 					</control>
@@ -2112,8 +2131,8 @@
 						<width>200</width>
 						<height>60</height>
 						<font>font_small</font>
-						<textcolor>white</textcolor>
-						<selectedcolor>white</selectedcolor>
+						<textcolor>$VAR[AccentTextColor]</textcolor>
+						<selectedcolor>$VAR[AccentTextColor]</selectedcolor>
 						<align>right</align>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label2]</label>
@@ -2691,7 +2710,7 @@
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
 				<textoffsetx>30</textoffsetx>
@@ -2752,7 +2771,7 @@
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
 				<textoffsetx>30</textoffsetx>
@@ -2809,7 +2828,7 @@
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
 				<textoffsetx>30</textoffsetx>
@@ -2896,7 +2915,7 @@
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>center</align>
 				<aligny>center</aligny>
 				<label>$PARAM[label]  $INFO[Window(home).Property(Fav.CatCount.$PARAM[cat]),(,)]</label>
@@ -3110,7 +3129,7 @@
 				<font>font_small</font>
 				<align>center</align>
 				<aligny>center</aligny>
-				<textcolor>white</textcolor>
+				<textcolor>$VAR[AccentTextColor]</textcolor>
 				<label>$VAR[OsdResolutionLabel]</label>
 				<visible>!String.IsEmpty(VideoPlayer.VideoResolution)</visible>
 			</control>
@@ -3439,7 +3458,7 @@
 						<width>612</width>
 						<height>70</height>
 						<font>font_reg</font>
-						<textcolor>white</textcolor>
+						<textcolor>$VAR[AccentTextColor]</textcolor>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label]</label>
 					</control>
@@ -3489,7 +3508,7 @@
 					<font>$PARAM[font]</font>
 					<align>center</align>
 					<aligny>center</aligny>
-					<textcolor>white</textcolor>
+					<textcolor>$VAR[AccentTextColor]</textcolor>
 					<label>$VAR[ScrollSortBadgeLabel]</label>
 				</control>
 			</control>

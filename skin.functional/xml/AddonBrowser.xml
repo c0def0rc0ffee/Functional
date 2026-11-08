@@ -45,7 +45,7 @@
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
 				<textoffsetx>20</textoffsetx>
@@ -64,7 +64,7 @@
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
 				<textoffsetx>20</textoffsetx>
@@ -83,7 +83,7 @@
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
 				<textoffsetx>20</textoffsetx>
@@ -98,7 +98,7 @@
 				<font>font_reg</font>
 				<textcolor>text</textcolor>
 				<disabledcolor>disabled</disabledcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<align>left</align>
 				<aligny>center</aligny>
 				<textoffsetx>20</textoffsetx>

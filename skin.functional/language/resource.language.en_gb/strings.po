@@ -3186,3 +3186,20 @@ msgstr ""
 msgctxt "#31853"
 msgid "The choice could not be saved."
 msgstr ""
+
+# Text on the accent fill (roadmap item 48). 08/11/2026.
+msgctxt "#31854"
+msgid "Text on Accent:"
+msgstr ""
+
+msgctxt "#31855"
+msgid "Colours the text on a focused row, button or badge to suit the accent. White always, or Auto: dark text on a light accent such as Amber, Orange or a light custom colour, white on the rest.[CR]Where: every screen of the skin, wherever text sits on the accent colour."
+msgstr ""
+
+msgctxt "#31856"
+msgid "White"
+msgstr ""
+
+msgctxt "#31857"
+msgid "Auto"
+msgstr ""

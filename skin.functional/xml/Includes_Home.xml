@@ -545,7 +545,7 @@
 				<height>36</height>
 				<font>font_small</font>
 				<textcolor>text</textcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -585,7 +585,7 @@
 				<height>36</height>
 				<font>font_small</font>
 				<textcolor>text</textcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -624,7 +624,7 @@
 				<height>36</height>
 				<font>font_small</font>
 				<textcolor>text</textcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -655,7 +655,7 @@
 				<height>36</height>
 				<font>font_small</font>
 				<textcolor>text</textcolor>
-				<focusedcolor>white</focusedcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 				<disabledcolor>disabled</disabledcolor>
 				<align>center</align>
 				<aligny>center</aligny>
@@ -733,7 +733,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
@@ -1001,7 +1001,7 @@
 					<font>font_reg</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>left</align>
 					<aligny>center</aligny>
 					<textoffsetx>20</textoffsetx>
@@ -1021,7 +1021,7 @@
 					<font>font_small</font>
 					<textcolor>text</textcolor>
 					<disabledcolor>disabled</disabledcolor>
-					<focusedcolor>white</focusedcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 					<align>center</align>
 					<aligny>center</aligny>
 					<textoffsetx>0</textoffsetx>

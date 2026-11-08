@@ -267,7 +267,7 @@
 			<font>font_small</font>
 			<align>center</align>
 			<aligny>center</aligny>
-			<textcolor>white</textcolor>
+			<textcolor>$VAR[AccentTextColor]</textcolor>
 			<label>$VAR[OsdResolutionLabel]</label>
 			<visible>!String.IsEmpty(VideoPlayer.VideoResolution)</visible>
 		</control>
@@ -584,7 +584,7 @@
 			<font>font_small</font>
 			<textcolor>text</textcolor>
 			<disabledcolor>disabled</disabledcolor>
-			<focusedcolor>white</focusedcolor>
+			<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
 			<align>center</align>
 			<aligny>center</aligny>
 			<label>$VAR[OsdFullBufferLabel]</label>
