@@ -3284,3 +3284,11 @@ msgstr ""
 msgctxt "#31877"
 msgid "Zooms the background slowly in and out; slow boxes may stutter.[CR]Where: the background behind Home."
 msgstr ""
+
+msgctxt "#31878"
+msgid "Follow Focused Tile"
+msgstr ""
+
+msgctxt "#31879"
+msgid "Movies, TV Shows and Music show fanart of their own kind while focused.[CR]Where: the background behind Home."
+msgstr ""

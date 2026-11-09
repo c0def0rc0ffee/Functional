@@ -3873,6 +3873,34 @@
 					<onleft>7000</onleft>
 				</control>
 
+				<!-- BG-FOLLOW: the background follows the focused Home tile
+				     (roadmap item 36): Movies, TV Shows and Music paint random
+				     fanart of their own kind, every other tile keeps the mode
+				     above. A switch under the one selector, not a second
+				     selector; not a schedule slot key. -->
+				<control type="radiobutton" id="7121">
+					<visible>!String.IsEmpty(Skin.String(bg_mode))</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31878</label>
+					<selected>Skin.HasSetting(bg_follow_tile)</selected>
+					<onclick>Skin.ToggleSetting(bg_follow_tile)</onclick>
+					<onleft>7000</onleft>
+				</control>
+
 				<!-- Dim, applies to any non-off background -->
 				<control type="button" id="7114">
 					<visible>!String.IsEmpty(Skin.String(bg_mode))</visible>
