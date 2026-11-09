@@ -40,6 +40,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 XML = os.path.join(ROOT, "skin.functional", "xml")
 HOME_INCLUDES = ("HomeStatsColumn", "HomeLogo", "HomeWeather", "HomeClock",
                  "HomeMenu", "HomeFooter", "HomeContinueTabs")
+# <summary>The background includes in Includes.xml that carry a flip (the slow
+# zoom, item 37); their flips are held to the same rules as Home's.</summary>
+BG_FLIP_INCLUDES = ("SkinBackground", "FolderSlideshow", "BgZoom")
 # <summary>The variable that wants Kodi's opaque white from an all zero colour:
 # the idle round buttons on Home, as the comment beside it says.</summary>
 WHITE_BY_CHOICE = ("HomeRoundButtonIdleColor",)
@@ -62,6 +65,7 @@ FLIP_READS = {
     "flip_power": "Skin.HasSetting(hide_power)",
     "flip_lists": "Skin.HasSetting(show_lists_icon)",
     "flip_stats": "Skin.HasSetting(show_stats_icon)",
+    "flip_zoom": "Skin.HasSetting(bg_zoom)",
 }
 # A flip done as a pair of labels, plain and flipped, rather than an exclusive or.
 PAIR_FLIPS = {"flip_greeting": ("$VAR[HomeClockLine]", "$VAR[HomeClockLineFlipped]")}
@@ -71,6 +75,7 @@ STAGE_FLIPS = {
     "flip_datetime": "7106", "flip_greeting": "7319", "flip_version": "7105",
     "flip_continue": "7128", "flip_recent": "7144", "flip_add": "7147", "flip_step": "7148",
     "flip_fav": "7123", "flip_addons": "7109", "flip_power": "7112", "flip_lists": "7136", "flip_stats": "7139",
+    "flip_zoom": "7138",
 }
 SWITCH = "settings_preview"
 SWITCH_ID = "7322"
@@ -115,7 +120,10 @@ def test_flip_parameters():
     for name in HOME_INCLUDES:
         if name not in found:
             fail("Includes_Home.xml has no include %s" % name)
-    for inc in root.findall("include"):
+    background = [i for i in parse("Includes.xml").findall("include") if i.get("name") in BG_FLIP_INCLUDES]
+    if sorted(i.get("name") for i in background) != sorted(BG_FLIP_INCLUDES):
+        fail("Includes.xml lacks one of %s" % (BG_FLIP_INCLUDES,))
+    for inc in root.findall("include") + background:
         declared = {p.get("name"): p.get("default") for p in inc.findall("param")}
         flips = {k: v for k, v in declared.items() if k.startswith("flip_")}
         for pname, default in flips.items():
@@ -156,7 +164,7 @@ def test_flip_parameters():
             fail("%s: unbalanced brackets in its definition" % inc.get("name"))
     home = parse("Home.xml")
     for inc in home.iter("include"):
-        if inc.get("content") in HOME_INCLUDES + ("BgCaptions", "BgStepButtons", "HomeCornerBar"):
+        if inc.get("content") in HOME_INCLUDES + ("BgCaptions", "BgStepButtons", "HomeCornerBar", "SkinBackground"):
             passed = [p.get("name") for p in inc.findall("param") if p.get("name", "").startswith("flip_")]
             if passed:
                 fail("Home.xml passes %s to %s; Home never flips" % (passed, inc.get("content")))

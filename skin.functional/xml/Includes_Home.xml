@@ -1263,7 +1263,7 @@
 				<height>1080</height>
 				<animation effect="zoom" start="100" end="18.75" center="0,0" time="0" condition="true">Conditional</animation>
 				<!-- No second video window: while video plays the stage shows no background. -->
-				<include content="SkinBackground"><param name="visible" value="!Player.HasVideo"/></include>
+				<include content="SkinBackground"><param name="visible" value="!Player.HasVideo"/><param name="flip_zoom" value="Control.HasFocus(7138)"/></include>
 				<include content="BgCaptions"><param name="flip_add" value="Control.HasFocus(7147)"/></include>
 				<include content="BgStepButtons"><param name="flip_step" value="Control.HasFocus(7148)"/></include>
 				<include content="HomeStatsColumn"><param name="flip_movies" value="Control.HasFocus(7107)"/><param name="flip_tvshows" value="Control.HasFocus(7108)"/><param name="flip_jellystat" value="Control.HasFocus(7137)"/><param name="flip_engage" value="Control.HasFocus(7149)"/></include>
