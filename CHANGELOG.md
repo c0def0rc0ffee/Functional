@@ -11,6 +11,15 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.24 (09/11/2026)
+
+- New Slow Zoom row under Skin Settings, Background, below Dim, off by
+  default. Switched on, the background picture zooms slowly in and out,
+  about a tenth over 30 seconds each way, while the dim, the captions
+  and the seasonal decorations hold still. It follows Show On All
+  Screens, is one setting for every time slot, and Reduce Motion stops
+  it. Left off, the background looks as before.
+
 ## 0.23.23 (09/11/2026)
 
 - New Skip Intro Pill row under Skin Settings, Playback, off by
