@@ -11,6 +11,18 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.23 (09/11/2026)
+
+- New Skip Intro Pill row under Skin Settings, Playback, off by
+  default. While an intro or recap your Jellyfin server has marked is
+  playing, a Skip Intro or Skip Recap button shows bottom right with a
+  bar that empties as it plays: OK skips to its end, Back hides it. Skip
+  Credits Too adds the end credits, but not while the Next Episode Card
+  is on. The markers come from the Intro Skipper or TheIntroDB plugin on
+  the server. Switching the pill on offers to turn the Jellyfin add-on's
+  own skip buttons off so the two do not overlap, and switching it off
+  offers them back. Left off, playback looks as before.
+
 ## 0.23.22 (08/11/2026)
 
 - New Text on Accent row under Skin Settings, Overall, beside Custom
