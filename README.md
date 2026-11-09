@@ -44,7 +44,7 @@ One unified **Background** selector so the modes can never conflict:
 - **Slideshow: Genre**: random fanart from one library genre of your choice (movies, TV shows, or both)
 - **Slideshow: Folder**: cycles every picture in a folder you choose (browse with thumbnails and tap any image in the target folder)
 
-Plus a configurable rotate interval (10s / 30s / 1m / 2m / 5m; unset = 20s), a dim level (0-90%) so text stays readable, and a caption position for the slideshow/static label. Every background option also exists per time-of-day slot: a 2-4-slot schedule (each slot with its own start time) swaps the whole background configuration on the clock.
+Plus a configurable rotate interval (10s / 30s / 1m / 2m / 5m; unset = 20s), a dim level (0-90%) so text stays readable, and a caption position for the slideshow/static label. Every background option also exists per time-of-day slot: a 2-4-slot schedule (each slot with its own start time) swaps the whole background configuration on the clock. A **Slow Zoom** (off by default) drifts the picture gently in and out; it is one setting for every slot, and Reduce Motion stops it.
 
 The background is not limited to the home screen:
 
@@ -142,7 +142,7 @@ A lightweight Python service handles what the skin engine can't do alone, with a
 All settings live in **Settings > Skin Settings**, organised into seven categories:
 
 - **Overall**: accent colour (Blue, Red, Green, Orange, Amber, Purple, Teal, Pink, or any colour from a picker, with the highlight shade following it), Text on Accent (White, or Auto for dark text on a light accent such as Amber), notification position (6 placements), Seasonal Themes (Halloween and Devil's Night from 29 to 31 October, Christmas and Christmas Eve from the first Saturday of December to Boxing Day, each on by itself unless switched off, or picked by hand), Reduce Motion (turns off the slide and fade effects across the skin; seasonal decorations keep their own switches), Preview Settings (shows what the focused setting does, off by default), Diagnostics (debug logging + log folder), and Skin Settings Backup (Back Up Now and Restore from Backup, with the age of the snapshot shown)
-- **Background**: the unified background mode, image/folder picker, dim, slideshow interval, caption position, the time-of-day schedule, and whether the background (or live video) shows on every screen
+- **Background**: the unified background mode, image/folder picker, dim, a slow zoom (off by default), slideshow interval, caption position, the time-of-day schedule, and whether the background (or live video) shows on every screen
 - **Main Menu**: show/hide each menu item (incl. Weather, Lists and Stats) and the main menu position; the corner bar position, its Favourites/Add-ons/Power buttons and Lists/Stats icons, and invisible round buttons
 - **Home Screen**: the stats panels and Continue Watching; logo, date/time, weather widget, greeting beside the clock (off by default), footer and loading splash; the sleep timer and its countdown
 - **Library**: gallery thumbnail size, small-grid column count, poster shape, rounded corners for posters and thumbnails (off by default), context menu position (centre or left edge), default sort order and direction for Movies and TV Shows, info bar position and toggles for every metadata field, 4K, HDR and resolution badges on the gallery posters (off by default), and title age on the info screens

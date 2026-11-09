@@ -3276,3 +3276,11 @@ msgstr ""
 msgctxt "#31875"
 msgid "Turn On"
 msgstr ""
+
+msgctxt "#31876"
+msgid "Slow Zoom"
+msgstr ""
+
+msgctxt "#31877"
+msgid "Zooms the background slowly in and out; slow boxes may stutter.[CR]Where: the background behind Home."
+msgstr ""

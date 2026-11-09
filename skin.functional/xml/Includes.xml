@@ -1680,9 +1680,12 @@
 	     WindowBackground when the setting is on, Home.xml when it is off.
 	     The caption rows are BgCaptions, which Home.xml draws itself.
 
-	     'visible'  : condition gating the whole block. -->
+	     'visible'  : condition gating the whole block.
+	     'flip_zoom': BG-ZOOM, the settings preview stage's flip for the slow
+	                  zoom (row 7138); false everywhere but the stage. -->
 	<include name="SkinBackground">
 		<param name="visible" default="true"/>
+		<param name="flip_zoom" default="false"/>
 		<definition>
 			<control type="group">
 				<visible>$PARAM[visible]</visible>
@@ -1717,6 +1720,7 @@
 					     bg_slideshow_source is active, so the property check
 					     alone tells us whether the slideshow is running. -->
 					<visible>[!String.IsEmpty(Window(home).Property(home_bg_fanart))] + !$EXP[bg_video_showing]</visible>
+					<include content="BgZoom"><param name="flip_zoom" value="$PARAM[flip_zoom]"/></include>
 				</control>
 
 				<!-- User-selected static background image (Skin.String(home_background)).
@@ -1733,18 +1737,19 @@
 					     clash with the slideshow. -->
 					<visible>[String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))] + !$EXP[bg_video_showing]</visible>
 					<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
+					<include content="BgZoom"><param name="flip_zoom" value="$PARAM[flip_zoom]"/></include>
 				</control>
 
 				<!-- Folder slideshow (mode = folder). One instance per interval preset;
 				     only the matching one is visible. timeperimage needs a literal, so
 				     it can't be a single dynamic control. The service publishes the
 				     resolved folder as Skin.String(bg_slideshow_dir). -->
-				<include content="FolderSlideshow"><param name="ms" value="20000"/><param name="when" value="String.IsEmpty(Skin.String(bg_slideshow_interval))"/></include>
-				<include content="FolderSlideshow"><param name="ms" value="10000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),10)"/></include>
-				<include content="FolderSlideshow"><param name="ms" value="30000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),30)"/></include>
-				<include content="FolderSlideshow"><param name="ms" value="60000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),60)"/></include>
-				<include content="FolderSlideshow"><param name="ms" value="120000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),120)"/></include>
-				<include content="FolderSlideshow"><param name="ms" value="300000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),300)"/></include>
+				<include content="FolderSlideshow"><param name="ms" value="20000"/><param name="when" value="String.IsEmpty(Skin.String(bg_slideshow_interval))"/><param name="flip_zoom" value="$PARAM[flip_zoom]"/></include>
+				<include content="FolderSlideshow"><param name="ms" value="10000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),10)"/><param name="flip_zoom" value="$PARAM[flip_zoom]"/></include>
+				<include content="FolderSlideshow"><param name="ms" value="30000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),30)"/><param name="flip_zoom" value="$PARAM[flip_zoom]"/></include>
+				<include content="FolderSlideshow"><param name="ms" value="60000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),60)"/><param name="flip_zoom" value="$PARAM[flip_zoom]"/></include>
+				<include content="FolderSlideshow"><param name="ms" value="120000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),120)"/><param name="flip_zoom" value="$PARAM[flip_zoom]"/></include>
+				<include content="FolderSlideshow"><param name="ms" value="300000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),300)"/><param name="flip_zoom" value="$PARAM[flip_zoom]"/></include>
 
 
 				<!-- Dim overlay over whichever background is showing -->
@@ -1959,6 +1964,7 @@
 	<include name="FolderSlideshow">
 		<param name="ms" />
 		<param name="when" />
+		<param name="flip_zoom" default="false"/>
 		<definition>
 			<control type="multiimage">
 				<left>0</left>
@@ -1978,7 +1984,31 @@
 				     so this stands down; if that listing comes back empty
 				     the property stays empty and this takes over again. -->
 				<visible>[String.IsEqual(Skin.String(bg_mode),folder) + !String.IsEmpty(Skin.String(bg_slideshow_dir)) + [$PARAM[when]]] + !$EXP[bg_video_showing] + [!Skin.HasSetting(bg_step_buttons) | String.IsEmpty(Window(home).Property(home_bg_fanart))]</visible>
+				<include content="BgZoom"><param name="flip_zoom" value="$PARAM[flip_zoom]"/></include>
 			</control>
+		</definition>
+	</include>
+
+	<!-- BG-ZOOM: the slow zoom on the background (roadmap item 37), a Ken
+	     Burns drift. Goes inside each picture control of SkinBackground, the
+	     library slideshow, the static image and the folder slideshow, so the
+	     dim overlay, the captions and the theme layers stay still. Zooming in
+	     from 100 about a point inside the screen keeps the picture covering
+	     the whole screen, and with the point above and right of centre the
+	     view closes in on that point, so the picture spreads out towards
+	     the lower left. Pulse runs it in for 30 s and back out for
+	     30 s, for as long as it is on. Not reversible: a conditional animation
+	     otherwise plays itself backwards when its condition goes false, so
+	     switching it off or turning Reduce Motion on would ease the picture
+	     back over up to 30 s (seen live 09/11/2026); this way it stops at once.
+	     Off by default, because it redraws the background every frame, which
+	     a slow box feels; Reduce Motion stops it too.
+
+	     'flip_zoom': the settings preview stage's flip (row 7138). -->
+	<include name="BgZoom">
+		<param name="flip_zoom" default="false"/>
+		<definition>
+			<animation effect="zoom" start="100" end="110" center="1150,470" time="30000" tween="sine" easing="inout" pulse="true" reversible="false" condition="[[Skin.HasSetting(bg_zoom) + !$PARAM[flip_zoom]] | [!Skin.HasSetting(bg_zoom) + $PARAM[flip_zoom]]] + !Skin.HasSetting(reduce_motion)">Conditional</animation>
 		</definition>
 	</include>
 

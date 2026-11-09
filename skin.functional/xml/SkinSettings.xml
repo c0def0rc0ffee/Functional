@@ -3897,6 +3897,31 @@
 					<onclick condition="String.IsEqual(Skin.String(bg_dim),75)">Skin.SetString(bg_dim,90)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(bg_dim),90)">Skin.Reset(bg_dim)</onclick>
 				</control>
+				<!-- BG-ZOOM: the slow zoom on the background picture (roadmap
+				     item 37, BgZoom in Includes). Off by default; a setting,
+				     not a schedule slot key, like the edge buttons. -->
+				<control type="radiobutton" id="7138">
+					<visible>!String.IsEmpty(Skin.String(bg_mode))</visible>
+					<width>900</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31876</label>
+					<selected>Skin.HasSetting(bg_zoom)</selected>
+					<onclick>Skin.ToggleSetting(bg_zoom)</onclick>
+					<onleft>7000</onleft>
+				</control>
 				<!-- Where the background is drawn. Off (default) keeps the
 				     original behaviour: Home only, every other window on the
 				     flat bg colour. On, WindowBackground renders the same
