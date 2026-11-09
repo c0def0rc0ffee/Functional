@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  SKIP-PILL, item 16 phase F (08/11/2026). The skip pill: bottom right over
+  an intro, a recap or, when asked for, the end credits the Jellyfin server
+  has marked, a button labelled Skip Intro, Skip Recap or Skip Credits with
+  a bar along its foot that empties as the part plays. OK skips to the end
+  of the part, Back hides the pill for it.
+  </summary>
+  <remarks>
+  Off unless Skin.HasSetting(skip_pill). Not a dialog with a visible
+  condition like the start badge: a dialog Kodi opens that way never has
+  the focus, and this one has to take OK. service.py opens it itself as a
+  modal WindowXMLDialog (update_skip_pill, _skip_pill_dialog_class), the
+  next episode card's pattern, sets SkipPill.Label on it and moves the bar
+  through the progress control. Drawn as the OSD's own buttons are (a flat
+  plate in the accent, 56 tall, centred text), on Rob's request of
+  09/11/2026: the first, rounded pill looked worse than the Jellyfin
+  add-on's prompt. The label and the bar take Text on Accent's colour, so
+  both read on a light accent too. The OSD and info keys close it to be
+  passed on; pause, stop and volume reach the player by themselves.
+  </remarks>
+-->
+<window type="dialog">
+	<defaultcontrol always="true">9361</defaultcontrol>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
+	<controls>
+		<control type="group">
+			<left>1580</left>
+			<top>944</top>
+			<width>280</width>
+			<height>56</height>
+			<control type="button" id="9361">
+				<left>0</left>
+				<top>0</top>
+				<width>280</width>
+				<height>56</height>
+				<font>font_reg</font>
+				<textcolor>$VAR[AccentTextColor]</textcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textoffsety>-2</textoffsety>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="$VAR[AccentColor]">white.png</texturenofocus>
+				<label>$INFO[Window.Property(SkipPill.Label)]</label>
+				<onleft>9361</onleft>
+				<onright>9361</onright>
+				<onup>9361</onup>
+				<ondown>9361</ondown>
+			</control>
+			<!-- The bar: the share of the part still to play, the full
+			     width of the button along its foot. -->
+			<control type="progress" id="9362">
+				<left>0</left>
+				<top>52</top>
+				<width>280</width>
+				<height>4</height>
+				<texturebg colordiffuse="33000000">white.png</texturebg>
+				<midtexture colordiffuse="$VAR[AccentTextColor]">white.png</midtexture>
+				<overlaytexture>-</overlaytexture>
+			</control>
+		</control>
+	</controls>
+</window>

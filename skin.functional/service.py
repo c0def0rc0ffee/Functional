@@ -210,6 +210,7 @@ Future handlers
 
 import datetime
 import json
+import math
 from collections import deque
 import os
 import urllib.error
@@ -1184,6 +1185,420 @@ def _next_card_dialog_class(helper):
     return NextCardDialog
 
 
+# ---- SKIP-PILL, item 16 phase F (08/11/2026) ------------------------------
+# <summary>
+# The skip intro and recap pill: which marked part of the video playing it
+# offers to skip, read from the Jellyfin server's media segments, how the
+# switch on check words what the server still needs, and the dialog the
+# pill is drawn in.
+# </summary>
+
+SKIP_TICKS_PER_SEC = 10000000   # Jellyfin counts time in 100 ns ticks
+SKIP_MIN_SECS = 3.0             # a marked part shorter than this gets no pill
+SKIP_END_MARGIN = 1.5           # the pill comes down this long before its part ends
+SKIP_DEMO_SECS = 30.0           # length of the made up part a demo command shows
+SKIP_SAMPLE = 20                # library items the switch on check asks about
+SKIP_HTTP_TIMEOUT = 6           # seconds a request may take, from asking to the last byte
+SKIP_MAX_BYTES = 1048576        # a larger answer is refused rather than read
+SKIP_CHECK_SECS = 30            # the switch on check stops asking after this long
+# Jellyfin's segment types the pill offers, and the kind each becomes.
+# Preview, Commercial and Unknown are left alone.
+SKIP_KINDS = {"Intro": "intro", "Recap": "recap", "Outro": "credits"}
+SKIP_LABELS = {"intro": 31862, "recap": 31863, "credits": 31864}
+# Server plugins that write intro markers into the media segments.
+SKIP_PLUGIN_NAMES = ("Intro Skipper", "TheIntroDB")
+JELLYFIN_DATA = "special://profile/addon_data/plugin.video.jellyfin/data.json"
+# The Jellyfin add-on's own segment skipping (3.0.0 and later), on by
+# default and drawn over the pill (found live 09/11/2026). Its switch, the
+# mode setting per segment type (0 off, 1 automatic skip, 2 a skip button,
+# read afresh on every check), and its prompt's window.
+JELLYFIN_ADDON = "plugin.video.jellyfin"
+JELLYFIN_SKIP_ON = "mediaSegmentsEnabled"
+JELLYFIN_SKIP_MODES = {"Intro": "skipIntroductionMode", "Recap": "skipRecapMode", "Outro": "skipCreditsMode"}
+JELLYFIN_SKIP_XML = "script-jellyfin-skip.xml"
+JELLYFIN_MODE_OFF, JELLYFIN_MODE_AUTO, JELLYFIN_MODE_BUTTON = 0, 1, 2
+
+
+def jellyfin_button_modes(enabled, modes):
+    """
+    <summary>
+    SKIP-PILL: which of the Jellyfin add-on's skip settings put a button over the pill.
+    </summary>
+    <param name="enabled">Its segment skipping switch.</param>
+    <param name="modes">Its mode setting name to value, for the types the pill covers.</param>
+    <returns>The setting names set to a skip button, sorted; none while its
+    skipping is off.</returns>
+    """
+    if not enabled:
+        return []
+    return sorted(key for key, value in modes.items()
+                  if key in JELLYFIN_SKIP_MODES.values() and value == JELLYFIN_MODE_BUTTON)
+
+
+def jellyfin_auto_types(enabled, modes):
+    """
+    <summary>
+    SKIP-PILL: the segment types the Jellyfin add-on skips by itself.
+    </summary>
+    <param name="enabled">Its segment skipping switch.</param>
+    <param name="modes">Its mode setting name to value.</param>
+    <returns>The Jellyfin segment Types (Intro, Recap, Outro) set to automatic
+    skip; the pill leaves those parts alone, since Jellyfin seeks past them
+    as they start.</returns>
+    """
+    if not enabled:
+        return set()
+    return {kind for kind, key in JELLYFIN_SKIP_MODES.items() if modes.get(key) == JELLYFIN_MODE_AUTO}
+
+
+
+def jellyfin_item_id(path):
+    """
+    <summary>
+    SKIP-PILL: the Jellyfin item id in the path of the video playing.
+    </summary>
+    <param name="path">Player.FilenameAndPath.</param>
+    <returns>The id as 32 lower case hex digits, or "" when the path is not
+    a Jellyfin one.</returns>
+    <remarks>
+    Two shapes. In add-on mode, the one this library uses, Kodi plays
+    plugin://plugin.video.jellyfin/.../?... with id=ITEM in its query (seen live
+    08/11/2026). In native mode it plays the server's stream address, whose
+    path holds /Videos/ITEM/. A dashed id is accepted and returned without
+    its dashes.
+    </remarks>
+    """
+    if not path:
+        return ""
+    try:
+        parts = urllib.parse.urlparse(path)
+    except ValueError:
+        return ""
+    value = ""
+    if parts.scheme == "plugin" and parts.netloc == "plugin.video.jellyfin":
+        value = (urllib.parse.parse_qs(parts.query).get("id") or [""])[0]
+    elif parts.scheme in ("http", "https"):
+        found = re.search(r"/videos/([0-9a-f-]{32,36})/", parts.path.lower())
+        value = found.group(1) if found else ""
+    value = value.strip().lower().replace("-", "")
+    return value if re.fullmatch(r"[0-9a-f]{32}", value) else ""
+
+
+def jellyfin_servers(text):
+    """
+    <summary>
+    SKIP-PILL: the servers the Jellyfin add-on is signed in to, from its data.json.
+    </summary>
+    <param name="text">The text of plugin.video.jellyfin's data.json.</param>
+    <returns>A list of (address, token, user id), in the add-on's order;
+    entries without an http or https address or a token are left out.</returns>
+    <remarks>
+    The token is the Jellyfin add-on's own, read on this device when the
+    pill needs it and never written, logged or kept beyond the call. The
+    skin uses it only to read media segments, the plugin list and a sample
+    of item ids.
+    </remarks>
+    """
+    try:
+        doc = json.loads(text)
+    except (TypeError, ValueError):
+        return []
+    found = []
+    for server in (doc.get("Servers") if isinstance(doc, dict) else None) or []:
+        if not isinstance(server, dict):
+            continue
+        address = str(server.get("address") or "").strip().rstrip("/")
+        token = str(server.get("AccessToken") or "").strip()
+        if address.startswith(("http://", "https://")) and token:
+            found.append((address, token, str(server.get("UserId") or "").strip()))
+    return found
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """
+    <summary>
+    SKIP-PILL: a redirect handler that follows nothing.
+    </summary>
+    <remarks>
+    urllib's own handler copies the Authorization header onto the
+    redirected request, so a proxy or portal answering 302 would hand the
+    Jellyfin add-on's token to whatever host it named, over plain http if
+    it liked (found in review, 08/11/2026). Returning None leaves the 3xx
+    as an HTTPError, which _jellyfin_get reports as its status.
+    </remarks>
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: N802 (urllib API)
+        """<summary>Refuse every redirect.</summary>"""
+        return None
+
+
+_JELLYFIN_OPENER = urllib.request.build_opener(_NoRedirect())
+
+
+def jellyfin_auth_header(token):
+    """
+    <summary>
+    SKIP-PILL: the Authorization header for a request as the Jellyfin add-on's user.
+    </summary>
+    <param name="token">The add-on's access token.</param>
+    <returns>The header value, the token alone.</returns>
+    <remarks>
+    No Client, Device or DeviceId: the token already belongs to the add-on's
+    own device record, and naming another device could rename that record
+    in the server's Devices list (raised in review, 08/11/2026).
+    </remarks>
+    """
+    return 'MediaBrowser Token="{0}"'.format(token)
+
+
+def _jellyfin_get(server, path):
+    """
+    <summary>
+    SKIP-PILL: one GET to a Jellyfin server as the Jellyfin add-on's user.
+    </summary>
+    <param name="server">An (address, token, user id) from jellyfin_servers.</param>
+    <param name="path">The path and query, starting with a slash.</param>
+    <returns>(HTTP status, decoded JSON or None). The status is 0 when the
+    server could not be reached, took longer than SKIP_HTTP_TIMEOUT from
+    asking to the last byte, or sent more than SKIP_MAX_BYTES.</returns>
+    <remarks>
+    Goes only to the address the Jellyfin add-on keeps and follows no
+    redirect (_NoRedirect), so the token reaches no other host. The socket
+    timeout alone is per read, so a server that drips bytes is cut off by
+    the deadline too. Never logs the address or the token, and never
+    raises: the callers only ever turn a failure into no pill or a plainer
+    message.
+    </remarks>
+    """
+    address, token, _user = server
+    request = urllib.request.Request(address + path, headers={
+        "Accept": "application/json", "Authorization": jellyfin_auth_header(token)})
+    deadline = time.monotonic() + SKIP_HTTP_TIMEOUT
+    try:
+        with _JELLYFIN_OPENER.open(request, timeout=SKIP_HTTP_TIMEOUT) as resp:
+            body = b""
+            while True:
+                chunk = resp.read(65536)
+                if not chunk:
+                    break
+                body += chunk
+                if len(body) > SKIP_MAX_BYTES or time.monotonic() > deadline:
+                    return 0, None
+            return resp.status, (json.loads(body.decode("utf-8")) if body.strip() else None)
+    except urllib.error.HTTPError as exc:
+        return exc.code, None
+    except Exception:  # noqa: BLE001, refused, timed out, bad certificate or bad JSON
+        return 0, None
+
+
+def skip_segments(items, credits):
+    """
+    <summary>
+    SKIP-PILL: the parts the pill offers, from a media segments answer.
+    </summary>
+    <param name="items">The Items list of GET /MediaSegments/ITEM.</param>
+    <param name="credits">True to offer the end credits (Outro) as well.</param>
+    <returns>(start, end, kind) in seconds, kind "intro", "recap" or
+    "credits", sorted by start.</returns>
+    <remarks>
+    A part shorter than SKIP_MIN_SECS, or with a missing, negative,
+    reversed or infinite time (Python's json reads Infinity and NaN), is
+    left out rather than guessed at.
+    </remarks>
+    """
+    found = []
+    for item in items or []:
+        if not isinstance(item, dict):
+            continue
+        kind = SKIP_KINDS.get(item.get("Type"))
+        if kind is None or (kind == "credits" and not credits):
+            continue
+        try:
+            start = float(item.get("StartTicks")) / SKIP_TICKS_PER_SEC
+            end = float(item.get("EndTicks")) / SKIP_TICKS_PER_SEC
+        except (TypeError, ValueError):
+            continue
+        if not (math.isfinite(start) and math.isfinite(end)) or start < 0 or end - start < SKIP_MIN_SECS:
+            continue
+        found.append((start, end, kind))
+    found.sort()
+    return found
+
+
+def skip_segment_at(segments, now, hidden=()):
+    """
+    <summary>
+    SKIP-PILL: the part the pill should be up for at a play time.
+    </summary>
+    <param name="segments">From skip_segments.</param>
+    <param name="now">The play time in seconds.</param>
+    <param name="hidden">(start, end) of parts already skipped or hidden by
+    Back during this start.</param>
+    <returns>The (start, end, kind) playing now, or None.</returns>
+    <remarks>
+    The pill comes down SKIP_END_MARGIN before its part ends, so it never
+    offers to skip a second or two.
+    </remarks>
+    """
+    for part in segments:
+        start, end, _kind = part
+        if (start, end) in hidden:
+            continue
+        if start <= now < end - SKIP_END_MARGIN:
+            return part
+    return None
+
+
+def skip_seek_target(part, total):
+    """
+    <summary>
+    SKIP-PILL: where OK seeks to, the part's end kept inside the file.
+    </summary>
+    <param name="part">The (start, end, kind) being skipped.</param>
+    <param name="total">The file's length in seconds, 0 or less when unknown.</param>
+    <returns>The part's end, or half a second before the end of the file
+    when the part runs to or past it (end credits often do), but never
+    before the part's start.</returns>
+    <remarks>
+    A seek to or past the very end of the file is left to Kodi's own
+    handling, which the review could not confirm (08/11/2026); stopping
+    just short lets the file end by itself, so watched marks and a queue's
+    next item follow as they would.
+    </remarks>
+    """
+    start, end, _kind = part
+    if total and total > 0 and end > total - 0.5:
+        return max(start, total - 0.5)
+    return end
+
+
+def skip_left_percent(part, now):
+    """
+    <summary>
+    SKIP-PILL: how full the pill's bar is, the share of its part still to play.
+    </summary>
+    <param name="part">A (start, end, kind).</param>
+    <param name="now">The play time in seconds.</param>
+    <returns>0 to 100.</returns>
+    """
+    start, end, _kind = part
+    if end <= start:
+        return 0
+    return max(0, min(100, int(round((end - now) * 100.0 / (end - start)))))
+
+
+def skip_setup_message(servers, checked, plugins, found):
+    """
+    <summary>
+    SKIP-PILL: what the switch on check tells the viewer.
+    </summary>
+    <param name="servers">How many servers the Jellyfin add-on is signed in to.</param>
+    <param name="checked">True when a server listed library items and
+    answered for at least one item's media segments, so "no markers" is a
+    real answer rather than a failed question.</param>
+    <param name="plugins">The plugin names the servers listed, or None when
+    the account may not list them (only an administrator may).</param>
+    <param name="found">True when a sample of the library carried markers.</param>
+    <returns>(string id, plugin name to put in it or "").</returns>
+    <remarks>
+    31870 is good news and goes in a toast; the rest go in an OK dialog:
+    31866 no Jellyfin server, 31867 the markers could not be checked (the
+    server was offline, refused the add-on's sign in, or is older than
+    Jellyfin 10.10 and has no media segments), 31868 a marker plugin is
+    installed but has not marked anything yet, 31869 none found in the
+    sample and how to add a plugin if the server has none. Until review
+    (08/11/2026) any answer at all, a 401 or a 404 among them, counted as
+    reachable and led to "install a plugin". The skin never installs
+    anything on the server: that needs an administrator and a server
+    restart, and the plugin is the server owner's to add and remove.
+    </remarks>
+    """
+    if not servers:
+        return 31866, ""
+    if found:
+        return 31870, ""
+    if not checked:
+        return 31867, ""
+    for name in plugins or ():
+        for wanted in SKIP_PLUGIN_NAMES:
+            if wanted.lower() in str(name or "").lower():
+                return 31868, str(name)
+    return 31869, ""
+
+
+def _skip_pill_dialog_class(helper):
+    """
+    <summary>
+    SKIP-PILL: the pill's dialog class.
+    </summary>
+    <param name="helper">The FunctionalHelper, for its ids.</param>
+    <returns>A WindowXMLDialog subclass whose choice is "skip", "back" or
+    empty once doModal returns.</returns>
+    <remarks>
+    Built when first needed, so the tests import the service without a
+    WindowXMLDialog, as _next_card_dialog_class is. OK skips, Back hides;
+    the OSD and info keys close it so _skip_run can pass them on; every
+    other key is left to Kodi. The window
+    property SkipPill.Percent is the bar's fill when the pill opens;
+    update_skip_pill moves it after that.
+    The methods go through super() because checks/skin_checks.py cannot see
+    what a class nested in a function inherits.
+    </remarks>
+    """
+
+    class SkipPillDialog(xbmcgui.WindowXMLDialog):
+        """<summary>The pill: one button, OK skips the part playing.</summary>"""
+
+        def __init__(self, *args, **kwargs):
+            """<summary>Start with no choice made and a full bar.</summary>"""
+            super().__init__(*args, **kwargs)
+            self.choice = ""
+            self.percent = 100
+
+        def onInit(self):  # noqa: N802 (Kodi API)
+            """<summary>Fill the bar to the share still to play, from SkipPill.Percent.</summary>"""
+            try:
+                percent = int(super().getProperty("SkipPill.Percent") or 100)
+                super().getControl(helper.SKIP_PROGRESS_ID).setPercent(percent)
+            except Exception:  # noqa: BLE001, a missing bar only means no bar
+                pass
+
+        def onClick(self, control_id):  # noqa: N802 (Kodi API)
+            """
+            <summary>OK on the pill: skip to the end of the part.</summary>
+            <param name="control_id">The control clicked.</param>
+            """
+            if control_id == helper.SKIP_BUTTON_ID:
+                self.choice = "skip"
+                super().close()
+
+        def onAction(self, action):  # noqa: N802 (Kodi API)
+            """
+            <summary>Back hides the pill; the OSD and info keys close it to pass on; every other key is left to Kodi.</summary>
+            <param name="action">The Kodi action.</param>
+            <remarks>
+            A modal dialog keeps the OSD, menu, context and info keys from the
+            player (seen live 09/11/2026: with the pill up the OSD never
+            opened), so those close the pill and _skip_run passes them on.
+            Pause, stop and volume reach the player by themselves, as with the
+            next episode card; the arrows move nowhere on the one button.
+            </remarks>
+            """
+            action_id = action.getId()
+            if action_id in helper._ACTION_BACK:
+                self.choice = "back"
+                super().close()
+            elif action_id in helper.SKIP_PASS_OSD:
+                self.choice = "osd"
+                super().close()
+            elif action_id in helper.SKIP_PASS_INFO:
+                self.choice = "info"
+                super().close()
+
+    return SkipPillDialog
+
+
 class FunctionalHelper(xbmc.Monitor):
     """
     <summary>
@@ -1466,6 +1881,16 @@ class FunctionalHelper(xbmc.Monitor):
         # START-BADGE, item 18 (see update_start_badge)
         self._badge_pending = False   # a video started, noted on the notification thread
         self._badge_until = None      # time.monotonic() the badge comes down, None = not up
+        # SKIP-PILL, item 16 phase F (see update_skip_pill)
+        self._skip_pending = False     # a video started, noted on the notification thread
+        self._skip_lock = threading.Lock()
+        self._skip_gen = 0             # bumped per start; older lookups and pills are dropped
+        self._skip_items = None        # the item's media segments, None = none known
+        self._skip_hidden = set()      # (start, end) of parts skipped or hidden this start
+        self._skip_dialog = None       # the open pill, None = not up
+        self._skip_shown = None        # the (start, end, kind) the open pill is for
+        self._skip_opening = False     # a pill is being built on its thread
+        self._skip_hold_until = 0.0    # monotonic time before which the pill is not reopened
         # NEXT-CARD, item 17 phase E1 (see update_next_card)
         self._card_pending = False    # a video started, noted on the notification thread
         self._card_lock = threading.Lock()
@@ -1604,6 +2029,8 @@ class FunctionalHelper(xbmc.Monitor):
             self._badge_pending = True
             # NEXT-CARD: the same, update_next_card acts on the loop.
             self._card_pending = True
+            # SKIP-PILL: the same, update_skip_pill acts on the loop.
+            self._skip_pending = True
         if method in ("Player.OnPlay", "Player.OnAVStart") and self._sleep_queue_check is not None:
             # LISTS-TIME-SLEEP: something started during the warning, so
             # somebody is there or the evening has moved on. Kodi's own
@@ -7738,6 +8165,488 @@ class FunctionalHelper(xbmc.Monitor):
                 self._card_dialog = None
             _dlog("next card failed:\n" + traceback.format_exc(), xbmc.LOGERROR)
 
+    # ---- SKIP-PILL, item 16 phase F (08/11/2026) ----------------------------
+
+    SKIP_PILL_XML = "script-functional-skippill.xml"
+    SKIP_BUTTON_ID = 9361
+    SKIP_PROGRESS_ID = 9362
+    # Kodi action ids, read from xbmcgui inside Kodi 09/11/2026: the keys a
+    # modal pill would otherwise keep from the player. ACTION_SHOW_OSD,
+    # ACTION_CONTEXT_MENU, ACTION_MENU and ACTION_TRIGGER_OSD open the OSD;
+    # ACTION_SHOW_INFO the info panel.
+    SKIP_PASS_OSD = (24, 117, 163, 243)
+    SKIP_PASS_INFO = (11,)
+    SKIP_PASS_HOLD = 1.0   # seconds the pill stays down while a passed key takes effect
+    SKIP_PASS_WAIT = 0.4   # seconds a passed key waits for the pill's 200 ms fade out
+
+    def update_skip_pill(self):
+        """
+        <summary>
+        SKIP-PILL, item 16 phase F (08/11/2026): put the skip pill up while a
+        marked intro or recap plays, and take it down when the part is over.
+        </summary>
+        <remarks>
+        Skin.HasSetting(skip_pill) is the switch; skip_pill_outro adds the
+        end credits, but only while the next episode card is off, since the
+        card already covers the credits and waits for any open dialog.
+        Player.OnAVStart only sets _skip_pending; here, on the loop, a start
+        of a Jellyfin item (jellyfin_item_id) with the switch on asks the
+        server for its media segments on a daemon thread, and each start
+        bumps _skip_gen so an answer or a pill from an earlier start is
+        dropped. Live TV and anything not from Jellyfin get no pill.
+
+        The pill opens only over the fullscreen video with nothing else open,
+        as the card does, and is closed, not hidden, when the OSD, the seek
+        bar or the info panel comes up, so it can come back after. If the
+        Jellyfin add-on's own skip prompt is up for the same part, the pill
+        gives way for the rest of that part. It is a
+        WindowXMLDialog the service runs modal on a thread of its own
+        (_skip_run), because it has to take OK. Its bar shows the share of
+        the part still to play and is moved here each tick. Nothing is
+        written to a property or a skin string. Fast tick: one flag read
+        with the switch off or nothing marked; while a part is known, a
+        condition and a player read.
+        </remarks>
+        """
+        if self._skip_pending:
+            self._skip_pending = False
+            self._skip_reset()
+            if not xbmc.getCondVisibility("Skin.HasSetting(skip_pill) + Player.HasVideo + !VideoPlayer.Content(livetv)"):
+                return
+            item = jellyfin_item_id(xbmc.getInfoLabel("Player.FilenameAndPath"))
+            if not item:
+                return
+            with self._skip_lock:
+                gen = self._skip_gen
+            threading.Thread(target=self._skip_lookup, args=(gen, item),
+                             name="functional-skip-lookup", daemon=True).start()
+            return
+        with self._skip_lock:
+            items, dialog, shown, opening = (self._skip_items, self._skip_dialog,
+                                             self._skip_shown, self._skip_opening)
+            hidden = set(self._skip_hidden)
+        if opening:
+            return
+        if not items:
+            # A new start can clear the parts between the pill being kept
+            # and its doModal running, when close() does nothing yet; the
+            # next tick closes it here instead of leaving it up (review,
+            # 08/11/2026).
+            if dialog is not None:
+                self._skip_close()
+            return
+        if not xbmc.getCondVisibility("Skin.HasSetting(skip_pill) + Player.HasVideo"):
+            self._skip_reset()
+            return
+        try:
+            now = xbmc.Player().getTime()
+        except Exception:  # noqa: BLE001, playback can stop between the calls
+            return
+        credits = (xbmc.getCondVisibility("Skin.HasSetting(skip_pill_outro)")
+                   and not xbmc.getInfoLabel("Skin.String(next_card)"))
+        part = skip_segment_at(skip_segments(items, credits), now, hidden)
+        if part is not None and xbmc.getCondVisibility("Window.IsVisible({0})".format(JELLYFIN_SKIP_XML)):
+            # The Jellyfin add-on's own prompt is up for this part: the pill
+            # gives way for the rest of it rather than sit under it.
+            with self._skip_lock:
+                self._skip_hidden.add(part[:2])
+            _dlog("skip pill: gave way to the Jellyfin add-on's prompt ({0})".format(part[2]))
+            if dialog is not None:
+                self._skip_close()
+            return
+        if dialog is not None:
+            if part != shown or xbmc.getCondVisibility(
+                    "Window.IsActive(videoosd) | Window.IsActive(seekbar) | Window.IsActive(fullscreeninfo)"):
+                self._skip_close()
+                return
+            try:
+                dialog.getControl(self.SKIP_PROGRESS_ID).setPercent(skip_left_percent(part, now))
+            except Exception:  # noqa: BLE001, the pill may be closing
+                pass
+            return
+        if part is None:
+            return
+        if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) + !System.HasActiveModalDialog"
+                                      " + !Window.IsActive(videoosd) + !Window.IsActive(seekbar)"
+                                      " + !Window.IsActive(fullscreeninfo)"):
+            return
+        if time.monotonic() < self._skip_hold_until:
+            return
+        with self._skip_lock:
+            gen = self._skip_gen
+            self._skip_opening = True
+        threading.Thread(target=self._skip_run, args=(gen, part, now),
+                         name="functional-skip-pill", daemon=True).start()
+
+    def _skip_reset(self):
+        """
+        <summary>
+        Forget the parts of the start that is over, and close the pill if it is up.
+        </summary>
+        <remarks>
+        Bumps _skip_gen, so an answer still on its way for the old start is
+        dropped and a pill closed here skips nothing.
+        </remarks>
+        """
+        with self._skip_lock:
+            self._skip_gen += 1
+            self._skip_items = None
+            self._skip_hidden = set()
+            dialog = self._skip_dialog
+        if dialog is not None:
+            try:
+                dialog.close()
+            except Exception:  # noqa: BLE001
+                pass
+
+    def _skip_close(self):
+        """
+        <summary>
+        Close the pill without hiding its part, so it can come back.
+        </summary>
+        """
+        with self._skip_lock:
+            dialog = self._skip_dialog
+        if dialog is not None:
+            try:
+                dialog.close()
+            except Exception:  # noqa: BLE001
+                pass
+
+    @staticmethod
+    def _skip_servers():
+        """
+        <summary>
+        The Jellyfin servers the Jellyfin add-on on this device is signed in to.
+        </summary>
+        <returns>As jellyfin_servers; empty when the add-on has no data file.</returns>
+        """
+        try:
+            with open(xbmcvfs.translatePath(JELLYFIN_DATA), encoding="utf-8") as handle:
+                return jellyfin_servers(handle.read())
+        except (OSError, ValueError):
+            return []
+
+    def _skip_lookup(self, gen, item):
+        """
+        <summary>
+        Daemon thread body: read the media segments of the item that started.
+        </summary>
+        <param name="gen">_skip_gen of the start this is for.</param>
+        <param name="item">The Jellyfin item id.</param>
+        <remarks>
+        An item id belongs to one server and the path does not say which, so
+        each server the add-on knows is asked in its order until one answers
+        200. Parts of a type the Jellyfin add-on skips automatically are left
+        out, so the pill never flashes up as Jellyfin seeks past them. The log
+        names how many parts were found and their types, never the server or
+        the item.
+        </remarks>
+        """
+        items = None
+        try:
+            for server in self._skip_servers():
+                status, body = _jellyfin_get(server, "/MediaSegments/" + item)
+                if status == 200 and isinstance(body, dict):
+                    items = [i for i in (body.get("Items") or []) if isinstance(i, dict)]
+                    break
+        except Exception:  # noqa: BLE001
+            _dlog("skip pill: lookup failed:\n" + traceback.format_exc(), xbmc.LOGWARNING)
+            return
+        if items is None:
+            _dlog("skip pill: no server answered for this item")
+            return
+        jellyfin = self._jellyfin_skip_settings()
+        auto = jellyfin_auto_types(*jellyfin) if jellyfin else set()
+        if auto:
+            kept = [i for i in items if i.get("Type") not in auto]
+            _dlog("skip pill: {0} part(s) left to the Jellyfin add-on's automatic skip".format(len(items) - len(kept)))
+            items = kept
+        with self._skip_lock:
+            if gen != self._skip_gen:
+                return
+            self._skip_items = items
+        _dlog("skip pill: {0} marked part(s){1}".format(len(items), ": " + ", ".join(
+            sorted({str(i.get("Type")) for i in items})) if items else ""))
+
+    def _skip_run(self, gen, part, now):
+        """
+        <summary>
+        Thread body: show the pill, modal, and skip the part if OK was pressed.
+        </summary>
+        <param name="gen">_skip_gen of the start the pill is for.</param>
+        <param name="part">The (start, end, kind) playing.</param>
+        <param name="now">The play time when the pill was asked for.</param>
+        <remarks>
+        The OSD and info keys close the pill without hiding its part and are
+        passed on here. Skipping seeks to the part's end, kept just inside the file
+        (skip_seek_target), and only while the same video plays. A part
+        skipped or hidden by Back is not offered again in this start, even
+        if the viewer seeks back into it. A pill closed by update_skip_pill (its part ended, or the OSD
+        came up) does neither, so it can come back.
+        </remarks>
+        """
+        try:
+            playing = xbmc.getInfoLabel("Player.FilenameAndPath")
+            dialog = _skip_pill_dialog_class(self)(
+                self.SKIP_PILL_XML, xbmcvfs.translatePath("special://skin/"), "Default", "1080i")
+            dialog.setProperty("SkipPill.Label", _L(SKIP_LABELS.get(part[2], 31862)))
+            dialog.setProperty("SkipPill.Percent", str(skip_left_percent(part, now)))
+            with self._skip_lock:
+                self._skip_opening = False
+                if gen != self._skip_gen:
+                    return
+                self._skip_dialog = dialog
+                self._skip_shown = part
+            _dlog("skip pill: up ({0})".format(part[2]))
+            dialog.doModal()
+            choice = dialog.choice
+            with self._skip_lock:
+                self._skip_dialog = None
+                self._skip_shown = None
+                current = gen == self._skip_gen
+                if current and choice in ("skip", "back"):
+                    self._skip_hidden.add(part[:2])
+            _dlog("skip pill: down ({0})".format(choice or "closed"))
+            if choice in ("osd", "info") and current:
+                # Closed, not hidden: pass the key on, and keep the pill down
+                # long enough for the OSD or the info panel to come up; the
+                # pill returns when it goes, if the part is still playing.
+                # The key waits SKIP_PASS_WAIT for the pill's 200 ms fade out:
+                # Kodi drops an action sent while a closing dialog animates
+                # ("ignoring action 24, because topmost modal dialog closing
+                # animation is running", kodi.log 09/11/2026), and a closing
+                # dialog no longer counts as open, so there is nothing to poll.
+                self._skip_hold_until = time.monotonic() + self.SKIP_PASS_WAIT + self.SKIP_PASS_HOLD
+                if self.waitForAbort(self.SKIP_PASS_WAIT):
+                    return
+                self._skip_hold_until = time.monotonic() + self.SKIP_PASS_HOLD
+                xbmc.executebuiltin("Action(OSD)" if choice == "osd" else "Action(Info)")
+                return
+            if choice != "skip" or not current:
+                return
+            # The loop bumps _skip_gen a tick after a new start, so the path
+            # is compared too: OK in that tick must not seek the new video.
+            if xbmc.getInfoLabel("Player.FilenameAndPath") != playing:
+                _dlog("skip pill: the video changed under the pill, no seek")
+                return
+            player = xbmc.Player()
+            total = player.getTotalTime()
+            player.seekTime(skip_seek_target(part, total))
+        except Exception:  # noqa: BLE001
+            with self._skip_lock:
+                self._skip_dialog = None
+                self._skip_shown = None
+                self._skip_opening = False
+            _dlog("skip pill failed:\n" + traceback.format_exc(), xbmc.LOGERROR)
+
+    def update_skip_command(self):
+        """
+        <summary>
+        SKIP-PILL: take a command from the skip_command channel.
+        </summary>
+        <remarks>
+        "check" comes from the Playback row as the pill is switched on and
+        runs _skip_check off the loop; "release" comes as it is switched off
+        and runs _skip_release. "demo" and "demo_credits" come from
+        build_preview_art.py: with the switch (and for credits the sub
+        switch) on and a video playing, they make up one part from now for
+        SKIP_DEMO_SECS, so the preview pictures show the real pill over the
+        test clip. A demo part is forgotten at the next start, and OK on it
+        only seeks the clip forward.
+        </remarks>
+        """
+        cmd = self._take_command("skip_command", lower=True)
+        if not cmd:
+            return
+        if cmd == "check":
+            self._skip_pending = True
+            self._spawn_dialog(self._skip_check)
+        elif cmd == "release":
+            self._spawn_dialog(self._skip_release)
+        elif cmd in ("demo", "demo_credits"):
+            self._skip_demo(cmd == "demo_credits")
+        else:
+            _dlog("skip pill: unknown command %r ignored" % cmd)
+
+    def _skip_demo(self, credits):
+        """
+        <summary>
+        Make up one marked part from now, for the preview pictures.
+        </summary>
+        <param name="credits">True for end credits, False for an intro.</param>
+        """
+        if not xbmc.getCondVisibility("Skin.HasSetting(skip_pill) + Player.HasVideo"):
+            return
+        try:
+            now = xbmc.Player().getTime()
+        except Exception:  # noqa: BLE001
+            return
+        part = {"Type": "Outro" if credits else "Intro",
+                "StartTicks": int(max(0.0, now - 1.0) * SKIP_TICKS_PER_SEC),
+                "EndTicks": int((now + SKIP_DEMO_SECS) * SKIP_TICKS_PER_SEC)}
+        with self._skip_lock:
+            self._skip_items = [part]
+            self._skip_hidden = set()
+        _dlog("skip pill: demo {0}".format(part["Type"]))
+
+    def _skip_check(self):
+        """
+        <summary>
+        The switch on check: say what the Jellyfin server still needs for the pill, if anything.
+        </summary>
+        <remarks>
+        Runs through _spawn_dialog, so its requests and its dialog never
+        stall the loop; it holds the one dialog slot, so it stops asking
+        after SKIP_CHECK_SECS and answers with what it has. Asks each server
+        for its plugin list (only an administrator may read it) and for the
+        media segments of a random sample of SKIP_SAMPLE films and episodes,
+        stopping at the first that has any. skip_setup_message picks the
+        words. The log records counts and yes or no only. A video already
+        playing is looked up at once (_skip_pending), so the pill does not
+        wait for the next one to start.
+        </remarks>
+        """
+        self._skip_offer()
+        servers = self._skip_servers()
+        deadline = time.monotonic() + SKIP_CHECK_SECS
+        checked, plugins, found = False, None, False
+        for server in servers:
+            if found or time.monotonic() > deadline:
+                break
+            status, body = _jellyfin_get(server, "/Plugins")
+            if status == 200 and isinstance(body, list):
+                plugins = (plugins or []) + [str(p.get("Name") or "") for p in body if isinstance(p, dict)]
+            if status:
+                asked, found = self._skip_sample(server, deadline)
+                checked = checked or asked
+        string_id, name = skip_setup_message(len(servers), checked, plugins, found)
+        _dlog("skip pill: switch on check, {0} server(s), checked {1}, plugin list {2}, markers {3}".format(
+            len(servers), checked, "read" if plugins is not None else "not readable", found))
+        if string_id == 31870:
+            xbmcgui.Dialog().notification(_L(31865), _L(31870), xbmcgui.NOTIFICATION_INFO, 4000)
+            return
+        message = _L(string_id)
+        if name:
+            message = message % name
+        xbmcgui.Dialog().ok(_L(31865), message)
+
+    @staticmethod
+    def _jellyfin_skip_settings():
+        """
+        <summary>
+        The Jellyfin add-on's segment skipping switch and its mode per type the pill covers.
+        </summary>
+        <returns>(enabled, {setting name: mode}), or None when the add-on is not
+        installed or its settings cannot be read.</returns>
+        """
+        if not xbmc.getCondVisibility("System.HasAddon({0})".format(JELLYFIN_ADDON)):
+            return None
+        try:
+            addon = xbmcaddon.Addon(JELLYFIN_ADDON)
+            return (addon.getSettingBool(JELLYFIN_SKIP_ON),
+                    {key: addon.getSettingInt(key) for key in JELLYFIN_SKIP_MODES.values()})
+        except Exception:  # noqa: BLE001, an older add-on without these settings
+            return None
+
+    def _skip_offer(self):
+        """
+        <summary>
+        As the pill is switched on, offer to turn the Jellyfin add-on's own skip buttons off.
+        </summary>
+        <remarks>
+        Rob's choice, 09/11/2026: the two prompts would sit one over the
+        other and Jellyfin's takes the keys. Asked only when one of its modes
+        for an intro, a recap or the credits is a skip button; only those
+        modes are set to off, so automatic skipping the viewer chose there is
+        left alone. The names changed are kept in
+        Skin.String(skip_jellyfin_modes) so switching the pill off can offer
+        them back (_skip_release). Nothing is changed without a yes.
+        </remarks>
+        """
+        settings = self._jellyfin_skip_settings()
+        keys = jellyfin_button_modes(*settings) if settings else []
+        if not keys:
+            return
+        if not xbmcgui.Dialog().yesno(_L(31865), _L(31871), nolabel=_L(31873), yeslabel=_L(31872)):
+            _dlog("skip pill: Jellyfin's skip buttons left on, by choice")
+            return
+        try:
+            addon = xbmcaddon.Addon(JELLYFIN_ADDON)
+            for key in keys:
+                addon.setSettingInt(key, JELLYFIN_MODE_OFF)
+        except Exception:  # noqa: BLE001, the add-on went away under us
+            _dlog("skip pill: could not change Jellyfin's skip buttons:\n" + traceback.format_exc(), xbmc.LOGWARNING)
+            return
+        _set_skin_string("skip_jellyfin_modes", ",".join(keys))
+        _dlog("skip pill: Jellyfin's skip buttons turned off: {0}".format(", ".join(keys)))
+
+    def _skip_release(self):
+        """
+        <summary>
+        As the pill is switched off, offer to turn back on the Jellyfin skip buttons it turned off.
+        </summary>
+        <remarks>
+        Only the settings _skip_offer changed, and only those still off: one
+        the viewer has set to something else since is theirs and left alone.
+        The record is cleared whatever the answer, so the offer is made once.
+        </remarks>
+        """
+        recorded = xbmc.getInfoLabel("Skin.String(skip_jellyfin_modes)")
+        keys = [k for k in recorded.split(",") if k in JELLYFIN_SKIP_MODES.values()]
+        if recorded:
+            _reset_skin_string("skip_jellyfin_modes")
+        settings = self._jellyfin_skip_settings()
+        if not keys or not settings:
+            return
+        keys = [k for k in keys if settings[1].get(k) == JELLYFIN_MODE_OFF]
+        if not keys:
+            return
+        if not xbmcgui.Dialog().yesno(_L(31865), _L(31874), nolabel=_L(31873), yeslabel=_L(31875)):
+            _dlog("skip pill: Jellyfin's skip buttons left off, by choice")
+            return
+        try:
+            addon = xbmcaddon.Addon(JELLYFIN_ADDON)
+            for key in keys:
+                addon.setSettingInt(key, JELLYFIN_MODE_BUTTON)
+        except Exception:  # noqa: BLE001
+            _dlog("skip pill: could not change Jellyfin's skip buttons:\n" + traceback.format_exc(), xbmc.LOGWARNING)
+            return
+        _dlog("skip pill: Jellyfin's skip buttons turned back on: {0}".format(", ".join(keys)))
+
+    @staticmethod
+    def _skip_sample(server, deadline):
+        """
+        <summary>
+        Whether any of a random sample of the server's films and episodes is marked.
+        </summary>
+        <param name="server">An (address, token, user id).</param>
+        <param name="deadline">time.monotonic() after which no more is asked.</param>
+        <returns>(asked, found): asked is True once the server listed items and
+        answered 200 for at least one item's media segments; found is True at
+        the first item with any.</returns>
+        """
+        query = {"Recursive": "true", "IncludeItemTypes": "Episode,Movie",
+                 "SortBy": "Random", "Limit": str(SKIP_SAMPLE)}
+        if server[2]:
+            query["userId"] = server[2]
+        status, body = _jellyfin_get(server, "/Items?" + urllib.parse.urlencode(query))
+        if status != 200 or not isinstance(body, dict):
+            return False, False
+        asked = False
+        for row in (body.get("Items") or [])[:SKIP_SAMPLE]:
+            if time.monotonic() > deadline:
+                break
+            item = str((row or {}).get("Id") or "") if isinstance(row, dict) else ""
+            if not re.fullmatch(r"[0-9a-fA-F-]{32,36}", item):
+                continue
+            status, segments = _jellyfin_get(server, "/MediaSegments/" + item.replace("-", ""))
+            if status == 200 and isinstance(segments, dict):
+                asked = True
+                if segments.get("Items"):
+                    return True, True
+        return asked, False
+
     # ---- NEXT-CARD-SHOW, item 17 phase E2 (08/11/2026) ---------------------
 
     SHOWS_FILE = "special://profile/addon_data/skin.functional/shows.json"
@@ -10408,6 +11317,12 @@ def run():
         # NEXT-CARD-SHOW: the info screen's Next Card button, answered
         # while the screen is still up.
         helper.update_next_card_command,
+        # SKIP-PILL: the pill must go up as its part starts and its bar
+        # move; one flag read with the switch off or nothing marked.
+        helper.update_skip_pill,
+        # SKIP-PILL: the Playback row's switch on check, and the preview
+        # pictures' demo.
+        helper.update_skip_command,
         # Fast as well: it only compares a timestamp unless a refresh is
         # due, and a toggled hide_nextup should refill the row at once.
         helper.update_next_up,
