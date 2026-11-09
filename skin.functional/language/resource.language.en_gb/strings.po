@@ -3203,3 +3203,76 @@ msgstr ""
 msgctxt "#31857"
 msgid "Auto"
 msgstr ""
+
+# Skip intro and recap pill (roadmap item 16). 08/11/2026.
+msgctxt "#31858"
+msgid "Skip Intro Pill"
+msgstr ""
+
+msgctxt "#31859"
+msgid "While an intro or recap your Jellyfin server has marked is playing, shows Skip Intro or Skip Recap with a bar that empties as it plays. OK skips to its end, Back hides it. The markers come from the Intro Skipper or TheIntroDB plugin on the server, Jellyfin 10.10 or later. Switching it on offers to turn the Jellyfin add-on's own skip buttons off, so the two do not overlap.[CR]Where: bottom right of the video."
+msgstr ""
+
+msgctxt "#31860"
+msgid "Skip Credits Too"
+msgstr ""
+
+msgctxt "#31861"
+msgid "Also shows Skip Credits during end credits the server has marked. Not while the Next Episode Card is on, since the card already covers the credits.[CR]Where: bottom right of the video."
+msgstr ""
+
+msgctxt "#31862"
+msgid "Skip Intro"
+msgstr ""
+
+msgctxt "#31863"
+msgid "Skip Recap"
+msgstr ""
+
+msgctxt "#31864"
+msgid "Skip Credits"
+msgstr ""
+
+msgctxt "#31865"
+msgid "Skip Intro Pill"
+msgstr ""
+
+msgctxt "#31866"
+msgid "The pill reads intro markers from Jellyfin, and the Jellyfin add-on on this device is not signed in to a server. The pill stays hidden until it is."
+msgstr ""
+
+msgctxt "#31867"
+msgid "Your Jellyfin server could not be asked about intro markers just now. It may be offline, it may need the Jellyfin add-on signed in again, or it may be older than Jellyfin 10.10, the first to keep them. The pill shows whenever a playing video has them."
+msgstr ""
+
+msgctxt "#31868"
+msgid "%s is installed on your Jellyfin server, but no intro markers were found yet. They appear once its scan has run: Jellyfin dashboard, Scheduled Tasks."
+msgstr ""
+
+msgctxt "#31869"
+msgid "No intro markers were found in a sample of your library. If your Jellyfin server has neither the Intro Skipper nor the TheIntroDB plugin, ask whoever runs it to install one. Neither is in Jellyfin's own catalogue: add the plugin's repository under Jellyfin dashboard, Plugins, Repositories, then install it from the Catalogue and restart the server. Once it has scanned the library, the pill shows during intros.[CR]The skin installs nothing on the server."
+msgstr ""
+
+msgctxt "#31870"
+msgid "Intro markers found on your Jellyfin server."
+msgstr ""
+
+msgctxt "#31871"
+msgid "The Jellyfin add-on shows its own skip buttons, which would sit over the pill and take its keys. Turn them off? Any automatic skipping you have set there is left as it is.[CR]You can turn them back on in the Jellyfin add-on's settings, and you will be asked again when you switch the pill off."
+msgstr ""
+
+msgctxt "#31872"
+msgid "Turn Off"
+msgstr ""
+
+msgctxt "#31873"
+msgid "Leave Them"
+msgstr ""
+
+msgctxt "#31874"
+msgid "You turned the Jellyfin add-on's own skip buttons off when you switched the pill on. Turn them back on?"
+msgstr ""
+
+msgctxt "#31875"
+msgid "Turn On"
+msgstr ""

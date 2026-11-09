@@ -18,7 +18,8 @@ textcolor and selectedcolor tag is sorted by what Kodi draws behind it, with
 the rules written up in PLAN-accent-text.md: a texturefocus of an accent
 white.png is a fill, a border.png frame is not; a label inside a
 focusedlayout with an accent white.png plate at least 24 px tall is on a
-fill; a label outside a layout is on a fill only when an earlier image in
+fill; a button's own text is on a fill when its texturenofocus is one
+(the skip pill, always focused, draws the accent in both states); a label outside a layout is on a fill only when an earlier image in
 its group draws such a plate. Defaults.xml is skipped: Kodi never loads it
 and it was left as it was. Exits non zero when a check fails.
 Usage:
@@ -440,6 +441,8 @@ def classify(el, parent):
     <returns>"accent" when the text sits on an accent fill, "panel" otherwise.</returns>
     """
     ctrl = parent.get(el)
+    if el.tag == "textcolor" and _is_plate(ctrl.find("texturenofocus")):
+        return "accent"
     if el.tag == "focusedcolor":
         focus = ctrl.find("texturefocus")
         if _is_plate(focus):

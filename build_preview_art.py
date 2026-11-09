@@ -84,8 +84,9 @@ MOVIES = "videodb://movies/titles/"
 GALLERY, INFOBAR_LEFT, INFOBAR_RIGHT = (0, 0, 1920, 1080), (0, 960, 640, 120), (1120, 960, 800, 120)
 # settings the pictured screens depend on without being pictured; reset to
 # default for the run like the pictured ones (the small grid column count
-# sets how many posters a gallery row holds)
-BASELINE = ("small_cols",)
+# sets how many posters a gallery row holds; the next episode card being on
+# keeps Skip Credits off, so it is off for the run)
+BASELINE = ("small_cols", "next_card")
 OSD = (0, 740, 1920, 340)
 # The first tiles of the gallery, near enough for a badge to read at panel size.
 BADGES = (0, 0, 880, 496)
@@ -129,6 +130,14 @@ PICTURES = [
     # Start badge: the top right corner a few seconds into a 4K HDR10 clip,
     # while the badge is up; the clip has no age rating, so none shows
     {"row": "7327", "setting": "show_start_badge", "kind": "toggle", "screen": "startbadge", "crop": (1120, 0, 800, 240)},
+    # Skip pill: the bottom right of a still clip of the run's backdrop (every
+    # frame the same, so a pair differs by the pill alone) a few seconds after the
+    # helper is told to make up a marked part (skip_command demo); Skip
+    # Credits Too needs the pill itself on for both of its pictures, so its
+    # "shows" sets that switch, a bool, for each
+    {"row": "7334", "setting": "skip_pill", "kind": "toggle", "screen": "skippill", "crop": (1120, 630, 800, 450)},
+    {"row": "7335", "setting": "skip_pill_outro", "kind": "toggle", "screen": "skippillcredits", "crop": (1120, 630, 800, 450),
+     "shows": {"off": [("skip_pill", "true", "bool")], "on": [("skip_pill", "true", "bool")]}},
     # Rows from the Home Screen, Background and Overall pages
     {"row": "7115", "setting": "hide_loading", "kind": "toggle", "screen": "startup", "crop": GALLERY},
     {"row": "7141", "setting": "hide_sleep_timer", "kind": "toggle", "screen": "powermenu", "crop": (560, 240, 800, 450)},
@@ -430,6 +439,28 @@ def make_clip(path):
     return subprocess.run(cmd).returncode == 0 and os.path.isfile(path)
 
 
+def make_still_clip(backdrop, path):
+    """
+    <summary>Makes a silent 90 second clip of one unchanging frame, the run's
+    backdrop, for the skip pill pictures.</summary>
+    <param name="backdrop">The backdrop the run drew in the skin's own style.</param>
+    <param name="path">Where to write the MP4.</param>
+    <returns>True when ffmpeg made it.</returns>
+    <remarks>SKIP-PILL, item 16 (08/11/2026). The test pattern clip moves, so
+    an off and an on picture taken a few seconds apart differed by its
+    stripe as well as by the pill (found in review). Pausing is no answer:
+    a paused video raises the seek bar, and the pill gives way to it. Every
+    frame of this clip is the same, so a pair differs by the pill alone.</remarks>
+    """
+    if not shutil.which("ffmpeg"):
+        return False
+    cmd = ["ffmpeg", "-v", "error", "-y", "-loop", "1", "-i", backdrop,
+           "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", "90", "-r", "25",
+           "-vf", "scale=1920:1080", "-c:v", "libx264", "-preset", "veryfast", "-tune", "stillimage",
+           "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", path]
+    return subprocess.run(cmd).returncode == 0 and os.path.isfile(path)
+
+
 def make_chapter_clip(clip, path):
     """
     <summary>Copies the test clip into a Matroska file with four chapters, at 0,
@@ -542,6 +573,13 @@ def show(kodi, screen, clip, settle, item=1):
             time.sleep(1.5)
         kodi.action("osd")
         time.sleep(2)
+    elif screen in ("skippill", "skippillcredits"):
+        # SKIP-PILL: the helper makes up a part from now and puts the real
+        # pill up over the clip, if the switch being pictured is on
+        kodi.builtin("PlayMedia(%s)" % clip)
+        time.sleep(4)
+        kodi.builtin("Skin.SetString(skip_command,%s)" % ("demo_credits" if screen == "skippillcredits" else "demo"))
+        time.sleep(3)
     elif screen == "startbadge":
         # START-BADGE: the badge is up for six seconds from the start
         kodi.builtin("PlayMedia(%s)" % clip)
@@ -583,7 +621,7 @@ def leave(kodi, screen):
     if screen == "libraryfilter":
         kodi.builtin("Skin.Reset(filter_menu_open)")
         kodi.builtin("Skin.Reset(left_menu_open)")
-    if screen in ("osd", "osdsleep", "osdchapters", "startbadge", "homevideo", "videosettings"):
+    if screen in ("osd", "osdsleep", "osdchapters", "startbadge", "homevideo", "videosettings", "skippill", "skippillcredits"):
         if screen == "osdsleep":
             kodi.builtin("Skin.SetString(sleep_command,cancel)")
         kodi.action("back")
@@ -644,6 +682,9 @@ def main(argv):
     badge_clip = os.path.join(work, "startbadge.mp4")
     if any(e["screen"] == "startbadge" for e in wanted) and not make_start_badge_clip(badge_clip):
         sys.exit("ffmpeg could not make the start badge clip; it needs libx265")
+    still = os.path.join(work, "still.mp4")
+    if any(e["screen"] in ("skippill", "skippillcredits") for e in wanted) and not make_still_clip(backdrop, still):
+        sys.exit("ffmpeg could not make the still clip the skip pill pictures play")
     chapters = os.path.join(work, "chapters.mkv")
     if any(e["screen"] == "osdchapters" for e in wanted) and not make_chapter_clip(clip, chapters):
         sys.exit("ffmpeg could not add chapters to the test clip")
@@ -655,7 +696,7 @@ def main(argv):
     # this machine has it set to: a shipped picture shows the setting against
     # the skin as installed, and a user's own bar at the top or gallery at
     # extra large would otherwise sit in every picture of every other row
-    pictured = sorted({e["setting"] for e in PICTURES} | {o for e in PICTURES for shown in e.get("shows", {}).values() for o, _ in shown} | set(BASELINE))
+    pictured = sorted({e["setting"] for e in PICTURES} | {o for e in PICTURES for shown in e.get("shows", {}).values() for o, *_ in shown} | set(BASELINE))
     touched.update(pictured)
     movie_view = read_view_mode(MOVIES)
     uses_library = any(e["screen"].startswith("library") for e in wanted)
@@ -671,9 +712,11 @@ def main(argv):
             touched.add(setting)
             for value in picture_values(entry):
                 shows = entry.get("shows", {}).get(value, [])
-                for other, other_value in shows:
+                # an entry is (setting, value) for a string, or
+                # (setting, value, "bool") for a switch
+                for other, other_value, *other_kind in shows:
                     touched.add(other)
-                    apply_setting(kodi, other, "string", other_value)
+                    apply_setting(kodi, other, other_kind[0] if other_kind else "string", other_value)
                 if entry["kind"] == "toggle":
                     apply_setting(kodi, setting, "bool", "true" if value == "on" else "false")
                 else:
@@ -683,7 +726,7 @@ def main(argv):
                 if entry.get("reload"):
                     kodi.builtin("ReloadSkin()")
                     time.sleep(4)
-                show(kodi, entry["screen"], chapters if entry["screen"] == "osdchapters" else badge_clip if entry["screen"] == "startbadge" else clip, entry.get("settle", 1.5), entry.get("item", 1))
+                show(kodi, entry["screen"], chapters if entry["screen"] == "osdchapters" else badge_clip if entry["screen"] == "startbadge" else still if entry["screen"] in ("skippill", "skippillcredits") else clip, entry.get("settle", 1.5), entry.get("item", 1))
                 shot = os.path.join(work, "shot.png")
                 if not kodi.screenshot(shot):
                     print("  no screenshot for %s %s, skipped" % (setting, value))
@@ -699,7 +742,7 @@ def main(argv):
             # of the run: a value left behind leaks into every row after it (a
             # gallery size, the info bar at the top, the OSD at the top) and the
             # later pictures then show the wrong thing or nothing at all
-            for other in [setting] + [o for shown in entry.get("shows", {}).values() for o, _ in shown]:
+            for other in [setting] + [o for shown in entry.get("shows", {}).values() for o, *_ in shown]:
                 kodi.builtin("Skin.Reset(%s)" % other)
     finally:
         # the sleep timer disarmed and the player stopped first, so a failure

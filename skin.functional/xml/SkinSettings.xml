@@ -4214,7 +4214,7 @@
 				<label>$LOCALIZE[31313] $VAR[OsdPositionLabel]</label>
 				<onleft>7000</onleft>
 				<onright>7323</onright>
-				<onup>7309</onup>
+				<onup>7334</onup>
 				<ondown>7303</ondown>
 				<!-- Cycle: bottom → top → bottom. ReloadSkin makes the load-time
 				     include in VideoOSD pick up the new position immediately. -->
@@ -4677,6 +4677,81 @@
 				<onclick>Skin.SetString(cache_command,reset)</onclick>
 				<onleft>7000</onleft>
 				<onup>7308</onup>
+				<ondown>7334</ondown>
+			</control>
+
+			<!-- SKIP-PILL, item 16 phase F (08/11/2026)
+			     <summary>
+			     The skip pill's switch and its credits sub switch, sharing the
+			     page's last free line, 440 wide each, as the Overall page's
+			     Text on Accent row does: both columns are full above them.
+			     </summary>
+			     <remarks>
+			     Every onclick condition is worked out before the first line
+			     runs, so !Skin.HasSetting(skip_pill) on 7334 means "being
+			     switched on": it then also asks service.py for the switch on
+			     check, which says what the Jellyfin server still needs, if
+			     anything, after offering to turn the Jellyfin add-on's own
+			     skip buttons off so the two do not overlap. Switching off
+			     sends "release", which offers them back; the skin puts
+			     nothing on the server either way. Skip Credits Too hides while the pill
+			     is off; Kodi passes focus over a hidden control in the same
+			     direction. Down from both wraps to the top of the page, as
+			     7309 did.
+			     </remarks> -->
+			<control type="radiobutton" id="7334">
+				<left>440</left>
+				<top>1000</top>
+				<width>440</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31858</label>
+				<selected>Skin.HasSetting(skip_pill)</selected>
+				<onclick condition="!Skin.HasSetting(skip_pill)">Skin.SetString(skip_command,check)</onclick>
+				<onclick condition="Skin.HasSetting(skip_pill)">Skin.SetString(skip_command,release)</onclick>
+				<onclick>Skin.ToggleSetting(skip_pill)</onclick>
+				<onleft>7000</onleft>
+				<onright>7335</onright>
+				<onup>7309</onup>
+				<ondown>7302</ondown>
+			</control>
+			<control type="radiobutton" id="7335">
+				<left>900</left>
+				<top>1000</top>
+				<width>440</width>
+				<height>70</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>20</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+				<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+				<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+				<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+				<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+				<label>31860</label>
+				<selected>Skin.HasSetting(skip_pill_outro)</selected>
+				<onclick>Skin.ToggleSetting(skip_pill_outro)</onclick>
+				<visible>Skin.HasSetting(skip_pill)</visible>
+				<onleft>7334</onleft>
+				<onright>7328</onright>
+				<onup>7309</onup>
 				<ondown>7302</ondown>
 			</control>
 
