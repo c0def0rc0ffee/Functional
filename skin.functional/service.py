@@ -72,6 +72,12 @@ update_home_bg()
     BG_LIST_REFRESH seconds (or on VideoLibrary.OnUpdate). Every picture
     shown goes into a history so the edge buttons can step back and forth
     (bg_command bg_prev / bg_next, see _bg_step).
+    BG-FOLLOW: with Skin.HasSetting(bg_follow_tile) on, a Movies, TV Shows
+    or Music tile with focus on Home switches the source to that kind's
+    fanart, and home_bg_follow is "1" while it does, so the static image and
+    the folder slideshow stand down once that fanart is up. The edge buttons
+    keep the follow going. Each source's list and place are kept while the
+    switch is on, and the picture on screen stays while a list is fetched.
 
 update_bg_command()
     Watches Skin.String(bg_command). "pick_genre" opens a select dialog of the
@@ -1632,6 +1638,16 @@ class FunctionalHelper(xbmc.Monitor):
     # library picture and empty for one from a folder.
     BG_ITEM_PROPS = ("title", "year", "dbtype", "dbid", "file", "thumb",
                      "duration")
+    # BG-FOLLOW: the tile kinds whose focus turns the background to fanart
+    # of their own kind (roadmap item 36), and Home's tile button ids by
+    # slot. HomeMenu draws each slot three times, one per row width (220,
+    # 188 and 162 wide), only one of them visible; 9006 is the weather
+    # widget, so slot 6's wide button is 9007.
+    BG_FOLLOW_KINDS = ("movies", "tvshows", "music")
+    BG_FOLLOW_MUSIC_ASK = 200  # artists asked for, to find BG_COUNT with fanart
+    BG_FOLLOW_TILE_IDS = {str(i): n for ids in ((9001, 9002, 9003, 9004, 9005, 9007, 9008, 9009),
+                                                tuple(range(9011, 9019)), tuple(range(9021, 9029)))
+                          for n, i in enumerate(ids, 1)}
 
     # Live-tunable info-bar clearance via +/− buttons in MyVideoNav's side menu
     # 140 is the most the library views have room for: the list groups are
@@ -1741,6 +1757,11 @@ class FunctionalHelper(xbmc.Monitor):
         self._bg_source = ""
         self._bg_folder = ""
         self._bg_thread = None     # library fetches, off the main loop
+        # BG-FOLLOW: source -> (items, fetched at, index) kept while the
+        # follow switch is on, and kind -> when its fetch came back empty.
+        self._bg_cache = {}
+        self._bg_follow_empty = {}
+        self._bg_follow_last = ""   # the kind followed on the last tick
         self._stats_last_refresh = 0.0   # 0 => loop refreshes on first tick
         self._stats_thread = None
         # Library event debounce (see apply_library_events). Written on Kodi's
@@ -2067,6 +2088,8 @@ class FunctionalHelper(xbmc.Monitor):
         self._lib_event_first = 0.0
         self._stats_last_refresh = 0.0
         self._bg_last_fetch = 0.0
+        # BG-FOLLOW: lists kept for the sources not on screen are stale too
+        self._bg_cache.clear()
         self._nextup_last = 0.0
         # A scan can add or rename genres; let the next genre lookup re-pull
         # the list rather than label a node from a stale cache.
@@ -3520,8 +3543,16 @@ class FunctionalHelper(xbmc.Monitor):
         # nothing) shows with no conflict.
         mode = xbmc.getInfoLabel("Skin.String(bg_mode)")
 
+        # BG-FOLLOW: a Movies, TV Shows or Music tile with focus on Home
+        # turns the source to that kind's fanart, whatever the mode; away
+        # from those tiles the mode below carries on as it was.
+        follow = self._bg_follow_kind(mode)
+        self._set_follow_prop(follow)
+
         source = None
-        if mode == "folder":
+        if follow:
+            source = "follow:" + follow
+        elif mode == "folder":
             # FOLDER mode is rendered natively by a <multiimage> in Home.xml,
             # far more reliable for local/sandboxed paths than fetching the
             # listing ourselves. We resolve the picked picture to its folder
@@ -3581,12 +3612,26 @@ class FunctionalHelper(xbmc.Monitor):
         # movies" bug). The history goes too: Back must never resurrect a
         # picture from the mode that was just left.
         if getattr(self, "_bg_source", "") != source:
+            # BG-FOLLOW: moving between tiles swaps sources every few
+            # seconds, so with the switch on a source's list and place come
+            # straight back (the same picture as when it was left) instead
+            # of a blank screen while it is fetched again.
+            cached = self._bg_cache.get(source) if self._bg_follow_on() else None
             self._bg_reset_source()
             self._bg_source = source
-            self._bg_items = []
-            self._bg_last_fetch = 0.0
-            self._bg_last_change = 0.0
-            self._set_bg_props("", "")
+            if cached and cached[0] and (now - cached[1]) <= self.BG_LIST_REFRESH:
+                self._bg_items, self._bg_last_fetch, idx = cached
+                # one back, so the advance below shows that picture again
+                self._bg_idx = idx - 1 if 0 <= idx < len(self._bg_items) else -1
+                self._bg_last_change = 0.0
+            else:
+                self._bg_items = []
+                self._bg_last_fetch = 0.0
+                self._bg_last_change = 0.0
+                # with the switch on the picture on screen stays until the
+                # new list is in (BG-FOLLOW-EDGE), so a tile never blanks Home
+                if not self._bg_follow_on():
+                    self._set_bg_props("", "")
 
         # Refresh the items list periodically or when invalidated. An empty
         # result (server unreachable at boot, library mid-scan) retries on a
@@ -3611,8 +3656,11 @@ class FunctionalHelper(xbmc.Monitor):
         if not bg_items:
             # Nothing to show (fetch still in flight, folder empty or
             # unreadable), clear so a previous mode's backdrop doesn't stay
-            # on screen.
-            self._set_bg_props("", "")
+            # on screen. BG-FOLLOW-EDGE: with the follow switch on, a fetch
+            # still in flight keeps the picture on screen instead.
+            if not (self._bg_follow_on() and self._bg_thread is not None
+                    and self._bg_thread.is_alive()):
+                self._set_bg_props("", "")
             return
 
         # Read the user's chosen interval each tick (so changes apply immediately)
@@ -3632,7 +3680,13 @@ class FunctionalHelper(xbmc.Monitor):
         Forget the slideshow source, its position and the shown history,
         the state every "nothing to rotate" path and a source change share.
         </summary>
+        <remarks>
+        BG-FOLLOW: with the follow switch on, the source being left is kept
+        first, list, fetch time and place, for update_home_bg to restore.
+        </remarks>
         """
+        if self._bg_source and self._bg_items and self._bg_follow_on():
+            self._bg_cache[self._bg_source] = (self._bg_items, self._bg_last_fetch, self._bg_idx)
         self._bg_source = ""
         self._bg_idx = -1
         self._bg_history.clear()
@@ -3664,6 +3718,68 @@ class FunctionalHelper(xbmc.Monitor):
         self._bg_show(item)
         _dlog("bg rotate -> {0} | {1}".format(item["label"], item["fanart"][:120]),
               xbmc.LOGDEBUG)
+
+    @staticmethod
+    def _bg_follow_on():
+        """
+        <summary>Whether Follow Focused Tile is switched on (BG-FOLLOW).</summary>
+        <returns>True when Skin.HasSetting(bg_follow_tile).</returns>
+        """
+        return xbmc.getCondVisibility("Skin.HasSetting(bg_follow_tile)")
+
+    def _bg_follow_kind(self, mode):
+        """
+        <summary>
+        The kind of the Home tile with focus, when the background should
+        follow it (BG-FOLLOW, roadmap item 36).
+        </summary>
+        <param name="mode">Skin.String(bg_mode); Off, empty, never follows.</param>
+        <returns>"movies", "tvshows" or "music", or empty to leave the mode
+        in charge: the switch off, Home not active, focus not on a tile, a
+        tile of another kind, or a kind whose last fetch found no fanart
+        less than BG_LIST_REFRESH ago.</returns>
+        <remarks>
+        BG-FOLLOW-EDGE: the edge buttons (9310 and 9311) keep the kind that
+        was followed when focus reached them, so they step the pictures on
+        screen; from a tile that was not followed they follow nothing.
+        </remarks>
+        <remarks>
+        The tile's kind is the Tile.N.Kind Home property update_tiles
+        publishes, so a slot set to a favourite or to Lists never follows,
+        and a slot left at its default reads as the default's kind.
+        </remarks>
+        """
+        kind = ""
+        if mode and self._bg_follow_on() and xbmc.getCondVisibility("Window.IsActive(home)"):
+            focus = xbmc.getInfoLabel("System.CurrentControlId")
+            slot = self.BG_FOLLOW_TILE_IDS.get(focus)
+            if slot:
+                kind = xbmcgui.Window(HOME_WINDOW_ID).getProperty("Tile.%d.Kind" % slot)
+            elif focus in ("9310", "9311"):
+                kind = getattr(self, "_bg_follow_last", "")
+        if kind not in self.BG_FOLLOW_KINDS:
+            kind = ""
+        empty_at = self._bg_follow_empty.get(kind)
+        if empty_at and time.time() - empty_at < self.BG_LIST_REFRESH:
+            kind = ""
+        self._bg_follow_last = kind
+        return kind
+
+    @staticmethod
+    def _set_follow_prop(follow):
+        """
+        <summary>
+        Publish Window(home).Property(home_bg_follow), "1" while the
+        background follows a tile and empty otherwise, written on change
+        only. The static image, the folder slideshow and the edge buttons
+        stand down while it is set (BG-FOLLOW in Includes).
+        </summary>
+        <param name="follow">The kind being followed, or empty.</param>
+        """
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        value = "1" if follow else ""
+        if win.getProperty("home_bg_follow") != value:
+            win.setProperty("home_bg_follow", value)
 
     def _bg_step(self, cmd):
         """
@@ -3750,8 +3866,8 @@ class FunctionalHelper(xbmc.Monitor):
         Resolve the slideshow item list for *source* (daemon thread).
         </summary>
         <remarks>
-        Sources: "recent", "random", "random:unwatched", "genre:type:name"
-        and "folder:path" (BG-STEP, the path as _derive_folder left it,
+        Sources: "recent", "random", "random:unwatched", "genre:type:name",
+        "follow:kind" (BG-FOLLOW, movies, tvshows or music) and "folder:path" (BG-STEP, the path as _derive_folder left it,
         separator and all, so a path with a colon in it is safe because
         only the first seven characters are the tag).
         </remarks>
@@ -3780,6 +3896,14 @@ class FunctionalHelper(xbmc.Monitor):
                 items = self._fetch_genre_library(gname, gtype)
             elif source.startswith("folder:"):
                 items = self._fetch_folder_images(source[7:])
+            elif source.startswith("follow:"):
+                items = self._fetch_follow_library(source[7:])
+                # an empty kind (no music library, say) gives way to the
+                # mode until the next refresh, see _bg_follow_kind
+                if items:
+                    self._bg_follow_empty.pop(source[7:], None)
+                else:
+                    self._bg_follow_empty[source[7:]] = time.time()
             else:  # random or random:unwatched
                 items = self._fetch_random_library(
                     unwatched=source == "random:unwatched")
@@ -11180,6 +11304,46 @@ class FunctionalHelper(xbmc.Monitor):
                 dict(params, properties=self.BG_SHOW_PROPS)), "tvshows"), "tvshow")
         # Interleave movies and shows in "both" mode.
         random.shuffle(items)
+        return items[:self.BG_COUNT]
+
+    def _fetch_follow_library(self, kind):
+        """
+        <summary>
+        Up to BG_COUNT random fanart entries of one kind, for the tile the
+        background follows (BG-FOLLOW).
+        </summary>
+        <param name="kind">movies, tvshows or music; music is artist fanart
+        from the music library.</param>
+        <returns>Slideshow item dicts. An artist's dbtype is "artist", so the
+        caption's Add To List button, which wants a film, stays hidden.</returns>
+        <exception cref="LookupError">The library did not answer, see _result_rows.</exception>
+        """
+        params = {
+            "limits": {"start": 0, "end": self.BG_COUNT},
+            "sort": {"order": "ascending", "method": "random"},
+        }
+        if kind == "movies":
+            return self._fanart_items(_result_rows(_jsonrpc(
+                "VideoLibrary.GetMovies",
+                dict(params, properties=self.BG_MOVIE_PROPS)), "movies"), "movie")
+        if kind == "tvshows":
+            return self._fanart_items(_result_rows(_jsonrpc(
+                "VideoLibrary.GetTVShows",
+                dict(params, properties=self.BG_SHOW_PROPS)), "tvshows"), "tvshow")
+        # few artists carry fanart, so ask for more and keep the first
+        # BG_COUNT that do; an empty answer then means there really is none
+        items = []
+        params["limits"]["end"] = self.BG_FOLLOW_MUSIC_ASK
+        for row in _result_rows(_jsonrpc(
+                "AudioLibrary.GetArtists",
+                dict(params, properties=["fanart", "thumbnail"])), "artists"):
+            if not row.get("fanart"):
+                continue
+            name = row.get("artist", "") or ""
+            items.append({"fanart": row["fanart"], "label": name, "watched": "",
+                          "title": name, "year": "", "dbtype": "artist",
+                          "dbid": row.get("artistid", 0) or 0, "file": "",
+                          "thumb": row.get("thumbnail", "") or "", "duration": 0})
         return items[:self.BG_COUNT]
 
     def _fetch_random_library(self, unwatched=False):

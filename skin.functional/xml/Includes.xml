@@ -1734,8 +1734,11 @@
 					<texture background="true">$INFO[Skin.String(home_background)]</texture>
 					<!-- Static image shows only in 'image' mode. The service clears
 					     home_bg_fanart in non-slideshow modes, so there's never a
-					     clash with the slideshow. -->
-					<visible>[String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))] + !$EXP[bg_video_showing]</visible>
+					     clash with the slideshow. BG-FOLLOW: it stands down while
+					     the background follows a focused tile, once that tile's
+					     fanart is up in the slideshow image underneath, so it
+					     stays on screen while the fanart is fetched. -->
+					<visible>[String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))] + !$EXP[bg_video_showing] + [String.IsEmpty(Window(home).Property(home_bg_follow)) | String.IsEmpty(Window(home).Property(home_bg_fanart))]</visible>
 					<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 					<include content="BgZoom"><param name="flip_zoom" value="$PARAM[flip_zoom]"/></include>
 				</control>
@@ -1982,8 +1985,11 @@
 				<!-- BG-STEP: while the edge buttons are on the service lists
 				     the folder and publishes each picture as home_bg_fanart,
 				     so this stands down; if that listing comes back empty
-				     the property stays empty and this takes over again. -->
-				<visible>[String.IsEqual(Skin.String(bg_mode),folder) + !String.IsEmpty(Skin.String(bg_slideshow_dir)) + [$PARAM[when]]] + !$EXP[bg_video_showing] + [!Skin.HasSetting(bg_step_buttons) | String.IsEmpty(Window(home).Property(home_bg_fanart))]</visible>
+				     the property stays empty and this takes over again.
+				     BG-FOLLOW: it stands down while the background follows a
+				     focused tile, once that fanart is up, as the static image
+				     does. -->
+				<visible>[String.IsEqual(Skin.String(bg_mode),folder) + !String.IsEmpty(Skin.String(bg_slideshow_dir)) + [$PARAM[when]]] + !$EXP[bg_video_showing] + [!Skin.HasSetting(bg_step_buttons) | String.IsEmpty(Window(home).Property(home_bg_fanart))] + [String.IsEmpty(Window(home).Property(home_bg_follow)) | String.IsEmpty(Window(home).Property(home_bg_fanart))]</visible>
 				<include content="BgZoom"><param name="flip_zoom" value="$PARAM[flip_zoom]"/></include>
 			</control>
 		</definition>
