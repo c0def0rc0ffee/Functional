@@ -144,6 +144,12 @@ class _Monitor:
         """<summary>Kodi is never shutting down here.</summary>"""
         return False
 
+    def waitForAbort(self, timeout=None):  # noqa: N802 (Kodi API)
+        """<summary>Returns at once, never aborting, so a wait costs the tests no time.</summary>
+        <param name="timeout">Seconds Kodi would wait; ignored.</param>
+        <returns>False.</returns>"""
+        return False
+
 
 def _cond(text):
     """<summary>getCondVisibility for Skin.HasSetting and the CONDS set; everything

@@ -7993,6 +7993,10 @@ class FunctionalHelper(xbmc.Monitor):
     # LISTS-TIME-SLEEP: the warning after the queue's last item ends by
     # itself; the box powers down at its end only if it ran undisturbed.
     SLEEP_QUEUE_GRACE_SECS = 10
+    # LISTS-TIME-SLEEP-WAIT: how long a yes waits for the queue's first item
+    # to start before it gives up, and how often it looks.
+    SLEEP_QUEUE_START_SECS = 30
+    SLEEP_QUEUE_START_STEP = 0.5
 
     START_BADGE_SECS = 6.0   # how long the start of film badge stays up
 
@@ -9196,14 +9200,32 @@ class FunctionalHelper(xbmc.Monitor):
         was open, or one of music, is refused with a toast rather than left
         to latch on to whatever plays next. See _sleep_queue_tick for when
         it fires and what calls it off.
+
+        LISTS-TIME-SLEEP-WAIT (10/11/2026): the question comes up the
+        moment the queue is handed to Kodi, and a quick yes landed before
+        the first item had started (reported with a 9 item queue), so the
+        timer refused a queue that was on its way. A yes now
+        waits up to SLEEP_QUEUE_START_SECS for an item of the video
+        playlist to be playing, looking every SLEEP_QUEUE_START_STEP, and
+        refuses only after that, logging what it saw. This runs on the
+        dialog thread, so the wait holds up nothing else.
         </remarks>
         """
-        pos = self._safe_int(xbmc.getInfoLabel("Playlist.Position(video)"), 0)
-        length = self._safe_int(xbmc.getInfoLabel("Playlist.Length(video)"), 0)
-        if not xbmc.getCondVisibility("Player.HasMedia") or pos <= 0 or length <= 0:
-            _dlog("sleep timer: no video queue is playing, not arming")
-            self._sleep_notify(_L(31838))
-            return
+        waited = 0.0
+        while True:
+            playing = xbmc.getCondVisibility("Player.HasMedia")
+            pos = self._safe_int(xbmc.getInfoLabel("Playlist.Position(video)"), 0)
+            length = self._safe_int(xbmc.getInfoLabel("Playlist.Length(video)"), 0)
+            if playing and pos > 0 and length > 0:
+                break
+            if waited >= self.SLEEP_QUEUE_START_SECS or self.waitForAbort(self.SLEEP_QUEUE_START_STEP):
+                _dlog("sleep timer: no video queue is playing after {0:.0f}s (playing {1}, "
+                      "position {2}, length {3}), not arming".format(waited, playing, pos, length))
+                self._sleep_notify(_L(31838))
+                return
+            waited += self.SLEEP_QUEUE_START_STEP
+        if waited:
+            _dlog("sleep timer: the queue started after {0:.1f}s".format(waited))
         with self._sleep_lock:
             self._sleep_disarm()
             self._sleep_queue = True

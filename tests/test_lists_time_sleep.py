@@ -380,6 +380,40 @@ def test_queue_mode_arming():
         check(T.PROPS.get("sleep_remaining") == T.STRINGS[31836], "a dropped readout is put back")
     finally:
         player.close()
+    # LISTS-TIME-SLEEP-WAIT: a yes before the first item has started waits for it.
+    helper = fresh()
+    player = Player(9)
+    waits = []
+
+    def first_item_starts(timeout=None):
+        """<summary>The queue's first item starts on the fourth look.</summary>
+        <param name="timeout">Ignored.</param>
+        <returns>False, never aborting.</returns>"""
+        waits.append(timeout)
+        if len(waits) == 4:
+            player.play(1)
+        return False
+
+    helper.waitForAbort = first_item_starts
+    try:
+        helper._sleep_arm_queue()
+        check(helper._sleep_queue and helper._sleep_queue_len == 9,
+              "a queue that starts during the wait is armed")
+        check(len(waits) == 4, "it stops looking once the queue plays")
+        check(not any(T.STRINGS[31838] in t for t in T._Dialog.toasts), "and nothing says it was refused")
+    finally:
+        player.close()
+    helper = fresh()
+    player = Player(9)
+    waits.clear()
+    helper.waitForAbort = lambda timeout=None: waits.append(timeout) or False
+    try:
+        helper._sleep_arm_queue()
+        check(not helper._sleep_queue, "a queue that never starts is still refused")
+        check(len(waits) == int(helper.SLEEP_QUEUE_START_SECS / helper.SLEEP_QUEUE_START_STEP),
+              "after the whole wait, not before")
+    finally:
+        player.close()
     T.SKIN_SETTINGS.add(GATE)
     player = Player(0)
     try:
