@@ -11,6 +11,17 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.25 (10/11/2026)
+
+- New Follow Focused Tile row under Skin Settings, Background, below
+  the mode selector, off by default. Switched on, focusing the Movies,
+  TV Shows or Music tile on Home turns the background to random fanart
+  of that kind, and every other tile keeps the chosen mode. Moving
+  between tiles brings back the picture each kind was showing, the
+  edge buttons step through the followed pictures, and a kind with no
+  fanart leaves the mode in charge. Left off, the background looks as
+  before.
+
 ## 0.23.24 (09/11/2026)
 
 - New Slow Zoom row under Skin Settings, Background, below Dim, off by
