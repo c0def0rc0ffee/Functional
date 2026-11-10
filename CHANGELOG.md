@@ -11,6 +11,14 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.26 (10/11/2026)
+
+- Fixed: saying yes to powering down after a Port by Time queue could
+  be refused with "No queue of videos is playing", because the answer
+  came before Kodi had started the queue's first item. A yes now waits
+  up to 30 seconds for the queue to start, so the box powers down after
+  it as asked and Queue shows on the seek bar and the OSD.
+
 ## 0.23.25 (10/11/2026)
 
 - New Follow Focused Tile row under Skin Settings, Background, below
