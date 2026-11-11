@@ -44,7 +44,7 @@ One unified **Background** selector so the modes can never conflict:
 - **Slideshow: Genre**: random fanart from one library genre of your choice (movies, TV shows, or both)
 - **Slideshow: Folder**: cycles every picture in a folder you choose (browse with thumbnails and tap any image in the target folder)
 
-Plus a configurable rotate interval (10s / 30s / 1m / 2m / 5m; unset = 20s), a dim level (0-90%) so text stays readable, and a caption position for the slideshow/static label. Every background option also exists per time-of-day slot: a 2-4-slot schedule (each slot with its own start time) swaps the whole background configuration on the clock. A **Follow Focused Tile** switch (off by default) shows random film, TV or music fanart while the Movies, TV Shows or Music tile has focus, and the chosen mode everywhere else. A **Slow Zoom** (off by default) drifts the picture gently in and out; it is one setting for every slot, and Reduce Motion stops it.
+Plus a configurable rotate interval (10s / 30s / 1m / 2m / 5m; unset = 20s), a dim level (0 to 90%) so text stays readable, and a caption position for the slideshow/static label. Every background option also exists per time-of-day slot: a schedule of two to four slots (each slot with its own start time) swaps the whole background configuration on the clock. A **Follow Focused Tile** switch (off by default) shows random film, TV or music fanart while the Movies, TV Shows or Music tile has focus, and the chosen mode everywhere else. A **Slow Zoom** (off by default) drifts the picture gently in and out; it is one setting for every slot, and Reduce Motion stops it.
 
 The background is not limited to the home screen:
 
@@ -67,7 +67,7 @@ The background is not limited to the home screen:
 A left-side panel that slides in over the library, with collapsible dropdowns:
 
 - **View**: Gallery or List
-- **Sort**: Title, Year, Rating, Date Added, Last Played, with an ascending/descending direction toggle
+- **Sort**: Title, Year, Rating, Date Added, Last Played, and Episode in an episode list (back to season and episode order), with an ascending/descending direction toggle
 - **Default sort order**: a default sort and direction for Movies and for TV Shows, set once under Library and applied whenever a library screen opens
 - **Scroll badge**: while you scroll, a badge shows the sort key of the item under the cursor (year, rating, date added, last played, or the initial letter), so you always know where you are in a long list
 - **Filter**: the native watched-status toggle (All Videos / Unwatched / Watched), which filters shows, seasons and episodes correctly and updates the menu label to match
