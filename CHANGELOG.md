@@ -11,6 +11,14 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.27 (11/11/2026)
+
+- Fixed: TV episodes could get stuck sorted by rating. Kodi keeps one
+  sort for every episode list, so choosing Rating in one show sorted
+  them all that way, and the Sort menu had no way back. The Sort menu
+  now has an Episode choice in episode lists, which puts every show
+  back in season and episode order.
+
 ## 0.23.26 (10/11/2026)
 
 - Fixed: saying yes to powering down after a Port by Time queue could
