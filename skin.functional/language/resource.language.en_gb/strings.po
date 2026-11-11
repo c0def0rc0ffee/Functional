@@ -3292,3 +3292,7 @@ msgstr ""
 msgctxt "#31879"
 msgid "Movies, TV Shows and Music show fanart of their own kind while focused.[CR]Where: the background behind Home."
 msgstr ""
+
+msgctxt "#31880"
+msgid "Episode"
+msgstr ""

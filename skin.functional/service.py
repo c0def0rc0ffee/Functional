@@ -1677,11 +1677,14 @@ class FunctionalHelper(xbmc.Monitor):
     # Sort ids as used by Container.SetSortMethod, matching the Sort buttons
     # in MyVideoNav's side menu. Kodi ignores ids that aren't registered for
     # the current node, so an unusable choice is a harmless no-op.
+    # SORT-EPISODE, 11/11/2026: "episode" (23, SortByEpisodeNumber) is the
+    # Episode button, shown only in episode lists, so a sort picked there can
+    # be put back to Kodi's own episode order.
     SORT_METHOD_IDS = {"title": 29, "year": 16, "rating": 17,
-                       "dateadded": 40, "lastplayed": 41}
+                       "dateadded": 40, "lastplayed": 41, "episode": 23}
     # Direction each sort is most useful in when the user hasn't said.
     SORT_NATURAL_DIR = {"title": "asc", "year": "desc", "rating": "desc",
-                        "dateadded": "desc", "lastplayed": "desc"}
+                        "dateadded": "desc", "lastplayed": "desc", "episode": "asc"}
     # Wait after a container path change before forcing the default sort.
     # Container.Content() is not settled the instant FolderPath changes, and
     # a sort applied against the previous content type is silently dropped.

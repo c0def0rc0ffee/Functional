@@ -833,6 +833,39 @@
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
 					<onup>8001</onup>
+					<ondown condition="Control.IsVisible(8036)">8036</ondown>
+					<ondown condition="!Control.IsVisible(8036)">8031</ondown>
+				</control>
+
+				<!-- SORT-EPISODE, 11/11/2026
+				     <summary>Sort: Episode, shown only in an episode list.</summary>
+				     <remarks>Kodi keeps one sort for every episode list (the
+				     videonavepisodes view state), so choosing Rating in one
+				     show left them all by rating, and this menu had no way
+				     back. 23 is SortByEpisodeNumber, Kodi's own default for
+				     episodes, season then episode, first to last.</remarks> -->
+				<control type="button" id="8036">
+					<visible>Skin.HasSetting(sort_menu_open) + Container.Content(episodes)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>31880</label>
+					<onclick>Container.SetSortMethod(23)</onclick>
+					<onclick>Skin.SetString(sort_want,asc)</onclick>
+					<onclick>Skin.SetString(sort_active,episode)</onclick>
+					<onclick>Skin.Reset(sort_menu_open)</onclick>
+					<onclick>SetFocus(8002)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8002</onup>
 					<ondown>8031</ondown>
 				</control>
 
@@ -864,7 +897,8 @@
 					<onclick>SetFocus(8002)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
-					<onup>8002</onup>
+					<onup condition="Control.IsVisible(8036)">8036</onup>
+					<onup condition="!Control.IsVisible(8036)">8002</onup>
 					<ondown>8032</ondown>
 				</control>
 
