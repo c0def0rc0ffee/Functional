@@ -770,6 +770,30 @@ def coming_up_window(lines, offset):
     return window, offset
 
 
+def coming_up_next_line(lines, offset):
+    """
+    <summary>
+    Which line of the Coming up list shows the slot that plays next, for
+    Engage's countdown.
+    </summary>
+    <param name="lines">Every line, as coming_up_lines(..., every=True) gives them.</param>
+    <param name="offset">The scroll offset coming_up_window used.</param>
+    <returns>The line number as a string, "1" to str(COMING_UP_LINES), or "" when
+    the list is empty or scrolled past it.</returns>
+    <remarks>
+    COMING-UP-COUNTDOWN, 12/11/2026. The next slot is always the first entry, so
+    it is the first item or slot line: line 1 for a day with one slot, line 2
+    under its day heading for a day with several. Home.xml draws the bar and the
+    minutes from Engage.Next.Countdown on that line only.
+    </remarks>
+    """
+    for index, line in enumerate(lines):
+        if line["kind"] in ("item", "slot"):
+            number = index - offset + 1
+            return str(number) if 1 <= number <= COMING_UP_LINES else ""
+    return ""
+
+
 def coming_up_stops(lines, room):
     """
     <summary>
@@ -4441,6 +4465,9 @@ class FunctionalHelper(xbmc.Monitor):
         50 slots, and shows the 22 lines from coming_up_offset on
         (coming_up_window); ComingUp.Scrolled is "1" while that is not the top.
         The offset only moves while Skin.HasSetting(coming_up_scroll) is on.
+        COMING-UP-COUNTDOWN, 12/11/2026: ComingUp.NextLine is the line holding
+        the slot that plays next (coming_up_next_line), where Home.xml draws
+        Engage's countdown.
         </remarks>
         """
         home = xbmcgui.Window(HOME_WINDOW_ID)
@@ -4476,6 +4503,12 @@ class FunctionalHelper(xbmc.Monitor):
         self.coming_up_every = every
         self.coming_up_total = len(every)
         window, self.coming_up_offset = coming_up_window(every, self.coming_up_offset)
+        next_line = coming_up_next_line(every, self.coming_up_offset)
+        if home.getProperty("ComingUp.NextLine") != next_line:
+            if next_line:
+                home.setProperty("ComingUp.NextLine", next_line)
+            else:
+                home.clearProperty("ComingUp.NextLine")
         scrolled = "1" if self.coming_up_offset else ""
         if home.getProperty("ComingUp.Scrolled") != scrolled:
             if scrolled:

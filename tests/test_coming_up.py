@@ -240,13 +240,24 @@ def test_scroll_window():
           "a day longer than the room is walked a row at a time, then the next day")
 
 
+def test_next_line():
+    """<summary>The countdown line is the next slot's line, and nothing once scrolled past it.</summary>"""
+    one = service.coming_up_lines([("Film", "Tonight 19:00"), ("Show", "Tomorrow 20:00")], every=True)
+    equal(service.coming_up_next_line(one, 0), "1", "a day with one slot: line 1")
+    two = service.coming_up_lines([("A", "Tonight 19:00"), ("B", "Tonight 20:00"),
+                                   ("C", "Tomorrow 20:00")], every=True)
+    equal(service.coming_up_next_line(two, 0), "2", "under a day heading: line 2")
+    equal(service.coming_up_next_line(two, 4), "", "scrolled past it: no line")
+    equal(service.coming_up_next_line([], 0), "", "an empty list: no line")
+
+
 if __name__ == "__main__":
     for test in (test_one_slot_per_day, test_several_slots_in_a_day,
                  test_dated_day_and_even_group, test_every_day_starts_on_an_odd_line,
                  test_overflow_and_empty, test_shared_days_use_the_spare_lines,
                  test_estimate_chains_queued_slots, test_estimate_playing_and_unknowns,
                  test_coming_up_when, test_run_ends, test_ends_lines,
-                 test_scroll_window):
+                 test_scroll_window, test_next_line):
         print("running " + test.__name__)
         test()
     if FAILURES:

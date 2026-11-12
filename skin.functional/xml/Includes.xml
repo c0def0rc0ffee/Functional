@@ -270,7 +270,16 @@
 	     9320. Line 1's tall button is where Left from the left edge
 	     button lands: while line 1 is a heading it is hidden, and its
 	     Left goes on to line 2's slot (headingleft, set on line 1 only)
-	     instead of the last tile. -->
+	     instead of the last tile.
+	     COMING-UP-COUNTDOWN, 12/11/2026: on the line ComingUp.NextLine names,
+	     while Engage publishes Engage.Next.Countdown (its own switch, off by
+	     default), the slot that plays next shows those words and a thin bar
+	     that empties with Engage.Next.CountdownPercent: on an item the when
+	     line rises 4 pixels and the words sit at its right, the bar under the
+	     row; on a slot the words in small type take the time's place (the
+	     heading already names the day) and the line rises 3 pixels over the
+	     bar. Both rises leave the bar clear of the text and above the day
+	     rule of the line after. -->
 	<include name="ComingUpLine">
 		<param name="line" />
 		<param name="tall" />
@@ -355,6 +364,7 @@
 						<label>$INFO[Window(home).Property(ComingUp.$PARAM[line].Label)]</label>
 					</control>
 					<control type="label">
+						<visible>![String.IsEqual(Window(home).Property(ComingUp.NextLine),$PARAM[line]) + !String.IsEmpty(Window(home).Property(Engage.Next.Countdown))]</visible>
 						<left>0</left>
 						<top>38</top>
 						<width>480</width>
@@ -362,6 +372,29 @@
 						<font>font_reg</font>
 						<textcolor>text</textcolor>
 						<label>$INFO[Window(home).Property(ComingUp.$PARAM[line].When)]</label>
+					</control>
+					<control type="group">
+						<visible>String.IsEqual(Window(home).Property(ComingUp.NextLine),$PARAM[line]) + !String.IsEmpty(Window(home).Property(Engage.Next.Countdown))</visible>
+						<control type="label">
+							<left>0</left>
+							<top>34</top>
+							<width>200</width>
+							<height>34</height>
+							<font>font_reg</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[Window(home).Property(ComingUp.$PARAM[line].When)]</label>
+						</control>
+						<control type="label">
+							<left>200</left>
+							<top>34</top>
+							<width>280</width>
+							<height>34</height>
+							<font>font_reg</font>
+							<textcolor>text</textcolor>
+							<align>right</align>
+							<label>$INFO[Window(home).Property(Engage.Next.Countdown)]</label>
+						</control>
+						<include content="CountdownBar"><param name="left" value="0"/><param name="top" value="70"/><param name="width" value="480"/></include>
 					</control>
 				</control>
 				<control type="label">
@@ -377,6 +410,7 @@
 				<control type="group">
 					<visible>String.IsEqual(Window(home).Property(ComingUp.$PARAM[line].Kind),slot)</visible>
 					<control type="label">
+						<visible>![String.IsEqual(Window(home).Property(ComingUp.NextLine),$PARAM[line]) + !String.IsEmpty(Window(home).Property(Engage.Next.Countdown))]</visible>
 						<left>24</left>
 						<top>0</top>
 						<width>340</width>
@@ -386,7 +420,32 @@
 						<scroll>true</scroll>
 						<label>$INFO[Window(home).Property(ComingUp.$PARAM[line].Label)]</label>
 					</control>
+					<control type="group">
+						<visible>String.IsEqual(Window(home).Property(ComingUp.NextLine),$PARAM[line]) + !String.IsEmpty(Window(home).Property(Engage.Next.Countdown))</visible>
+						<control type="label">
+							<left>24</left>
+							<top>-3</top>
+							<width>280</width>
+							<height>34</height>
+							<font>font_reg</font>
+							<textcolor>text</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[Window(home).Property(ComingUp.$PARAM[line].Label)]</label>
+						</control>
+						<control type="label">
+							<left>310</left>
+							<top>1</top>
+							<width>170</width>
+							<height>30</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<align>right</align>
+							<label>$INFO[Window(home).Property(Engage.Next.Countdown)]</label>
+						</control>
+						<include content="CountdownBar"><param name="left" value="24"/><param name="top" value="30"/><param name="width" value="456"/></include>
+					</control>
 					<control type="label">
+						<visible>![String.IsEqual(Window(home).Property(ComingUp.NextLine),$PARAM[line]) + !String.IsEmpty(Window(home).Property(Engage.Next.Countdown))]</visible>
 						<left>370</left>
 						<top>0</top>
 						<width>110</width>
@@ -422,6 +481,57 @@
 						<label>[I]$INFO[Window(home).Property(ComingUp.$PARAM[line].When)] [/I]</label>
 					</control>
 				</control>
+			</control>
+		</definition>
+	</include>
+	<!-- COMING-UP-COUNTDOWN, 12/11/2026: the countdown bar under the next
+	     slot's line in ComingUpLine, 2 pixels high, emptying with
+	     Engage.Next.CountdownPercent. A one item static list rather than a
+	     bare progress control because a progress control can read its
+	     percentage off a list item property but not off a window property
+	     (as the Stats bars found); nothing navigates to it, so it never
+	     takes focus. -->
+	<include name="CountdownBar">
+		<param name="left" />
+		<param name="top" />
+		<param name="width" />
+		<definition>
+			<control type="list">
+				<left>$PARAM[left]</left>
+				<top>$PARAM[top]</top>
+				<width>$PARAM[width]</width>
+				<height>2</height>
+				<orientation>vertical</orientation>
+				<itemlayout height="2" width="$PARAM[width]">
+					<control type="progress">
+						<left>0</left>
+						<top>0</top>
+						<width>$PARAM[width]</width>
+						<height>2</height>
+						<info>ListItem.Property(pct)</info>
+						<texturebg colordiffuse="40FFFFFF">white.png</texturebg>
+						<midtexture colordiffuse="E6FFFFFF">white.png</midtexture>
+						<overlaytexture>-</overlaytexture>
+					</control>
+				</itemlayout>
+				<focusedlayout height="2" width="$PARAM[width]">
+					<control type="progress">
+						<left>0</left>
+						<top>0</top>
+						<width>$PARAM[width]</width>
+						<height>2</height>
+						<info>ListItem.Property(pct)</info>
+						<texturebg colordiffuse="40FFFFFF">white.png</texturebg>
+						<midtexture colordiffuse="E6FFFFFF">white.png</midtexture>
+						<overlaytexture>-</overlaytexture>
+					</control>
+				</focusedlayout>
+				<content>
+					<item>
+						<label>-</label>
+						<property name="pct">$INFO[Window(home).Property(Engage.Next.CountdownPercent)]</property>
+					</item>
+				</content>
 			</control>
 		</definition>
 	</include>
