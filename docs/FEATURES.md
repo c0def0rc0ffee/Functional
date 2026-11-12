@@ -9,6 +9,7 @@ Everything the skin does, screen by screen. Every setting named here lives in **
 - Round icon buttons for **Favourites, Add-ons, Settings, and Power**, with an optional "invisible until focused" mode for a minimal look
 - Real-time date and time, with an optional **weather widget** (temperature + conditions) beside the clock
 - Library stats panel showing movie counts (total, unwatched, watched), TV show counts (total, unwatched) and total episodes, updated instantly via a background service rather than slow container queries
+- **Coming up** list of Engage's next slots down the left, with a countdown on the slot that plays next (the minutes left and a bar that empties) while Engage's countdown setting is on
 - Resume button when media is playing; queue button with item count when items are queued
 - **Sleep timer** from the power menu: at a set time, when the video playing now finishes, or after a number of episodes, with a countdown on Home and on the OSD
 - **Continue Watching** pop-up behind an edge tab: in-progress movies and episodes, plus a **Next Up** row with the next unwatched episode of every show you are part way through, each row with a press-and-hold Resume / Mark as watched / Mark as unwatched menu. A **Recently Added** tab beside it opens the same pop-up on a page of the newest movies and episodes

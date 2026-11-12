@@ -83,4 +83,4 @@ Ties one list to a Radarr server, so that list gets a **Remove from Radarr** but
 Settings for other add-ons on the same box. Each section shows only when its add-on is installed, and the page says so when neither is.
 
 - **JellyStat**: JellyStat's figures under the stats, and **Let JellyStat manage the lists** (on by default)
-- **Engage and Coming up**: the next Engage slot under the stats, the next few Engage slots down the left, and the Coming up list's switches for when queued slots really start, an Ends At line after each run, and scrolling through the week with Down
+- **Engage and Coming up**: the next Engage slot under the stats, the next few Engage slots down the left, and the Coming up list's switches for when queued slots really start, an Ends At line after each run, and scrolling through the week with Down. The countdown to the slot that plays next has no switch here: it shows whenever Engage's own **Count down to the next slot in Coming up** setting is on
