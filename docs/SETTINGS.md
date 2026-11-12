@@ -2,7 +2,7 @@
 
 All settings live in **Settings > Skin Settings**. The pages are listed down the left; each page is described below. Back to the [README](../README.md), or see [FEATURES.md](FEATURES.md) for what each part of the skin does.
 
-![Skin Settings open on the Overall page, with the page list down the left](../screenshots/skin-settings.jpg)
+![Skin Settings open on the Overall page, with the page list down the left and a live preview of Home in the corner](../screenshots/skin-settings.jpg)
 
 Toggle settings show an accent **dot** when on. Most changes apply immediately; a few service-backed ones take effect on the next launch.
 

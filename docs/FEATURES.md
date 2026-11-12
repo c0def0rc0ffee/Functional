@@ -41,7 +41,7 @@ The background is not limited to the home screen:
 
 ## Video Library
 
-![Gallery view of sample films, the focused film's runtime and Ends at time in the info bar](../screenshots/gallery.jpg)
+![Gallery view of famous science fiction posters, Back to the Future focused, with its year, age and 4K badge in the header](../screenshots/gallery.jpg)
 
 - **Gallery view**: poster grid with four sizes (Small, Medium, Large, Extra Large), plus a small-grid column count toggle (11/12) for TVs with overscan, and a Tall/Compact poster-shape option
 - **List view**: traditional file list alternative
@@ -54,7 +54,7 @@ The background is not limited to the home screen:
 
 ## Slide-Out Library Options
 
-![The Library Options panel slid out over the gallery, with the Sort and Filter lists open](../screenshots/library-options.jpg)
+![The Library Options panel slid out over the poster gallery, showing View, Sort, Direction, Filter, Layout Adjust and Close](../screenshots/library-options.jpg)
 
 A left-side panel that slides in over the library, with collapsible dropdowns:
 
@@ -70,7 +70,7 @@ A left-side panel that slides in over the library, with collapsible dropdowns:
 
 ## Video OSD
 
-![The video OSD over sample footage: title, elapsed time, Ends at time, buffer readout and resolution badge](../screenshots/video-osd.jpg)
+![The video OSD over a Star Trek: The Next Generation episode: title, elapsed time, Ends at time, buffer readout and resolution badge](../screenshots/video-osd.jpg)
 
 - Compact on-screen display with animated slide-in
 - Title row: movie title with year, or TV show name with season/episode and episode title, with a filename fallback for unscraped content
