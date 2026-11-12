@@ -1373,6 +1373,17 @@
 		<value condition="String.IsEqual(Skin.String(accent_text),auto)">$LOCALIZE[31857]</value>
 		<value>$LOCALIZE[31856]</value>
 	</variable>
+	<!-- SKIP-PILL-SHOW, item 16 phase F2 (11/11/2026)
+	     <summary>
+	     The label of the info screen's per show button (9352): Next Card, as
+	     in phase E2, while the skip pill is off, so that screen is unchanged;
+	     This Show while the pill is on, since the button then also holds the
+	     pill's choice.
+	     </summary> -->
+	<variable name="ThisShowLabel">
+		<value condition="Skin.HasSetting(skip_pill)">$LOCALIZE[31881]</value>
+		<value>$LOCALIZE[31852]</value>
+	</variable>
 	<variable name="QueueCountLabel">
 		<value condition="Integer.IsGreater(Playlist.Length(video),0)">$LOCALIZE[31160]$INFO[Playlist.Length(video)])</value>
 		<value condition="Integer.IsGreater(Playlist.Length(music),0)">$LOCALIZE[31160]$INFO[Playlist.Length(music)])</value>

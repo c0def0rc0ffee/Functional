@@ -1,164 +1,59 @@
-# Functional
+<p align="center"><img src="screenshots/banner.png" width="100%" alt="Functional, a Kodi skin. The banner reads Functional, a clean, configurable Kodi skin, beside three blue tiles: a poster grid, a play button with a clock, and a list."></p>
 
-A clean Kodi skin built for clarity, with every part of it configurable from the skin settings. No bloat, no clutter, just your library, front and centre.
+<p align="center"><a href="#features">Features</a> · <a href="#quick-start">Quick start</a> · <a href="INSTALL.md">Install guide</a> · <a href="docs/SETTINGS.md">Settings</a> · <a href="CHANGELOG.md">Changelog</a></p>
 
-## Screenshots
+<p align="center">
+  <img src="https://img.shields.io/badge/version-0.23.27-blue" alt="Version 0.23.27">
+  <img src="https://img.shields.io/badge/licence-GPL--2.0--or--later-green" alt="GPL 2.0 or later licence">
+  <img src="https://img.shields.io/badge/python-3-3776AB?logo=python&logoColor=white" alt="Python 3 helper service">
+  <img src="https://img.shields.io/badge/Kodi-21%20Omega-17B2E7?logo=kodi&logoColor=white" alt="Kodi 21 Omega">
+  <img src="https://img.shields.io/badge/type-Kodi%20skin-0d162b" alt="Kodi skin">
+</p>
 
-![Home screen](screenshots/home.png)
+A clean Kodi skin where every part is configurable from skin settings, instead of a fixed layout you have to live with.
 
-Home: library stats, clock, and a rotating fanart background.
+<p align="center"><img src="screenshots/hero-home.jpg" width="640" alt="The Functional home screen: the main menu of Movies, TV Shows, Music, Pictures, Lists and Stats over a dark backdrop, the clock and date top right, round Favourites, Add-ons, Settings and Power buttons bottom right, and the Continue Watching and Recently Added tabs along the bottom edge."></p>
 
-|  |  |
-| --- | --- |
-| ![Video playing behind the home menu](screenshots/video-behind-menus.png) | ![Video playing behind the library](screenshots/video-behind-library.png) |
-| Playback keeps running behind the menus, so you can browse without stopping the film. | The same thing on a library screen, not just on home. |
-| ![Gallery view](screenshots/gallery.png) | ![List view](screenshots/list-view.png) |
-| Gallery view: poster grid with watched badges and a metadata info bar. | List view, with the background showing through on every screen. |
-| ![Slide-out library options](screenshots/library-options.png) | ![Movie info](screenshots/movie-info.png) |
-| Slide-out library options: view, sort, filter and layout, without leaving the list. | Movie info: plot, cast with roles, and the actions you actually use. |
-| ![Video OSD](screenshots/video-osd.png) | ![Skin settings](screenshots/skin-settings.png) |
-| A tight video OSD with elapsed time, finish time and a resolution badge. | Skin settings: everything configurable, changes apply immediately. |
+## Quick start
+
+Functional needs Kodi 21 (Omega).
+
+1. Install the `repository.functional` zip once, from Kodi's **Install from zip file**.
+2. Install the skin from that repository: **Install from repository > Functional Repository > Look and feel > Skin > Functional**.
+3. Switch to it under **Settings > Interface > Skin**.
+
+Kodi then keeps the skin up to date by itself. The download link, the one time Unknown sources step, and the other ways to install (a release zip, a manual copy, an unattended update at boot) are in [INSTALL.md](INSTALL.md).
 
 ## Features
 
-### Home Screen
+| | |
+| --- | --- |
+| **Home with rotating backgrounds** | Recently watched, random, genre or folder slideshows, on a time of day schedule |
+| **Gallery and list views** | Poster grid in four sizes, watched badges, and an info bar with an Ends at time |
+| **Slide out library menu** | View, sort, filter, genre and search without leaving the list |
+| **Continue Watching and Next Up** | In progress films and the next episode of every show, behind a tab on Home |
+| **Lists and Favourites** | Named lists of anything playable, sent to the queue in order or shuffled; favourites sorted by type |
+| **Sleep timer** | At a set time, when the current video ends, or after a number of episodes |
+| **Video OSD** | Finish time, resolution badge, and an optional buffer readout with a Full Buffer button |
+| **Weather** | Hourly and five day forecast window, plus a widget beside the clock |
+| **Accent colours and seasonal themes** | Eight accents or any colour you pick; Halloween and Christmas themes |
+| **Skip Intro pill** | Skips intros and recaps your Jellyfin server has marked (needs the Intro Skipper or TheIntroDB server plugin); off by default |
 
-- **Main menu tiles you own**: eight ordered slots, each one of the skin's screens (Movies, TV Shows, Music, Pictures, Weather, Lists, Stats, Favourites, Add-ons, Settings) or any Favourite from Kodi's list, with a label of your choosing; untouched, the menu is the familiar one
-- Menu position configurable: top, centre, or bottom of the screen
-- Round icon buttons for **Favourites, Add-ons, Settings, and Power**, with an optional "invisible until focused" mode for a minimal look
-- Real-time date and time, with an optional **weather widget** (temperature + conditions) beside the clock
-- Library stats panel showing movie counts (total, unwatched, watched), TV show counts (total, unwatched) and total episodes, updated instantly via a background service rather than slow container queries
-- Resume button when media is playing; queue button with item count when items are queued
-- **Sleep timer** from the power menu: at a set time, when the video playing now finishes, or after a number of episodes, with a countdown on Home and on the OSD
-- **Continue Watching** pop-up behind an edge tab: in-progress movies and episodes, plus a **Next Up** row with the next unwatched episode of every show you are part way through, each row with a press-and-hold Resume / Mark as watched / Mark as unwatched menu. A **Recently Added** tab beside it opens the same pop-up on a page of the newest movies and episodes
-- Optional logo, version footer, loading splash, and date/time, all toggleable
+Every feature in detail: [docs/FEATURES.md](docs/FEATURES.md). Every setting, page by page: [docs/SETTINGS.md](docs/SETTINGS.md).
 
-### Backgrounds
+## Screenshots
 
-One unified **Background** selector so the modes can never conflict:
+| | |
+| --- | --- |
+| ![Gallery view of sample films, the focused film's runtime and Ends at time in the info bar](screenshots/gallery.jpg) | ![The Library Options panel slid out over the gallery, with the Sort and Filter lists open](screenshots/library-options.jpg) |
+| Gallery view with the Ends at time | Library options, without leaving the list |
+| ![The video OSD over sample footage: title, elapsed time, Ends at time, buffer readout and resolution badge](screenshots/video-osd.jpg) | ![Skin Settings open on the Overall page, with the page list down the left](screenshots/skin-settings.jpg) |
+| The video OSD | Skin settings |
 
-- **Off**: plain background
-- **Static Image**: pick any image; its filename can show as a caption
-- **Slideshow: Recently Watched**: cycles fanart from your recently watched movies, and shows random library fanart until something has been watched. A new install starts here
-- **Slideshow: Random Library**: random fanart from across your movies and TV shows
-- **Slideshow: Genre**: random fanart from one library genre of your choice (movies, TV shows, or both)
-- **Slideshow: Folder**: cycles every picture in a folder you choose (browse with thumbnails and tap any image in the target folder)
+PVR/Live TV and Games are not skinned; use Estuary for those.
 
-Plus a configurable rotate interval (10s / 30s / 1m / 2m / 5m; unset = 20s), a dim level (0 to 90%) so text stays readable, and a caption position for the slideshow/static label. Every background option also exists per time-of-day slot: a schedule of two to four slots (each slot with its own start time) swaps the whole background configuration on the clock. A **Follow Focused Tile** switch (off by default) shows random film, TV or music fanart while the Movies, TV Shows or Music tile has focus, and the chosen mode everywhere else. A **Slow Zoom** (off by default) drifts the picture gently in and out; it is one setting for every slot, and Reduce Motion stops it.
+## Changes and licence
 
-The background is not limited to the home screen:
+What changed in each release: [CHANGELOG.md](CHANGELOG.md).
 
-- **Show On All Screens**: paints the same background behind the library, settings and every other window, with its own separate dim level so list rows and labels stay readable over it
-- **Keep Playing Video Behind Menus**: leave a film playing, press back, and the picture keeps running behind the menus while you browse. Works whether or not the background is shown on all screens
-
-### Video Library
-
-- **Gallery view**: poster grid with four sizes (Small, Medium, Large, Extra Large), plus a small-grid column count toggle (11/12) for TVs with overscan, and a Tall/Compact poster-shape option
-- **List view**: traditional file list alternative
-- Watched marks in both views: an accent corner badge with a tick on completed movies, episodes and fully watched shows in the gallery, a tick and a dimmed title in the list view, and a watched-of-total episode count on shows and seasons that are part way through
-- Info bar with the focused item's metadata, every field individually toggleable:
-  - Genre, duration, star rating, age rating (PG/12/15/etc.), resolution (4K/1080p/720p/480p), last played date
-  - **"Ends at" time**: a background service works out when the focused movie or episode would finish if started now (e.g. "Ends at 22:47")
-  - Episode air dates and movie release years shown automatically by content type
-- Info bar position switchable between top and bottom; live-tunable top/bottom clearance
-
-### Slide-Out Library Options
-
-A left-side panel that slides in over the library, with collapsible dropdowns:
-
-- **View**: Gallery or List
-- **Sort**: Title, Year, Rating, Date Added, Last Played, and Episode in an episode list (back to season and episode order), with an ascending/descending direction toggle
-- **Default sort order**: a default sort and direction for Movies and for TV Shows, set once under Library and applied whenever a library screen opens
-- **Scroll badge**: while you scroll, a badge shows the sort key of the item under the cursor (year, rating, date added, last played, or the initial letter), so you always know where you are in a long list
-- **Filter**: the native watched-status toggle (All Videos / Unwatched / Watched), which filters shows, seasons and episodes correctly and updates the menu label to match
-- **Genre**: a genre picker narrows the library to one genre, with an All Genres reset; the menu label always shows the genre actually in force on screen
-- **Search**: a keyboard prompt narrows the list to titles containing the text, stacking with the genre and age filters on movies and TV shows and working inside a show's episode list too; the row shows the text in force and a Clear row undoes it
-- Quick access to your queue
-- Layout adjust controls (gallery size, info-bar position, poster shape, clearance) right in the menu
-
-### Video OSD
-
-- Compact on-screen display with animated slide-in
-- Title row: movie title with year, or TV show name with season/episode and episode title, with a filename fallback for unscraped content
-- Current time and estimated finish time in accent colour (switches to a "Paused" indicator when paused)
-- Progress bar with elapsed time, total duration, and percentage
-- Resolution badge (4K/1080p/720p/etc.) as an accent-coloured pill
-- Optional poster thumbnail
-- Nine transport buttons: previous, rewind, play/pause, stop, fast forward, next, audio settings, subtitle search, video settings
-- Positionable top or bottom; configurable backdrop dim while the video-settings dialog is open
-- **Playback buffer readout**: an optional buffer level on the OSD and the pause/seek bar (cache percentage, megabytes and seconds ahead), and an optional **Full Buffer** button that switches the current film to buffering the entire file and back again, reopening the stream at the same position. A reset restores Kodi's own buffering defaults (Playback > Playback Buffer)
-
-### Weather
-
-- Full **Weather window**: large current conditions, an 8-hour hourly strip, and a 5-day forecast, reading from any configured Kodi weather provider
-- Home-screen widget beside the clock
-
-### Favourites
-
-- A **categorised, filterable Favourites screen**: chips across the top split your favourites into **All / Movies / TV / Music / Apps / Other**, with a live count on each (empty categories hide themselves)
-- Great for large, unsorted favourites lists (watch-later movies, launcher apps, quick-select add-ons): jump straight to the type you want
-- Remembers the filter you last used, and a **Default Favourites Filter** setting (Lists and Favourites) chooses which one it opens on
-- The helper service classifies each favourite from its stored action, so no manual tagging is needed
-
-### Lists
-
-- **Named lists of anything playable**: hold Select on a movie, episode or song and choose **Add To List** (pick a list or make a new one), or **Add to list <name>** to drop it straight into the last list you used
-- A **Lists** entry on the main menu opens the Lists screen: your lists down the left, the selected list's items on the right, with rename, remove, reorder and remove-item actions
-- **Port to Queue** copies a list into Kodi's queue and starts it playing; **Port Shuffled** jumbles the order first, so a box set plays in a fresh order every time
-- Video and music can share a list: each goes to its own queue
-- **Save as List** on the queue screen keeps the current queue for later
-- The Lists screen's action buttons sit along the bottom, or along the top under the header (Lists and Favourites settings)
-- Porting asks whether to clear the current queue first, or set a standing answer under Lists and Favourites
-- **Export** and **Import** (Lists and Favourites settings) carry lists between boxes: export copies the lists file to any folder Kodi can write to, import merges one in by list name without dropping anything
-- **Managed from JellyStat**: with JellyStat 0.27.0 or later on the same box, its dashboard can make, rename and delete lists, switch Remove Watched, search the library to add films, whole shows or episodes, put the items in order, and back up or restore every list, from a phone or laptop. The switch **Let JellyStat manage the lists** is on the **Lists** page of Skin Settings (the page that used to be called Radarr) and is on by default
-
-### Other Windows
-
-Custom-styled to match the skin: File Manager, Event Log, System Info, Add-on Info, the on-screen keyboard, playback bookmarks and chapters, Kodi 21's Manage versions and Manage extras, the colour picker, the controller configuration dialogs, and compact, correctly-positioned toast notifications.
-
-> **Not skinned**: PVR/Live TV and Games. Enabling those features under this skin will leave their windows unable to open. Switch to Estuary if you need them.
-
-### Music
-
-- Dedicated music OSD with album art, track title, artist, album, and progress bar
-- Video and music playlist views with header showing item count, total time, and current-item finish time
-- Playlist controls: Play All, Shuffle, Repeat, Save, Clear
-
-### Helper Service
-
-A lightweight Python service handles what the skin engine can't do alone, with a non-blocking startup so a slow/unreachable library never freezes the UI:
-
-- **Library stats**: movie/TV/episode counts (total/watched/unwatched), refreshed on a background thread and whenever the library changes
-- **Focused item ETA**: provides the "Ends at" finish time shown in the info bar
-- **Background slideshow**: fetches recently-watched or random library fanart and rotates it on your chosen interval; the folder mode is rendered natively by Kodi
-- **Library state**: applies your default sort order and keeps the Genre label in step with the library node on screen
-- **Buffer readout and full-file switch**: publishes the OSD's buffer figures and reopens the stream when you switch the current film to a full buffer
-- **Lists**: runs the Add To List, port and queue actions behind the Lists screen
-- **Settings backup**: watches the skin's settings file and keeps a rolling snapshot current, for Restore from Backup
-- **Optional debug logging** to a file (Settings → Overall → Diagnostics) for troubleshooting
-
-### Customisation
-
-All settings live in **Settings > Skin Settings**, organised into seven categories:
-
-- **Overall**: accent colour (Blue, Red, Green, Orange, Amber, Purple, Teal, Pink, or any colour from a picker, with the highlight shade following it), Text on Accent (White, or Auto for dark text on a light accent such as Amber), notification position (6 placements), Seasonal Themes (Halloween and Devil's Night from 29 to 31 October, Christmas and Christmas Eve from the first Saturday of December to Boxing Day, each on by itself unless switched off, or picked by hand), Reduce Motion (turns off the slide and fade effects across the skin; seasonal decorations keep their own switches), Preview Settings (shows what the focused setting does, off by default), Diagnostics (debug logging + log folder), and Skin Settings Backup (Back Up Now and Restore from Backup, with the age of the snapshot shown)
-- **Background**: the unified background mode, image/folder picker, dim, following the focused tile and a slow zoom (both off by default), slideshow interval, caption position, the time-of-day schedule, and whether the background (or live video) shows on every screen
-- **Main Menu**: show/hide each menu item (incl. Weather, Lists and Stats) and the main menu position; the corner bar position, its Favourites/Add-ons/Power buttons and Lists/Stats icons, and invisible round buttons
-- **Home Screen**: the stats panels and Continue Watching; logo, date/time, weather widget, greeting beside the clock (off by default), footer and loading splash; the sleep timer and its countdown
-- **Library**: gallery thumbnail size, small-grid column count, poster shape, rounded corners for posters and thumbnails (off by default), context menu position (centre or left edge), default sort order and direction for Movies and TV Shows, info bar position and toggles for every metadata field, 4K, HDR and resolution badges on the gallery posters (off by default), and title age on the info screens
-- **Lists and Favourites**: where the Lists screen keeps its action buttons, what porting a list does to the current queue, an offer to power down when a Port by Time queue finishes (off by default), and the default Favourites filter
-- **Playback**: OSD position, OSD thumbnail, the video dim level, a progress bar with chapter marks on the OSD and seek bar (off by default), a sleep timer button on the OSD (off by default), an info panel that closes itself and a film's logo on it (both off by default), a start of film badge with the picture mode, resolution and age rating (off by default), a next episode card near the end of an episode with Play Now (off by default; each show can choose its own from its info screen), a Skip Intro pill over intros and recaps your Jellyfin server has marked, with Skip Credits as a sub option (off by default; the markers come from the Intro Skipper or TheIntroDB plugin on the server), and the Playback Buffer section (buffer level on the OSD, the Full Buffer button, reset to Kodi defaults)
-
-Toggle settings show an accent **dot** when on. Most changes apply immediately; a few service-backed ones take effect on the next launch.
-
-## What changed
-
-Each release is described in [CHANGELOG.md](CHANGELOG.md). The current version's section also ships inside the skin as its add-on news, so the add-on information screen on the TV shows it after an update.
-
-## Installation
-
-Every way of installing and updating the skin is in [INSTALL.md](INSTALL.md): the repository add-on that keeps it current by itself, a release ZIP from the [Releases](../../releases) page, a manual copy with per-device paths, an unattended update at boot for a headless Linux box, and migrating from the old `skin.starter` ID.
-
-## Licence
-
-[GPL-2.0-or-later](https://www.gnu.org/licenses/gpl-2.0.html)
+Licensed under [GPL-2.0-or-later](LICENSE).

@@ -81,7 +81,7 @@ After updating, you might need to switch to a different skin and back, or restar
 
 ## Managing the lists from JellyStat
 
-From 0.23.0 the skin's lists can be managed from the JellyStat dashboard on a phone or laptop, provided JellyStat 0.27.0 or later is installed on the same box. Nothing else needs setting up: the switch **Let JellyStat manage the lists** sits on the **Lists** page of **Settings → Skin Settings** (the page that used to be called Radarr) and is on by default; turn it off there if you would rather the lists were only edited on the TV.
+From 0.23.0 the skin's lists can be managed from the JellyStat dashboard on a phone or laptop, provided JellyStat 0.27.0 or later is installed on the same box. Nothing else needs setting up: the switch **Let JellyStat manage the lists** sits in the JellyStat section of the **Add-ons** page of **Settings → Skin Settings** (shown when JellyStat is installed) and is on by default; turn it off there if you would rather the lists were only edited on the TV.
 
 ## Migrating from the old `skin.starter`
 

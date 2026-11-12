@@ -3210,7 +3210,7 @@ msgid "Skip Intro Pill"
 msgstr ""
 
 msgctxt "#31859"
-msgid "While an intro or recap your Jellyfin server has marked is playing, shows Skip Intro or Skip Recap with a bar that empties as it plays. OK skips to its end, Back hides it. The markers come from the Intro Skipper or TheIntroDB plugin on the server, Jellyfin 10.10 or later. Switching it on offers to turn the Jellyfin add-on's own skip buttons off, so the two do not overlap.[CR]Where: bottom right of the video."
+msgid "While an intro or recap your Jellyfin server has marked is playing, shows Skip Intro or Skip Recap with a bar that empties as it plays. OK skips to its end, Back hides it. The markers come from the Intro Skipper or TheIntroDB plugin on the server, Jellyfin 10.10 or later. Switching it on offers to turn the Jellyfin add-on's own skip buttons off, so the two do not overlap. A show can have its own choice under This Show on its info screen.[CR]Where: bottom right of the video."
 msgstr ""
 
 msgctxt "#31860"
@@ -3295,4 +3295,33 @@ msgstr ""
 
 msgctxt "#31880"
 msgid "Episode"
+msgstr ""
+
+# Per show choice for the skip pill (roadmap item 16, phase F2). 11/11/2026.
+msgctxt "#31881"
+msgid "This Show"
+msgstr ""
+
+msgctxt "#31882"
+msgid "Intros and Recaps"
+msgstr ""
+
+msgctxt "#31883"
+msgid "With Credits"
+msgstr ""
+
+msgctxt "#31884"
+msgid "No Pill"
+msgstr ""
+
+msgctxt "#31885"
+msgid "Skip Intro Pill for %s"
+msgstr ""
+
+msgctxt "#31886"
+msgid "Next Card: %s"
+msgstr ""
+
+msgctxt "#31887"
+msgid "Skip Pill: %s"
 msgstr ""

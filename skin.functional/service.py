@@ -990,10 +990,11 @@ def pick_next_episode(episodes, season, episode, rule):
 # under, reading and changing shows.json without disturbing anything else
 # in it, and how a choice bends the global rule.
 # shows.json is laid out per show so phase F can keep its skip choice beside
-# this one.
+# this one; SKIP-PILL-SHOW (phase F2, 11/11/2026) does, in the skip_pill field.
 # </summary>
 
 SHOW_CARD_CHOICES = ("unwatched", "inorder", "off")
+SHOW_SKIP_CHOICES = ("intros", "credits", "off")
 SHOW_KEY_SOURCES = ("tvdb", "tmdb", "imdb")
 
 
@@ -1067,52 +1068,57 @@ def parse_show_doc(text):
     return data
 
 
-def show_choice(doc, keys):
+def show_choice(doc, keys, field="next_card", allowed=SHOW_CARD_CHOICES):
     """
-    <summary>A show's next card choice, found under any of its keys.</summary>
+    <summary>A show's choice for one feature, found under any of its keys.</summary>
     <param name="doc">The shows.json document.</param>
     <param name="keys">The show's keys, best first, from show_keys.</param>
-    <returns>"unwatched", "inorder" or "off", or None when the show has none.</returns>
+    <param name="field">The record's field: "next_card" (E2) or "skip_pill" (F2).</param>
+    <param name="allowed">The values that field may hold; anything else reads as none.</param>
+    <returns>One of allowed, or None when the show has none.</returns>
     """
     shows = (doc or {}).get("shows") or {}
     for key in keys:
         rec = shows.get(key)
-        if isinstance(rec, dict) and rec.get("next_card") in SHOW_CARD_CHOICES:
-            return rec["next_card"]
+        if isinstance(rec, dict) and rec.get(field) in allowed:
+            return rec[field]
     return None
 
 
-def set_show_choice(doc, keys, title, choice):
+def set_show_choice(doc, keys, title, choice, field="next_card", allowed=SHOW_CARD_CHOICES):
     """
     <summary>
-    Keep one show's choice in the document, or drop it for the default.
+    Keep one show's choice for one feature in the document, or drop it for the default.
     </summary>
     <param name="doc">The shows.json document, changed in place.</param>
     <param name="keys">The show's keys, best first; the choice goes under the first.</param>
     <param name="title">The show's title, kept so the file can be read by eye.</param>
-    <param name="choice">"unwatched", "inorder", "off", or None for the default.</param>
+    <param name="choice">One of allowed, or None for the default.</param>
+    <param name="field">The record's field: "next_card" (E2) or "skip_pill" (F2).</param>
+    <param name="allowed">The values that field may hold.</param>
     <remarks>
     A choice found under one of the show's other keys moves to the first,
     so a show never holds two. A record of this show left with nothing but
     its title is dropped; every other record, readable or not, and every
-    other field are left exactly as they were.
+    other field, the other feature's choice among them, are left exactly
+    as they were.
     </remarks>
     """
     shows = doc.setdefault("shows", {})
     for key in keys:
         rec = shows.get(key)
-        if isinstance(rec, dict) and "next_card" in rec:
+        if isinstance(rec, dict) and field in rec:
             rec = dict(rec)
-            rec.pop("next_card")
+            rec.pop(field)
             if set(rec) - {"title"}:
                 shows[key] = rec
             else:
                 del shows[key]
-    if choice not in SHOW_CARD_CHOICES:
+    if choice not in allowed:
         return
     rec = shows.get(keys[0])
     rec = dict(rec) if isinstance(rec, dict) else {}
-    rec["next_card"] = choice
+    rec[field] = choice
     rec["title"] = title
     shows[keys[0]] = rec
 
@@ -1138,6 +1144,36 @@ def show_card_rule(global_rule, choice):
     if choice in ("unwatched", "inorder"):
         return choice
     return global_rule
+
+
+def show_skip_rule(global_on, global_credits, card_rule, choice):
+    """
+    <summary>
+    SKIP-PILL-SHOW, item 16 phase F2 (11/11/2026): what the skip pill offers for one show.
+    </summary>
+    <param name="global_on">Skin.HasSetting(skip_pill), the Playback page's switch.</param>
+    <param name="global_credits">Skin.HasSetting(skip_pill_outro), Skip Credits Too.</param>
+    <param name="card_rule">The next card's rule for this show, from show_card_rule; "" for no card.</param>
+    <param name="choice">The show's stored skip choice: "intros", "credits", "off", or None.</param>
+    <returns>(pill, credits): whether the pill shows at all, and whether it offers the credits.</returns>
+    <remarks>
+    The switch on the Playback page wins, as the card's does: with it off
+    there is no pill for any show. With Credits on a show offers the credits
+    even with Skip Credits Too off, the show's choice being the more
+    specific one (agreed 11/11/2026). Credits are never offered while this
+    show gets the next episode card, which already covers them; a show set
+    to No Card therefore can have them with the card on elsewhere.
+    </remarks>
+    """
+    if not global_on or choice == "off":
+        return False, False
+    if choice == "credits":
+        credits = True
+    elif choice == "intros":
+        credits = False
+    else:
+        credits = bool(global_credits)
+    return True, credits and not card_rule
 
 
 def _next_card_dialog_class(helper):
@@ -1915,6 +1951,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._skip_shown = None        # the (start, end, kind) the open pill is for
         self._skip_opening = False     # a pill is being built on its thread
         self._skip_hold_until = 0.0    # monotonic time before which the pill is not reopened
+        self._skip_show = None         # F2: (skip choice, card choice) of the show playing, None = defaults
         # NEXT-CARD, item 17 phase E1 (see update_next_card)
         self._card_pending = False    # a video started, noted on the notification thread
         self._card_lock = threading.Lock()
@@ -8347,9 +8384,10 @@ class FunctionalHelper(xbmc.Monitor):
             item = jellyfin_item_id(xbmc.getInfoLabel("Player.FilenameAndPath"))
             if not item:
                 return
+            show = self._safe_int(xbmc.getInfoLabel("VideoPlayer.TvShowDBID"), 0)
             with self._skip_lock:
                 gen = self._skip_gen
-            threading.Thread(target=self._skip_lookup, args=(gen, item),
+            threading.Thread(target=self._skip_lookup, args=(gen, item, show),
                              name="functional-skip-lookup", daemon=True).start()
             return
         with self._skip_lock:
@@ -8373,8 +8411,13 @@ class FunctionalHelper(xbmc.Monitor):
             now = xbmc.Player().getTime()
         except Exception:  # noqa: BLE001, playback can stop between the calls
             return
-        credits = (xbmc.getCondVisibility("Skin.HasSetting(skip_pill_outro)")
-                   and not xbmc.getInfoLabel("Skin.String(next_card)"))
+        # SKIP-PILL-SHOW: the show's own choices, kept by the lookup, bend
+        # the Playback page's credits rule; both settings are still read
+        # live, so a change on the Playback page reaches a video playing.
+        show = self._skip_show or (None, None)
+        card = show_card_rule(xbmc.getInfoLabel("Skin.String(next_card)"), show[1])
+        _pill, credits = show_skip_rule(
+            True, xbmc.getCondVisibility("Skin.HasSetting(skip_pill_outro)"), card, show[0])
         part = skip_segment_at(skip_segments(items, credits), now, hidden)
         if part is not None and xbmc.getCondVisibility("Window.IsVisible({0})".format(JELLYFIN_SKIP_XML)):
             # The Jellyfin add-on's own prompt is up for this part: the pill
@@ -8422,6 +8465,7 @@ class FunctionalHelper(xbmc.Monitor):
         with self._skip_lock:
             self._skip_gen += 1
             self._skip_items = None
+            self._skip_show = None
             self._skip_hidden = set()
             dialog = self._skip_dialog
         if dialog is not None:
@@ -8458,14 +8502,23 @@ class FunctionalHelper(xbmc.Monitor):
         except (OSError, ValueError):
             return []
 
-    def _skip_lookup(self, gen, item):
+    def _skip_lookup(self, gen, item, show=0):
         """
         <summary>
         Daemon thread body: read the media segments of the item that started.
         </summary>
         <param name="gen">_skip_gen of the start this is for.</param>
         <param name="item">The Jellyfin item id.</param>
+        <param name="show">Library id of the show playing (VideoPlayer.TvShowDBID), 0 for none.</param>
         <remarks>
+        SKIP-PILL-SHOW (phase F2): the show's own skip and card choices are
+        read first, one library query for its keys. A show set to No Pill
+        sends the server nothing; the choices are kept beside the parts for
+        update_skip_pill's credits rule. A film, a video not in the library or
+        a failed read follows the Playback page, as the card does. The
+        choices are read once per start, so one changed during play applies
+        from the next start, while the Playback page's switches still apply
+        at once.
         An item id belongs to one server and the path does not say which, so
         each server the add-on knows is asked in its order until one answers
         200. Parts of a type the Jellyfin add-on skips automatically are left
@@ -8474,6 +8527,17 @@ class FunctionalHelper(xbmc.Monitor):
         the item.
         </remarks>
         """
+        choices = None
+        if show > 0:
+            try:
+                keys, _title = self._show_keys_for(show)
+                choices = (self._show_choice(keys, "skip_pill", SHOW_SKIP_CHOICES), self._show_choice(keys))
+            except Exception:  # noqa: BLE001
+                _dlog("skip pill: the show's own choice could not be read:\n" + traceback.format_exc(),
+                      xbmc.LOGWARNING)
+            if choices and choices[0] == "off":
+                _dlog("skip pill: no pill for this show, by its own choice")
+                return
         items = None
         try:
             for server in self._skip_servers():
@@ -8497,6 +8561,7 @@ class FunctionalHelper(xbmc.Monitor):
             if gen != self._skip_gen:
                 return
             self._skip_items = items
+            self._skip_show = choices
         _dlog("skip pill: {0} marked part(s){1}".format(len(items), ": " + ", ".join(
             sorted({str(i.get("Type")) for i in items})) if items else ""))
 
@@ -8790,7 +8855,9 @@ class FunctionalHelper(xbmc.Monitor):
         </summary>
         <remarks>
         Skin.String(next_card_command) is the channel. The picker is a
-        blocking select dialog, so it runs through _spawn_dialog.
+        blocking select dialog, so it runs through _spawn_dialog. Since
+        SKIP-PILL-SHOW (phase F2) the button is This Show while the skip
+        pill is on, and _show_pick chooses which picker it opens.
         </remarks>
         """
         cmd = self._take_command("next_card_command")
@@ -8803,7 +8870,87 @@ class FunctionalHelper(xbmc.Monitor):
         if dbid <= 0:
             _dlog("next card: %r names no show" % cmd)
             return
-        self._spawn_dialog(lambda: self._show_card_pick(dbid))
+        self._spawn_dialog(lambda: self._show_pick(dbid))
+
+    def _show_pick(self, dbid):
+        """
+        <summary>
+        SKIP-PILL-SHOW, item 16 phase F2 (11/11/2026): open the per show
+        picker for each feature switched on.
+        </summary>
+        <param name="dbid">Library id of the show, from the info screen.</param>
+        <remarks>
+        With only the card on this is E2's picker, as before; with only the
+        pill on, the pill's. With both, a short list names each feature and
+        the show's current choice, and the line picked opens that picker.
+        </remarks>
+        """
+        card_on = bool(xbmc.getInfoLabel("Skin.String(next_card)"))
+        pill_on = xbmc.getCondVisibility("Skin.HasSetting(skip_pill)")
+        if not pill_on:
+            self._show_card_pick(dbid)
+            return
+        if not card_on:
+            self._show_skip_pick(dbid)
+            return
+        keys, title = self._show_keys_for(dbid)
+        if not keys:
+            _dlog("this show: show %d has no title or id to keep a choice under" % dbid)
+            return
+        card = self._show_choice(keys)
+        skip = self._show_choice(keys, "skip_pill", SHOW_SKIP_CHOICES)
+        card_names = {"unwatched": _L(31846), "inorder": _L(31847), "off": _L(31850)}
+        skip_names = {"intros": _L(31882), "credits": _L(31883), "off": _L(31884)}
+        lines = [_L(31886) % card_names.get(card, _L(31849) % self._card_default_name()),
+                 _L(31887) % skip_names.get(skip, _L(31849) % self._skip_default_name())]
+        picked = xbmcgui.Dialog().select(title, lines)
+        if picked == 0:
+            self._show_card_pick(dbid)
+        elif picked == 1:
+            self._show_skip_pick(dbid)
+
+    @staticmethod
+    def _card_default_name():
+        """<summary>The Playback page's next card rule, named.</summary>
+        <returns>Unwatched or In Order.</returns>"""
+        return _L(31847) if xbmc.getInfoLabel("Skin.String(next_card)") == "inorder" else _L(31846)
+
+    @staticmethod
+    def _skip_default_name():
+        """<summary>The Playback page's skip pill choice, named.</summary>
+        <returns>With Credits while Skip Credits Too is on, Intros and Recaps otherwise.</returns>"""
+        return _L(31883) if xbmc.getCondVisibility("Skin.HasSetting(skip_pill_outro)") else _L(31882)
+
+    def _show_skip_pick(self, dbid):
+        """
+        <summary>
+        SKIP-PILL-SHOW: ask what the skip pill offers on a show, and keep the answer.
+        </summary>
+        <param name="dbid">Library id of the show, from the info screen.</param>
+        <remarks>
+        Four choices, as the card's picker: the default (the Playback page's
+        choice, named in the line), Intros and Recaps, With Credits, or No
+        Pill. The current one is preselected. The default removes the show's
+        choice so a later change on the Playback page reaches the show. With
+        Credits still gives way to the next episode card where the show gets
+        one. A save that fails says so in a toast.
+        </remarks>
+        """
+        keys, title = self._show_keys_for(dbid)
+        if not keys:
+            _dlog("skip pill: show %d has no title or id to keep a choice under" % dbid)
+            return
+        current = self._show_choice(keys, "skip_pill", SHOW_SKIP_CHOICES)
+        options = [_L(31849) % self._skip_default_name(), _L(31882), _L(31883), _L(31884)]
+        values = [None, "intros", "credits", "off"]
+        choice = xbmcgui.Dialog().select(_L(31885) % title, options,
+                                         preselect=values.index(current) if current in values else 0)
+        if choice < 0:
+            return
+        if self._show_choice_set(keys, title, values[choice], "skip_pill", SHOW_SKIP_CHOICES):
+            _dlog("skip pill: %s set to %s" % (keys[0], values[choice] or "the default"))
+        else:
+            xbmcgui.Dialog().notification(title, _L(31853), xbmcgui.NOTIFICATION_WARNING)
 
     def _show_card_pick(self, dbid):
         """
@@ -8825,8 +8972,7 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("next card: show %d has no title or id to keep a choice under" % dbid)
             return
         current = self._show_choice(keys)
-        default = _L(31847) if xbmc.getInfoLabel("Skin.String(next_card)") == "inorder" else _L(31846)
-        options = [_L(31849) % default, _L(31846), _L(31847), _L(31850)]
+        options = [_L(31849) % self._card_default_name(), _L(31846), _L(31847), _L(31850)]
         values = [None, "unwatched", "inorder", "off"]
         choice = xbmcgui.Dialog().select(_L(31851) % title, options,
                                          preselect=values.index(current) if current in values else 0)
@@ -8914,26 +9060,30 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("shows.json could not be set aside, so nothing will be saved over it",
                   xbmc.LOGERROR)
 
-    def _show_choice(self, keys):
+    def _show_choice(self, keys, field="next_card", allowed=SHOW_CARD_CHOICES):
         """
-        <summary>A show's next card choice from shows.json.</summary>
+        <summary>A show's choice for one feature from shows.json.</summary>
         <param name="keys">The show's keys, from show_keys; empty gives None.</param>
-        <returns>"unwatched", "inorder", "off" or None.</returns>
+        <param name="field">"next_card" (the default, E2) or "skip_pill" (F2).</param>
+        <param name="allowed">The values that field may hold.</param>
+        <returns>One of allowed, or None.</returns>
         """
         if not keys:
             return None
         with self._shows_lock:
             self._shows_load()
-            return show_choice(self._shows, keys)
+            return show_choice(self._shows, keys, field, allowed)
 
-    def _show_choice_set(self, keys, title, choice):
+    def _show_choice_set(self, keys, title, choice, field="next_card", allowed=SHOW_CARD_CHOICES):
         """
         <summary>
         Keep one show's choice, or drop it for the default, and write shows.json.
         </summary>
         <param name="keys">The show's keys, best first.</param>
         <param name="title">The show's title.</param>
-        <param name="choice">"unwatched", "inorder", "off", or None for the default.</param>
+        <param name="choice">One of allowed, or None for the default.</param>
+        <param name="field">"next_card" (the default, E2) or "skip_pill" (F2).</param>
+        <param name="allowed">The values that field may hold.</param>
         <returns>True when the file was written.</returns>
         <remarks>
         Read again first if the file changed, then only this show's choice
@@ -8947,7 +9097,7 @@ class FunctionalHelper(xbmc.Monitor):
             self._shows_load()
             if self._shows_frozen:
                 return False
-            set_show_choice(self._shows, keys, title, choice)
+            set_show_choice(self._shows, keys, title, choice, field, allowed)
             path = self._shows_path()
             try:
                 with open(path + ".part", "w", encoding="utf-8") as handle:

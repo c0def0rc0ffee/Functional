@@ -16,7 +16,10 @@ finite times, the seek target, a video changed under the pill, the pill's
 lifecycle and the check's bounds. Widened again (09/11/2026) for the
 Jellyfin add-on's own skip buttons: the offer as the pill is switched on,
 the give-back as it is switched off, the parts Jellyfin skips by itself,
-and the pill giving way to Jellyfin's prompt.
+and the pill giving way to Jellyfin's prompt. Widened 11/11/2026 for
+phase F2, the per show choice: show_skip_rule in full, the start passing
+the show's library id, the lookup sending nothing for a show set to No
+Pill, and the credits following the show's own card and pill choices.
 </summary>
 <remarks>
 No Kodi and no network are needed. The xbmc modules are stubbed in
@@ -222,6 +225,7 @@ def make_helper(service):
     helper._skip_shown = None
     helper._skip_opening = False
     helper._skip_hold_until = 0.0
+    helper._skip_show = None
     return helper
 
 
@@ -395,8 +399,15 @@ def test_off_by_default(service):
     INFO["Player.FilenameAndPath"] = PATH
     helper._skip_pending = True
     helper.update_skip_pill()
-    if [t[0] for t in THREADS] != ["_skip_lookup"] or THREADS[0][1][1] != ITEM:
+    if [t[0] for t in THREADS] != ["_skip_lookup"] or THREADS[0][1][1:] != (ITEM, 0):
         fail("a Jellyfin start with the switch on should look its item up once, began %s" % THREADS)
+    # F2: the show's library id goes with it
+    del THREADS[:]
+    INFO["VideoPlayer.TvShowDBID"] = "31"
+    helper._skip_pending = True
+    helper.update_skip_pill()
+    if not THREADS or THREADS[0][1][1:] != (ITEM, 31):
+        fail("a start of an episode should pass its show's library id, began %s" % THREADS)
     # the demo is ignored with the switch off
     reset_world()
     helper = make_helper(service)
@@ -451,6 +462,105 @@ def test_lookup(service):
             for secret in (TOKEN, ADDRESS, "first.invalid", "tok-first", ITEM):
                 if secret in line:
                     fail("a log line names %s: %s" % (secret, line))
+    finally:
+        service._jellyfin_get = original
+
+
+def test_show_rule(service):
+    """
+    <summary>F2: show_skip_rule for every switch, credits switch, card rule and
+    show choice, against the agreed rule written out on its own.</summary>
+    """
+    print("running test_show_rule")
+    for on in (False, True):
+        for glob_credits in (False, True):
+            for card in ("", "unwatched", "inorder"):
+                for choice in (None, "intros", "credits", "off", "junk"):
+                    if not on or choice == "off":
+                        want = (False, False)
+                    else:
+                        wants = {"credits": True, "intros": False}.get(choice, glob_credits)
+                        want = (True, wants and card == "")
+                    got = service.show_skip_rule(on, glob_credits, card, choice)
+                    if got != want:
+                        fail("show_skip_rule(%r, %r, %r, %r) gave %r, want %r" % (on, glob_credits, card, choice, got, want))
+
+
+def test_show_lookup(service):
+    """
+    <summary>F2: a show set to No Pill sends the server nothing; a show's
+    choices are kept for the start they belong to and dropped by the next;
+    a film follows the Playback page; With Credits on a show set to No
+    Card offers the credits with the card on elsewhere, and a show set to
+    Intros and Recaps never does.</summary>
+    """
+    print("running test_show_lookup")
+    reset_world()
+    helper = make_helper(service)
+    store = {}
+    asked = []
+    helper._show_keys_for = lambda show: (["tvdb:%d" % show], "Show")
+    helper._show_choice = lambda keys, field="next_card", allowed=None: store.get(field)
+    helper._skip_servers = lambda: [(ADDRESS, TOKEN, "u")]
+    original = service._jellyfin_get
+
+    def fake_get(server, path):
+        asked.append(path)
+        return 200, {"Items": [segment("Intro", 60, 100), segment("Outro", 1300, 1380)]}
+
+    service._jellyfin_get = fake_get
+    try:
+        store["skip_pill"] = "off"
+        helper._skip_lookup(0, ITEM, 31)
+        if asked or helper._skip_items is not None:
+            fail("a show set to No Pill asked the server %s or kept parts" % asked)
+        if not any("by its own choice" in line for line in LOGS):
+            fail("No Pill for a show was not logged")
+        store.update(skip_pill="credits", next_card="off")
+        helper._skip_lookup(0, ITEM, 31)
+        if len(asked) != 1 or helper._skip_show != ("credits", "off"):
+            fail("the show's choices were not kept with its parts: asked %s, kept %r" % (asked, helper._skip_show))
+        # the card is on globally, Skip Credits Too is off: the show's own choices still give credits
+        on = "Skin.HasSetting(skip_pill) + Player.HasVideo"
+        clear = ("Window.IsActive(fullscreenvideo) + !System.HasActiveModalDialog + !Window.IsActive(videoosd)"
+                 " + !Window.IsActive(seekbar) + !Window.IsActive(fullscreeninfo)")
+        COND[on] = COND[clear] = True
+        INFO["Skin.String(next_card)"] = "unwatched"
+        PLAY_TIME[0] = 1320.0
+        helper.update_skip_pill()
+        if not THREADS or THREADS[0][1][1] != (1300.0, 1380.0, "credits"):
+            fail("With Credits on a show set to No Card should offer the credits: %s" % THREADS)
+        # Intros and Recaps never offers them, even with Skip Credits Too on and the card off
+        del THREADS[:]
+        helper._skip_opening = False
+        helper._skip_show = ("intros", None)
+        INFO["Skin.String(next_card)"] = ""
+        COND["Skin.HasSetting(skip_pill_outro)"] = True
+        helper.update_skip_pill()
+        if THREADS:
+            fail("Intros and Recaps on a show offered the credits: %s" % THREADS)
+        # a new start forgets the show's choices
+        helper._skip_reset()
+        if helper._skip_show is not None:
+            fail("a new start kept the last show's choices")
+        # an answer for an older start keeps neither parts nor choices
+        helper._skip_gen = 9
+        helper._skip_lookup(8, ITEM, 31)
+        if helper._skip_items is not None or helper._skip_show is not None:
+            fail("an older start's lookup was kept")
+        # a film: no show query, defaults
+        helper._show_keys_for = lambda show: fail("a film asked for a show's keys")
+        helper._skip_lookup(9, ITEM, 0)
+        if helper._skip_show is not None or helper._skip_items is None:
+            fail("a film should keep its parts and follow the Playback page")
+        # a failed read of the show falls back to the Playback page, it does not lose the pill
+        def broken(_show):
+            raise RuntimeError("library gone")
+        helper._show_keys_for = broken
+        helper._skip_items = None
+        helper._skip_lookup(9, ITEM, 31)
+        if helper._skip_items is None or helper._skip_show is not None:
+            fail("a failed read of the show's choice should fall back to the defaults")
     finally:
         service._jellyfin_get = original
 
@@ -1344,6 +1454,8 @@ if __name__ == "__main__":
     test_setup_message(SERVICE_MODULE)
     test_off_by_default(SERVICE_MODULE)
     test_lookup(SERVICE_MODULE)
+    test_show_rule(SERVICE_MODULE)
+    test_show_lookup(SERVICE_MODULE)
     test_pill_on_time(SERVICE_MODULE)
     test_ok_and_back(SERVICE_MODULE)
     test_commands(SERVICE_MODULE)
