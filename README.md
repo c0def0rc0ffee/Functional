@@ -3,7 +3,7 @@
 <p align="center"><a href="#quick-start">Quick start</a> · <a href="#highlights">Highlights</a> · <a href="INSTALL.md">Install guide</a> · <a href="docs/FEATURES.md">Every feature</a> · <a href="docs/SETTINGS.md">Settings</a> · <a href="CHANGELOG.md">Changelog</a></p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.23.30-blue" alt="Version 0.23.30">
+  <img src="https://img.shields.io/badge/version-0.23.31-blue" alt="Version 0.23.31">
   <img src="https://img.shields.io/badge/licence-GPL--2.0--or--later-green" alt="GPL 2.0 or later licence">
   <img src="https://img.shields.io/badge/python-3-3776AB?logo=python&logoColor=white" alt="Python 3 helper service">
   <img src="https://img.shields.io/badge/Kodi-21%20Omega-17B2E7?logo=kodi&logoColor=white" alt="Kodi 21 Omega">

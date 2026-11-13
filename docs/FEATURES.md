@@ -13,6 +13,7 @@ Everything the skin does, screen by screen. Every setting named here lives in **
 - Resume button when media is playing; queue button with item count when items are queued
 - **Sleep timer** from the power menu: at a set time, when the video playing now finishes, or after a number of episodes, with a countdown on Home and on the OSD
 - **Continue Watching** pop-up behind an edge tab: in-progress movies and episodes, plus a **Next Up** row with the next unwatched episode of every show you are part way through, each row with a press-and-hold Resume / Mark as watched / Mark as unwatched menu, and optionally **Hide**, which keeps a title or a Next Up show out until it is played again (off by default). A **Recently Added** tab beside it opens the same pop-up on a page of the newest movies and episodes, and an optional **Watchlist** tab shows the titles carrying a tag you choose, or one of your Lists in its own order (off by default)
+- **Home rows**: up to three rows of posters under the main menu, each with its own source (recently added, in progress, unwatched, random films or one of your Lists); while any is on the menu sits at the top (off by default)
 - Optional logo, version footer, loading splash, and date/time, all toggleable
 
 ## Backgrounds

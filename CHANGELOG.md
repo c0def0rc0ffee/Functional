@@ -11,6 +11,19 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.31 (13/11/2026)
+
+- New: up to three rows of posters on Home. Home Row 1 to 3 on the Home
+  Screen page, each Off by default, pick a source: recently added films
+  or episodes, films or episodes in progress, unwatched films or shows,
+  random films, or one of your lists. While any row is on the main menu
+  sits at the top to make room and Menu Position is greyed out; with
+  every row off Home is as it was. A row with nothing in it says so and
+  the focus passes it by. Beside Engage's Coming Up list the rows run
+  narrower, and under a top corner bar they start lower.
+- Changed: Up and Down on Home now run top to bottom in one line through
+  the menu, the rows, the caption buttons, the corner bar and the tabs.
+
 ## 0.23.30 (13/11/2026)
 
 - New: a Watchlist tab beside Continue Watching and Recently Added. A new
