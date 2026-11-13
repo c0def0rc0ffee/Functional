@@ -2068,6 +2068,7 @@ class FunctionalHelper(xbmc.Monitor):
         self._watch_state = False        # (source, tag or list name) published
         self._watch_items = [None] * 12  # list records behind Watchlist.N.*
         self._watch_last = 0.0
+        self._studio_shown = ""          # STUDIO-LOGO: the InfoStudio property as published
         # HOME-WIDGETS: per Home row, the list source last published and its records.
         # False, not None: the first tick then publishes every row, which
         # clears counts and slots an earlier helper left on Home (a skin
@@ -5028,6 +5029,82 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("watchlist: played slot %d" % (slot + 1))
         except Exception:  # noqa: BLE001
             _dlog("watchlist: %s failed:\n%s" % (cmd, traceback.format_exc()), xbmc.LOGERROR)
+
+    # ---- STUDIO-LOGO, item 34 phase K (13/11/2026) ---------------------------
+    # <summary>
+    # The studio or network logo on the info screen, off until
+    # Skin.HasSetting(show_studio_logo). The pictures come from Kodi's own
+    # Studio Icons pack; this service publishes which studio to draw and,
+    # when the switch is turned on or off, offers to install the pack or to
+    # leave, disable or uninstall it. Nothing is ever installed or removed
+    # without the viewer saying yes in Kodi's own dialogs.
+    # </summary>
+
+    STUDIO_PACK = "resource.images.studios.white"
+
+    def update_info_studio(self):
+        """
+        <summary>
+        Fast ticker: answer studio_command, and publish the first studio of
+        the item on the info screen as Window(home).Property(InfoStudio).
+        </summary>
+        <remarks>
+        Kodi joins several studios with " / ", and the pack has one picture
+        per studio, so only the first is drawn. The property is written only
+        when it changes and cleared when the switch is off or the screen
+        closes, so the cost while nothing changes is two condition reads.
+        </remarks>
+        """
+        if self._take_command("studio_command") == "toggled":
+            self._spawn_dialog(self._studio_offer)
+        name = ""
+        if (xbmc.getCondVisibility("Skin.HasSetting(show_studio_logo)")
+                and xbmc.getCondVisibility("Window.IsActive(%s)" % self.INFO_DIALOG)):
+            name = xbmc.getInfoLabel("ListItem.Studio").split(" / ")[0].strip()
+        if name != self._studio_shown:
+            self._studio_shown = name
+            if name:
+                xbmcgui.Window(HOME_WINDOW_ID).setProperty("InfoStudio", name)
+            else:
+                xbmcgui.Window(HOME_WINDOW_ID).clearProperty("InfoStudio")
+
+    def _studio_offer(self):
+        """
+        <summary>
+        Runs in the dialog slot after the switch is pressed: switched on
+        without the pack, offer to install or enable it; switched off with
+        the pack, offer to leave, disable or uninstall it.
+        </summary>
+        <remarks>
+        The install goes through Kodi's InstallAddon, which asks again in
+        Kodi's own words and fetches from the Kodi repository. Kodi has no
+        builtin or JSON-RPC call that uninstalls an add-on, so Uninstall
+        opens Kodi's own page of installed image packs and says to choose
+        Studio Icons and Uninstall there. Disable uses Addons.SetAddonEnabled.
+        </remarks>
+        """
+        pack = self.STUDIO_PACK
+        on = xbmc.getCondVisibility("Skin.HasSetting(show_studio_logo)")
+        installed = xbmc.getCondVisibility("System.HasAddon(%s)" % pack)
+        enabled = installed and xbmc.getCondVisibility("System.AddonIsEnabled(%s)" % pack)
+        dialog = xbmcgui.Dialog()
+        if on and not installed:
+            if dialog.yesno(_L(31923), _L(31924)):
+                xbmc.executebuiltin("InstallAddon(%s)" % pack)
+            else:
+                dialog.notification(_L(31923), _L(31925), xbmcgui.NOTIFICATION_INFO)
+        elif on and not enabled:
+            if dialog.yesno(_L(31923), _L(31926)):
+                _jsonrpc("Addons.SetAddonEnabled", {"addonid": pack, "enabled": True})
+        elif not on and installed:
+            choice = dialog.select(_L(31927), [_L(31928), _L(31929), _L(31930)])
+            if choice == 1:
+                _jsonrpc("Addons.SetAddonEnabled", {"addonid": pack, "enabled": False})
+            elif choice == 2:
+                xbmc.executebuiltin("ActivateWindow(addonbrowser,addons://user/kodi.resource.images/,return)")
+                dialog.notification(_L(31923), _L(31931), xbmcgui.NOTIFICATION_INFO, 8000)
+        _dlog("studio logo: switch %s, pack %s" % ("on" if on else "off",
+              "enabled" if enabled else "installed" if installed else "missing"))
 
     # ---- HOME-WIDGETS, item 46 phase T (13/11/2026) --------------------------
     # <summary>
@@ -12482,6 +12559,8 @@ def run():
         helper.update_lists,
         helper.update_playing_cast,
         helper.update_info_cast,
+        # STUDIO-LOGO: two condition reads unless the info screen is up.
+        helper.update_info_studio,
         helper.update_cast_command,
         helper.update_cache_command,
         # Fast ticker: the countdown has to move once a second, and the
