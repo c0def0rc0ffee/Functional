@@ -3,7 +3,7 @@
 <p align="center"><a href="#quick-start">Quick start</a> · <a href="#highlights">Highlights</a> · <a href="INSTALL.md">Install guide</a> · <a href="docs/FEATURES.md">Every feature</a> · <a href="docs/SETTINGS.md">Settings</a> · <a href="CHANGELOG.md">Changelog</a></p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.23.27-blue" alt="Version 0.23.27">
+  <img src="https://img.shields.io/badge/version-0.23.32-blue" alt="Version 0.23.32">
   <img src="https://img.shields.io/badge/licence-GPL--2.0--or--later-green" alt="GPL 2.0 or later licence">
   <img src="https://img.shields.io/badge/python-3-3776AB?logo=python&logoColor=white" alt="Python 3 helper service">
   <img src="https://img.shields.io/badge/Kodi-21%20Omega-17B2E7?logo=kodi&logoColor=white" alt="Kodi 21 Omega">
@@ -32,7 +32,7 @@ Other ways to install, including a release zip and an unattended update at boot,
 
 ### Pick up where you left off
 
-A tab on Home opens **Continue Watching**: films and episodes part way through, and a **Next Up** row with the next episode of every show you are following. Hold Select on any of them to resume or mark watched.
+A tab on Home opens **Continue Watching**: films and episodes part way through, and a **Next Up** row with the next episode of every show you are following. Hold Select on any of them to resume, mark watched or unwatched, or, if you switch it on, hide it until it is played again.
 
 <p align="center"><img src="screenshots/continue-watching.jpg" width="820" alt="Continue Watching open on Home: Star Wars, Back to the Future and Jurassic Park part watched with progress bars, a Mandalorian episode under Episodes, and a Next Up row with Star Trek: The Next Generation and Doctor Who."></p>
 
