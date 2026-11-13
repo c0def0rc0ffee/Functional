@@ -4858,7 +4858,10 @@ class FunctionalHelper(xbmc.Monitor):
         </remarks>
         """
         cmd = self._take_command("watchlist_command")
-        if cmd:
+        if cmd == "pick":
+            # WATCHLIST-FIX: the skin's one dialog slot, so pickers never stack.
+            self._spawn_dialog(self._watch_pick)
+        elif cmd:
             threading.Thread(target=self._watch_command_worker, args=(cmd,),
                              name="functional-watchlist", daemon=True).start()
         source = xbmc.getInfoLabel("Skin.String(watchlist_source)").strip().lower()
@@ -4897,7 +4900,7 @@ class FunctionalHelper(xbmc.Monitor):
         items = []
         if state is not None and state[0] == "list" and state[1]:
             for lst in self._lists_load():
-                if lst["name"] == state[1]:
+                if lst["name"].replace('"', "") == state[1]:
                     items = [it for it in lst["items"] if it["kind"] == "video"][:self.WATCH_MAX]
                     break
         self._watch_rows(items, state is not None and state[0] == "list")
@@ -4926,11 +4929,58 @@ class FunctionalHelper(xbmc.Monitor):
         else:
             win.clearProperty("Watchlist.Count")
 
+    def _watch_pick(self):
+        """
+        <summary>Ask which named list feeds the Watchlist tab. Runs in the dialog slot.</summary>
+        <remarks>
+        WATCHLIST-FIX (review of 13/11/2026). The name is written with
+        _set_skin_string, which quotes it so a comma survives Kodi's builtin
+        argument split, and drops any double quote, which Kodi cannot carry;
+        _watch_publish compares names the same way, so such a list still
+        matches.
+        </remarks>
+        """
+        names = [lst["name"] for lst in self._lists_load()]
+        if not names:
+            self._lists_notify(_L(31904), error=True)
+            return
+        current = xbmc.getInfoLabel("Skin.String(watchlist_list)")
+        plain = [n.replace('"', "") for n in names]
+        choice = xbmcgui.Dialog().select(
+            _L(31903), names, preselect=plain.index(current) if current in plain else -1)
+        if choice >= 0:
+            _set_skin_string("watchlist_list", names[choice])
+            self._watch_state = None
+
+    def _list_renamed(self, old, new):
+        """
+        <summary>
+        Carry the settings that name a list along when it is renamed, or
+        clear them when it is deleted.
+        </summary>
+        <param name="old">The list's name before.</param>
+        <param name="new">Its new name, or "" when the list was deleted.</param>
+        <remarks>
+        WATCHLIST-FIX. Called from Rename and Delete on the Lists screen and
+        from the same two calls of the lists API, so the Watchlist does not
+        go quietly empty when its list changes name or goes. Names compare
+        with double quotes dropped, as _set_skin_string stores them.
+        </remarks>
+        """
+        keys = ["watchlist_list"]
+        for key in keys:
+            if xbmc.getInfoLabel("Skin.String(%s)" % key) != old.replace('"', ""):
+                continue
+            if new:
+                _set_skin_string(key, new)
+            else:
+                xbmc.executebuiltin("Skin.Reset(%s)" % key)
+
     def _watch_command_worker(self, cmd):
         """
         <summary>
-        Daemon thread body: "pick" asks which named list feeds the tab;
-        "play:N" plays slot N of the list row, or opens a show or season.
+        Daemon thread body: "play:N" plays slot N of the list row, or opens
+        a show or season. The pick has its own method, _watch_pick.
         </summary>
         <param name="cmd">The watchlist_command value.</param>
         <remarks>
@@ -4942,18 +4992,6 @@ class FunctionalHelper(xbmc.Monitor):
         </remarks>
         """
         try:
-            if cmd == "pick":
-                names = [lst["name"] for lst in self._lists_load()]
-                if not names:
-                    self._lists_notify(_L(31904), error=True)
-                    return
-                current = xbmc.getInfoLabel("Skin.String(watchlist_list)")
-                choice = xbmcgui.Dialog().select(
-                    _L(31903), names, preselect=names.index(current) if current in names else -1)
-                if choice >= 0:
-                    xbmc.executebuiltin("Skin.SetString(watchlist_list,%s)" % names[choice].replace(",", "\\,"))
-                    self._watch_state = None
-                return
             if not cmd.startswith("play:"):
                 _dlog("watchlist command ignored: %r" % cmd)
                 return
@@ -6535,6 +6573,7 @@ class FunctionalHelper(xbmc.Monitor):
             if self._lists_last == old:
                 self._lists_last = name
         self._lists_save()
+        self._list_renamed(old, name)
 
     def _lists_delete(self):
         """<summary>Remove the selected list after a yes/no confirm.</summary>"""
@@ -6552,6 +6591,7 @@ class FunctionalHelper(xbmc.Monitor):
                 self._lists_last = ""
             self._lists_sel = min(idx, len(self._lists))
         self._lists_save()
+        self._list_renamed(lst["name"], "")
 
     @classmethod
     def _list_item_spec(cls, it):

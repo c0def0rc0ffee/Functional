@@ -965,7 +965,7 @@ def test_service_off():
 def test_service_pick():
     """
     <summary>The pick command offers the list names and sets the chosen name
-    on watchlist_list with commas escaped; with no lists it gives a
+    on watchlist_list, quoted so a comma survives; with no lists it gives a
     notification and sets nothing.</summary>
     """
     print("running test_service_pick")
@@ -983,8 +983,10 @@ def test_service_pick():
         sets = [b for b in rig.builtins if b.startswith("Skin.SetString(watchlist_list,")]
         check(len(sets) == 1, "exactly one Skin.SetString(watchlist_list,...) should run, got %r" % sets)
         if sets:
-            check(sets[0] == "Skin.SetString(watchlist_list,Fri\\, Night)",
-                  "the chosen name should be set with its comma escaped, got %r" % sets[0])
+            # WATCHLIST-FIX: the skin's _set_skin_string quotes the value, so
+            # Kodi's builtin split keeps the comma inside it.
+            check(sets[0] == 'Skin.SetString(watchlist_list,"Fri, Night")',
+                  "the chosen name should be set quoted, got %r" % sets[0])
         # A cancelled dialog sets nothing.
         rig.builtins.clear()
         rig.labels.pop("Skin.String(watchlist_list)", None)
@@ -1003,6 +1005,34 @@ def test_service_pick():
         check(not [b for b in rig.builtins if b.startswith("Skin.SetString(watchlist_list,")], "with no lists nothing should be set")
     except Exception as exc:  # a crash is a finding, reported rather than hidden
         fail("the pick path raised %s: %s" % (type(exc).__name__, exc))
+    finally:
+        rig.restore()
+
+
+def test_list_renamed():
+    """
+    <summary>WATCHLIST-FIX: renaming the chosen list carries watchlist_list to
+    the new name, deleting it resets the setting, and a rename of another
+    list leaves it alone (the review's finding 2).</summary>
+    """
+    print("running test_list_renamed")
+    rig = Rig()
+    try:
+        h = helper_with([{"name": "Weekend", "items": [item("A", "movie", 1)]}])
+        rig.set_skin("watchlist_list", "Weekend")
+        rig.builtins.clear()
+        h._list_renamed("Other", "Else")
+        check(not rig.builtins, "renaming another list should change nothing, got %r" % rig.builtins)
+        h._list_renamed("Weekend", "Saturday")
+        check(rig.builtins == ['Skin.SetString(watchlist_list,"Saturday")'],
+              "renaming the chosen list should carry the setting, got %r" % rig.builtins)
+        rig.builtins.clear()
+        rig.set_skin("watchlist_list", "Saturday")
+        h._list_renamed("Saturday", "")
+        check(rig.builtins == ["Skin.Reset(watchlist_list)"],
+              "deleting the chosen list should reset the setting, got %r" % rig.builtins)
+    except Exception as exc:  # a crash is a finding, reported rather than hidden
+        fail("the rename path raised %s: %s" % (type(exc).__name__, exc))
     finally:
         rig.restore()
 
@@ -1075,6 +1105,7 @@ def main():
     test_service_off()
     test_service_pick()
     test_service_play()
+    test_list_renamed()
     passed = sum(1 for ok, _ in CHECKS if ok)
     print("test_watchlist: %d of %d checks passed" % (passed, len(CHECKS)))
     if FAILURES:
