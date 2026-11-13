@@ -77,6 +77,23 @@
 			<scroll>true</scroll>
 		</control>
 
+		<!-- STUDIO-LOGO (item 34): the first studio or network, from Kodi's
+		     Studio Icons pack, in the 300 pixels the title leaves free on the
+		     right. Only with the switch on and the pack installed and enabled;
+		     a studio the pack has no picture for draws nothing. -->
+		<control type="image">
+			<left>1640</left>
+			<top>70</top>
+			<width>240</width>
+			<height>100</height>
+			<aspectratio align="right">keep</aspectratio>
+			<!-- STUDIO-LOGO-FIX: below the Watched tag (top 80, right 80) when
+			     that shows, rather than under it. -->
+			<animation effect="slide" end="0,52" time="0" condition="Integer.IsGreater(ListItem.PlayCount,0)">Conditional</animation>
+			<texture background="true">resource://resource.images.studios.white/$INFO[Window(home).Property(InfoStudio)].png</texture>
+			<visible>Skin.HasSetting(show_studio_logo) + System.HasAddon(resource.images.studios.white) + System.AddonIsEnabled(resource.images.studios.white) + !String.IsEmpty(Window(home).Property(InfoStudio))</visible>
+		</control>
+
 		<!-- Subtitle line, one form per item type and only one ever up.
 		     Episode: show title and the S and E marker. On a show Kodi
 		     reuses the same two fields for the NUMBER of seasons and of

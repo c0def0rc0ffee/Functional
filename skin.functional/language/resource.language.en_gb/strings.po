@@ -3460,3 +3460,48 @@ msgstr ""
 msgctxt "#31921"
 msgid "Nothing here yet"
 msgstr ""
+
+# Studio logo, item 34. 13/11/2026.
+msgctxt "#31922"
+msgid "Show Studio or Network Logo"
+msgstr ""
+
+msgctxt "#31923"
+msgid "Studio Logo"
+msgstr ""
+
+msgctxt "#31924"
+msgid "The logos come from Kodi's Studio Icons pack, which is not installed. Install it now from the Kodi repository?"
+msgstr ""
+
+msgctxt "#31925"
+msgid "The logo shows once Studio Icons is installed"
+msgstr ""
+
+msgctxt "#31926"
+msgid "Studio Icons is installed but switched off. Switch it on?"
+msgstr ""
+
+msgctxt "#31927"
+msgid "Studio Icons is still installed"
+msgstr ""
+
+msgctxt "#31928"
+msgid "Leave it"
+msgstr ""
+
+msgctxt "#31929"
+msgid "Disable it"
+msgstr ""
+
+msgctxt "#31930"
+msgid "Uninstall it"
+msgstr ""
+
+msgctxt "#31931"
+msgid "Choose Studio Icons, then Uninstall"
+msgstr ""
+
+msgctxt "#31932"
+msgid "Shows the studio or TV network as a logo on the information screen. Needs Kodi's Studio Icons pack, which switching this on offers to install.[CR]Where: the information screen, top right."
+msgstr ""

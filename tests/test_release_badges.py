@@ -317,8 +317,11 @@ def test_rows():
     if group.findtext("ondown") != "7316":
         fail("Down from the last badge row no longer reaches the row below the list")
     below = [n for n in settings.iter("control") if n.get("id") == "7316"][0]
-    if below.findtext("onup") != "7212":
-        fail("Up from the row below the list should land on the last badge row")
+    # STUDIO-LOGO-FIX: rows added after the badges (item 34's 7213) make
+    # the list's own last row the target, not 7212 by name.
+    last = [n.get("id") for n in group if n.tag == "control" and n.get("id")][-1]
+    if below.findtext("onup") != last:
+        fail("Up from the row below the list should land on the list's last row, %s" % last)
     if not {n.get("id") for n in group.findall("control")} >= set(SWITCHES):
         fail("the badge rows are not in the Visible Fields list")
 

@@ -51,6 +51,7 @@ Toggle settings show an accent **dot** when on. Most changes apply immediately; 
 - Info bar position and toggles for every metadata field
 - 4K, HDR and resolution badges on the gallery posters (off by default)
 - Title age on the info screens
+- The studio or network logo on the info screens, with an offer to install Kodi's Studio Icons pack (off by default)
 
 ## Lists and Favourites
 
