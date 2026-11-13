@@ -177,8 +177,11 @@ def test_list_attributes():
               "%s content is the %s property" % (cid, prop))
         attrs = content.attrib if content is not None else {}
         for key, want in (("target", "videos"), ("sortby", "year"), ("sortorder", "descending"),
-                          ("limit", "60"), ("browse", "never")):
+                          ("browse", "never")):
             check(attrs.get(key) == want, "%s content %s is %s (got %r)" % (cid, key, want, attrs.get(key)))
+        # ACTOR-PAGE-FIX (review of 13/11/2026): every title, so no cap and the
+        # heading's count is the real total.
+        check("limit" not in attrs, "%s content has no limit (got %r)" % (cid, attrs.get("limit")))
 
 
 def test_headings_and_empty_label():

@@ -11,8 +11,10 @@
   <remarks>
   Both rows are library containers read through videodb paths the service
   sets, each sorting and capping itself (LIBRARY-ROWS-SORT); their titles
-  are library items with Kodi's own click and menu. A row with nothing in
-  it says so and the focus passes over it. The page draws nothing of the
+  are library items with Kodi's own click and menu. Neither row has a cap,
+  so the counts in the headings are the true totals (ACTOR-PAGE-FIX). A row
+  with nothing in it says so and Down or Up passes over it; the page opens
+  on the films row whatever, since the rows fill only after it opens. The page draws nothing of the
   screen under it: a solid panel, so the info screen's text never shows
   through.
   </remarks>
@@ -156,7 +158,7 @@
 					<label>$INFO[ListItem.Year]</label>
 				</control>
 			</focusedlayout>
-			<content target="videos" sortby="year" sortorder="descending" limit="60" browse="never">$INFO[Window(home).Property(ActorFilmsPath)]</content>
+			<content target="videos" sortby="year" sortorder="descending" browse="never">$INFO[Window(home).Property(ActorFilmsPath)]</content>
 		</control>
 		<control type="label">
 			<left>400</left>
@@ -261,7 +263,7 @@
 					<label>$INFO[ListItem.Year]</label>
 				</control>
 			</focusedlayout>
-			<content target="videos" sortby="year" sortorder="descending" limit="60" browse="never">$INFO[Window(home).Property(ActorShowsPath)]</content>
+			<content target="videos" sortby="year" sortorder="descending" browse="never">$INFO[Window(home).Property(ActorShowsPath)]</content>
 		</control>
 	</controls>
 </window>
