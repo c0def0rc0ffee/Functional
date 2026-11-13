@@ -777,7 +777,7 @@
 								<label>$INFO[ListItem.Season,S]$INFO[ListItem.Episode,E, · ]$INFO[ListItem.TVShowTitle]</label>
 							</control>
 						</focusedlayout>
-						<content target="videos" limit="12">$INFO[Window(home).Property(nextup_xsp)]</content>
+						<content target="videos" limit="12">$INFO[Window(home).Property(nextup_path)]</content>
 					</control>
 				</control>
 

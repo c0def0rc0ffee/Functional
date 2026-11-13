@@ -2980,11 +2980,11 @@
 	     skin's playlist, so with the switch off Home is exactly as it
 	     was.</summary> -->
 	<variable name="ContinueMoviesPath">
-		<value condition="Skin.HasSetting(continue_hide) + !String.IsEmpty(Window(home).Property(continue_movies_xsp))">$INFO[Window(home).Property(continue_movies_xsp)]</value>
+		<value condition="Skin.HasSetting(continue_hide) + !String.IsEmpty(Window(home).Property(continue_movies_path))">$INFO[Window(home).Property(continue_movies_path)]</value>
 		<value>special://skin/playlists/continue_movies.xsp</value>
 	</variable>
 	<variable name="ContinueEpisodesPath">
-		<value condition="Skin.HasSetting(continue_hide) + !String.IsEmpty(Window(home).Property(continue_episodes_xsp))">$INFO[Window(home).Property(continue_episodes_xsp)]</value>
+		<value condition="Skin.HasSetting(continue_hide) + !String.IsEmpty(Window(home).Property(continue_episodes_path))">$INFO[Window(home).Property(continue_episodes_path)]</value>
 		<value>special://skin/playlists/continue_episodes.xsp</value>
 	</variable>
 

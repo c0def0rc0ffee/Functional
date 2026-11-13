@@ -1235,31 +1235,65 @@ def parse_hidden_doc(text):
     return data
 
 
-def hidden_file_values(path):
+def file_rule(path, negate=False):
     """
     <summary>
-    The values a playlist "filename" rule must refuse to drop one file.
+    A JSON smart playlist rule matching exactly one file, or every file but it.
     </summary>
     <param name="path">The file as VideoLibrary.Get*Details gives it.</param>
-    <returns>The whole path and, when different, its last part; empty for no path.</returns>
+    <param name="negate">True for the rule that refuses the file instead.</param>
+    <returns>A rule object, or None for an empty path.</returns>
     <remarks>
-    Kodi's filename field is the name column of its files table. For an
-    ordinary file that is the last part of the path; for a plugin item such
-    as Jellyfin for Kodi's it is the whole plugin URL. Which one a library
-    holds cannot be told from the path alone, so both are refused. A last
-    part that is the same as another file's (two copies of one film) hides
-    both, which is the same title anyway.
+    HIDE-URL (review of 13/11/2026). Kodi keeps a library file as a folder
+    and a name. For an ordinary file the name is the last part of the path;
+    for a plugin item such as Jellyfin for Kodi's the name is the whole URL.
+    Which one a library holds cannot be told from the path alone, so the
+    rule accepts either the whole path as the name, or the folder and the
+    last part together. Never the last part alone: two episodes called
+    S01E02.mkv in different folders would both match. The pairing needs
+    nested rules, which a playlist file cannot hold and a videodb URL's
+    JSON playlist can (checked on Kodi 21.3).
     </remarks>
     """
     path = (path or "").strip()
     if not path:
-        return []
-    values = [path]
-    if not path.startswith("plugin://"):
-        tail = re.split(r"[/\\]", path.rstrip("/\\"))[-1]
-        if tail and tail != path:
-            values.append(tail)
-    return values
+        return None
+    op = "isnot" if negate else "is"
+    whole = {"field": "filename", "operator": op, "value": [path]}
+    cut_at = max(path.rfind("/"), path.rfind("\\")) + 1
+    if path.startswith("plugin://") or not 0 < cut_at < len(path):
+        return whole
+    pair = [{"field": "path", "operator": op, "value": [path[:cut_at]]},
+            {"field": "filename", "operator": op, "value": [path[cut_at:]]}]
+    if negate:
+        return {"and": [whole, {"or": pair}]}
+    return {"or": [whole, {"and": pair}]}
+
+
+VIDEODB_BASES = {"movies": "videodb://movies/titles/",
+                 "episodes": "videodb://tvshows/titles/-1/-1/-1/",
+                 "tvshows": "videodb://tvshows/titles/"}
+
+
+def videodb_url(kind, rules, method, direction, limit=12):
+    """
+    <summary>A library path that lists one kind through a JSON smart playlist.</summary>
+    <param name="kind">"movies", "episodes" or "tvshows".</param>
+    <param name="rules">The playlist's rules object, such as {"and": [...]}.</param>
+    <param name="method">Kodi's order field, such as "lastplayed" or "tvshow".</param>
+    <param name="direction">"ascending" or "descending".</param>
+    <param name="limit">Most rows to return.</param>
+    <returns>The videodb:// path with the playlist in its xsp option.</returns>
+    <remarks>
+    A container reloads when its path changes and only then, so the same
+    rules give the same path and leave the row alone, and any change gives
+    a new one. Nothing is written to disk.
+    </remarks>
+    """
+    doc = {"type": kind, "rules": rules, "limit": limit,
+           "order": {"method": method, "direction": direction}}
+    return VIDEODB_BASES[kind] + "?xsp=" + urllib.parse.quote(
+        json.dumps(doc, separators=(",", ":"), sort_keys=True), safe="")
 
 
 def hidden_files_of(doc, dbtype):
@@ -1276,71 +1310,43 @@ def hidden_files_of(doc, dbtype):
     return [path for _at, path in sorted(rows)]
 
 
-def hidden_xsp(dbtype, files):
+def hidden_url(dbtype, files):
     """
     <summary>
-    The text of a Continue Watching playlist that leaves out the given files.
+    The Continue Watching row of one kind, leaving out the given files.
     </summary>
     <param name="dbtype">"movie" or "episode".</param>
     <param name="files">The hidden files of that kind.</param>
-    <returns>The smart playlist XML, the skin's own playlist plus one rule per value.</returns>
+    <returns>The videodb path, or "" when nothing is hidden.</returns>
     <remarks>
-    Matches the skin's continue_movies.xsp and continue_episodes.xsp in
-    everything else: in progress, newest played first, twelve rows. The
-    limit applies after the rules, so hiding a title lets the thirteenth
-    one up. Kept in step with those files by tests/test_hide_continue.py.
+    The same rule, order and limit as the skin's continue_movies.xsp and
+    continue_episodes.xsp, plus one refusal per hidden file. The limit
+    applies after the rules, so hiding a title lets the thirteenth one up.
+    Kept in step with those files by tests/test_hide_continue.py.
     </remarks>
     """
-    from xml.sax.saxutils import escape
-    kind = HIDDEN_KINDS[dbtype]
-    rules = []
-    for path in files:
-        for value in hidden_file_values(path):
-            rules.append('    <rule field="filename" operator="isnot">\n'
-                         '        <value>%s</value>\n    </rule>\n' % escape(value))
-    return ('<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
-            '<!-- Written by skin.functional for Continue Watching; changed on every hide. -->\n'
-            '<smartplaylist type="%s">\n'
-            '    <name>Continue Watching %s</name>\n'
-            '    <match>all</match>\n'
-            '    <rule field="inprogress" operator="true">\n'
-            '        <value></value>\n    </rule>\n'
-            '%s'
-            '    <order direction="descending">lastplayed</order>\n'
-            '    <limit>12</limit>\n'
-            '</smartplaylist>\n') % (kind, kind.title(), "".join(rules))
+    refusals = [r for r in (file_rule(f, negate=True) for f in files) if r]
+    if not refusals:
+        return ""
+    rules = {"and": [{"field": "inprogress", "operator": "true", "value": []}] + refusals}
+    return videodb_url(HIDDEN_KINDS[dbtype], rules, "lastplayed", "descending")
 
 
-def nextup_xsp(files):
+def nextup_url(files):
     """
-    <summary>
-    The text of the Next Up playlist: exactly the given episodes.
-    </summary>
+    <summary>The Next Up row: exactly the given episodes.</summary>
     <param name="files">Each episode's file, as VideoLibrary.GetEpisodes gives it.</param>
-    <returns>The smart playlist XML.</returns>
+    <returns>The videodb path, or "" for no episodes.</returns>
     <remarks>
-    NEXTUP-LIBRARY. Match one, one "filename is" rule per value from
-    hidden_file_values, so a plugin item is named by its whole URL and an
-    ordinary file by its path and its last part. A smart playlist cannot
-    keep the helper's order, newest played show first, so it asks Kodi for
-    shows A to Z, which at least never moves while nothing changes.
+    NEXTUP-LIBRARY. A smart playlist cannot keep the helper's order, newest
+    played show first, so it asks Kodi for shows A to Z, which at least
+    never moves while nothing changes.
     </remarks>
     """
-    from xml.sax.saxutils import escape
-    rules = []
-    for path in files:
-        for value in hidden_file_values(path):
-            rules.append('    <rule field="filename" operator="is">\n'
-                         '        <value>%s</value>\n    </rule>\n' % escape(value))
-    return ('<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n'
-            '<!-- Written by skin.functional for Next Up; changed whenever the row does. -->\n'
-            '<smartplaylist type="episodes">\n'
-            '    <name>Next Up</name>\n'
-            '    <match>one</match>\n'
-            '%s'
-            '    <order direction="ascending">tvshow</order>\n'
-            '    <limit>12</limit>\n'
-            '</smartplaylist>\n') % "".join(rules)
+    wanted = [r for r in (file_rule(f) for f in files) if r]
+    if not wanted:
+        return ""
+    return videodb_url("episodes", {"or": wanted}, "tvshow", "ascending")
 
 
 def hidden_show(doc, keys):
@@ -1907,7 +1913,6 @@ class FunctionalHelper(xbmc.Monitor):
     CONTINUE_LISTS = ("9201", "9203", "9205")  # Home.xml container ids: movies, episodes, next up
     NEXTUP_LIST = "9205"           # the Next Up row (see update_next_up)
     NEXTUP_MAX = 12                # the row's limit, as Home.xml's content limit
-    NEXTUP_XSP = "special://profile/addon_data/skin.functional/continue/nextup_%s.xsp"
     NEXTUP_REFRESH_SECS = 300      # safety net; library events and a stop force it sooner
 
     CAST_MAX = 8  # portraits the full-screen info card has room for
@@ -2040,7 +2045,6 @@ class FunctionalHelper(xbmc.Monitor):
         self._hidden = None              # the document, None until first read
         self._hidden_stamp = None        # (size, mtime_ns) of what was read
         self._hidden_frozen = False      # a damaged file could not be set aside
-        self._hidden_gen = {"movie": 0, "episode": 0}  # which of two files is current
         self._hidden_played = deque()    # Player.OnAVStart items, for the loop
         self._hidden_switch = None       # continue_hide as last seen by Next Up
         # Next Up row in the Continue Watching pop-up (see update_next_up).
@@ -2048,7 +2052,6 @@ class FunctionalHelper(xbmc.Monitor):
         self._nextup_last = 0.0          # when the last lookup started, 0 forces one
         self._nextup_thread = None
         self._nextup_items = []          # [{dbid, file}] as published (NEXTUP-LIBRARY)
-        self._nextup_gen = 0             # which of the two playlist files is current
         # Age filter (see update_age_command)
         self._accent_custom_seen = None  # last accent_custom value turned into a highlight
         self._tiles_seen = None          # last (toggles, addon, slots) the tiles were published from
@@ -4581,13 +4584,12 @@ class FunctionalHelper(xbmc.Monitor):
     # Hide from Continue Watching: the press and hold menu's fourth row while
     # Skin.HasSetting(continue_hide) is on. The store is continue_hidden.json
     # in the skin's data folder; the module helpers above say what is in it.
-    # Home reads continue_movies_xsp and continue_episodes_xsp only while the
+    # Home reads continue_movies_path and continue_episodes_path only while the
     # switch is on, so switching it off shows every row again at once and
     # leaves the store for the next time it is on.
     # </summary>
 
     HIDDEN_FILE = "special://profile/addon_data/skin.functional/continue_hidden.json"
-    HIDDEN_XSP = "special://profile/addon_data/skin.functional/continue/continue_%s_%s.xsp"
 
     def _hidden_path(self):
         """<summary>Absolute path of continue_hidden.json, creating its folder.</summary>
@@ -4666,39 +4668,24 @@ class FunctionalHelper(xbmc.Monitor):
     def _hidden_publish(self):
         """
         <summary>
-        Write the two Continue playlists and point Home at them. Call with
-        _hidden_lock held.
+        Point Home's two Continue rows at paths that leave out what is
+        hidden. Call with _hidden_lock held.
         </summary>
         <remarks>
-        A kind with nothing hidden clears its property, so Home goes back to
-        the skin's own playlist. Each write goes to the other of two files
-        (_a and _b) and the property moves with it: a container only reloads
-        when its path changes, so rewriting one file in place would leave the
-        hidden title on screen until the next library event. A playlist that
-        cannot be written leaves the property where it was and is logged.
+        HIDE-URL. A kind with nothing hidden clears its property, so Home
+        goes back to the skin's own playlist. A kind whose hidden files did
+        not change keeps the very same path, so its row is not reloaded and
+        does not jump back to its first title.
         </remarks>
         """
         win = xbmcgui.Window(HOME_WINDOW_ID)
         for dbtype, kind in HIDDEN_KINDS.items():
-            files = hidden_files_of(self._hidden or {}, dbtype)
-            prop = "continue_%s_xsp" % kind
-            if not files:
+            url = hidden_url(dbtype, hidden_files_of(self._hidden or {}, dbtype))
+            prop = "continue_%s_path" % kind
+            if not url:
                 win.clearProperty(prop)
-                continue
-            self._hidden_gen[dbtype] += 1
-            spec = self.HIDDEN_XSP % (kind, "ab"[self._hidden_gen[dbtype] % 2])
-            path = xbmcvfs.translatePath(spec)
-            try:
-                folder = os.path.dirname(path)
-                if not os.path.isdir(folder):
-                    os.makedirs(folder)
-                with open(path, "w", encoding="utf-8") as handle:
-                    handle.write(hidden_xsp(dbtype, files))
-            except OSError:
-                _dlog("hide continue: %s playlist not written:\n%s"
-                      % (kind, traceback.format_exc()), xbmc.LOGERROR)
-                continue
-            win.setProperty(prop, spec)
+            elif win.getProperty(prop) != url:
+                win.setProperty(prop, url)
 
     def hidden_startup(self):
         """
@@ -5201,41 +5188,27 @@ class FunctionalHelper(xbmc.Monitor):
     def _nextup_publish(self, items, looked_up=True):
         """
         <summary>
-        Write the Next Up playlist for these episodes and point Home's row
-        at it, and set NextUp.Count.
+        Point Home's Next Up row at exactly these episodes, and set NextUp.Count.
         </summary>
         <param name="items">Records from _nextup_worker, {dbid, file}, in the order found.</param>
         <param name="looked_up">False clears NextUp.Count (row hidden, nothing known) instead of writing "0".</param>
         <remarks>
         NEXTUP-LIBRARY (13/11/2026): the row used to be twelve static slots,
-        which Kodi gives no press and hold menu. A playlist of the episodes
-        by file makes them library items like the Continue rows. Each write
-        goes to the other of two files, as _hidden_publish explains, so the
-        row reloads; a list the same as last time writes nothing. An episode
-        with no file cannot be named in a playlist and is left out.
+        which Kodi gives no press and hold menu. A library path naming the
+        episodes by file makes them library items like the Continue rows.
+        The same episodes give the same path, so the row only reloads when
+        they change. An episode with no file cannot be named and is left out.
         </remarks>
         """
         win = xbmcgui.Window(HOME_WINDOW_ID)
         items = [it for it in items if it.get("file")]
+        url = nextup_url([it["file"] for it in items])
         with self._nextup_lock:
-            same = [it["file"] for it in items] == [it["file"] for it in self._nextup_items]
             self._nextup_items = list(items)
-            if items and not same:
-                self._nextup_gen += 1
-                spec = self.NEXTUP_XSP % "ab"[self._nextup_gen % 2]
-                path = xbmcvfs.translatePath(spec)
-                try:
-                    folder = os.path.dirname(path)
-                    if not os.path.isdir(folder):
-                        os.makedirs(folder)
-                    with open(path, "w", encoding="utf-8") as handle:
-                        handle.write(nextup_xsp([it["file"] for it in items]))
-                    win.setProperty("nextup_xsp", spec)
-                except OSError:
-                    _dlog("next up: playlist not written:\n" + traceback.format_exc(),
-                          xbmc.LOGERROR)
-            elif not items:
-                win.clearProperty("nextup_xsp")
+            if not url:
+                win.clearProperty("nextup_path")
+            elif win.getProperty("nextup_path") != url:
+                win.setProperty("nextup_path", url)
             if looked_up:
                 win.setProperty("NextUp.Count", str(len(items)))
             else:

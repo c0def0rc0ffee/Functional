@@ -87,10 +87,12 @@
 	     imagery rule forbids, and the stage, never focused, cannot show
 	     Home's focus. -->
 	<!-- HIDE-CONTINUE, Allow Hiding from Continue Watching (7182): no
-	     preview, because the switch adds a row to a menu that only opens
-	     over the user's own Continue Watching titles, and what it hides
-	     is a choice made there, title by title. Neither the stage nor a
-	     picture of sample folders can show either honestly. -->
+	     preview. The stage draws no pop up and no menu. A picture would
+	     need the press and hold menu open over a title part way through,
+	     and the generator's sample films are folder items with no library
+	     id, which this menu never opens over; making one part way through
+	     means writing a resume point into the library of whoever runs the
+	     generator, which it must not do. -->
 	<expression name="settings_preview_none">Control.HasFocus(7182) | Control.HasFocus(7121) | Control.HasFocus(7328) | Control.HasFocus(7329) | Control.HasFocus(7239) | Control.HasFocus(7325) | Control.HasFocus(7326) | Control.HasFocus(7320) | Control.HasFocus(7310) | Control.HasFocus(7311) | Control.HasFocus(7312) | Control.HasFocus(7314) | Control.HasFocus(7315) | Control.HasFocus(7317) | Control.HasFocus(7322) | Control.HasFocus(7221) | Control.HasFocus(7230) | Control.HasFocus(7231) | Control.HasFocus(7232) | Control.HasFocus(7233) | Control.HasFocus(7306) | Control.HasFocus(7307) | Control.HasFocus(7308) | Control.HasFocus(7309) | Control.HasFocus(7207) | Control.HasFocus(7316) | Control.HasFocus(7234) | Control.HasFocus(7235) | Control.HasFocus(7238) | Control.HasFocus(7236) | Control.HasFocus(7237) | Control.HasFocus(7124) | Control.HasFocus(7406) | Control.HasFocus(7150) | Control.HasFocus(7179) | Control.HasFocus(7180) | Control.HasFocus(7181) | Control.HasFocus(7400) | Control.HasFocus(7401) | Control.HasFocus(7402) | Control.HasFocus(7403) | Control.HasFocus(7404) | Control.HasFocus(7405)</expression>
 	<!-- The pictures, written by the generator's table in build_preview_art.py:
 	     the large one is what OK would give (a toggle the other way round, a

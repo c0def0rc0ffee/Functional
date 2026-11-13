@@ -37,7 +37,6 @@ STRINGS = os.path.join(SKIN, "language", "resource.language.en_gb", "strings.po"
 FAILURES = []
 DATA = os.path.join(T.PROFILE, "addon_data", "skin.functional")
 STORE = os.path.join(DATA, "continue_hidden.json")
-SPECIAL = "special://profile/addon_data/skin.functional/continue/"
 
 
 def fail(msg):
@@ -103,25 +102,58 @@ def test_parse():
             fail("%r should be refused with ValueError" % bad)
 
 
-def test_file_values():
+def kodi_row(path, plugin_whole=True):
     """
-    <summary>hidden_file_values: the whole path plus the last part when
-    different, only the whole path for plugin:// paths, nothing for an empty
-    or blank path.</summary>
+    <summary>A library file as Kodi stores it: a folder and a name.</summary>
+    <param name="path">The file's whole path.</param>
+    <param name="plugin_whole">Store a plugin URL whole as the name, as Jellyfin for Kodi does.</param>
+    <returns>{"path": folder, "filename": name}.</returns>
     """
-    print("running test_file_values")
-    f = service.hidden_file_values
-    if f("/media/films/Metropolis.mkv") != ["/media/films/Metropolis.mkv", "Metropolis.mkv"]:
-        fail("a local path should give itself and its file name, got %r" % f("/media/films/Metropolis.mkv"))
-    if f("smb://host/share/a/b.mkv") != ["smb://host/share/a/b.mkv", "b.mkv"]:
-        fail("a network path should give itself and its file name, got %r" % f("smb://host/share/a/b.mkv"))
-    if f("name.mkv") != ["name.mkv"]:
-        fail("a bare name equals its last part, so it should be given once, got %r" % f("name.mkv"))
-    if f("plugin://plugin.video.example/play/?id=7/x") != ["plugin://plugin.video.example/play/?id=7/x"]:
-        fail("a plugin:// path should give only the whole path")
+    if plugin_whole and path.startswith("plugin://"):
+        return {"path": "", "filename": path}
+    cut = max(path.rfind("/"), path.rfind("\\")) + 1
+    return {"path": path[:cut], "filename": path[cut:]}
+
+
+def holds(rule, row):
+    """
+    <summary>Evaluate a JSON smart playlist rule against one row the way Kodi does.</summary>
+    <param name="rule">A rule, or an "and" or "or" group.</param>
+    <param name="row">A row from kodi_row, plus "inprogress".</param>
+    <returns>True when the row passes.</returns>
+    """
+    if "and" in rule:
+        return all(holds(r, row) for r in rule["and"])
+    if "or" in rule:
+        return any(holds(r, row) for r in rule["or"])
+    field, op = rule["field"], rule["operator"]
+    if field == "inprogress":
+        return bool(row.get("inprogress")) == (op == "true")
+    hit = row.get(field) in rule["value"]
+    return hit if op == "is" else not hit
+
+
+def test_file_rule():
+    """
+    <summary>file_rule: exactly one file, whether the library keeps it as a
+    whole URL or as folder and name, and never another file that shares its
+    name (the review's finding 1).</summary>
+    """
+    print("running test_file_rule")
+    a, b = "/media/tv/A/S01E02.mkv", "/media/tv/B/S01E02.mkv"
+    plug = "plugin://plugin.video.example/x/?id=7&mode=play"
+    for path in (a, plug, "smb://host/share/film.mkv", "C:\\Films\\x.mkv"):
+        want, avoid = service.file_rule(path), service.file_rule(path, negate=True)
+        for row in (kodi_row(path), {"path": "", "filename": path}):
+            if not holds(want, row) or holds(avoid, row):
+                fail("the rule for %r does not match its own row %r" % (path, row))
+    if holds(service.file_rule(a), kodi_row(b)) or not holds(service.file_rule(a, negate=True), kodi_row(b)):
+        fail("a rule for one file matched another file with the same name")
+    if holds(service.file_rule(plug), kodi_row(plug + "x")):
+        fail("a plugin rule matched a different URL")
     for blank in ("", "   ", None):
-        if f(blank) != []:
-            fail("%r should give no values, got %r" % (blank, f(blank)))
+        if service.file_rule(blank) is not None:
+            fail("%r should give no rule" % blank)
 
 
 def test_files_of():
@@ -147,64 +179,54 @@ def test_files_of():
         fail("a type nothing was hidden under should give nothing")
 
 
-def rules_of(root):
+def url_doc(url):
     """
-    <summary>The rules of a smart playlist as comparable tuples.</summary>
-    <param name="root">The smartplaylist element.</param>
-    <returns>A list of (field, operator, value) in file order.</returns>
+    <summary>The JSON playlist inside a videodb path.</summary>
+    <param name="url">A path from videodb_url.</param>
+    <returns>(base, playlist document), or (url, None) when there is none.</returns>
     """
-    return [(r.get("field"), r.get("operator"), (r.findtext("value") or "")) for r in root.findall("rule")]
+    import urllib.parse
+    if not url or "?xsp=" not in url:
+        return url, None
+    base, _sep, query = url.partition("?xsp=")
+    return base, json.loads(urllib.parse.unquote(query))
 
 
-def test_xsp():
+def test_url():
     """
-    <summary>hidden_xsp: the type, match all, the in progress rule, one
-    filename isnot rule per value, escaping, and agreement with the skin's own
-    playlists in type, match, order and limit.</summary>
+    <summary>hidden_url and nextup_url: the right library node, the skin's
+    own rule, order and limit, a refusal per hidden file that keeps every
+    other title, and no path at all when nothing is hidden.</summary>
     """
-    print("running test_xsp")
-    for dbtype, kind, name in (("movie", "movies", "continue_movies.xsp"),
-                               ("episode", "episodes", "continue_episodes.xsp")):
+    print("running test_url")
+    for dbtype, kind, name, base in (("movie", "movies", "continue_movies.xsp", "videodb://movies/titles/"),
+                                     ("episode", "episodes", "continue_episodes.xsp", "videodb://tvshows/titles/-1/-1/-1/")):
         own = ET.fromstring(read(os.path.join(SKIN, "playlists", name)).encode("utf-8"))
-        mine = ET.fromstring(service.hidden_xsp(dbtype, ["/a/b & c.mkv", "/x/y.mkv"]).encode("utf-8"))
-        if mine.tag != "smartplaylist" or mine.get("type") != kind:
-            fail("the %s playlist should be a smartplaylist of type %s" % (dbtype, kind))
-        if own.get("type") != mine.get("type"):
-            fail("type differs from the skin's own %s" % name)
-        if mine.findtext("match") != "all" or mine.findtext("match") != own.findtext("match"):
-            fail("match should be all, as in the skin's own %s" % name)
-        order, own_order = mine.find("order"), own.find("order")
-        if order is None or order.text != "lastplayed" or order.get("direction") != "descending":
-            fail("order should be descending by lastplayed")
-        elif own_order is None or (order.text, order.get("direction")) != (own_order.text, own_order.get("direction")):
+        got_base, doc = url_doc(service.hidden_url(dbtype, ["/a/b & c.mkv", "/x/y.mkv"]))
+        if got_base != base or not doc or doc.get("type") != own.get("type") != kind:
+            fail("the %s path should list %s from %s, got %r" % (dbtype, kind, base, got_base))
+            continue
+        order = own.find("order")
+        if doc["order"] != {"method": order.text, "direction": order.get("direction")}:
             fail("order differs from the skin's own %s" % name)
-        if mine.findtext("limit") != "12" or mine.findtext("limit") != own.findtext("limit"):
-            fail("limit should be 12, as in the skin's own %s" % name)
-        got = rules_of(mine)
-        want_first = rules_of(own)
-        if got[:len(want_first)] != want_first:
-            fail("the skin's own rules should come first and unchanged, got %r" % got)
-        extra = got[len(want_first):]
-        if extra != [("filename", "isnot", "/a/b & c.mkv"), ("filename", "isnot", "b & c.mkv"),
-                     ("filename", "isnot", "/x/y.mkv"), ("filename", "isnot", "y.mkv")]:
-            fail("each file should give one isnot rule per value, got %r" % extra)
-        if not any(r[0] == "inprogress" and r[1] == "true" for r in got):
-            fail("the inprogress true rule is missing")
-    text = service.hidden_xsp("movie", ["/a/b & c.mkv"])
-    if "&amp;" not in text or re.search(r"&(?!amp;|lt;|gt;|quot;|apos;)", text):
-        fail("an ampersand should be XML escaped")
-    text = service.hidden_xsp("movie", ["/a/<b>.mkv"])
-    try:
-        ET.fromstring(text.encode("utf-8"))
-    except ET.ParseError:
-        fail("angle brackets in a path should still give well formed XML")
-    plain = ET.fromstring(service.hidden_xsp("episode", []).encode("utf-8"))
-    if [r for r in plain.findall("rule") if r.get("field") == "filename"]:
-        fail("with nothing hidden there should be no filename rules")
-    plug = ET.fromstring(service.hidden_xsp("movie", ["plugin://p.example/a/b"]).encode("utf-8"))
-    vals = [r.findtext("value") for r in plug.findall("rule") if r.get("field") == "filename"]
-    if vals != ["plugin://p.example/a/b"]:
-        fail("a plugin path should give one rule with the whole path, got %r" % vals)
+        if str(doc["limit"]) != own.findtext("limit"):
+            fail("limit differs from the skin's own %s" % name)
+        rules = doc["rules"]
+        rows = [dict(kodi_row(p), inprogress=True) for p in ("/a/b & c.mkv", "/x/y.mkv", "/q/b & c.mkv", "/x/z.mkv")]
+        rows.append(dict(kodi_row("/x/w.mkv"), inprogress=False))
+        kept = [r["path"] + r["filename"] for r in rows if holds(rules, r)]
+        if kept != ["/q/b & c.mkv", "/x/z.mkv"]:
+            fail("the %s row should keep only other titles in progress, kept %r" % (dbtype, kept))
+    if service.hidden_url("movie", []) != "":
+        fail("with nothing hidden there should be no path, so Home uses the skin's playlist")
+    if service.hidden_url("movie", ["/a.mkv"]) == service.hidden_url("movie", ["/b.mkv"]):
+        fail("different hidden files gave the same path, so the row would not reload")
+    base, doc = url_doc(service.nextup_url(["/tv/A/e1.mkv", "plugin://p/?id=2"]))
+    rows = [kodi_row(p) for p in ("/tv/A/e1.mkv", "plugin://p/?id=2", "/tv/B/e1.mkv")]
+    if base != "videodb://tvshows/titles/-1/-1/-1/" or [r for r in rows if holds(doc["rules"], r)] != rows[:2]:
+        fail("Next Up should list exactly its two episodes, and not another e1.mkv")
+    if service.nextup_url([]) != "":
+        fail("no Next Up episodes should give no path")
 
 
 def test_show_and_unhide():
@@ -356,8 +378,8 @@ def test_home_paths():
         elif content.get("limit") != "12" or content.get("target") != "videos":
             fail("container %s should keep target videos and limit 12" % cid)
     inc = ET.parse(os.path.join(XML, "Includes.xml")).getroot()
-    for name, prop, own in (("ContinueMoviesPath", "continue_movies_xsp", "special://skin/playlists/continue_movies.xsp"),
-                            ("ContinueEpisodesPath", "continue_episodes_xsp", "special://skin/playlists/continue_episodes.xsp")):
+    for name, prop, own in (("ContinueMoviesPath", "continue_movies_path", "special://skin/playlists/continue_movies.xsp"),
+                            ("ContinueEpisodesPath", "continue_episodes_path", "special://skin/playlists/continue_episodes.xsp")):
         var = next((v for v in inc.iter("variable") if v.get("name") == name), None)
         values = [(v.get("condition"), v.text) for v in var.findall("value")] if var is not None else []
         if len(values) != 2:
@@ -375,7 +397,7 @@ def test_home_paths():
         if not fname.endswith(".xml"):
             continue
         text = read(os.path.join(XML, fname))
-        if fname not in ("Includes.xml",) and ("continue_movies_xsp" in text or "continue_episodes_xsp" in text):
+        if fname not in ("Includes.xml",) and ("continue_movies_path" in text or "continue_episodes_path" in text):
             fail("%s reads the helper's playlist property directly" % fname)
 
 
@@ -388,6 +410,7 @@ class Lib:
     """
 
     FILES = {("movie", 12): "/media/films/Metropolis.mkv", ("movie", 13): "/media/films/Other.mkv",
+             ("movie", 14): "/media/films/Third.mkv",
              ("episode", 101): "/media/tv/show/s01e01.mkv", ("episode", 102): "/media/tv/show/s01e02.mkv"}
 
     def __init__(self):
@@ -489,25 +512,32 @@ def special_to_local(path):
 
 def xsp_values(prop):
     """
-    <summary>The filename values refused by the playlist a Home property names.</summary>
+    <summary>Every file value named in the library path a Home property holds.</summary>
     <param name="prop">The Home property name.</param>
-    <returns>The list of values, or None when the property is empty or the file is missing.</returns>
+    <returns>The values in the order found, or None when the property is empty.</returns>
     """
-    path = T.PROPS.get(prop, "")
-    if not path:
+    _base, doc = url_doc(T.PROPS.get(prop, ""))
+    if not doc:
         return None
-    local = special_to_local(path)
-    if not os.path.isfile(local):
-        return None
-    root = ET.fromstring(read(local).encode("utf-8"))
-    return [r.findtext("value") for r in root.findall("rule") if r.get("field") == "filename"]
+    found = []
+
+    def walk(rule):
+        """<summary>Collect filename values from a rule tree.</summary><param name="rule">A rule or group.</param>"""
+        for key in ("and", "or"):
+            for sub in rule.get(key, []):
+                walk(sub)
+        if rule.get("field") == "filename":
+            found.extend(rule["value"])
+    walk(doc["rules"])
+    return found
 
 
 def run_service_checks():
     """
     <summary>Hide a movie, then an episode, then a show from Next Up through
-    the helper; check the store, the alternating playlist files and the Home
-    properties; then bring each back by playing it.</summary>
+    the helper; check the store, the library paths in the Home properties
+    and that a kind left alone keeps its path; then bring each back by
+    playing it.</summary>
     """
     print("running test_service")
     clear_store()
@@ -523,32 +553,40 @@ def run_service_checks():
     rec = doc.get("files", {}).get("/media/films/Metropolis.mkv")
     if not rec or rec.get("type") != "movie" or "at" not in rec:
         fail("the movie should be kept under its file with type movie and an at, got %r" % doc)
-    first = T.PROPS.get("continue_movies_xsp", "")
-    if not first.startswith(SPECIAL + "continue_movies_") or not first.endswith(".xsp"):
-        fail("the movies property should name a special:// continue_movies_a or _b file, got %r" % first)
-    if "/media/films/Metropolis.mkv" not in (xsp_values("continue_movies_xsp") or []):
+    first = T.PROPS.get("continue_movies_path", "")
+    if not first.startswith("videodb://movies/titles/?xsp="):
+        fail("the movies property should be a movies library path, got %r" % first[:60])
+    if "/media/films/Metropolis.mkv" not in (xsp_values("continue_movies_path") or []):
         fail("the published movies playlist should refuse the hidden file")
-    if T.PROPS.get("continue_episodes_xsp"):
+    if T.PROPS.get("continue_episodes_path"):
         fail("with no episode hidden the episodes property should be clear")
 
     h._continue_hide("movie", 13, False)
-    second = T.PROPS.get("continue_movies_xsp", "")
+    second = T.PROPS.get("continue_movies_path", "")
     if second == first or not second:
-        fail("each publish should alternate files so the container path changes, got %r then %r" % (first, second))
-    if {os.path.basename(first), os.path.basename(second)} != {"continue_movies_a.xsp", "continue_movies_b.xsp"}:
-        fail("the two files should be continue_movies_a.xsp and continue_movies_b.xsp, got %r and %r" % (first, second))
-    vals = xsp_values("continue_movies_xsp") or []
+        fail("a second hide should change the path so the row reloads")
+    vals = xsp_values("continue_movies_path") or []
     if "/media/films/Other.mkv" not in vals or "/media/films/Metropolis.mkv" not in vals:
         fail("the newer playlist should refuse both hidden movies, got %r" % vals)
 
     h._continue_hide("episode", 101, False)
-    ep = T.PROPS.get("continue_episodes_xsp", "")
-    if not os.path.basename(ep).startswith("continue_episodes_") or not ep.startswith(SPECIAL):
-        fail("the episodes property should name a continue_episodes_ file, got %r" % ep)
-    if "/media/tv/show/s01e01.mkv" not in (xsp_values("continue_episodes_xsp") or []):
+    ep = T.PROPS.get("continue_episodes_path", "")
+    if not ep.startswith("videodb://tvshows/titles/-1/-1/-1/?xsp="):
+        fail("the episodes property should be an episodes library path, got %r" % ep[:60])
+    if "/media/tv/show/s01e01.mkv" not in (xsp_values("continue_episodes_path") or []):
         fail("the episodes playlist should refuse the hidden episode")
-    if "/media/tv/show/s01e01.mkv" in (xsp_values("continue_movies_xsp") or []):
+    if "/media/tv/show/s01e01.mkv" in (xsp_values("continue_movies_path") or []):
         fail("an episode must not appear in the movies playlist")
+
+    # Review finding 7: hiding a movie leaves the episodes row's path alone.
+    movies_before = T.PROPS.get("continue_movies_path")
+    h._continue_hide("movie", 14, False)
+    if T.PROPS.get("continue_episodes_path") != ep:
+        fail("hiding a movie changed the episodes path, which reloads that row")
+    h.onNotification("xbmc", "Player.OnAVStart", json.dumps({"item": {"type": "movie", "id": 14}}))
+    h.update_continue_watching()
+    if T.PROPS.get("continue_movies_path") != movies_before:
+        fail("the same hidden movies should give the same path again")
 
     # From Next Up the show goes, not the file.
     before_files = set(stored()["files"])
@@ -567,7 +605,7 @@ def run_service_checks():
     doc = stored()
     if "/media/films/Metropolis.mkv" in doc["files"] or "/media/films/Other.mkv" not in doc["files"]:
         fail("playing a hidden movie should bring back just that movie, got %r" % list(doc["files"]))
-    vals = xsp_values("continue_movies_xsp") or []
+    vals = xsp_values("continue_movies_path") or []
     if "/media/films/Metropolis.mkv" in vals or "/media/films/Other.mkv" not in vals:
         fail("the republished movies playlist should let the played movie back, got %r" % vals)
 
@@ -583,10 +621,10 @@ def run_service_checks():
     # Last hidden movie returns: the kind has nothing hidden, so its property clears.
     h.onNotification("xbmc", "Player.OnAVStart", json.dumps({"item": {"type": "movie", "id": 13}}))
     h.update_continue_watching()
-    if T.PROPS.get("continue_movies_xsp"):
-        fail("a kind with nothing hidden should clear its property, got %r" % T.PROPS.get("continue_movies_xsp"))
-    if T.PROPS.get("continue_episodes_xsp"):
-        fail("the episodes property should also be clear with nothing hidden, got %r" % T.PROPS.get("continue_episodes_xsp"))
+    if T.PROPS.get("continue_movies_path"):
+        fail("a kind with nothing hidden should clear its property, got %r" % T.PROPS.get("continue_movies_path"))
+    if T.PROPS.get("continue_episodes_path"):
+        fail("the episodes property should also be clear with nothing hidden, got %r" % T.PROPS.get("continue_episodes_path"))
 
 
 def test_service():
@@ -600,6 +638,51 @@ def test_service():
         fail("the helper path raised %s: %s" % (type(exc).__name__, exc))
     finally:
         service._jsonrpc, service.threading.Thread = saved
+        clear_store()
+
+
+def test_loop_wiring():
+    """
+    <summary>The press and hold row's "hide" goes through the loop: from a
+    Next Up row it hides the show, from a Continue row the file (the
+    review's note that _continue_hide was only ever called directly).</summary>
+    """
+    print("running test_loop_wiring")
+    saved = (service._jsonrpc, service.threading.Thread, service.xbmc.getInfoLabel,
+             service.xbmc.getCondVisibility, service.xbmc.executebuiltin)
+    labels = {}
+    try:
+        clear_store()
+        T.SKIN_SETTINGS.add("continue_hide")
+        h = make_helper(Lib())
+        service.xbmc.getInfoLabel = lambda label: labels.get(label, "")
+        service.xbmc.getCondVisibility = lambda cond: (
+            cond == "Window.IsActive(home)" or (cond.startswith("Skin.HasSetting(")
+                                               and cond[16:-1] in T.SKIN_SETTINGS))
+
+        def builtin(cmd, *_a):
+            """<summary>Let the command channel's clear land.</summary><param name="cmd">The builtin.</param>"""
+            if cmd.startswith("Skin.Reset(continue_command)") or cmd.startswith("Skin.SetString(continue_command,)"):
+                labels["Skin.String(continue_command)"] = ""
+        service.xbmc.executebuiltin = builtin
+        for control, dbid, want in (("9205", 102, "show"), ("9203", 101, "file")):
+            labels.update({"System.CurrentControlId": control, "ListItem.DBTYPE": "episode",
+                           "ListItem.DBID": str(dbid), "ListItem.Label": "Ep"})
+            h.update_continue_watching()
+            labels["Skin.String(continue_command)"] = "hide"
+            h.update_continue_watching()
+            labels["Skin.String(continue_command)"] = ""
+            h.update_continue_watching()
+            doc = stored() if os.path.isfile(STORE) else {"files": {}, "shows": {}}
+            if want == "show" and ("tvdb:31031" not in doc["shows"] or doc["files"]):
+                fail("hide on a Next Up row should hide the show only, got %r" % doc)
+            if want == "file" and "/media/tv/show/s01e01.mkv" not in doc["files"]:
+                fail("hide on a Continue row should hide the file, got %r" % doc)
+    except Exception as exc:  # a crash is a finding, reported rather than hidden
+        fail("the loop path raised %s: %s" % (type(exc).__name__, exc))
+    finally:
+        (service._jsonrpc, service.threading.Thread, service.xbmc.getInfoLabel,
+         service.xbmc.getCondVisibility, service.xbmc.executebuiltin) = saved
         clear_store()
 
 
@@ -679,23 +762,15 @@ class NextUpLib:
 
 def test_nextup():
     """
-    <summary>NEXTUP-LIBRARY: the playlist text, the row's files alternating
-    and staying put for an unchanged list, an empty list clearing the row,
+    <summary>NEXTUP-LIBRARY: Home reads the helper's path, the path stays
+    put for an unchanged list and moves for a changed one, an empty list
+    clears the row,
     and a hidden show left out of Next Up only while the switch is on.</summary>
     """
     print("running test_nextup")
-    root = ET.fromstring(service.nextup_xsp(["plugin://p/?a=1&b=2", "/media/tv/x.mkv"]).encode("utf-8"))
-    if root.get("type") != "episodes" or root.findtext("match") != "one":
-        fail("the Next Up playlist is not episodes matching any rule")
-    values = [(r.get("field"), r.get("operator"), r.findtext("value")) for r in root.findall("rule")]
-    if values != [("filename", "is", "plugin://p/?a=1&b=2"), ("filename", "is", "/media/tv/x.mkv"),
-                  ("filename", "is", "x.mkv")]:
-        fail("Next Up rules are %r" % values)
-    if root.findtext("limit") != str(service.FunctionalHelper.NEXTUP_MAX):
-        fail("the Next Up playlist limit is not NEXTUP_MAX")
     home = read(os.path.join(XML, "Home.xml"))
-    if '<content target="videos" limit="12">$INFO[Window(home).Property(nextup_xsp)]</content>' not in home:
-        fail("Home's Next Up row does not read the nextup_xsp playlist")
+    if '<content target="videos" limit="12">$INFO[Window(home).Property(nextup_path)]</content>' not in home:
+        fail("Home's Next Up row does not read the nextup_path property")
     if "NextUpRows" in home or "NextUpRow" in read(os.path.join(XML, "Includes.xml")):
         fail("the static Next Up slots are still there")
 
@@ -706,12 +781,12 @@ def test_nextup():
         h = make_helper(lib)
         service._jsonrpc = lib.jsonrpc
         h._nextup_worker()
-        first = T.PROPS.get("nextup_xsp", "")
-        if not first.startswith(SPECIAL + "nextup_") or T.PROPS.get("NextUp.Count") != "3":
+        first = T.PROPS.get("nextup_path", "")
+        if not first.startswith("videodb://tvshows/titles/-1/-1/-1/?xsp=") or T.PROPS.get("NextUp.Count") != "3":
             fail("three shows gave property %r and count %r" % (first, T.PROPS.get("NextUp.Count")))
         h._nextup_worker()
-        if T.PROPS.get("nextup_xsp") != first:
-            fail("an unchanged Next Up list moved the row to another file")
+        if T.PROPS.get("nextup_path") != first:
+            fail("an unchanged Next Up list changed the path, which reloads the row")
         # Hide Bravo, as _continue_hide stores it, then look again.
         os.makedirs(DATA, exist_ok=True)
         with open(STORE, "w", encoding="utf-8") as handle:
@@ -721,14 +796,14 @@ def test_nextup():
             fail("a hidden show left Next Up with the switch off")
         T.SKIN_SETTINGS.add("continue_hide")
         h._nextup_worker()
-        files = xsp_values("nextup_xsp") or []
+        files = xsp_values("nextup_path") or []
         if T.PROPS.get("NextUp.Count") != "2" or any("show2" in f for f in files):
             fail("with the switch on the hidden show stayed in Next Up: %r" % files)
-        if T.PROPS.get("nextup_xsp") == first:
-            fail("a changed Next Up list kept the same file, so the row would not reload")
+        if T.PROPS.get("nextup_path") == first:
+            fail("a changed Next Up list kept the same path, so the row would not reload")
         h._nextup_publish([])
-        if T.PROPS.get("nextup_xsp") or T.PROPS.get("NextUp.Count") != "0":
-            fail("an empty Next Up list left the row pointing at a playlist")
+        if T.PROPS.get("nextup_path") or T.PROPS.get("NextUp.Count") != "0":
+            fail("an empty Next Up list left the row pointing at a path")
     except Exception as exc:  # a crash is a finding, reported rather than hidden
         fail("the Next Up path raised %s: %s" % (type(exc).__name__, exc))
     finally:
@@ -739,9 +814,9 @@ def test_nextup():
 def main():
     """<summary>Runs every test and exits non zero on a failure.</summary>"""
     test_parse()
-    test_file_values()
+    test_file_rule()
     test_files_of()
-    test_xsp()
+    test_url()
     test_show_and_unhide()
     test_settings_wiring()
     test_strings()
@@ -749,6 +824,7 @@ def main():
     test_home_paths()
     test_service()
     test_damaged_store()
+    test_loop_wiring()
     test_nextup()
     if FAILURES:
         print("test_hide_continue: %d check(s) failed" % len(FAILURES))
