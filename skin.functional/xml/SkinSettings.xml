@@ -3317,6 +3317,27 @@
 					<onclick>Skin.ToggleSetting(show_studio_logo)</onclick>
 					<onleft>7230</onleft>
 				</control>
+				<!-- MORE-LIKE (item 31): Off by default; Same Collection, Same
+				     Director, Same Genre, Off. -->
+				<control type="button" id="7214">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31933] $VAR[MoreLikeLabel]</label>
+					<onclick condition="String.IsEmpty(Skin.String(more_like))">Skin.SetString(more_like,collection)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(more_like),collection)">Skin.SetString(more_like,director)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(more_like),director)">Skin.SetString(more_like,genre)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(more_like),genre)">Skin.Reset(more_like)</onclick>
+					<onleft>7230</onleft>
+				</control>
 			</control>
 			<control type="scrollbar" id="7051">
 				<left>1852</left>
@@ -3369,7 +3390,7 @@
 				<selected>!Skin.HasSetting(hide_media_age)</selected>
 				<onclick>Skin.ToggleSetting(hide_media_age)</onclick>
 				<onleft>7224</onleft>
-				<onup>7213</onup>
+				<onup>7214</onup>
 				<ondown>7200</ondown>
 			</control>
 		</control>

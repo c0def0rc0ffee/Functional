@@ -182,7 +182,8 @@
 			<visible>!String.IsEmpty(ListItem.Tagline)</visible>
 		</control>
 
-		<!-- Plot -->
+		<!-- Plot. MORE-LIKE: while the More like this row has titles, a
+		     shorter plot box stands in so the row fits under it; both scroll. -->
 		<control type="textbox">
 			<left>620</left>
 			<top>330</top>
@@ -192,6 +193,104 @@
 			<textcolor>text</textcolor>
 			<label>$INFO[ListItem.Plot]</label>
 			<autoscroll delay="5000" repeat="7500" time="5000">true</autoscroll>
+			<visible>!Integer.IsGreater(Container(9360).NumItems,0) | !Control.IsVisible(9360)</visible>
+		</control>
+		<control type="textbox">
+			<left>620</left>
+			<top>330</top>
+			<right>80</right>
+			<height>110</height>
+			<font>font_reg</font>
+			<textcolor>text</textcolor>
+			<label>$INFO[ListItem.Plot]</label>
+			<autoscroll delay="5000" repeat="7500" time="5000">true</autoscroll>
+			<visible>Integer.IsGreater(Container(9360).NumItems,0) + Control.IsVisible(9360)</visible>
+		</control>
+
+		<!-- MORE-LIKE (item 31): titles from the same collection, director or
+		     genre, from the path service.py:update_info_like publishes. The
+		     list stays shown while it has a path, empty or not, because a
+		     hidden container is never processed; its heading and the short
+		     plot follow its item count. -->
+		<control type="label">
+			<left>620</left>
+			<top>448</top>
+			<width>900</width>
+			<height>26</height>
+			<font>font_small</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>31938</label>
+			<visible>Integer.IsGreater(Container(9360).NumItems,0) + Control.IsVisible(9360)</visible>
+		</control>
+		<control type="list" id="9360">
+			<visible allowhiddenfocus="true">!String.IsEmpty(Skin.String(more_like)) + !String.IsEmpty(Window(home).Property(InfoLikePath))</visible>
+			<left>616</left>
+			<top>476</top>
+			<width>1240</width>
+			<height>160</height>
+			<orientation>horizontal</orientation>
+			<onup>9360</onup>
+			<ondown condition="!String.IsEmpty(Window(home).Property(InfoCast.1.Name))">8001</ondown>
+			<ondown>9000</ondown>
+			<onleft>9360</onleft>
+			<onright>9360</onright>
+			<onback>9000</onback>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+			<itemlayout height="160" width="104">
+				<control type="image">
+					<left>4</left>
+					<top>4</top>
+					<width>90</width>
+					<height>128</height>
+					<texture colordiffuse="grey_mid">white.png</texture>
+				</control>
+				<control type="image">
+					<left>4</left>
+					<top>4</top>
+					<width>90</width>
+					<height>128</height>
+					<aspectratio>scale</aspectratio>
+					<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<top>134</top>
+					<width>90</width>
+					<height>22</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="160" width="104">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>98</width>
+					<height>136</height>
+					<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+					<visible>Control.HasFocus(9360)</visible>
+				</control>
+				<control type="image">
+					<left>4</left>
+					<top>4</top>
+					<width>90</width>
+					<height>128</height>
+					<aspectratio>scale</aspectratio>
+					<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<top>134</top>
+					<width>90</width>
+					<height>22</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<scroll>true</scroll>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</focusedlayout>
+			<content target="videos" sortby="year" sortorder="descending" limit="12" browse="never">$INFO[Window(home).Property(InfoLikePath)]</content>
 		</control>
 
 		<!-- Director / Writer -->
@@ -256,6 +355,8 @@
 			<onleft>9000</onleft>
 			<onright>9000</onright>
 			<onup condition="!String.IsEmpty(Window(home).Property(InfoCast.1.Name))">8001</onup>
+			<!-- MORE-LIKE: with no cast strip, up reaches the More like this row. -->
+			<onup condition="Control.IsVisible(9360) + Integer.IsGreater(Container(9360).NumItems,0)">9360</onup>
 			<onup>9000</onup>
 			<ondown>9000</ondown>
 

@@ -1365,6 +1365,13 @@
 		<value condition="String.IsEqual(Skin.String(watchlist_source),list)">$LOCALIZE[31895]</value>
 		<value>$LOCALIZE[31893]</value>
 	</variable>
+	<!-- <summary>MORE-LIKE: the value shown on the More Like This row.</summary> -->
+	<variable name="MoreLikeLabel">
+		<value condition="String.IsEqual(Skin.String(more_like),collection)">$LOCALIZE[31934]</value>
+		<value condition="String.IsEqual(Skin.String(more_like),director)">$LOCALIZE[31935]</value>
+		<value condition="String.IsEqual(Skin.String(more_like),genre)">$LOCALIZE[31936]</value>
+		<value>$LOCALIZE[31893]</value>
+	</variable>
 	<variable name="WatchlistTagLabel">
 		<value condition="!String.IsEmpty(Skin.String(watchlist_tag))">$INFO[Skin.String(watchlist_tag)]</value>
 		<value>$LOCALIZE[31899]</value>
@@ -3632,6 +3639,8 @@
 					<texturenofocus />
 					<onleft>$PARAM[onleft]</onleft>
 					<onright>$PARAM[onright]</onright>
+					<!-- MORE-LIKE: up from the cast reaches the More like this row. -->
+					<onup condition="Control.IsVisible(9360) + Integer.IsGreater(Container(9360).NumItems,0)">9360</onup>
 					<onup>$PARAM[id]</onup>
 					<ondown>9000</ondown>
 					<onclick>Skin.SetString(cast_run,$PARAM[n])</onclick>

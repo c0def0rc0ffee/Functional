@@ -209,8 +209,10 @@ def test_url():
         order = own.find("order")
         if doc["order"] != {"method": order.text, "direction": order.get("direction")}:
             fail("order differs from the skin's own %s" % name)
-        if str(doc["limit"]) != own.findtext("limit"):
-            fail("limit differs from the skin's own %s" % name)
+        # LIBRARY-ROWS-SORT: Kodi ignores a path playlist's limit (and adds a
+        # More entry for it), so the path carries none; Home's row caps itself.
+        if "limit" in doc:
+            fail("the %s path should carry no limit; the row caps itself" % name)
         rules = doc["rules"]
         rows = [dict(kodi_row(p), inprogress=True) for p in ("/a/b & c.mkv", "/x/y.mkv", "/q/b & c.mkv", "/x/z.mkv")]
         rows.append(dict(kodi_row("/x/w.mkv"), inprogress=False))
@@ -769,7 +771,7 @@ def test_nextup():
     """
     print("running test_nextup")
     home = read(os.path.join(XML, "Home.xml"))
-    if '<content target="videos" limit="12">$INFO[Window(home).Property(nextup_path)]</content>' not in home:
+    if '<content target="videos" sortby="tvshowtitle" sortorder="ascending" limit="12" browse="never">$INFO[Window(home).Property(nextup_path)]</content>' not in home:
         fail("Home's Next Up row does not read the nextup_path property")
     if "NextUpRows" in home or "NextUpRow" in read(os.path.join(XML, "Includes.xml")):
         fail("the static Next Up slots are still there")
