@@ -7,7 +7,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.29" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.30" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -28,8 +28,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New: titles can be hidden from Continue Watching. A new switch, Allow Hiding from Continue Watching on the Home Screen page, off by default, adds Hide to the press and hold menu of the Continue Watching pop up. A hidden film or episode stays out of its row until it is played again; on a Next Up row it hides the show until any of its episodes is played. Switching it off shows them all again. Nothing is written to the library.
-Changed: Next Up is now a row of library items, so a press and hold on it opens the same menu as the rows above (Resume, Mark as watched, Mark as unwatched, and Hide when that is on), and a click plays as theirs do. Its shows now run A to Z.</news>
+		<news>New: a Watchlist tab beside Continue Watching and Recently Added. A new setting, Watchlist Tab on the Home Screen page, Off by default, picks its source. Tag shows the films and shows carrying a tag you type in Watchlist Tag (Watch later when left empty), newest added first. List shows one of your lists, chosen in Watchlist List, in the list's own order: films and episodes play from it, a whole show or season opens its page. Renaming or deleting that list carries the setting with it.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
