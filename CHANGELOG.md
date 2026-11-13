@@ -11,6 +11,15 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.34 (13/11/2026)
+
+- New: an actor page. Cast Opens Actor Page, at the foot of the Visible
+  Fields list on the Library page, Off by default: selecting someone in
+  the cast on the information screen opens a page over it with their
+  photo and name and every film and show of theirs in your library,
+  newest first. Back returns to the title you came from. Off, a cast
+  portrait opens the library filtered to them as before.
+
 ## 0.23.33 (13/11/2026)
 
 - New: a More like this row on the information screen. More Like This,

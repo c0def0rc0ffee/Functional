@@ -55,6 +55,7 @@ The background is not limited to the home screen:
 - Info bar position switchable between top and bottom; live-tunable top/bottom clearance
 - **Studio or network logo**: an optional logo on the information screen, top right, from Kodi's Studio Icons pack (off by default). Switching it on offers to install the pack; switching it off offers to leave it, disable it or uninstall it
 - **More like this**: an optional row on the information screen of up to twelve titles from your library with the same collection, director or genre, newest first (off by default)
+- **Actor page** (optional): select someone in the cast on the information screen to see their photo, name and every film and show of theirs in your library, newest first; Back returns to the title, and Play closes the page and the information screen
 
 ## Slide-Out Library Options
 
