@@ -53,6 +53,7 @@ The background is not limited to the home screen:
   - **"Ends at" time**: a background service works out when the focused movie or episode would finish if started now (e.g. "Ends at 22:47")
   - Episode air dates and movie release years shown automatically by content type
 - Info bar position switchable between top and bottom; live-tunable top/bottom clearance
+- **Studio or network logo**: an optional logo on the information screen, top right, from Kodi's Studio Icons pack (off by default). Switching it on offers to install the pack; switching it off offers to leave it, disable it or uninstall it
 
 ## Slide-Out Library Options
 

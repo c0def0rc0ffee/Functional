@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.31" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.32" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,8 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New: up to three rows of posters on Home. Home Row 1 to 3 on the Home Screen page, each Off by default, pick a source: recently added films or episodes, films or episodes in progress, unwatched films or shows, random films, or one of your lists. While any row is on the main menu sits at the top to make room and Menu Position is greyed out; with every row off Home is as it was. A row with nothing in it says so and the focus passes it by. Beside Engage's Coming Up list the rows run narrower, and under a top corner bar they start lower.
-Changed: Up and Down on Home now run top to bottom in one line through the menu, the rows, the caption buttons, the corner bar and the tabs.</news>
+		<news>New: the studio or TV network as a logo at the top right of the information screen. Show Studio or Network Logo, at the foot of the Visible Fields list on the Library page, Off by default, uses Kodi's own Studio Icons pack. Switching it on without the pack offers to install it, or to switch it back on when disabled; switching it off offers to leave, disable or uninstall it. Nothing is installed or removed without a yes.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

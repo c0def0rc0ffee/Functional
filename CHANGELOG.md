@@ -11,6 +11,16 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.32 (13/11/2026)
+
+- New: the studio or TV network as a logo at the top right of the
+  information screen. Show Studio or Network Logo, at the foot of the
+  Visible Fields list on the Library page, Off by default, uses Kodi's
+  own Studio Icons pack. Switching it on without the pack offers to
+  install it, or to switch it back on when disabled; switching it off
+  offers to leave, disable or uninstall it. Nothing is installed or
+  removed without a yes.
+
 ## 0.23.31 (13/11/2026)
 
 - New: up to three rows of posters on Home. Home Row 1 to 3 on the Home
