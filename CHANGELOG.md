@@ -11,6 +11,16 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.30 (13/11/2026)
+
+- New: a Watchlist tab beside Continue Watching and Recently Added. A new
+  setting, Watchlist Tab on the Home Screen page, Off by default, picks
+  its source. Tag shows the films and shows carrying a tag you type in
+  Watchlist Tag (Watch later when left empty), newest added first. List
+  shows one of your lists, chosen in Watchlist List, in the list's own
+  order: films and episodes play from it, a whole show or season opens
+  its page. Renaming or deleting that list carries the setting with it.
+
 ## 0.23.29 (13/11/2026)
 
 - New: titles can be hidden from Continue Watching. A new switch, Allow
