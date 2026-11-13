@@ -127,8 +127,10 @@ def test_setting_row():
         want = "Skin.SetString(more_like,%s)" % expect if expect else "Skin.Reset(more_like)"
         check(fired == [want], "click from %r gives %r (got %r)" % (start, want, fired))
     last = by_id(root, "7316")
-    check(last is not None and last.findtext("onup") == "7214", "7316 onup is 7214, the list's last row")
-    check(ids[-1] == "7214", "7214 is the last row of 7021")
+    # ACTOR-PAGE (item 30) adds 7215 after 7214, so the checks name the
+    # list's last row rather than 7214.
+    check(last is not None and last.findtext("onup") == ids[-1], "7316 onup is the list's last row, %s" % ids[-1])
+    check("7214" in ids and ids.index("7214") == ids.index("7213") + 1, "7214 follows 7213 in 7021")
 
 
 def test_label_variable():

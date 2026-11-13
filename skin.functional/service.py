@@ -2958,6 +2958,11 @@ class FunctionalHelper(xbmc.Monitor):
         means no ambiguity about what a bare ListItem.* resolves against.
         </remarks>
         """
+        if xbmc.getCondVisibility("Window.IsActive(%d)" % self.ACTOR_PAGE):
+            # ACTOR-PAGE-FIX: the actor page sits over the info screen and a
+            # bare ListItem then names the page's focused title, not the info
+            # screen's; hold everything as it is until the page closes.
+            return
         if not xbmc.getCondVisibility("Window.IsActive({0})".format(self.INFO_DIALOG)):
             if self._info_cast_key is not None:
                 with self._cast_lock:
@@ -3092,7 +3097,9 @@ class FunctionalHelper(xbmc.Monitor):
         whose JSON is full of commas and double quotes, and Kodi splits
         builtin arguments on commas. So the skin just writes the slot number
         to Skin.String(cast_run) (same pattern as fav_run) and the escaping
-        happens here.
+        happens here. With Skin.HasSetting(actor_page) on (ACTOR-PAGE, item
+        30) the click opens the actor page over the info screen instead, see
+        _open_actor_page; with it off this is exactly as it was.
         </remarks>
         """
         run = self._take_command("cast_run")
@@ -3106,6 +3113,9 @@ class FunctionalHelper(xbmc.Monitor):
             return
         name = self._info_cast_names[idx]
         if not name:
+            return
+        if xbmc.getCondVisibility("Skin.HasSetting(actor_page)"):
+            self._open_actor_page(name, idx + 1)
             return
 
         # Match the list to where the click came from: an actor opened from a
@@ -3127,6 +3137,34 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("cast: opening {0} with {1} -> {2}".format(rule_type, name, command))
         xbmc.executebuiltin("Dialog.Close({0},true)".format(self.INFO_DIALOG))
         xbmc.executebuiltin(command)
+
+    ACTOR_PAGE = 1156             # Custom_1156_Actor.xml, a dialog
+
+    def _open_actor_page(self, name, slot):
+        """
+        <summary>
+        ACTOR-PAGE, item 30 phase M (13/11/2026): open the actor page over the
+        info screen for one cast member.
+        </summary>
+        <param name="name">The actor's name as the cast strip has it.</param>
+        <param name="slot">The cast slot clicked, 1 based, for the photo.</param>
+        <remarks>
+        The page is a dialog over the info screen, so Back closes it and the
+        viewer is on the title they came from, which the plain library list
+        (the switch off) cannot do. Its two rows are library rows read through
+        videodb paths, every film and every show the actor is credited in;
+        each row sorts newest first on its own content tag. The photo is the
+        one the cast strip already shows.
+        </remarks>
+        """
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        rule = {"and": [{"field": "actor", "operator": "is", "value": [name]}]}
+        win.setProperty("ActorName", name)
+        win.setProperty("ActorThumb", win.getProperty("InfoCast.%d.Thumb" % slot))
+        win.setProperty("ActorFilmsPath", videodb_url("movies", rule, "year", "descending"))
+        win.setProperty("ActorShowsPath", videodb_url("tvshows", rule, "year", "descending"))
+        _dlog("cast: actor page for %s" % name)
+        xbmc.executebuiltin("ActivateWindow(%d)" % self.ACTOR_PAGE)
 
     # ---- Playback buffer (Kodi filecache.* settings) ----------------------
     # Preset values below were read back from a live Kodi 21.3 via
@@ -5071,6 +5109,11 @@ class FunctionalHelper(xbmc.Monitor):
         so with the choice Off this reads one string a tick.
         </remarks>
         """
+        if xbmc.getCondVisibility("Window.IsActive(%d)" % self.ACTOR_PAGE):
+            # ACTOR-PAGE-FIX: the actor page sits over the info screen and a
+            # bare ListItem then names the page's focused title, not the info
+            # screen's; hold everything as it is until the page closes.
+            return
         choice = xbmc.getInfoLabel("Skin.String(more_like)").strip().lower()
         path = ""
         if (choice in self.MORE_LIKE_ORDER
@@ -5152,6 +5195,11 @@ class FunctionalHelper(xbmc.Monitor):
                       "no offer this time" % cmd)
             else:
                 self._spawn_dialog(lambda: self._studio_offer(cmd == "on"))
+        if xbmc.getCondVisibility("Window.IsActive(%d)" % self.ACTOR_PAGE):
+            # ACTOR-PAGE-FIX: the actor page sits over the info screen and a
+            # bare ListItem then names the page's focused title, not the info
+            # screen's; hold everything as it is until the page closes.
+            return
         name = ""
         if (xbmc.getCondVisibility("Skin.HasSetting(show_studio_logo)")
                 and xbmc.getCondVisibility("Window.IsActive(%s)" % self.INFO_DIALOG)):

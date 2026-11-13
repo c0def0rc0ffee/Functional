@@ -3530,3 +3530,16 @@ msgstr ""
 msgctxt "#31938"
 msgid "MORE LIKE THIS"
 msgstr ""
+
+# Actor page, item 30. 13/11/2026.
+msgctxt "#31939"
+msgid "Cast Opens Actor Page"
+msgstr ""
+
+msgctxt "#31940"
+msgid "Selecting someone in the cast opens a page of their films and shows in your library, newest first; Back returns to the title. Off, it opens the library filtered to them.[CR]Where: the information screen, the cast."
+msgstr ""
+
+msgctxt "#31941"
+msgid "None in your library"
+msgstr ""

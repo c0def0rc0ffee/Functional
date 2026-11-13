@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  ACTOR-PAGE, item 30 phase M (13/11/2026). The actor page (custom dialog
+  1156): the cast member's photo and name, then every film and every show
+  of theirs in the library, newest first. Opened over the information
+  screen by service.py:_open_actor_page when Cast Opens Actor Page is on
+  and a cast portrait is clicked, so Back closes it and the viewer is on
+  the title they came from.
+  </summary>
+  <remarks>
+  Both rows are library containers read through videodb paths the service
+  sets, each sorting and capping itself (LIBRARY-ROWS-SORT); their titles
+  are library items with Kodi's own click and menu. Neither row has a cap,
+  so the counts in the headings are the true totals (ACTOR-PAGE-FIX). A row
+  with nothing in it says so and Down or Up passes over it; the page opens
+  on the films row whatever, since the rows fill only after it opens. The page draws nothing of the
+  screen under it: a solid panel, so the info screen's text never shows
+  through.
+  </remarks>
+-->
+<window id="1156" type="dialog">
+	<defaultcontrol always="true">9361</defaultcontrol>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
+	<controls>
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="FF181C22">white.png</texture>
+		</control>
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>4</height>
+			<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+		</control>
+		<control type="image">
+			<left>60</left>
+			<top>80</top>
+			<width>300</width>
+			<height>450</height>
+			<aspectratio>scale</aspectratio>
+			<texture fallback="DefaultActor.png" background="true">$INFO[Window(home).Property(ActorThumb)]</texture>
+		</control>
+		<control type="label">
+			<left>400</left>
+			<top>80</top>
+			<width>1460</width>
+			<height>80</height>
+			<font>font_big</font>
+			<textcolor>text</textcolor>
+			<label>$INFO[Window(home).Property(ActorName)]</label>
+		</control>
+		<control type="label">
+			<left>400</left>
+			<top>200</top>
+			<width>1400</width>
+			<height>30</height>
+			<font>font_small</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>$LOCALIZE[31087]$INFO[Container(9361).NumItems,  (,)]</label>
+		</control>
+		<control type="label">
+			<left>400</left>
+			<top>240</top>
+			<width>1400</width>
+			<height>40</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<label>31941</label>
+			<visible>!Integer.IsGreater(Container(9361).NumItems,0)</visible>
+		</control>
+		<control type="list" id="9361">
+			<left>396</left>
+			<top>234</top>
+			<width>1480</width>
+			<height>274</height>
+			<orientation>horizontal</orientation>
+			<onup>9361</onup>
+			<ondown condition="Integer.IsGreater(Container(9362).NumItems,0)">9362</ondown>
+			<ondown>9361</ondown>
+			<onleft>9361</onleft>
+			<onright>9361</onright>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+			<itemlayout height="274" width="150">
+				<control type="image">
+					<left>4</left>
+					<top>4</top>
+					<width>140</width>
+					<height>210</height>
+					<texture colordiffuse="grey_mid">white.png</texture>
+				</control>
+				<control type="image">
+					<left>4</left>
+					<top>4</top>
+					<width>140</width>
+					<height>210</height>
+					<aspectratio>scale</aspectratio>
+					<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<top>220</top>
+					<width>140</width>
+					<height>26</height>
+					<font>font_small</font>
+					<textcolor>text</textcolor>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<top>246</top>
+					<width>140</width>
+					<height>24</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[ListItem.Year]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="274" width="150">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>148</width>
+					<height>218</height>
+					<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+					<visible>Control.HasFocus(9361)</visible>
+				</control>
+				<control type="image">
+					<left>4</left>
+					<top>4</top>
+					<width>140</width>
+					<height>210</height>
+					<aspectratio>scale</aspectratio>
+					<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<top>220</top>
+					<width>140</width>
+					<height>26</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<scroll>true</scroll>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<top>246</top>
+					<width>140</width>
+					<height>24</height>
+					<font>font_small</font>
+					<textcolor>text</textcolor>
+					<label>$INFO[ListItem.Year]</label>
+				</control>
+			</focusedlayout>
+			<content target="videos" sortby="year" sortorder="descending" browse="never">$INFO[Window(home).Property(ActorFilmsPath)]</content>
+		</control>
+		<control type="label">
+			<left>400</left>
+			<top>560</top>
+			<width>1400</width>
+			<height>30</height>
+			<font>font_small</font>
+			<textcolor>$VAR[AccentColor]</textcolor>
+			<label>$LOCALIZE[31090]$INFO[Container(9362).NumItems,  (,)]</label>
+		</control>
+		<control type="label">
+			<left>400</left>
+			<top>600</top>
+			<width>1400</width>
+			<height>40</height>
+			<font>font_small</font>
+			<textcolor>text_dim</textcolor>
+			<label>31941</label>
+			<visible>!Integer.IsGreater(Container(9362).NumItems,0)</visible>
+		</control>
+		<control type="list" id="9362">
+			<left>396</left>
+			<top>594</top>
+			<width>1480</width>
+			<height>274</height>
+			<orientation>horizontal</orientation>
+			<onup condition="Integer.IsGreater(Container(9361).NumItems,0)">9361</onup>
+			<onup>9362</onup>
+			<ondown>9362</ondown>
+			<onleft>9362</onleft>
+			<onright>9362</onright>
+			<scrolltime tween="cubic" easing="out">200</scrolltime>
+			<itemlayout height="274" width="150">
+				<control type="image">
+					<left>4</left>
+					<top>4</top>
+					<width>140</width>
+					<height>210</height>
+					<texture colordiffuse="grey_mid">white.png</texture>
+				</control>
+				<control type="image">
+					<left>4</left>
+					<top>4</top>
+					<width>140</width>
+					<height>210</height>
+					<aspectratio>scale</aspectratio>
+					<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<top>220</top>
+					<width>140</width>
+					<height>26</height>
+					<font>font_small</font>
+					<textcolor>text</textcolor>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<top>246</top>
+					<width>140</width>
+					<height>24</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>$INFO[ListItem.Year]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="274" width="150">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>148</width>
+					<height>218</height>
+					<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+					<visible>Control.HasFocus(9362)</visible>
+				</control>
+				<control type="image">
+					<left>4</left>
+					<top>4</top>
+					<width>140</width>
+					<height>210</height>
+					<aspectratio>scale</aspectratio>
+					<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<top>220</top>
+					<width>140</width>
+					<height>26</height>
+					<font>font_small</font>
+					<textcolor>white</textcolor>
+					<scroll>true</scroll>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+				<control type="label">
+					<left>4</left>
+					<top>246</top>
+					<width>140</width>
+					<height>24</height>
+					<font>font_small</font>
+					<textcolor>text</textcolor>
+					<label>$INFO[ListItem.Year]</label>
+				</control>
+			</focusedlayout>
+			<content target="videos" sortby="year" sortorder="descending" browse="never">$INFO[Window(home).Property(ActorShowsPath)]</content>
+		</control>
+	</controls>
+</window>
