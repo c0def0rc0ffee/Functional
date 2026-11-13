@@ -38,6 +38,7 @@ Toggle settings show an accent **dot** when on. Most changes apply immediately; 
 - The stats panels and Continue Watching
 - A Hide entry in the Continue Watching hold menu, which keeps a title or a Next Up show out until it is played again (off by default)
 - A Watchlist tab beside Continue Watching and Recently Added, showing a tag or one of your lists (off by default)
+- Up to three rows of posters under the main menu, each with its own source; while any is on the menu sits at the top (off by default)
 - Logo, date and time, weather widget, greeting beside the clock (off by default), footer and loading splash
 - The sleep timer and its countdown
 

@@ -171,7 +171,9 @@ def test_clock_variable():
     root = parse("Includes.xml")
     exprs = {e.get("name"): (e.text or "").strip() for e in root.iter("expression")}
     room = exprs.get("greeting_room", "")
-    if ON not in room or "menu_position" not in room or "Tile.Count" not in room:
+    # HOME-WIDGETS (item 46): the position is read through menu_top, which
+    # is also true while a Home row is on, since the menu then sits at the top.
+    if ON not in room or ("menu_position" not in room and "$EXP[menu_top]" not in room) or "Tile.Count" not in room:
         fail("greeting_room must need the switch and test the menu position and tile count")
     for part in ("morning", "afternoon", "evening"):
         if exprs.get("greeting_part_" + part) != "String.IsEqual(Window(home).Property(greeting_part),%s)" % part:

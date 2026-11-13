@@ -2063,9 +2063,18 @@ class FunctionalHelper(xbmc.Monitor):
         self._hidden_played = deque()    # Player.OnAVStart items, for the loop
         self._hidden_switch = None       # continue_hide as last seen by Next Up
         # WATCHLIST: what the tab shows, and when the list rows were last read.
-        self._watch_state = None         # (source, tag or list name) published
-        self._watch_items = []           # list records behind Watchlist.N.*
+        # False, not None, for the same reason as _widget_state below: the
+        # first tick publishes, clearing what an earlier helper left.
+        self._watch_state = False        # (source, tag or list name) published
+        self._watch_items = [None] * 12  # list records behind Watchlist.N.*
         self._watch_last = 0.0
+        # HOME-WIDGETS: per Home row, the list source last published and its records.
+        # False, not None: the first tick then publishes every row, which
+        # clears counts and slots an earlier helper left on Home (a skin
+        # update restarts this service while Home's properties survive).
+        self._widget_state = {1: False, 2: False, 3: False}
+        self._widget_items = {r: [None] * 12 for r in (1, 2, 3)}
+        self._widget_last = 0.0
         # Next Up row in the Continue Watching pop-up (see update_next_up).
         self._nextup_lock = threading.Lock()
         self._nextup_last = 0.0          # when the last lookup started, 0 forces one
@@ -4967,7 +4976,7 @@ class FunctionalHelper(xbmc.Monitor):
         with double quotes dropped, as _set_skin_string stores them.
         </remarks>
         """
-        keys = ["watchlist_list"]
+        keys = ["watchlist_list"] + ["widget%d_list" % row for row in self.WIDGET_ROWS]
         for key in keys:
             if xbmc.getInfoLabel("Skin.String(%s)" % key) != old.replace('"', ""):
                 continue
@@ -4975,6 +4984,10 @@ class FunctionalHelper(xbmc.Monitor):
                 _set_skin_string(key, new)
             else:
                 xbmc.executebuiltin("Skin.Reset(%s)" % key)
+                if key.startswith("widget"):
+                    # HOME-WIDGETS-FIX: a row whose list is gone is off, not
+                    # an empty row holding the menu at the top.
+                    xbmc.executebuiltin("Skin.Reset(%s)" % key[:-5])
 
     def _watch_command_worker(self, cmd):
         """
@@ -5015,6 +5028,163 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("watchlist: played slot %d" % (slot + 1))
         except Exception:  # noqa: BLE001
             _dlog("watchlist: %s failed:\n%s" % (cmd, traceback.format_exc()), xbmc.LOGERROR)
+
+    # ---- HOME-WIDGETS, item 46 phase T (13/11/2026) --------------------------
+    # <summary>
+    # Up to three poster rows on Home, each switched on by choosing a source
+    # for Skin.String(widgetN), N being 1 to 3. Library sources are smart
+    # playlists Home reads directly (WidgetRowPath in Includes_Home.xml);
+    # this service only offers the choice and, for a named list, publishes
+    # the list's video items as Widget.N.M.* slots, as the Watchlist does.
+    # With every row off nothing here does anything but read three strings.
+    # </summary>
+
+    WIDGET_ROWS = (1, 2, 3)
+    WIDGET_MAX = 12               # slots the WidgetItems include provides per row
+    WIDGET_SOURCES = (            # stored value, label string id
+        ("recent_movies", 31910), ("recent_episodes", 31911),
+        ("inprogress_movies", 31912), ("inprogress_episodes", 31913),
+        ("unwatched_movies", 31914), ("unwatched_tvshows", 31915),
+        ("random_movies", 31916))
+
+    def update_widgets(self):
+        """
+        <summary>
+        Fast ticker: answer widget_command, and keep each list row's slots
+        matching its chosen list.
+        </summary>
+        <remarks>
+        A row whose source is a library playlist needs nothing from here.
+        A list row is read from the lists in memory when its source or list
+        changes and again every WATCH_REFRESH_SECS, like the Watchlist.
+        </remarks>
+        """
+        cmd = self._take_command("widget_command")
+        if cmd.startswith("pick:"):
+            # HOME-WIDGETS-FIX: pickers share the skin's one dialog slot.
+            self._spawn_dialog(lambda: self._widget_command_worker(cmd))
+        elif cmd:
+            threading.Thread(target=self._widget_command_worker, args=(cmd,),
+                             name="functional-widgets", daemon=True).start()
+        due = time.time() - self._widget_last >= self.WATCH_REFRESH_SECS
+        for row in self.WIDGET_ROWS:
+            source = xbmc.getInfoLabel("Skin.String(widget%d)" % row).strip().lower()
+            state = None
+            if source == "list":
+                state = xbmc.getInfoLabel("Skin.String(widget%d_list)" % row).strip()
+            if state == self._widget_state[row] and not (state and due):
+                continue
+            self._widget_state[row] = state
+            items = []
+            if state:
+                for lst in self._lists_load():
+                    if lst["name"].replace('"', "") == state:
+                        items = [it for it in lst["items"] if it["kind"] == "video"][:self.WIDGET_MAX]
+                        break
+            self._widget_slots(row, items, state is not None)
+        if due:
+            self._widget_last = time.time()
+
+    def _widget_slots(self, row, items, listed):
+        """
+        <summary>Publish one list row as Widget.ROW.N.* slots and Widget.ROW.Count.</summary>
+        <param name="row">Row number, 1 to 3.</param>
+        <param name="items">The list records to show, in order.</param>
+        <param name="listed">True while the row's source is a list.</param>
+        """
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        used_before = len(self._widget_items[row])
+        self._widget_items[row] = list(items)
+        for i in range(max(len(items), used_before)):
+            key = "Widget.%d.%d." % (row, i + 1)
+            if i < len(items):
+                it = items[i]
+                win.setProperty(key + "Label", it["label"])
+                win.setProperty(key + "Sub", self._list_item_sub(it))
+                win.setProperty(key + "Thumb", it["thumb"])
+            else:
+                for name in ("Label", "Sub", "Thumb"):
+                    win.clearProperty(key + name)
+        if listed:
+            win.setProperty("Widget.%d.Count" % row, str(len(items)))
+        else:
+            win.clearProperty("Widget.%d.Count" % row)
+
+    def _play_list_record(self, it):
+        """
+        <summary>Play one list record from a Home row, or open a show or season.</summary>
+        <param name="it">A list record from _lists_load.</param>
+        <remarks>The Watchlist's play, see _watch_command_worker.</remarks>
+        """
+        if it["dbtype"] in self.LIST_GROUP_TYPES:
+            showid, season = self._list_group_where(it)
+            if not showid:
+                self._lists_notify(_L(31905), error=True)
+                return
+            path = "videodb://tvshows/titles/%d/" % showid
+            if season is not None:
+                path += "%d/" % season
+            xbmc.executebuiltin("ActivateWindow(Videos,%s,return)" % path)
+            return
+        _jsonrpc("Player.Open", {"item": self._list_item_spec(it), "options": {"resume": True}})
+
+    def _widget_command_worker(self, cmd):
+        """
+        <summary>
+        Daemon thread body: "pick:ROW" asks what a Home row shows; "play:ROW:N"
+        plays slot N of a list row.
+        </summary>
+        <param name="cmd">The widget_command value.</param>
+        <remarks>
+        The pick offers Off, the fixed library sources and then each named
+        list. Off resets the row's strings, which is what takes the row off
+        Home and, with every row off, puts the main menu back where it was.
+        Any failure is logged, never raised.
+        </remarks>
+        """
+        try:
+            parts = cmd.split(":")
+            row = self._safe_int(parts[1] if len(parts) > 1 else "", 0)
+            if row not in self.WIDGET_ROWS:
+                _dlog("widget command ignored: %r" % cmd)
+                return
+            if parts[0] == "pick":
+                names = [lst["name"] for lst in self._lists_load()]
+                values = [""] + [v for v, _sid in self.WIDGET_SOURCES] + ["list"] * len(names)
+                labels = ([_L(31893)] + [_L(sid) for _v, sid in self.WIDGET_SOURCES]
+                          + [_L(31917) % name for name in names])
+                current = xbmc.getInfoLabel("Skin.String(widget%d)" % row)
+                current_list = xbmc.getInfoLabel("Skin.String(widget%d_list)" % row)
+                pre = 0
+                for i, value in enumerate(values):
+                    if value == current and (value != "list" or names[i - len(self.WIDGET_SOURCES) - 1].replace('"', "") == current_list):
+                        pre = i
+                choice = xbmcgui.Dialog().select(_L(31920) % row, labels, preselect=pre)
+                if choice < 0:
+                    return
+                value = values[choice]
+                if not value:
+                    xbmc.executebuiltin("Skin.Reset(widget%d)" % row)
+                    xbmc.executebuiltin("Skin.Reset(widget%d_list)" % row)
+                    return
+                if value == "list":
+                    name = names[choice - len(self.WIDGET_SOURCES) - 1]
+                    _set_skin_string("widget%d_list" % row, name)
+                else:
+                    xbmc.executebuiltin("Skin.Reset(widget%d_list)" % row)
+                xbmc.executebuiltin("Skin.SetString(widget%d,%s)" % (row, value))
+                return
+            if parts[0] == "play" and len(parts) == 3:
+                slot = self._safe_int(parts[2], 0) - 1
+                items = list(self._widget_items[row])
+                if not 0 <= slot < len(items):
+                    _dlog("widgets: row %d slot %r is empty, ignored" % (row, parts[2]))
+                    return
+                self._play_list_record(items[slot])
+                return
+            _dlog("widget command ignored: %r" % cmd)
+        except Exception:  # noqa: BLE001
+            _dlog("widgets: %s failed:\n%s" % (cmd, traceback.format_exc()), xbmc.LOGERROR)
 
     # ---- Colophon (the hidden screen, custom window 1154) --------------------
 
@@ -12307,6 +12477,8 @@ def run():
         helper.update_continue_watching,
         # WATCHLIST: three skin strings compared unless a list is due a read.
         helper.update_watchlist,
+        # HOME-WIDGETS: three skin strings compared unless a list row is due a read.
+        helper.update_widgets,
         helper.update_lists,
         helper.update_playing_cast,
         helper.update_info_cast,

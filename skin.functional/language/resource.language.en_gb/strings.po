@@ -3399,3 +3399,64 @@ msgstr ""
 msgctxt "#31905"
 msgid "That show is no longer in the library"
 msgstr ""
+
+# Home rows, item 46. 13/11/2026.
+msgctxt "#31906"
+msgid "Home Row 1:"
+msgstr ""
+
+msgctxt "#31907"
+msgid "Home Row 2:"
+msgstr ""
+
+msgctxt "#31908"
+msgid "Home Row 3:"
+msgstr ""
+
+msgctxt "#31909"
+msgid "Adds a row of posters to Home under the main menu, from the source you pick: recently added, in progress, unwatched, random films or one of your lists. While any Home row is on, the main menu sits at the top to make room.[CR]Where: Home screen, under the main menu."
+msgstr ""
+
+msgctxt "#31910"
+msgid "Recently Added Films"
+msgstr ""
+
+msgctxt "#31911"
+msgid "Recently Added Episodes"
+msgstr ""
+
+msgctxt "#31912"
+msgid "Films in Progress"
+msgstr ""
+
+msgctxt "#31913"
+msgid "Episodes in Progress"
+msgstr ""
+
+msgctxt "#31914"
+msgid "Unwatched Films"
+msgstr ""
+
+msgctxt "#31915"
+msgid "Unwatched Shows"
+msgstr ""
+
+msgctxt "#31916"
+msgid "Random Films"
+msgstr ""
+
+msgctxt "#31917"
+msgid "List: %s"
+msgstr ""
+
+msgctxt "#31918"
+msgid "A further row of posters on Home, under the one before, with its own source.[CR]Where: Home screen, under the main menu."
+msgstr ""
+
+msgctxt "#31920"
+msgid "Choose what Home Row %d shows"
+msgstr ""
+
+msgctxt "#31921"
+msgid "Nothing here yet"
+msgstr ""

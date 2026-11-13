@@ -571,6 +571,20 @@
 				<!-- Up from the bottom tab reaches the nearest thing above: the
 				     menu while the corner bar sits above it, otherwise the bar
 				     (on this edge, or under a top menu). See HOME-VERTICAL-NAV. -->
+				<!-- HOME-WIDGETS-NAV: up to the last Home row with something in it,
+				     unless a bottom corner bar comes first. -->
+<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
 				<onup condition="$EXP[bar_above_menu]">9000</onup>
 				<onup condition="Control.IsVisible(9110)">9110</onup>
 				<onup condition="Control.IsVisible(9120)">9120</onup>
@@ -650,6 +664,20 @@
 				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsEqual(Container(9221).NumItems,0)">SetFocus(9223)</onclick>
 				<onleft condition="[[$PARAM[shown_continue] + !$PARAM[flip_continue]] | [!$PARAM[shown_continue] + $PARAM[flip_continue]]]">9210</onleft>
 				<onright condition="$PARAM[shown_watch]">9214</onright>
+				<!-- HOME-WIDGETS-NAV: up to the last Home row with something in it,
+				     unless a bottom corner bar comes first. -->
+<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
 				<onup condition="$EXP[bar_above_menu]">9000</onup>
 				<onup condition="Control.IsVisible(9110)">9110</onup>
 				<onup condition="Control.IsVisible(9120)">9120</onup>
@@ -723,6 +751,20 @@
 				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[watch_page]] + String.IsEqual(Skin.String(watchlist_source),list)">SetFocus(9235)</onclick>
 				<onleft condition="Control.IsVisible(9212)">9212</onleft>
 				<onleft condition="!Control.IsVisible(9212) + Control.IsVisible(9210)">9210</onleft>
+				<!-- HOME-WIDGETS-NAV: up to the last Home row with something in it,
+				     unless a bottom corner bar comes first. -->
+<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+				<onup condition="!$EXP[bar_below_rows] + Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
 				<onup condition="$EXP[bar_above_menu]">9000</onup>
 				<onup condition="Control.IsVisible(9110)">9110</onup>
 				<onup condition="Control.IsVisible(9120)">9120</onup>
@@ -801,6 +843,19 @@
 				<orientation>horizontal</orientation>
 				<align>$PARAM[align]</align>
 				<itemgap>20</itemgap>
+				<!-- HOME-WIDGETS-NAV: a bottom caption's button goes up to the last Home row. -->
+				<onup condition="[Control.HasFocus(9302) | Control.HasFocus(9303) | Control.HasFocus(9304)] + Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</onup>
+				<onup condition="[Control.HasFocus(9302) | Control.HasFocus(9303) | Control.HasFocus(9304)] + Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</onup>
+				<onup condition="[Control.HasFocus(9302) | Control.HasFocus(9303) | Control.HasFocus(9304)] + Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</onup>
+				<onup condition="[Control.HasFocus(9302) | Control.HasFocus(9303) | Control.HasFocus(9304)] + Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</onup>
+				<onup condition="[Control.HasFocus(9302) | Control.HasFocus(9303) | Control.HasFocus(9304)] + Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</onup>
+				<onup condition="[Control.HasFocus(9302) | Control.HasFocus(9303) | Control.HasFocus(9304)] + Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</onup>
+				<onup condition="[Control.HasFocus(9302) | Control.HasFocus(9303) | Control.HasFocus(9304)] + Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</onup>
+				<onup condition="[Control.HasFocus(9302) | Control.HasFocus(9303) | Control.HasFocus(9304)] + Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</onup>
+				<onup condition="[Control.HasFocus(9302) | Control.HasFocus(9303) | Control.HasFocus(9304)] + Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+				<onup condition="[Control.HasFocus(9302) | Control.HasFocus(9303) | Control.HasFocus(9304)] + Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+				<onup condition="[Control.HasFocus(9302) | Control.HasFocus(9303) | Control.HasFocus(9304)] + Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+				<onup condition="[Control.HasFocus(9302) | Control.HasFocus(9303) | Control.HasFocus(9304)] + Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
 				<onup>9000</onup>
 				<ondown>9000</ondown>
 				<!-- Unconditional, see the menu row in Home.xml: a hidden
@@ -1040,10 +1095,40 @@
 				<onup condition="$EXP[bar_above_menu] + $EXP[weather_widget_shown]">9006</onup>
 				<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9211)">9211</onup>
 				<onup condition="$EXP[bar_above_menu] + Control.IsVisible(9213)">9213</onup>
+				<!-- HOME-WIDGETS-NAV: a bottom bar has the captions and the Home rows above it. -->
+				<onup condition="$EXP[widgets_on] + !$EXP[corner_bar_top] + Control.IsVisible(9304)">9304</onup>
+				<onup condition="$EXP[widgets_on] + !$EXP[corner_bar_top] + Control.IsVisible(9303)">9303</onup>
+				<onup condition="$EXP[widgets_on] + !$EXP[corner_bar_top] + Control.IsVisible(9302)">9302</onup>
+				<onup condition="!$EXP[corner_bar_top] + Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</onup>
+				<onup condition="!$EXP[corner_bar_top] + Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</onup>
+				<onup condition="!$EXP[corner_bar_top] + Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</onup>
+				<onup condition="!$EXP[corner_bar_top] + Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</onup>
+				<onup condition="!$EXP[corner_bar_top] + Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</onup>
+				<onup condition="!$EXP[corner_bar_top] + Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</onup>
+				<onup condition="!$EXP[corner_bar_top] + Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</onup>
+				<onup condition="!$EXP[corner_bar_top] + Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</onup>
+				<onup condition="!$EXP[corner_bar_top] + Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+				<onup condition="!$EXP[corner_bar_top] + Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+				<onup condition="!$EXP[corner_bar_top] + Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+				<onup condition="!$EXP[corner_bar_top] + Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
 				<onup>9000</onup>
 				<ondown condition="$EXP[bar_above_menu]">9000</ondown>
+				<!-- HOME-WIDGETS-NAV: a top bar under a top menu has the Home rows below it. -->
+				<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</ondown>
+				<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</ondown>
+				<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</ondown>
+				<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</ondown>
+				<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</ondown>
+				<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</ondown>
+				<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</ondown>
+				<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</ondown>
+				<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</ondown>
+				<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</ondown>
+				<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</ondown>
+				<ondown condition="$EXP[corner_bar_top] + Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</ondown>
 				<ondown condition="Control.IsVisible(9210)">9210</ondown>
 				<ondown condition="Control.IsVisible(9212)">9212</ondown>
+				<ondown condition="Control.IsVisible(9214)">9214</ondown>
 
 				<!-- Sleep countdown: a round power chip and the time left,
 				     riding at the head of the row so they follow the bar to
@@ -1285,6 +1370,23 @@
 				     on the bottom edge, or on the top edge under a top menu. With
 				     the bar above the menu, a Continue tab on the bottom edge is
 				     what lies below. -->
+				<!-- HOME-WIDGETS-NAV: under a top menu, a top corner bar and then the
+				     first Home row that has something in it. -->
+				<ondown condition="$EXP[widgets_on] + $EXP[corner_bar_top] + Control.IsVisible(9110)">9110</ondown>
+				<ondown condition="$EXP[widgets_on] + $EXP[corner_bar_top] + Control.IsVisible(9120)">9120</ondown>
+				<ondown condition="$EXP[widgets_on] + $EXP[corner_bar_top] + Control.IsVisible(9100)">9100</ondown>
+				<ondown condition="Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</ondown>
+				<ondown condition="Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</ondown>
+				<ondown condition="Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</ondown>
+				<ondown condition="Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</ondown>
+				<ondown condition="Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</ondown>
+				<ondown condition="Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</ondown>
+				<ondown condition="Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</ondown>
+				<ondown condition="Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</ondown>
+				<ondown condition="Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</ondown>
+				<ondown condition="Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</ondown>
+				<ondown condition="Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</ondown>
+				<ondown condition="Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</ondown>
 				<ondown condition="Control.IsVisible(9302)">9302</ondown>
 				<ondown condition="Control.IsVisible(9303)">9303</ondown>
 				<ondown condition="Control.IsVisible(9304)">9304</ondown>
@@ -1340,6 +1442,1284 @@
 	</include>
 
 	<!-- <summary>STAGE, 05/11/2026 (roadmap item 47): Home at 18.75 per cent, drawn from the same includes as Home, for the preview panel under the help text in Skin Settings. Each flip is the focus of the row that switches that setting, so the stage shows what OK would do; the tabs are shown on their settings alone, since Home's containers are not here; the outlines mark the region the focused row changes.</summary> -->
+	<!-- <summary>HOME-WIDGETS (item 46): up to three poster rows under the
+	     main menu, each shown only while Skin.String(widgetN) names a
+	     source. A vertical grouplist stacks the rows that are on, so a row
+	     left off takes no room. With every row off the grouplist holds
+	     nothing visible and the menu keeps its own position (widgets_on).
+	     Each row has a library list (WidgetRowPathN) and a list slots list
+	     (WidgetItems), since one container cannot switch between dynamic
+	     and static content, each in a wide form and a narrow one that starts
+	     right of Engage's Coming Up panel while that shows.</summary>
+	     <remarks>HOME-WIDGETS-NAV (review of 13/11/2026). The focus order
+	     runs top to bottom: menu, a top corner bar, the rows, the bottom
+	     captions' buttons, a bottom corner bar, the tabs. A row with nothing
+	     in it stays drawn, since a hidden container is never processed and
+	     would never fill, but shows "Nothing here yet" and is skipped by
+	     every focus line. Under a top corner bar the rows start 70 lower.</remarks> -->
+	<include name="HomeWidgetRows">
+		<definition>
+		<control type="grouplist" id="9250">
+			<visible>$EXP[widgets_on]</visible>
+			<animation effect="slide" end="0,70" time="0" condition="$EXP[corner_bar_top]">Conditional</animation>
+			<left>60</left>
+			<top>190</top>
+			<width>1460</width>
+			<height>760</height>
+			<orientation>vertical</orientation>
+			<itemgap>10</itemgap>
+			<usecontrolcoords>true</usecontrolcoords>
+			<!-- Row 1: the wide lists, or with Coming Up showing on the left the
+			     narrow ones that start right of it. -->
+			<control type="group">
+				<visible>!String.IsEmpty(Skin.String(widget1))</visible>
+				<height>240</height>
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>960</width>
+					<height>28</height>
+					<font>font_small</font>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>$VAR[WidgetRowName1]</label>
+					<animation effect="slide" end="500,0" time="0" condition="$EXP[engage_list_shown]">Conditional</animation>
+				</control>
+				<!-- Shown while the row has nothing in it, which navigation skips. -->
+				<control type="label">
+					<left>0</left>
+					<top>60</top>
+					<width>960</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>31921</label>
+					<visible>[!String.IsEmpty(Skin.String(widget1)) + !String.IsEqual(Skin.String(widget1),list) + ![Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)] + ![Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)]] | [String.IsEqual(Skin.String(widget1),list) + !Integer.IsGreater(Window(home).Property(Widget.1.Count),0)]</visible>
+					<animation effect="slide" end="500,0" time="0" condition="$EXP[engage_list_shown]">Conditional</animation>
+				</control>
+				<control type="list" id="9252">
+					<visible allowhiddenfocus="true">!String.IsEmpty(Skin.String(widget1)) + !String.IsEqual(Skin.String(widget1),list) + !$EXP[engage_list_shown]</visible>
+					<left>0</left>
+					<top>30</top>
+					<width>1460</width>
+					<height>205</height>
+					<orientation>horizontal</orientation>
+					<onback>9000</onback>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+					<onup>9000</onup>
+					<ondown condition="Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</ondown>
+					<ondown condition="Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</ondown>
+					<ondown condition="Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</ondown>
+					<ondown condition="Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</ondown>
+					<ondown condition="Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</ondown>
+					<ondown condition="Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</ondown>
+					<ondown condition="Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</ondown>
+					<ondown condition="Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</ondown>
+					<ondown condition="Control.IsVisible(9302)">9302</ondown>
+					<ondown condition="Control.IsVisible(9303)">9303</ondown>
+					<ondown condition="Control.IsVisible(9304)">9304</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9110)">9110</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9120)">9120</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9100)">9100</ondown>
+					<ondown condition="Control.IsVisible(9210)">9210</ondown>
+					<ondown condition="Control.IsVisible(9212)">9212</ondown>
+					<ondown condition="Control.IsVisible(9214)">9214</ondown>
+					<ondown>9000</ondown>
+					<onleft>9252</onleft>
+					<onright>9252</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+					<itemlayout height="205" width="124">
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</itemlayout>
+					<focusedlayout height="205" width="124">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>118</width>
+							<height>173</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9252)</visible>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</focusedlayout>
+					<content target="videos" limit="15">$VAR[WidgetRowPath1]</content>
+				</control>
+				<control type="list" id="9253">
+					<visible allowhiddenfocus="true">String.IsEqual(Skin.String(widget1),list) + !$EXP[engage_list_shown]</visible>
+					<left>0</left>
+					<top>30</top>
+					<width>1460</width>
+					<height>205</height>
+					<orientation>horizontal</orientation>
+					<onback>9000</onback>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+					<onup>9000</onup>
+					<ondown condition="Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</ondown>
+					<ondown condition="Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</ondown>
+					<ondown condition="Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</ondown>
+					<ondown condition="Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</ondown>
+					<ondown condition="Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</ondown>
+					<ondown condition="Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</ondown>
+					<ondown condition="Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</ondown>
+					<ondown condition="Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</ondown>
+					<ondown condition="Control.IsVisible(9302)">9302</ondown>
+					<ondown condition="Control.IsVisible(9303)">9303</ondown>
+					<ondown condition="Control.IsVisible(9304)">9304</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9110)">9110</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9120)">9120</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9100)">9100</ondown>
+					<ondown condition="Control.IsVisible(9210)">9210</ondown>
+					<ondown condition="Control.IsVisible(9212)">9212</ondown>
+					<ondown condition="Control.IsVisible(9214)">9214</ondown>
+					<ondown>9000</ondown>
+					<onleft>9253</onleft>
+					<onright>9253</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+					<itemlayout height="205" width="124">
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</itemlayout>
+					<focusedlayout height="205" width="124">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>118</width>
+							<height>173</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9253)</visible>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</focusedlayout>
+					<content>
+						<include content="WidgetItems"><param name="r" value="1" /></include>
+					</content>
+				</control>
+				<control type="list" id="9262">
+					<visible allowhiddenfocus="true">!String.IsEmpty(Skin.String(widget1)) + !String.IsEqual(Skin.String(widget1),list) + $EXP[engage_list_shown]</visible>
+					<left>500</left>
+					<top>30</top>
+					<width>960</width>
+					<height>205</height>
+					<orientation>horizontal</orientation>
+					<onback>9000</onback>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+					<onup>9000</onup>
+					<ondown condition="Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</ondown>
+					<ondown condition="Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</ondown>
+					<ondown condition="Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</ondown>
+					<ondown condition="Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</ondown>
+					<ondown condition="Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</ondown>
+					<ondown condition="Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</ondown>
+					<ondown condition="Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</ondown>
+					<ondown condition="Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</ondown>
+					<ondown condition="Control.IsVisible(9302)">9302</ondown>
+					<ondown condition="Control.IsVisible(9303)">9303</ondown>
+					<ondown condition="Control.IsVisible(9304)">9304</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9110)">9110</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9120)">9120</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9100)">9100</ondown>
+					<ondown condition="Control.IsVisible(9210)">9210</ondown>
+					<ondown condition="Control.IsVisible(9212)">9212</ondown>
+					<ondown condition="Control.IsVisible(9214)">9214</ondown>
+					<ondown>9000</ondown>
+					<onleft>9262</onleft>
+					<onright>9262</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+					<itemlayout height="205" width="124">
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</itemlayout>
+					<focusedlayout height="205" width="124">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>118</width>
+							<height>173</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9262)</visible>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</focusedlayout>
+					<content target="videos" limit="15">$VAR[WidgetRowPath1]</content>
+				</control>
+				<control type="list" id="9263">
+					<visible allowhiddenfocus="true">String.IsEqual(Skin.String(widget1),list) + $EXP[engage_list_shown]</visible>
+					<left>500</left>
+					<top>30</top>
+					<width>960</width>
+					<height>205</height>
+					<orientation>horizontal</orientation>
+					<onback>9000</onback>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+					<onup>9000</onup>
+					<ondown condition="Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</ondown>
+					<ondown condition="Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</ondown>
+					<ondown condition="Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</ondown>
+					<ondown condition="Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</ondown>
+					<ondown condition="Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</ondown>
+					<ondown condition="Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</ondown>
+					<ondown condition="Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</ondown>
+					<ondown condition="Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</ondown>
+					<ondown condition="Control.IsVisible(9302)">9302</ondown>
+					<ondown condition="Control.IsVisible(9303)">9303</ondown>
+					<ondown condition="Control.IsVisible(9304)">9304</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9110)">9110</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9120)">9120</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9100)">9100</ondown>
+					<ondown condition="Control.IsVisible(9210)">9210</ondown>
+					<ondown condition="Control.IsVisible(9212)">9212</ondown>
+					<ondown condition="Control.IsVisible(9214)">9214</ondown>
+					<ondown>9000</ondown>
+					<onleft>9263</onleft>
+					<onright>9263</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+					<itemlayout height="205" width="124">
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</itemlayout>
+					<focusedlayout height="205" width="124">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>118</width>
+							<height>173</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9263)</visible>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</focusedlayout>
+					<content>
+						<include content="WidgetItems"><param name="r" value="1" /></include>
+					</content>
+				</control>
+			</control>
+			<!-- Row 2: the wide lists, or with Coming Up showing on the left the
+			     narrow ones that start right of it. -->
+			<control type="group">
+				<visible>!String.IsEmpty(Skin.String(widget2))</visible>
+				<height>240</height>
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>960</width>
+					<height>28</height>
+					<font>font_small</font>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>$VAR[WidgetRowName2]</label>
+					<animation effect="slide" end="500,0" time="0" condition="$EXP[engage_list_shown]">Conditional</animation>
+				</control>
+				<!-- Shown while the row has nothing in it, which navigation skips. -->
+				<control type="label">
+					<left>0</left>
+					<top>60</top>
+					<width>960</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>31921</label>
+					<visible>[!String.IsEmpty(Skin.String(widget2)) + !String.IsEqual(Skin.String(widget2),list) + ![Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)] + ![Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)]] | [String.IsEqual(Skin.String(widget2),list) + !Integer.IsGreater(Window(home).Property(Widget.2.Count),0)]</visible>
+					<animation effect="slide" end="500,0" time="0" condition="$EXP[engage_list_shown]">Conditional</animation>
+				</control>
+				<control type="list" id="9254">
+					<visible allowhiddenfocus="true">!String.IsEmpty(Skin.String(widget2)) + !String.IsEqual(Skin.String(widget2),list) + !$EXP[engage_list_shown]</visible>
+					<left>0</left>
+					<top>30</top>
+					<width>1460</width>
+					<height>205</height>
+					<orientation>horizontal</orientation>
+					<onback>9000</onback>
+					<onup condition="Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+					<onup condition="Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+					<onup condition="Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+					<onup condition="Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+					<onup>9000</onup>
+					<ondown condition="Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</ondown>
+					<ondown condition="Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</ondown>
+					<ondown condition="Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</ondown>
+					<ondown condition="Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</ondown>
+					<ondown condition="Control.IsVisible(9302)">9302</ondown>
+					<ondown condition="Control.IsVisible(9303)">9303</ondown>
+					<ondown condition="Control.IsVisible(9304)">9304</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9110)">9110</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9120)">9120</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9100)">9100</ondown>
+					<ondown condition="Control.IsVisible(9210)">9210</ondown>
+					<ondown condition="Control.IsVisible(9212)">9212</ondown>
+					<ondown condition="Control.IsVisible(9214)">9214</ondown>
+					<ondown>9000</ondown>
+					<onleft>9254</onleft>
+					<onright>9254</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+					<itemlayout height="205" width="124">
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</itemlayout>
+					<focusedlayout height="205" width="124">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>118</width>
+							<height>173</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9254)</visible>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</focusedlayout>
+					<content target="videos" limit="15">$VAR[WidgetRowPath2]</content>
+				</control>
+				<control type="list" id="9255">
+					<visible allowhiddenfocus="true">String.IsEqual(Skin.String(widget2),list) + !$EXP[engage_list_shown]</visible>
+					<left>0</left>
+					<top>30</top>
+					<width>1460</width>
+					<height>205</height>
+					<orientation>horizontal</orientation>
+					<onback>9000</onback>
+					<onup condition="Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+					<onup condition="Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+					<onup condition="Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+					<onup condition="Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+					<onup>9000</onup>
+					<ondown condition="Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</ondown>
+					<ondown condition="Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</ondown>
+					<ondown condition="Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</ondown>
+					<ondown condition="Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</ondown>
+					<ondown condition="Control.IsVisible(9302)">9302</ondown>
+					<ondown condition="Control.IsVisible(9303)">9303</ondown>
+					<ondown condition="Control.IsVisible(9304)">9304</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9110)">9110</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9120)">9120</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9100)">9100</ondown>
+					<ondown condition="Control.IsVisible(9210)">9210</ondown>
+					<ondown condition="Control.IsVisible(9212)">9212</ondown>
+					<ondown condition="Control.IsVisible(9214)">9214</ondown>
+					<ondown>9000</ondown>
+					<onleft>9255</onleft>
+					<onright>9255</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+					<itemlayout height="205" width="124">
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</itemlayout>
+					<focusedlayout height="205" width="124">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>118</width>
+							<height>173</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9255)</visible>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</focusedlayout>
+					<content>
+						<include content="WidgetItems"><param name="r" value="2" /></include>
+					</content>
+				</control>
+				<control type="list" id="9264">
+					<visible allowhiddenfocus="true">!String.IsEmpty(Skin.String(widget2)) + !String.IsEqual(Skin.String(widget2),list) + $EXP[engage_list_shown]</visible>
+					<left>500</left>
+					<top>30</top>
+					<width>960</width>
+					<height>205</height>
+					<orientation>horizontal</orientation>
+					<onback>9000</onback>
+					<onup condition="Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+					<onup condition="Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+					<onup condition="Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+					<onup condition="Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+					<onup>9000</onup>
+					<ondown condition="Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</ondown>
+					<ondown condition="Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</ondown>
+					<ondown condition="Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</ondown>
+					<ondown condition="Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</ondown>
+					<ondown condition="Control.IsVisible(9302)">9302</ondown>
+					<ondown condition="Control.IsVisible(9303)">9303</ondown>
+					<ondown condition="Control.IsVisible(9304)">9304</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9110)">9110</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9120)">9120</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9100)">9100</ondown>
+					<ondown condition="Control.IsVisible(9210)">9210</ondown>
+					<ondown condition="Control.IsVisible(9212)">9212</ondown>
+					<ondown condition="Control.IsVisible(9214)">9214</ondown>
+					<ondown>9000</ondown>
+					<onleft>9264</onleft>
+					<onright>9264</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+					<itemlayout height="205" width="124">
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</itemlayout>
+					<focusedlayout height="205" width="124">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>118</width>
+							<height>173</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9264)</visible>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</focusedlayout>
+					<content target="videos" limit="15">$VAR[WidgetRowPath2]</content>
+				</control>
+				<control type="list" id="9265">
+					<visible allowhiddenfocus="true">String.IsEqual(Skin.String(widget2),list) + $EXP[engage_list_shown]</visible>
+					<left>500</left>
+					<top>30</top>
+					<width>960</width>
+					<height>205</height>
+					<orientation>horizontal</orientation>
+					<onback>9000</onback>
+					<onup condition="Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+					<onup condition="Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+					<onup condition="Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+					<onup condition="Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+					<onup>9000</onup>
+					<ondown condition="Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)">9256</ondown>
+					<ondown condition="Control.IsVisible(9257) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9257</ondown>
+					<ondown condition="Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)">9266</ondown>
+					<ondown condition="Control.IsVisible(9267) + Integer.IsGreater(Window(home).Property(Widget.3.Count),0)">9267</ondown>
+					<ondown condition="Control.IsVisible(9302)">9302</ondown>
+					<ondown condition="Control.IsVisible(9303)">9303</ondown>
+					<ondown condition="Control.IsVisible(9304)">9304</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9110)">9110</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9120)">9120</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9100)">9100</ondown>
+					<ondown condition="Control.IsVisible(9210)">9210</ondown>
+					<ondown condition="Control.IsVisible(9212)">9212</ondown>
+					<ondown condition="Control.IsVisible(9214)">9214</ondown>
+					<ondown>9000</ondown>
+					<onleft>9265</onleft>
+					<onright>9265</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+					<itemlayout height="205" width="124">
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</itemlayout>
+					<focusedlayout height="205" width="124">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>118</width>
+							<height>173</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9265)</visible>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</focusedlayout>
+					<content>
+						<include content="WidgetItems"><param name="r" value="2" /></include>
+					</content>
+				</control>
+			</control>
+			<!-- Row 3: the wide lists, or with Coming Up showing on the left the
+			     narrow ones that start right of it. -->
+			<control type="group">
+				<visible>!String.IsEmpty(Skin.String(widget3))</visible>
+				<height>240</height>
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>960</width>
+					<height>28</height>
+					<font>font_small</font>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<label>$VAR[WidgetRowName3]</label>
+					<animation effect="slide" end="500,0" time="0" condition="$EXP[engage_list_shown]">Conditional</animation>
+				</control>
+				<!-- Shown while the row has nothing in it, which navigation skips. -->
+				<control type="label">
+					<left>0</left>
+					<top>60</top>
+					<width>960</width>
+					<height>40</height>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>31921</label>
+					<visible>[!String.IsEmpty(Skin.String(widget3)) + !String.IsEqual(Skin.String(widget3),list) + ![Control.IsVisible(9256) + Integer.IsGreater(Container(9256).NumItems,0)] + ![Control.IsVisible(9266) + Integer.IsGreater(Container(9266).NumItems,0)]] | [String.IsEqual(Skin.String(widget3),list) + !Integer.IsGreater(Window(home).Property(Widget.3.Count),0)]</visible>
+					<animation effect="slide" end="500,0" time="0" condition="$EXP[engage_list_shown]">Conditional</animation>
+				</control>
+				<control type="list" id="9256">
+					<visible allowhiddenfocus="true">!String.IsEmpty(Skin.String(widget3)) + !String.IsEqual(Skin.String(widget3),list) + !$EXP[engage_list_shown]</visible>
+					<left>0</left>
+					<top>30</top>
+					<width>1460</width>
+					<height>205</height>
+					<orientation>horizontal</orientation>
+					<onback>9000</onback>
+					<onup condition="Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</onup>
+					<onup condition="Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</onup>
+					<onup condition="Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</onup>
+					<onup condition="Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</onup>
+					<onup condition="Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+					<onup condition="Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+					<onup condition="Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+					<onup condition="Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+					<onup>9000</onup>
+					<ondown condition="Control.IsVisible(9302)">9302</ondown>
+					<ondown condition="Control.IsVisible(9303)">9303</ondown>
+					<ondown condition="Control.IsVisible(9304)">9304</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9110)">9110</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9120)">9120</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9100)">9100</ondown>
+					<ondown condition="Control.IsVisible(9210)">9210</ondown>
+					<ondown condition="Control.IsVisible(9212)">9212</ondown>
+					<ondown condition="Control.IsVisible(9214)">9214</ondown>
+					<ondown>9000</ondown>
+					<onleft>9256</onleft>
+					<onright>9256</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+					<itemlayout height="205" width="124">
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</itemlayout>
+					<focusedlayout height="205" width="124">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>118</width>
+							<height>173</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9256)</visible>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</focusedlayout>
+					<content target="videos" limit="15">$VAR[WidgetRowPath3]</content>
+				</control>
+				<control type="list" id="9257">
+					<visible allowhiddenfocus="true">String.IsEqual(Skin.String(widget3),list) + !$EXP[engage_list_shown]</visible>
+					<left>0</left>
+					<top>30</top>
+					<width>1460</width>
+					<height>205</height>
+					<orientation>horizontal</orientation>
+					<onback>9000</onback>
+					<onup condition="Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</onup>
+					<onup condition="Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</onup>
+					<onup condition="Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</onup>
+					<onup condition="Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</onup>
+					<onup condition="Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+					<onup condition="Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+					<onup condition="Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+					<onup condition="Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+					<onup>9000</onup>
+					<ondown condition="Control.IsVisible(9302)">9302</ondown>
+					<ondown condition="Control.IsVisible(9303)">9303</ondown>
+					<ondown condition="Control.IsVisible(9304)">9304</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9110)">9110</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9120)">9120</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9100)">9100</ondown>
+					<ondown condition="Control.IsVisible(9210)">9210</ondown>
+					<ondown condition="Control.IsVisible(9212)">9212</ondown>
+					<ondown condition="Control.IsVisible(9214)">9214</ondown>
+					<ondown>9000</ondown>
+					<onleft>9257</onleft>
+					<onright>9257</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+					<itemlayout height="205" width="124">
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</itemlayout>
+					<focusedlayout height="205" width="124">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>118</width>
+							<height>173</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9257)</visible>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</focusedlayout>
+					<content>
+						<include content="WidgetItems"><param name="r" value="3" /></include>
+					</content>
+				</control>
+				<control type="list" id="9266">
+					<visible allowhiddenfocus="true">!String.IsEmpty(Skin.String(widget3)) + !String.IsEqual(Skin.String(widget3),list) + $EXP[engage_list_shown]</visible>
+					<left>500</left>
+					<top>30</top>
+					<width>960</width>
+					<height>205</height>
+					<orientation>horizontal</orientation>
+					<onback>9000</onback>
+					<onup condition="Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</onup>
+					<onup condition="Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</onup>
+					<onup condition="Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</onup>
+					<onup condition="Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</onup>
+					<onup condition="Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+					<onup condition="Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+					<onup condition="Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+					<onup condition="Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+					<onup>9000</onup>
+					<ondown condition="Control.IsVisible(9302)">9302</ondown>
+					<ondown condition="Control.IsVisible(9303)">9303</ondown>
+					<ondown condition="Control.IsVisible(9304)">9304</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9110)">9110</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9120)">9120</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9100)">9100</ondown>
+					<ondown condition="Control.IsVisible(9210)">9210</ondown>
+					<ondown condition="Control.IsVisible(9212)">9212</ondown>
+					<ondown condition="Control.IsVisible(9214)">9214</ondown>
+					<ondown>9000</ondown>
+					<onleft>9266</onleft>
+					<onright>9266</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+					<itemlayout height="205" width="124">
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</itemlayout>
+					<focusedlayout height="205" width="124">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>118</width>
+							<height>173</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9266)</visible>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</focusedlayout>
+					<content target="videos" limit="15">$VAR[WidgetRowPath3]</content>
+				</control>
+				<control type="list" id="9267">
+					<visible allowhiddenfocus="true">String.IsEqual(Skin.String(widget3),list) + $EXP[engage_list_shown]</visible>
+					<left>500</left>
+					<top>30</top>
+					<width>960</width>
+					<height>205</height>
+					<orientation>horizontal</orientation>
+					<onback>9000</onback>
+					<onup condition="Control.IsVisible(9254) + Integer.IsGreater(Container(9254).NumItems,0)">9254</onup>
+					<onup condition="Control.IsVisible(9255) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9255</onup>
+					<onup condition="Control.IsVisible(9264) + Integer.IsGreater(Container(9264).NumItems,0)">9264</onup>
+					<onup condition="Control.IsVisible(9265) + Integer.IsGreater(Window(home).Property(Widget.2.Count),0)">9265</onup>
+					<onup condition="Control.IsVisible(9252) + Integer.IsGreater(Container(9252).NumItems,0)">9252</onup>
+					<onup condition="Control.IsVisible(9253) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9253</onup>
+					<onup condition="Control.IsVisible(9262) + Integer.IsGreater(Container(9262).NumItems,0)">9262</onup>
+					<onup condition="Control.IsVisible(9263) + Integer.IsGreater(Window(home).Property(Widget.1.Count),0)">9263</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9110)">9110</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9120)">9120</onup>
+					<onup condition="$EXP[corner_bar_top] + Control.IsVisible(9100)">9100</onup>
+					<onup>9000</onup>
+					<ondown condition="Control.IsVisible(9302)">9302</ondown>
+					<ondown condition="Control.IsVisible(9303)">9303</ondown>
+					<ondown condition="Control.IsVisible(9304)">9304</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9110)">9110</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9120)">9120</ondown>
+					<ondown condition="$EXP[bar_below_rows] + Control.IsVisible(9100)">9100</ondown>
+					<ondown condition="Control.IsVisible(9210)">9210</ondown>
+					<ondown condition="Control.IsVisible(9212)">9212</ondown>
+					<ondown condition="Control.IsVisible(9214)">9214</ondown>
+					<ondown>9000</ondown>
+					<onleft>9267</onleft>
+					<onright>9267</onright>
+					<scrolltime tween="cubic" easing="out">200</scrolltime>
+					<itemlayout height="205" width="124">
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>text</textcolor>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</itemlayout>
+					<focusedlayout height="205" width="124">
+						<control type="image">
+							<left>0</left>
+							<top>0</top>
+							<width>118</width>
+							<height>173</height>
+							<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+							<visible>Control.HasFocus(9267)</visible>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<texture colordiffuse="grey_mid">white.png</texture>
+						</control>
+						<control type="image">
+							<left>4</left>
+							<top>4</top>
+							<width>110</width>
+							<height>165</height>
+							<aspectratio>scale</aspectratio>
+							<texture fallback="DefaultVideoCover.png" background="true">$VAR[WidgetArt]</texture>
+						</control>
+						<control type="label">
+							<left>4</left>
+							<top>174</top>
+							<width>110</width>
+							<height>24</height>
+							<font>font_small</font>
+							<textcolor>white</textcolor>
+							<scroll>true</scroll>
+							<label>$INFO[ListItem.Label]</label>
+						</control>
+					</focusedlayout>
+					<content>
+						<include content="WidgetItems"><param name="r" value="3" /></include>
+					</content>
+				</control>
+			</control>
+		</control>
+		</definition>
+	</include>
 	<include name="HomeStage">
 		<param name="left"/>
 		<param name="top"/>

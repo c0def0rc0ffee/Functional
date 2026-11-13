@@ -101,8 +101,16 @@
 	     menu, the corner bar and the Continue tab read one definition each, and
 	     the collision rules on Home (menu vs bar, menu vs tab) are written
 	     against these rather than against the raw setting values. -->
-	<expression name="menu_top">String.IsEqual(Skin.String(menu_position),top)</expression>
-	<expression name="menu_bottom">String.IsEqual(Skin.String(menu_position),bottom)</expression>
+	<!-- HOME-WIDGETS (item 46): while any Home row is on, the menu lays out
+	     at the top to make room for the rows, whatever menu_position says;
+	     with every row off (the default) these two read as they always did. -->
+	<expression name="widgets_on">!String.IsEmpty(Skin.String(widget1)) | !String.IsEmpty(Skin.String(widget2)) | !String.IsEmpty(Skin.String(widget3))</expression>
+	<!-- HOME-WIDGETS-NAV: a corner bar on the bottom edge sits between the
+	     rows and the tabs in the focus order; on the top edge it sits
+	     between the menu and the rows. -->
+	<expression name="bar_below_rows">!$EXP[corner_bar_top] + [Control.IsVisible(9100) | Control.IsVisible(9110) | Control.IsVisible(9120)]</expression>
+	<expression name="menu_top">String.IsEqual(Skin.String(menu_position),top) | $EXP[widgets_on]</expression>
+	<expression name="menu_bottom">String.IsEqual(Skin.String(menu_position),bottom) + !$EXP[widgets_on]</expression>
 	<expression name="continue_tab_top">String.IsEqual(Skin.String(continue_tab),top)</expression>
 	<!-- HOME-LAYOUT-EXPRESSIONS. The corner bar lies ABOVE the menu only when it
 	     is on the top edge and the menu is not: with both at the top the menu
@@ -127,9 +135,9 @@
 	<expression name="greeting_part_evening">String.IsEqual(Window(home).Property(greeting_part),evening)</expression>
 	<!-- Room for the greeting: with the main menu at the top, a row of five
 	     or more tiles reaches the clock, so the time shows alone there. -->
-	<expression name="greeting_room">Skin.HasSetting(show_greeting) + [!String.IsEqual(Skin.String(menu_position),top) | !Integer.IsGreater(Window(home).Property(Tile.Count),4)]</expression>
+	<expression name="greeting_room">Skin.HasSetting(show_greeting) + [!$EXP[menu_top] | !Integer.IsGreater(Window(home).Property(Tile.Count),4)]</expression>
 	<!-- STAGE: the same room rule with the greeting switch read the other way round, for the flipped clock line. -->
-	<expression name="greeting_room_flipped">!Skin.HasSetting(show_greeting) + [!String.IsEqual(Skin.String(menu_position),top) | !Integer.IsGreater(Window(home).Property(Tile.Count),4)]</expression>
+	<expression name="greeting_room_flipped">!Skin.HasSetting(show_greeting) + [!$EXP[menu_top] | !Integer.IsGreater(Window(home).Property(Tile.Count),4)]</expression>
 	<variable name="HomeClockLine">
 		<value condition="$EXP[greeting_room] + Integer.IsGreater(System.ProfileCount,1) + $EXP[greeting_part_morning]">$LOCALIZE[31241], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
 		<value condition="$EXP[greeting_room] + Integer.IsGreater(System.ProfileCount,1) + $EXP[greeting_part_afternoon]">$LOCALIZE[31242], $INFO[System.ProfileName]  ·  $INFO[System.Time]</value>
@@ -1397,6 +1405,113 @@
 			<include content="WatchlistItem"><param name="n" value="10" /></include>
 			<include content="WatchlistItem"><param name="n" value="11" /></include>
 			<include content="WatchlistItem"><param name="n" value="12" /></include>
+		</definition>
+	</include>
+
+	<!-- <summary>HOME-WIDGETS: what each Home row reads, its heading, and
+	     its value on the Skin Settings row. A list row has no path: it is
+	     drawn from the Widget.N.M.* slots the service publishes.</summary> -->
+	<variable name="WidgetRowPath1">
+		<value condition="String.IsEqual(Skin.String(widget1),recent_movies)">special://skin/playlists/recent_movies.xsp</value>
+		<value condition="String.IsEqual(Skin.String(widget1),recent_episodes)">special://skin/playlists/recent_episodes.xsp</value>
+		<value condition="String.IsEqual(Skin.String(widget1),inprogress_movies)">$VAR[ContinueMoviesPath]</value>
+		<value condition="String.IsEqual(Skin.String(widget1),inprogress_episodes)">$VAR[ContinueEpisodesPath]</value>
+		<value condition="String.IsEqual(Skin.String(widget1),unwatched_movies)">special://skin/playlists/widget_unwatched_movies.xsp</value>
+		<value condition="String.IsEqual(Skin.String(widget1),unwatched_tvshows)">special://skin/playlists/widget_unwatched_tvshows.xsp</value>
+		<value condition="String.IsEqual(Skin.String(widget1),random_movies)">special://skin/playlists/widget_random_movies.xsp</value>
+	</variable>
+	<variable name="WidgetRowName1">
+		<value condition="String.IsEqual(Skin.String(widget1),list)">$INFO[Skin.String(widget1_list)]</value>
+		<value condition="String.IsEqual(Skin.String(widget1),recent_movies)">$LOCALIZE[31910]</value>
+		<value condition="String.IsEqual(Skin.String(widget1),recent_episodes)">$LOCALIZE[31911]</value>
+		<value condition="String.IsEqual(Skin.String(widget1),inprogress_movies)">$LOCALIZE[31912]</value>
+		<value condition="String.IsEqual(Skin.String(widget1),inprogress_episodes)">$LOCALIZE[31913]</value>
+		<value condition="String.IsEqual(Skin.String(widget1),unwatched_movies)">$LOCALIZE[31914]</value>
+		<value condition="String.IsEqual(Skin.String(widget1),unwatched_tvshows)">$LOCALIZE[31915]</value>
+		<value condition="String.IsEqual(Skin.String(widget1),random_movies)">$LOCALIZE[31916]</value>
+		<value>$LOCALIZE[31893]</value>
+	</variable>
+	<variable name="WidgetRowPath2">
+		<value condition="String.IsEqual(Skin.String(widget2),recent_movies)">special://skin/playlists/recent_movies.xsp</value>
+		<value condition="String.IsEqual(Skin.String(widget2),recent_episodes)">special://skin/playlists/recent_episodes.xsp</value>
+		<value condition="String.IsEqual(Skin.String(widget2),inprogress_movies)">$VAR[ContinueMoviesPath]</value>
+		<value condition="String.IsEqual(Skin.String(widget2),inprogress_episodes)">$VAR[ContinueEpisodesPath]</value>
+		<value condition="String.IsEqual(Skin.String(widget2),unwatched_movies)">special://skin/playlists/widget_unwatched_movies.xsp</value>
+		<value condition="String.IsEqual(Skin.String(widget2),unwatched_tvshows)">special://skin/playlists/widget_unwatched_tvshows.xsp</value>
+		<value condition="String.IsEqual(Skin.String(widget2),random_movies)">special://skin/playlists/widget_random_movies.xsp</value>
+	</variable>
+	<variable name="WidgetRowName2">
+		<value condition="String.IsEqual(Skin.String(widget2),list)">$INFO[Skin.String(widget2_list)]</value>
+		<value condition="String.IsEqual(Skin.String(widget2),recent_movies)">$LOCALIZE[31910]</value>
+		<value condition="String.IsEqual(Skin.String(widget2),recent_episodes)">$LOCALIZE[31911]</value>
+		<value condition="String.IsEqual(Skin.String(widget2),inprogress_movies)">$LOCALIZE[31912]</value>
+		<value condition="String.IsEqual(Skin.String(widget2),inprogress_episodes)">$LOCALIZE[31913]</value>
+		<value condition="String.IsEqual(Skin.String(widget2),unwatched_movies)">$LOCALIZE[31914]</value>
+		<value condition="String.IsEqual(Skin.String(widget2),unwatched_tvshows)">$LOCALIZE[31915]</value>
+		<value condition="String.IsEqual(Skin.String(widget2),random_movies)">$LOCALIZE[31916]</value>
+		<value>$LOCALIZE[31893]</value>
+	</variable>
+	<variable name="WidgetRowPath3">
+		<value condition="String.IsEqual(Skin.String(widget3),recent_movies)">special://skin/playlists/recent_movies.xsp</value>
+		<value condition="String.IsEqual(Skin.String(widget3),recent_episodes)">special://skin/playlists/recent_episodes.xsp</value>
+		<value condition="String.IsEqual(Skin.String(widget3),inprogress_movies)">$VAR[ContinueMoviesPath]</value>
+		<value condition="String.IsEqual(Skin.String(widget3),inprogress_episodes)">$VAR[ContinueEpisodesPath]</value>
+		<value condition="String.IsEqual(Skin.String(widget3),unwatched_movies)">special://skin/playlists/widget_unwatched_movies.xsp</value>
+		<value condition="String.IsEqual(Skin.String(widget3),unwatched_tvshows)">special://skin/playlists/widget_unwatched_tvshows.xsp</value>
+		<value condition="String.IsEqual(Skin.String(widget3),random_movies)">special://skin/playlists/widget_random_movies.xsp</value>
+	</variable>
+	<variable name="WidgetRowName3">
+		<value condition="String.IsEqual(Skin.String(widget3),list)">$INFO[Skin.String(widget3_list)]</value>
+		<value condition="String.IsEqual(Skin.String(widget3),recent_movies)">$LOCALIZE[31910]</value>
+		<value condition="String.IsEqual(Skin.String(widget3),recent_episodes)">$LOCALIZE[31911]</value>
+		<value condition="String.IsEqual(Skin.String(widget3),inprogress_movies)">$LOCALIZE[31912]</value>
+		<value condition="String.IsEqual(Skin.String(widget3),inprogress_episodes)">$LOCALIZE[31913]</value>
+		<value condition="String.IsEqual(Skin.String(widget3),unwatched_movies)">$LOCALIZE[31914]</value>
+		<value condition="String.IsEqual(Skin.String(widget3),unwatched_tvshows)">$LOCALIZE[31915]</value>
+		<value condition="String.IsEqual(Skin.String(widget3),random_movies)">$LOCALIZE[31916]</value>
+		<value>$LOCALIZE[31893]</value>
+	</variable>
+	<!-- <summary>HOME-WIDGETS: a row item's picture: the poster, the show's
+	     poster for an episode, or the list slot's own picture.</summary> -->
+	<variable name="WidgetArt">
+		<value condition="!String.IsEmpty(ListItem.Art(poster))">$INFO[ListItem.Art(poster)]</value>
+		<value condition="!String.IsEmpty(ListItem.Art(tvshow.poster))">$INFO[ListItem.Art(tvshow.poster)]</value>
+		<value>$INFO[ListItem.Icon]</value>
+	</variable>
+	<!-- <summary>HOME-WIDGETS: one slot of a list row, bound to the
+	     Widget.ROW.N.* properties service.py:_widget_slots publishes.</summary>
+	     <param name="r">Row number, 1 to 3.</param>
+	     <param name="n">1-based slot number.</param> -->
+	<include name="WidgetItem">
+		<param name="r" />
+		<param name="n" />
+		<definition>
+			<item>
+				<label>$INFO[Window(home).Property(Widget.$PARAM[r].$PARAM[n].Label)]</label>
+				<label2>$INFO[Window(home).Property(Widget.$PARAM[r].$PARAM[n].Sub)]</label2>
+				<icon>$INFO[Window(home).Property(Widget.$PARAM[r].$PARAM[n].Thumb)]</icon>
+				<onclick>Skin.SetString(widget_command,play:$PARAM[r]:$PARAM[n])</onclick>
+				<visible>!String.IsEmpty(Window(home).Property(Widget.$PARAM[r].$PARAM[n].Label))</visible>
+			</item>
+		</definition>
+	</include>
+	<!-- <summary>The twelve slots of one list row, WIDGET_MAX in service.py.</summary>
+	     <param name="r">Row number, 1 to 3.</param> -->
+	<include name="WidgetItems">
+		<param name="r" />
+		<definition>
+			<include content="WidgetItem"><param name="r" value="$PARAM[r]" /><param name="n" value="1" /></include>
+			<include content="WidgetItem"><param name="r" value="$PARAM[r]" /><param name="n" value="2" /></include>
+			<include content="WidgetItem"><param name="r" value="$PARAM[r]" /><param name="n" value="3" /></include>
+			<include content="WidgetItem"><param name="r" value="$PARAM[r]" /><param name="n" value="4" /></include>
+			<include content="WidgetItem"><param name="r" value="$PARAM[r]" /><param name="n" value="5" /></include>
+			<include content="WidgetItem"><param name="r" value="$PARAM[r]" /><param name="n" value="6" /></include>
+			<include content="WidgetItem"><param name="r" value="$PARAM[r]" /><param name="n" value="7" /></include>
+			<include content="WidgetItem"><param name="r" value="$PARAM[r]" /><param name="n" value="8" /></include>
+			<include content="WidgetItem"><param name="r" value="$PARAM[r]" /><param name="n" value="9" /></include>
+			<include content="WidgetItem"><param name="r" value="$PARAM[r]" /><param name="n" value="10" /></include>
+			<include content="WidgetItem"><param name="r" value="$PARAM[r]" /><param name="n" value="11" /></include>
+			<include content="WidgetItem"><param name="r" value="$PARAM[r]" /><param name="n" value="12" /></include>
 		</definition>
 	</include>
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!--
+  <summary>
+  Unwatched films, newest added first, for a Home row (item 46). Kept apart from unwatched_movies.xsp, which other screens read with no order or limit.
+  </summary>
+-->
+<smartplaylist type="movies">
+    <name>widget_unwatched_movies</name>
+    <match>all</match>
+    <rule field="playcount" operator="is">
+        <value>0</value>
+    </rule>
+    <order direction="descending">dateadded</order>
+    <limit>15</limit>
+</smartplaylist>
