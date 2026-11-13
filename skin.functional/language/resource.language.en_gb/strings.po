@@ -3505,3 +3505,28 @@ msgstr ""
 msgctxt "#31932"
 msgid "Shows the studio or TV network as a logo on the information screen. Needs Kodi's Studio Icons pack, which switching this on offers to install.[CR]Where: the information screen, top right."
 msgstr ""
+
+# More like this, item 31. 13/11/2026.
+msgctxt "#31933"
+msgid "More Like This:"
+msgstr ""
+
+msgctxt "#31934"
+msgid "Same Collection"
+msgstr ""
+
+msgctxt "#31935"
+msgid "Same Director"
+msgstr ""
+
+msgctxt "#31936"
+msgid "Same Genre"
+msgstr ""
+
+msgctxt "#31937"
+msgid "Adds a row of titles from your library on the information screen: the same collection, the same director or the same genre. Shows use their genre.[CR]Where: the information screen, under the plot."
+msgstr ""
+
+msgctxt "#31938"
+msgid "MORE LIKE THIS"
+msgstr ""

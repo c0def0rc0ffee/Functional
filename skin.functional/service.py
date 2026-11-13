@@ -1285,12 +1285,18 @@ def videodb_url(kind, rules, method, direction, limit=12):
     <param name="limit">Most rows to return.</param>
     <returns>The videodb:// path with the playlist in its xsp option.</returns>
     <remarks>
+    LIBRARY-ROWS-SORT (13/11/2026, seen on Kodi 21.3): Kodi takes only the
+    rules from a path's playlist; its order and limit are not applied, and
+    a limit there only brought a More entry. So the order stays in the
+    playlist for whoever reads it, the limit is left out, and every row
+    that reads such a path sorts and caps itself on its content tag, with
+    browse="never". The limit parameter is kept for the callers' sake.
     A container reloads when its path changes and only then, so the same
     rules give the same path and leave the row alone, and any change gives
     a new one. Nothing is written to disk.
     </remarks>
     """
-    doc = {"type": kind, "rules": rules, "limit": limit,
+    doc = {"type": kind, "rules": rules,
            "order": {"method": method, "direction": direction}}
     return VIDEODB_BASES[kind] + "?xsp=" + urllib.parse.quote(
         json.dumps(doc, separators=(",", ":"), sort_keys=True), safe="")
@@ -2071,6 +2077,7 @@ class FunctionalHelper(xbmc.Monitor):
         # STUDIO-LOGO: the InfoStudio property as published; None so the
         # first tick clears one an earlier helper left (STUDIO-LOGO-FIX).
         self._studio_shown = None
+        self._like_shown = None          # MORE-LIKE: InfoLikePath as published; None clears a stale one
         # HOME-WIDGETS: per Home row, the list source last published and its records.
         # False, not None: the first tick then publishes every row, which
         # clears counts and slots an earlier helper left on Home (a skin
@@ -5031,6 +5038,85 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("watchlist: played slot %d" % (slot + 1))
         except Exception:  # noqa: BLE001
             _dlog("watchlist: %s failed:\n%s" % (cmd, traceback.format_exc()), xbmc.LOGERROR)
+
+    # ---- MORE-LIKE, item 31 phase K (13/11/2026) -----------------------------
+    # <summary>
+    # The More like this row on the info screen, off until
+    # Skin.String(more_like) is collection, director or genre. The row is a
+    # library container in DialogVideoInfo; this service only works out its
+    # path from the item on screen, through videodb_url, so the titles are
+    # real library items with Kodi's own click and menu.
+    # </summary>
+
+    # MORE-LIKE-FIX (review of 13/11/2026): Kodi applies only the rules of a
+    # path's playlist and the row sorts itself newest first (its content tag),
+    # so every choice says the order the viewer actually gets.
+    MORE_LIKE_ORDER = {"collection": ("year", "descending"),
+                       "director": ("year", "descending"),
+                       "genre": ("year", "descending")}
+    MORE_LIKE_YEARS = 5           # a genre match keeps to this many years either side
+
+    def update_info_like(self):
+        """
+        <summary>
+        Fast ticker: keep Window(home).Property(InfoLikePath) matching the
+        item on the info screen while the row is switched on.
+        </summary>
+        <remarks>
+        A film offers its collection, its first director or its first genre,
+        as chosen; a show has no collection or director in Kodi's library, so
+        it always uses its first genre. Anything else (a season, an episode)
+        gets no row. The item itself is left out by title. The property is
+        written only when the path changes and cleared when the screen closes,
+        so with the choice Off this reads one string a tick.
+        </remarks>
+        """
+        choice = xbmc.getInfoLabel("Skin.String(more_like)").strip().lower()
+        path = ""
+        if (choice in self.MORE_LIKE_ORDER
+                and xbmc.getCondVisibility("Window.IsActive(%s)" % self.INFO_DIALOG)):
+            path = self._like_path(choice, xbmc.getInfoLabel("ListItem.DBType").lower())
+        if path != self._like_shown:
+            self._like_shown = path
+            win = xbmcgui.Window(HOME_WINDOW_ID)
+            if path:
+                win.setProperty("InfoLikePath", path)
+            else:
+                win.clearProperty("InfoLikePath")
+
+    def _like_path(self, choice, dbtype):
+        """
+        <summary>The library path for the More like this row, or "".</summary>
+        <param name="choice">"collection", "director" or "genre".</param>
+        <param name="dbtype">The info screen item's ListItem.DBType.</param>
+        <returns>A videodb path, or "" when the item has nothing to match on.</returns>
+        """
+        if dbtype == "tvshow":
+            kind, choice = "tvshows", "genre"
+        elif dbtype == "movie":
+            kind = "movies"
+        else:
+            return ""
+        first = lambda label: xbmc.getInfoLabel(label).split(" / ")[0].strip()
+        value = {"collection": lambda: xbmc.getInfoLabel("ListItem.Set").strip(),
+                 "director": lambda: first("ListItem.Director"),
+                 "genre": lambda: first("ListItem.Genre")}[choice]()
+        if not value:
+            return ""
+        field = {"collection": "set", "director": "director", "genre": "genre"}[choice]
+        rules = {"and": [{"field": field, "operator": "is", "value": [value]},
+                         {"field": "title", "operator": "isnot",
+                          "value": [xbmc.getInfoLabel("ListItem.Title")]}]}
+        year = self._safe_int(xbmc.getInfoLabel("ListItem.Year"), 0)
+        if choice == "genre" and year > 0:
+            # MORE-LIKE-FIX: the genre alone matched thousands of titles on a
+            # big library and gave every film of that genre the same twelve
+            # newest ones; the years around the item's own keep it close.
+            span = self.MORE_LIKE_YEARS
+            rules["and"] += [{"field": "year", "operator": "greaterthan", "value": [str(year - span - 1)]},
+                             {"field": "year", "operator": "lessthan", "value": [str(year + span + 1)]}]
+        method, direction = self.MORE_LIKE_ORDER[choice]
+        return videodb_url(kind, rules, method, direction)
 
     # ---- STUDIO-LOGO, item 34 phase K (13/11/2026) ---------------------------
     # <summary>
@@ -12570,6 +12656,8 @@ def run():
         helper.update_info_cast,
         # STUDIO-LOGO: two condition reads unless the info screen is up.
         helper.update_info_studio,
+        # MORE-LIKE: one string read while the row is Off.
+        helper.update_info_like,
         helper.update_cast_command,
         helper.update_cache_command,
         # Fast ticker: the countdown has to move once a second, and the

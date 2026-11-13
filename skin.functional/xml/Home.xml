@@ -500,7 +500,9 @@
 							</control>
 						</focusedlayout>
 						<!-- HIDE-CONTINUE: the helper's copy while titles are hidden. -->
-						<content target="videos" limit="12">$VAR[ContinueMoviesPath]</content>
+						<!-- LIBRARY-ROWS-SORT: a videodb path carries only its filter, so the row sorts and caps
+						     itself, and browse="never" keeps Kodi from adding a More entry. -->
+						<content target="videos" sortby="lastplayed" sortorder="descending" limit="12" browse="never">$VAR[ContinueMoviesPath]</content>
 					</control>
 
 					<control type="list" id="9203">
@@ -634,7 +636,7 @@
 								<label>$INFO[ListItem.Season,S]$INFO[ListItem.Episode,E, · ]$INFO[ListItem.TVShowTitle]</label>
 							</control>
 						</focusedlayout>
-						<content target="videos" limit="12">$VAR[ContinueEpisodesPath]</content>
+						<content target="videos" sortby="lastplayed" sortorder="descending" limit="12" browse="never">$VAR[ContinueEpisodesPath]</content>
 					</control>
 
 					<!-- Next Up: the next unwatched episode of each show part way
@@ -779,7 +781,7 @@
 								<label>$INFO[ListItem.Season,S]$INFO[ListItem.Episode,E, · ]$INFO[ListItem.TVShowTitle]</label>
 							</control>
 						</focusedlayout>
-						<content target="videos" limit="12">$INFO[Window(home).Property(nextup_path)]</content>
+						<content target="videos" sortby="tvshowtitle" sortorder="ascending" limit="12" browse="never">$INFO[Window(home).Property(nextup_path)]</content>
 					</control>
 				</control>
 
@@ -1184,7 +1186,7 @@
 								<label>$INFO[ListItem.Year]</label>
 							</control>
 						</focusedlayout>
-						<content target="videos" limit="12">$INFO[Window(home).Property(watchlist_movies_path)]</content>
+						<content target="videos" sortby="dateadded" sortorder="descending" limit="12" browse="never">$INFO[Window(home).Property(watchlist_movies_path)]</content>
 					</control>
 					<control type="list" id="9233">
 						<visible allowhiddenfocus="true">String.IsEqual(Skin.String(watchlist_source),tag)</visible>
@@ -1300,7 +1302,7 @@
 								<label>$INFO[ListItem.Year]</label>
 							</control>
 						</focusedlayout>
-						<content target="videos" limit="12">$INFO[Window(home).Property(watchlist_tvshows_path)]</content>
+						<content target="videos" sortby="dateadded" sortorder="descending" limit="12" browse="never">$INFO[Window(home).Property(watchlist_tvshows_path)]</content>
 					</control>
 					<!-- The list's name over its row. -->
 					<control type="label">

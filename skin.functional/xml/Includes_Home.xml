@@ -1590,7 +1590,7 @@
 							<label>$INFO[ListItem.Label]</label>
 						</control>
 					</focusedlayout>
-					<content target="videos" limit="15">$VAR[WidgetRowPath1]</content>
+					<content target="videos" limit="15" browse="never">$VAR[WidgetRowPath1]</content>
 				</control>
 				<control type="list" id="9253">
 					<visible allowhiddenfocus="true">String.IsEqual(Skin.String(widget1),list) + !$EXP[engage_list_shown]</visible>
@@ -1784,7 +1784,7 @@
 							<label>$INFO[ListItem.Label]</label>
 						</control>
 					</focusedlayout>
-					<content target="videos" limit="15">$VAR[WidgetRowPath1]</content>
+					<content target="videos" limit="15" browse="never">$VAR[WidgetRowPath1]</content>
 				</control>
 				<control type="list" id="9263">
 					<visible allowhiddenfocus="true">String.IsEqual(Skin.String(widget1),list) + $EXP[engage_list_shown]</visible>
@@ -2006,7 +2006,7 @@
 							<label>$INFO[ListItem.Label]</label>
 						</control>
 					</focusedlayout>
-					<content target="videos" limit="15">$VAR[WidgetRowPath2]</content>
+					<content target="videos" limit="15" browse="never">$VAR[WidgetRowPath2]</content>
 				</control>
 				<control type="list" id="9255">
 					<visible allowhiddenfocus="true">String.IsEqual(Skin.String(widget2),list) + !$EXP[engage_list_shown]</visible>
@@ -2200,7 +2200,7 @@
 							<label>$INFO[ListItem.Label]</label>
 						</control>
 					</focusedlayout>
-					<content target="videos" limit="15">$VAR[WidgetRowPath2]</content>
+					<content target="videos" limit="15" browse="never">$VAR[WidgetRowPath2]</content>
 				</control>
 				<control type="list" id="9265">
 					<visible allowhiddenfocus="true">String.IsEqual(Skin.String(widget2),list) + $EXP[engage_list_shown]</visible>
@@ -2422,7 +2422,7 @@
 							<label>$INFO[ListItem.Label]</label>
 						</control>
 					</focusedlayout>
-					<content target="videos" limit="15">$VAR[WidgetRowPath3]</content>
+					<content target="videos" limit="15" browse="never">$VAR[WidgetRowPath3]</content>
 				</control>
 				<control type="list" id="9257">
 					<visible allowhiddenfocus="true">String.IsEqual(Skin.String(widget3),list) + !$EXP[engage_list_shown]</visible>
@@ -2616,7 +2616,7 @@
 							<label>$INFO[ListItem.Label]</label>
 						</control>
 					</focusedlayout>
-					<content target="videos" limit="15">$VAR[WidgetRowPath3]</content>
+					<content target="videos" limit="15" browse="never">$VAR[WidgetRowPath3]</content>
 				</control>
 				<control type="list" id="9267">
 					<visible allowhiddenfocus="true">String.IsEqual(Skin.String(widget3),list) + $EXP[engage_list_shown]</visible>

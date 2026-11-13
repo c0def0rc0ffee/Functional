@@ -289,7 +289,8 @@ def test_url():
               "%s: the rule should be tag is the tag, got %r" % (kind, rule))
         check(doc.get("order") == {"method": "dateadded", "direction": "descending"},
               "%s: newest added first, got %r" % (kind, doc.get("order")))
-        check(doc.get("limit") == 12, "%s: the limit should be 12, got %r" % (kind, doc.get("limit")))
+        # LIBRARY-ROWS-SORT: the row caps itself; Kodi ignores a path's own limit.
+        check("limit" not in doc, "%s: the path should carry no limit, got %r" % (kind, doc.get("limit")))
     check(service.watchlist_url("movies", "a") != service.watchlist_url("movies", "b"),
           "different tags should give different paths so the row reloads")
     check(service.watchlist_url("movies", "a") == service.watchlist_url("movies", "a"),
