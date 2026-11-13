@@ -3107,6 +3107,9 @@ class FunctionalHelper(xbmc.Monitor):
         name = self._info_cast_names[idx]
         if not name:
             return
+        if xbmc.getCondVisibility("Skin.HasSetting(actor_page)"):
+            self._open_actor_page(name, idx + 1)
+            return
 
         # Match the list to where the click came from: an actor opened from a
         # TV show or episode gets their shows, anything else their movies.
@@ -3127,6 +3130,34 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("cast: opening {0} with {1} -> {2}".format(rule_type, name, command))
         xbmc.executebuiltin("Dialog.Close({0},true)".format(self.INFO_DIALOG))
         xbmc.executebuiltin(command)
+
+    ACTOR_PAGE = 1156             # Custom_1156_Actor.xml, a dialog
+
+    def _open_actor_page(self, name, slot):
+        """
+        <summary>
+        ACTOR-PAGE, item 30 phase M (13/11/2026): open the actor page over the
+        info screen for one cast member.
+        </summary>
+        <param name="name">The actor's name as the cast strip has it.</param>
+        <param name="slot">The cast slot clicked, 1 based, for the photo.</param>
+        <remarks>
+        The page is a dialog over the info screen, so Back closes it and the
+        viewer is on the title they came from, which the plain library list
+        (the switch off) cannot do. Its two rows are library rows read through
+        videodb paths, every film and every show the actor is credited in;
+        each row sorts newest first on its own content tag. The photo is the
+        one the cast strip already shows.
+        </remarks>
+        """
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        rule = {"and": [{"field": "actor", "operator": "is", "value": [name]}]}
+        win.setProperty("ActorName", name)
+        win.setProperty("ActorThumb", win.getProperty("InfoCast.%d.Thumb" % slot))
+        win.setProperty("ActorFilmsPath", videodb_url("movies", rule, "year", "descending"))
+        win.setProperty("ActorShowsPath", videodb_url("tvshows", rule, "year", "descending"))
+        _dlog("cast: actor page for %s" % name)
+        xbmc.executebuiltin("ActivateWindow(%d)" % self.ACTOR_PAGE)
 
     # ---- Playback buffer (Kodi filecache.* settings) ----------------------
     # Preset values below were read back from a live Kodi 21.3 via

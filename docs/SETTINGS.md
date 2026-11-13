@@ -53,6 +53,7 @@ Toggle settings show an accent **dot** when on. Most changes apply immediately; 
 - Title age on the info screens
 - The studio or network logo on the info screens, with an offer to install Kodi's Studio Icons pack (off by default)
 - A More like this row on the info screens: the same collection, director or genre (off by default)
+- Selecting someone in the cast opens a page of their films and shows; Back returns to the title (off by default)
 
 ## Lists and Favourites
 
