@@ -2068,7 +2068,9 @@ class FunctionalHelper(xbmc.Monitor):
         self._watch_state = False        # (source, tag or list name) published
         self._watch_items = [None] * 12  # list records behind Watchlist.N.*
         self._watch_last = 0.0
-        self._studio_shown = ""          # STUDIO-LOGO: the InfoStudio property as published
+        # STUDIO-LOGO: the InfoStudio property as published; None so the
+        # first tick clears one an earlier helper left (STUDIO-LOGO-FIX).
+        self._studio_shown = None
         # HOME-WIDGETS: per Home row, the list source last published and its records.
         # False, not None: the first tick then publishes every row, which
         # clears counts and slots an earlier helper left on Home (a skin
@@ -5055,8 +5057,15 @@ class FunctionalHelper(xbmc.Monitor):
         closes, so the cost while nothing changes is two condition reads.
         </remarks>
         """
-        if self._take_command("studio_command") == "toggled":
-            self._spawn_dialog(self._studio_offer)
+        cmd = self._take_command("studio_command")
+        if cmd in ("on", "off"):
+            # STUDIO-LOGO-FIX: the press says which way it went, so a double
+            # press is answered for the state it asked for, not a later one.
+            if self._dialog_thread is not None and self._dialog_thread.is_alive():
+                _dlog("studio logo: switched %s while another dialog was open; "
+                      "no offer this time" % cmd)
+            else:
+                self._spawn_dialog(lambda: self._studio_offer(cmd == "on"))
         name = ""
         if (xbmc.getCondVisibility("Skin.HasSetting(show_studio_logo)")
                 and xbmc.getCondVisibility("Window.IsActive(%s)" % self.INFO_DIALOG)):
@@ -5068,13 +5077,14 @@ class FunctionalHelper(xbmc.Monitor):
             else:
                 xbmcgui.Window(HOME_WINDOW_ID).clearProperty("InfoStudio")
 
-    def _studio_offer(self):
+    def _studio_offer(self, on):
         """
         <summary>
         Runs in the dialog slot after the switch is pressed: switched on
         without the pack, offer to install or enable it; switched off with
         the pack, offer to leave, disable or uninstall it.
         </summary>
+        <param name="on">True when the press switched the logo on.</param>
         <remarks>
         The install goes through Kodi's InstallAddon, which asks again in
         Kodi's own words and fetches from the Kodi repository. Kodi has no
@@ -5084,7 +5094,6 @@ class FunctionalHelper(xbmc.Monitor):
         </remarks>
         """
         pack = self.STUDIO_PACK
-        on = xbmc.getCondVisibility("Skin.HasSetting(show_studio_logo)")
         installed = xbmc.getCondVisibility("System.HasAddon(%s)" % pack)
         enabled = installed and xbmc.getCondVisibility("System.AddonIsEnabled(%s)" % pack)
         dialog = xbmcgui.Dialog()
