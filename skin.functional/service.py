@@ -1349,6 +1349,21 @@ def nextup_url(files):
     return videodb_url("episodes", {"or": wanted}, "tvshow", "ascending")
 
 
+def watchlist_url(kind, tag):
+    """
+    <summary>A Watchlist row: every film or show carrying one tag.</summary>
+    <param name="kind">"movies" or "tvshows".</param>
+    <param name="tag">The tag name as the viewer typed it.</param>
+    <returns>The videodb path.</returns>
+    <remarks>
+    WATCHLIST, item 22. Newest added first, twelve rows like the other
+    rows of the pop up.
+    </remarks>
+    """
+    rules = {"and": [{"field": "tag", "operator": "is", "value": [tag]}]}
+    return videodb_url(kind, rules, "dateadded", "descending")
+
+
 def hidden_show(doc, keys):
     """
     <summary>True when a show is hidden from Next Up under any of its keys.</summary>
@@ -2047,6 +2062,10 @@ class FunctionalHelper(xbmc.Monitor):
         self._hidden_frozen = False      # a damaged file could not be set aside
         self._hidden_played = deque()    # Player.OnAVStart items, for the loop
         self._hidden_switch = None       # continue_hide as last seen by Next Up
+        # WATCHLIST: what the tab shows, and when the list rows were last read.
+        self._watch_state = None         # (source, tag or list name) published
+        self._watch_items = []           # list records behind Watchlist.N.*
+        self._watch_last = 0.0
         # Next Up row in the Continue Watching pop-up (see update_next_up).
         self._nextup_lock = threading.Lock()
         self._nextup_last = 0.0          # when the last lookup started, 0 forces one
@@ -4810,6 +4829,193 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("hide continue: unhide failed:\n" + traceback.format_exc(),
                   xbmc.LOGERROR)
 
+    # ---- WATCHLIST, item 22 phase I (13/11/2026) -----------------------------
+    # <summary>
+    # The third tab of the Continue Watching pop up, off until
+    # Skin.String(watchlist_source) is "tag" or "list". A tag gives two
+    # library rows, films and shows carrying it, read through videodb paths
+    # (see videodb_url); a list gives one row of that named list's video items in the
+    # list's own order, as Watchlist.N.* properties, since a list can hold
+    # files the library does not know. With the source off every property
+    # is cleared.
+    # </summary>
+
+    WATCH_REFRESH_SECS = 10       # how often a list source is read again
+    WATCH_MAX = 12                # slots the WatchlistItems include provides
+
+    def update_watchlist(self):
+        """
+        <summary>
+        Fast ticker: answer the Watchlist command channel, and keep the tab's
+        rows matching the source, the tag and the chosen list.
+        </summary>
+        <remarks>
+        Cheap when nothing changed: three skin strings compared with what
+        was published. A tag source sets its two paths once per tag; the
+        library keeps those rows current itself. A list source is read again
+        every WATCH_REFRESH_SECS from the lists already in memory, so an item
+        added on the Lists screen shows within seconds without a file read.
+        </remarks>
+        """
+        cmd = self._take_command("watchlist_command")
+        if cmd == "pick":
+            # WATCHLIST-FIX: the skin's one dialog slot, so pickers never stack.
+            self._spawn_dialog(self._watch_pick)
+        elif cmd:
+            threading.Thread(target=self._watch_command_worker, args=(cmd,),
+                             name="functional-watchlist", daemon=True).start()
+        source = xbmc.getInfoLabel("Skin.String(watchlist_source)").strip().lower()
+        if source == "tag":
+            state = ("tag", xbmc.getInfoLabel("Skin.String(watchlist_tag)").strip() or _L(31899))
+        elif source == "list":
+            state = ("list", xbmc.getInfoLabel("Skin.String(watchlist_list)").strip())
+        else:
+            state = None
+        due = state is not None and state[0] == "list" and (
+            time.time() - self._watch_last >= self.WATCH_REFRESH_SECS)
+        if state == self._watch_state and not due:
+            return
+        self._watch_last = time.time()
+        self._watch_publish(state)
+
+    def _watch_publish(self, state):
+        """
+        <summary>Write what the Watchlist tab shows for one source.</summary>
+        <param name="state">("tag", name), ("list", name) or None for off.</param>
+        <remarks>
+        Each kind of property is cleared when its source is not the one in
+        use, so switching from a tag to a list leaves no tag rows behind.
+        </remarks>
+        """
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        changed = state != self._watch_state
+        self._watch_state = state
+        if state is None or state[0] != "tag":
+            win.clearProperty("watchlist_movies_path")
+            win.clearProperty("watchlist_tvshows_path")
+        elif changed:
+            for kind in ("movies", "tvshows"):
+                win.setProperty("watchlist_%s_path" % kind, watchlist_url(kind, state[1]))
+            _dlog("watchlist: tag %r" % state[1])
+        items = []
+        if state is not None and state[0] == "list" and state[1]:
+            for lst in self._lists_load():
+                if lst["name"].replace('"', "") == state[1]:
+                    items = [it for it in lst["items"] if it["kind"] == "video"][:self.WATCH_MAX]
+                    break
+        self._watch_rows(items, state is not None and state[0] == "list")
+
+    def _watch_rows(self, items, listed):
+        """
+        <summary>Publish the list source's row as Watchlist.N.* slots.</summary>
+        <param name="items">The list records to show, in order.</param>
+        <param name="listed">True while the source is a list, so a count of 0 means empty rather than off.</param>
+        """
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        used_before = len(self._watch_items)
+        self._watch_items = list(items)
+        for i in range(max(len(items), used_before)):
+            n = i + 1
+            if i < len(items):
+                it = items[i]
+                win.setProperty("Watchlist.%d.Label" % n, it["label"])
+                win.setProperty("Watchlist.%d.Sub" % n, self._list_item_sub(it))
+                win.setProperty("Watchlist.%d.Thumb" % n, it["thumb"])
+            else:
+                for key in ("Label", "Sub", "Thumb"):
+                    win.clearProperty("Watchlist.%d.%s" % (n, key))
+        if listed:
+            win.setProperty("Watchlist.Count", str(len(items)))
+        else:
+            win.clearProperty("Watchlist.Count")
+
+    def _watch_pick(self):
+        """
+        <summary>Ask which named list feeds the Watchlist tab. Runs in the dialog slot.</summary>
+        <remarks>
+        WATCHLIST-FIX (review of 13/11/2026). The name is written with
+        _set_skin_string, which quotes it so a comma survives Kodi's builtin
+        argument split, and drops any double quote, which Kodi cannot carry;
+        _watch_publish compares names the same way, so such a list still
+        matches.
+        </remarks>
+        """
+        names = [lst["name"] for lst in self._lists_load()]
+        if not names:
+            self._lists_notify(_L(31904), error=True)
+            return
+        current = xbmc.getInfoLabel("Skin.String(watchlist_list)")
+        plain = [n.replace('"', "") for n in names]
+        choice = xbmcgui.Dialog().select(
+            _L(31903), names, preselect=plain.index(current) if current in plain else -1)
+        if choice >= 0:
+            _set_skin_string("watchlist_list", names[choice])
+            self._watch_state = None
+
+    def _list_renamed(self, old, new):
+        """
+        <summary>
+        Carry the settings that name a list along when it is renamed, or
+        clear them when it is deleted.
+        </summary>
+        <param name="old">The list's name before.</param>
+        <param name="new">Its new name, or "" when the list was deleted.</param>
+        <remarks>
+        WATCHLIST-FIX. Called from Rename and Delete on the Lists screen and
+        from the same two calls of the lists API, so the Watchlist does not
+        go quietly empty when its list changes name or goes. Names compare
+        with double quotes dropped, as _set_skin_string stores them.
+        </remarks>
+        """
+        keys = ["watchlist_list"]
+        for key in keys:
+            if xbmc.getInfoLabel("Skin.String(%s)" % key) != old.replace('"', ""):
+                continue
+            if new:
+                _set_skin_string(key, new)
+            else:
+                xbmc.executebuiltin("Skin.Reset(%s)" % key)
+
+    def _watch_command_worker(self, cmd):
+        """
+        <summary>
+        Daemon thread body: "play:N" plays slot N of the list row, or opens
+        a show or season. The pick has its own method, _watch_pick.
+        </summary>
+        <param name="cmd">The watchlist_command value.</param>
+        <remarks>
+        A film or episode plays through Player.Open with resume, so one
+        part way through carries on; a file the library does not know plays
+        by path. A whole show or season opens its library page rather than
+        queueing every episode, which is what the Lists screen's Port is for.
+        Any failure is logged, never raised.
+        </remarks>
+        """
+        try:
+            if not cmd.startswith("play:"):
+                _dlog("watchlist command ignored: %r" % cmd)
+                return
+            slot = self._safe_int(cmd[5:], 0) - 1
+            items = list(self._watch_items)
+            if not 0 <= slot < len(items):
+                _dlog("watchlist: slot %r is empty, ignored" % cmd)
+                return
+            it = items[slot]
+            if it["dbtype"] in self.LIST_GROUP_TYPES:
+                showid, season = self._list_group_where(it)
+                if not showid:
+                    self._lists_notify(_L(31905), error=True)
+                    return
+                path = "videodb://tvshows/titles/%d/" % showid
+                if season is not None:
+                    path += "%d/" % season
+                xbmc.executebuiltin("ActivateWindow(Videos,%s,return)" % path)
+                return
+            _jsonrpc("Player.Open", {"item": self._list_item_spec(it), "options": {"resume": True}})
+            _dlog("watchlist: played slot %d" % (slot + 1))
+        except Exception:  # noqa: BLE001
+            _dlog("watchlist: %s failed:\n%s" % (cmd, traceback.format_exc()), xbmc.LOGERROR)
+
     # ---- Colophon (the hidden screen, custom window 1154) --------------------
 
     DEDICATION_FILE = "special://profile/addon_data/skin.functional/colophon/dedication.jpg"
@@ -6367,6 +6573,7 @@ class FunctionalHelper(xbmc.Monitor):
             if self._lists_last == old:
                 self._lists_last = name
         self._lists_save()
+        self._list_renamed(old, name)
 
     def _lists_delete(self):
         """<summary>Remove the selected list after a yes/no confirm.</summary>"""
@@ -6384,6 +6591,7 @@ class FunctionalHelper(xbmc.Monitor):
                 self._lists_last = ""
             self._lists_sel = min(idx, len(self._lists))
         self._lists_save()
+        self._list_renamed(lst["name"], "")
 
     @classmethod
     def _list_item_spec(cls, it):
@@ -12097,6 +12305,8 @@ def run():
         helper.update_tile_command,
         helper.update_favourites,
         helper.update_continue_watching,
+        # WATCHLIST: three skin strings compared unless a list is due a read.
+        helper.update_watchlist,
         helper.update_lists,
         helper.update_playing_cast,
         helper.update_info_cast,

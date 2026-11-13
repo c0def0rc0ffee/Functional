@@ -37,7 +37,13 @@
 	     keeps its lower part while the Continue page is up with Next Up on. -->
 	<expression name="recent_page">String.IsEqual(Skin.String(home_panel),recent)</expression>
 	<expression name="recent_tab_shown">!Skin.HasSetting(hide_continue) + !Skin.HasSetting(hide_recent) + [Integer.IsGreater(Container(9221).NumItems,0) | Integer.IsGreater(Container(9223).NumItems,0)]</expression>
-	<expression name="panel_tall">!Skin.HasSetting(hide_nextup) + !$EXP[recent_page]</expression>
+	<expression name="panel_tall">!Skin.HasSetting(hide_nextup) + !$EXP[recent_page] + !$EXP[watch_page]</expression>
+	<!-- WATCHLIST (item 22): the third page and tab of the pop up. All
+	     three read false while Skin.String(watchlist_source) is empty, its
+	     default, so with the tab off nothing here changes Home. -->
+	<expression name="watch_on">!String.IsEmpty(Skin.String(watchlist_source))</expression>
+	<expression name="watch_page">String.IsEqual(Skin.String(home_panel),watch) + $EXP[watch_on]</expression>
+	<expression name="watch_tab_shown">!Skin.HasSetting(hide_continue) + [[String.IsEqual(Skin.String(watchlist_source),tag) + [Integer.IsGreater(Container(9231).NumItems,0) | Integer.IsGreater(Container(9233).NumItems,0)]] | [String.IsEqual(Skin.String(watchlist_source),list) + Integer.IsGreater(Window(home).Property(Watchlist.Count),0)]]</expression>
 
 	<!-- The press-and-hold menu was opened on one of the Continue Watching
 	     lists on Home, so DialogContextMenu shows the skin's own three rows
@@ -1343,6 +1349,56 @@
 		<value condition="String.IsEmpty(Skin.String(age_filter))">$LOCALIZE[31398]</value>
 		<value>$INFO[Skin.String(age_filter),,+] $LOCALIZE[31399]</value>
 	</variable>
+
+	<!-- <summary>WATCHLIST: the values shown on the three Watchlist rows of
+	     Skin Settings.</summary> -->
+	<variable name="WatchlistSourceLabel">
+		<value condition="String.IsEqual(Skin.String(watchlist_source),tag)">$LOCALIZE[31894]</value>
+		<value condition="String.IsEqual(Skin.String(watchlist_source),list)">$LOCALIZE[31895]</value>
+		<value>$LOCALIZE[31893]</value>
+	</variable>
+	<variable name="WatchlistTagLabel">
+		<value condition="!String.IsEmpty(Skin.String(watchlist_tag))">$INFO[Skin.String(watchlist_tag)]</value>
+		<value>$LOCALIZE[31899]</value>
+	</variable>
+	<variable name="WatchlistListLabel">
+		<value condition="!String.IsEmpty(Skin.String(watchlist_list))">$INFO[Skin.String(watchlist_list)]</value>
+		<value>$LOCALIZE[31902]</value>
+	</variable>
+	<!-- <summary>WATCHLIST: one slot of the list row, bound to the
+	     Watchlist.N.* properties service.py:_watch_rows publishes. A click
+	     names the slot on watchlist_command; the service plays it, or
+	     opens a show or season.</summary>
+	     <param name="n">1-based slot number.</param> -->
+	<include name="WatchlistItem">
+		<param name="n" />
+		<definition>
+			<item>
+				<label>$INFO[Window(home).Property(Watchlist.$PARAM[n].Label)]</label>
+				<label2>$INFO[Window(home).Property(Watchlist.$PARAM[n].Sub)]</label2>
+				<icon>$INFO[Window(home).Property(Watchlist.$PARAM[n].Thumb)]</icon>
+				<onclick>Skin.SetString(watchlist_command,play:$PARAM[n])</onclick>
+				<visible>!String.IsEmpty(Window(home).Property(Watchlist.$PARAM[n].Label))</visible>
+			</item>
+		</definition>
+	</include>
+	<!-- <summary>The twelve list slots, WATCH_MAX in service.py.</summary> -->
+	<include name="WatchlistItems">
+		<definition>
+			<include content="WatchlistItem"><param name="n" value="1" /></include>
+			<include content="WatchlistItem"><param name="n" value="2" /></include>
+			<include content="WatchlistItem"><param name="n" value="3" /></include>
+			<include content="WatchlistItem"><param name="n" value="4" /></include>
+			<include content="WatchlistItem"><param name="n" value="5" /></include>
+			<include content="WatchlistItem"><param name="n" value="6" /></include>
+			<include content="WatchlistItem"><param name="n" value="7" /></include>
+			<include content="WatchlistItem"><param name="n" value="8" /></include>
+			<include content="WatchlistItem"><param name="n" value="9" /></include>
+			<include content="WatchlistItem"><param name="n" value="10" /></include>
+			<include content="WatchlistItem"><param name="n" value="11" /></include>
+			<include content="WatchlistItem"><param name="n" value="12" /></include>
+		</definition>
+	</include>
 
 	<variable name="ContinueTabLabel">
 		<value condition="String.IsEqual(Skin.String(continue_tab),top)">$LOCALIZE[31135]</value>

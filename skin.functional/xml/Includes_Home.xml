@@ -528,6 +528,9 @@
 		<param name="recent_gate" default="true"/>
 		<param name="flip_continue" default="false"/>
 		<param name="flip_recent" default="false"/>
+		<!-- WATCHLIST: the third tab, false by default so a caller that
+		     does not know it draws nothing new. -->
+		<param name="shown_watch" default="$EXP[watch_tab_shown]"/>
 		<definition>
 			<!-- The Continue Watching tab, one button per edge so the nav
 			     conditions elsewhere can name the visible one. -->
@@ -539,6 +542,8 @@
 				<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				<!-- Makes room for the Recently Added tab on the same edge. -->
 				<animation effect="slide" end="-160,0" time="0" condition="[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]]">Conditional</animation>
+				<!-- WATCHLIST: one more step left to make room for the third tab. -->
+				<animation effect="slide" end="-160,0" time="0" condition="$PARAM[shown_watch]">Conditional</animation>
 				<left>810</left>
 				<top>1044</top>
 				<width>300</width>
@@ -557,12 +562,12 @@
 				     page: switch page and stay open. Open on this page: close.
 				     Closed: open on this page. The focus hops fire whenever the
 				     panel is about to show this page. -->
-				<onclick condition="Skin.HasSetting(continue_open) + !$EXP[recent_page]">Skin.Reset(continue_open)</onclick>
+				<onclick condition="Skin.HasSetting(continue_open) + !$EXP[recent_page] + !$EXP[watch_page]">Skin.Reset(continue_open)</onclick>
 				<onclick condition="!Skin.HasSetting(continue_open)">Skin.SetBool(continue_open)</onclick>
 				<onclick>Skin.Reset(home_panel)</onclick>
-				<onclick condition="!Skin.HasSetting(continue_open) | $EXP[recent_page]">SetFocus(9201)</onclick>
-				<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page]] + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
-				<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page]] + Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0) + $EXP[nextup_shown]">SetFocus(9205)</onclick>
+				<onclick condition="!Skin.HasSetting(continue_open) | $EXP[recent_page] | $EXP[watch_page]">SetFocus(9201)</onclick>
+				<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page] | $EXP[watch_page]] + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
+				<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page] | $EXP[watch_page]] + Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0) + $EXP[nextup_shown]">SetFocus(9205)</onclick>
 				<!-- Up from the bottom tab reaches the nearest thing above: the
 				     menu while the corner bar sits above it, otherwise the bar
 				     (on this edge, or under a top menu). See HOME-VERTICAL-NAV. -->
@@ -571,6 +576,7 @@
 				<onup condition="Control.IsVisible(9120)">9120</onup>
 				<onup>9100</onup>
 				<onright condition="[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]]">9212</onright>
+				<onright condition="![[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]] + $PARAM[shown_watch]">9214</onright>
 			</control>
 
 			<!-- Top edge -->
@@ -579,6 +585,8 @@
 				<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				<!-- Makes room for the Recently Added tab on the same edge. -->
 				<animation effect="slide" end="-160,0" time="0" condition="[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]]">Conditional</animation>
+				<!-- WATCHLIST: one more step left to make room for the third tab. -->
+				<animation effect="slide" end="-160,0" time="0" condition="$PARAM[shown_watch]">Conditional</animation>
 				<left>810</left>
 				<top>0</top>
 				<width>300</width>
@@ -597,12 +605,12 @@
 				     page: switch page and stay open. Open on this page: close.
 				     Closed: open on this page. The focus hops fire whenever the
 				     panel is about to show this page. -->
-				<onclick condition="Skin.HasSetting(continue_open) + !$EXP[recent_page]">Skin.Reset(continue_open)</onclick>
+				<onclick condition="Skin.HasSetting(continue_open) + !$EXP[recent_page] + !$EXP[watch_page]">Skin.Reset(continue_open)</onclick>
 				<onclick condition="!Skin.HasSetting(continue_open)">Skin.SetBool(continue_open)</onclick>
 				<onclick>Skin.Reset(home_panel)</onclick>
-				<onclick condition="!Skin.HasSetting(continue_open) | $EXP[recent_page]">SetFocus(9201)</onclick>
-				<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page]] + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
-				<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page]] + Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0) + $EXP[nextup_shown]">SetFocus(9205)</onclick>
+				<onclick condition="!Skin.HasSetting(continue_open) | $EXP[recent_page] | $EXP[watch_page]">SetFocus(9201)</onclick>
+				<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page] | $EXP[watch_page]] + Integer.IsEqual(Container(9201).NumItems,0)">SetFocus(9203)</onclick>
+				<onclick condition="[!Skin.HasSetting(continue_open) | $EXP[recent_page] | $EXP[watch_page]] + Integer.IsEqual(Container(9201).NumItems,0) + Integer.IsEqual(Container(9203).NumItems,0) + $EXP[nextup_shown]">SetFocus(9205)</onclick>
 				<!-- Down from the top tab lands on the corner bar only while the
 				     bar sits between tab and menu; with the menu at the top as
 				     well, the menu is what lies under the tab. -->
@@ -611,6 +619,7 @@
 				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9120)">9120</ondown>
 				<ondown>9000</ondown>
 				<onright condition="[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]]">9213</onright>
+				<onright condition="![[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]] + $PARAM[shown_watch]">9215</onright>
 			</control>
 
 			<control type="button" id="9212">
@@ -618,6 +627,8 @@
 				<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				<!-- Alone on the edge (nothing to continue) it takes the centre. -->
 				<animation effect="slide" end="-160,0" time="0" condition="[[!$PARAM[shown_continue] + !$PARAM[flip_continue]] | [$PARAM[shown_continue] + $PARAM[flip_continue]]]">Conditional</animation>
+				<!-- WATCHLIST: one more step left to make room for the third tab. -->
+				<animation effect="slide" end="-160,0" time="0" condition="$PARAM[shown_watch]">Conditional</animation>
 				<left>970</left>
 				<top>1044</top>
 				<width>300</width>
@@ -638,6 +649,7 @@
 				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsGreater(Container(9221).NumItems,0)">SetFocus(9221)</onclick>
 				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsEqual(Container(9221).NumItems,0)">SetFocus(9223)</onclick>
 				<onleft condition="[[$PARAM[shown_continue] + !$PARAM[flip_continue]] | [!$PARAM[shown_continue] + $PARAM[flip_continue]]]">9210</onleft>
+				<onright condition="$PARAM[shown_watch]">9214</onright>
 				<onup condition="$EXP[bar_above_menu]">9000</onup>
 				<onup condition="Control.IsVisible(9110)">9110</onup>
 				<onup condition="Control.IsVisible(9120)">9120</onup>
@@ -649,6 +661,8 @@
 				<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
 				<!-- Alone on the edge (nothing to continue) it takes the centre. -->
 				<animation effect="slide" end="-160,0" time="0" condition="[[!$PARAM[shown_continue] + !$PARAM[flip_continue]] | [$PARAM[shown_continue] + $PARAM[flip_continue]]]">Conditional</animation>
+				<!-- WATCHLIST: one more step left to make room for the third tab. -->
+				<animation effect="slide" end="-160,0" time="0" condition="$PARAM[shown_watch]">Conditional</animation>
 				<left>970</left>
 				<top>0</top>
 				<width>300</width>
@@ -669,6 +683,85 @@
 				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsGreater(Container(9221).NumItems,0)">SetFocus(9221)</onclick>
 				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[recent_page]] + Integer.IsEqual(Container(9221).NumItems,0)">SetFocus(9223)</onclick>
 				<onleft condition="[[$PARAM[shown_continue] + !$PARAM[flip_continue]] | [!$PARAM[shown_continue] + $PARAM[flip_continue]]]">9211</onleft>
+				<onright condition="$PARAM[shown_watch]">9215</onright>
+				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9100)">9100</ondown>
+				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9110)">9110</ondown>
+				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9120)">9120</ondown>
+				<ondown>9000</ondown>
+			</control>
+
+			<!-- WATCHLIST tab, bottom edge (item 22). To the right of the other
+			     two, stepping left over each one that is not shown, so any
+			     set of the three sits centred as the two always have. -->
+			<control type="button" id="9214">
+				<visible>$PARAM[shown_watch] + !$EXP[continue_tab_top]</visible>
+				<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
+				<animation effect="slide" end="-160,0" time="0" condition="![[$PARAM[shown_continue] + !$PARAM[flip_continue]] | [!$PARAM[shown_continue] + $PARAM[flip_continue]]]">Conditional</animation>
+				<animation effect="slide" end="-160,0" time="0" condition="![[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]] + $PARAM[recent_gate]]">Conditional</animation>
+				<left>1130</left>
+				<top>1044</top>
+				<width>300</width>
+				<height>36</height>
+				<font>font_small</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
+				<label>31891</label>
+				<!-- The same click logic as the Recently Added tab, for this page.
+				     Each focus names its source: a row whose path has gone empty
+				     keeps the items it had (seen on Kodi 21.3), so a count alone
+				     could send the focus to the other source's hidden row. -->
+				<onclick condition="Skin.HasSetting(continue_open) + $EXP[watch_page]">Skin.Reset(continue_open)</onclick>
+				<onclick condition="!Skin.HasSetting(continue_open)">Skin.SetBool(continue_open)</onclick>
+				<onclick>Skin.SetString(home_panel,watch)</onclick>
+				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[watch_page]] + String.IsEqual(Skin.String(watchlist_source),tag) + Integer.IsGreater(Container(9231).NumItems,0)">SetFocus(9231)</onclick>
+				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[watch_page]] + String.IsEqual(Skin.String(watchlist_source),tag) + Integer.IsEqual(Container(9231).NumItems,0) + Integer.IsGreater(Container(9233).NumItems,0)">SetFocus(9233)</onclick>
+				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[watch_page]] + String.IsEqual(Skin.String(watchlist_source),list)">SetFocus(9235)</onclick>
+				<onleft condition="Control.IsVisible(9212)">9212</onleft>
+				<onleft condition="!Control.IsVisible(9212) + Control.IsVisible(9210)">9210</onleft>
+				<onup condition="$EXP[bar_above_menu]">9000</onup>
+				<onup condition="Control.IsVisible(9110)">9110</onup>
+				<onup condition="Control.IsVisible(9120)">9120</onup>
+				<onup>9100</onup>
+			</control>
+
+			<!-- WATCHLIST tab, top edge (item 22). To the right of the other
+			     two, stepping left over each one that is not shown, so any
+			     set of the three sits centred as the two always have. -->
+			<control type="button" id="9215">
+				<visible>$PARAM[shown_watch] + $EXP[continue_tab_top]</visible>
+				<animation effect="fade" time="200" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
+				<animation effect="slide" end="-160,0" time="0" condition="![[$PARAM[shown_continue] + !$PARAM[flip_continue]] | [!$PARAM[shown_continue] + $PARAM[flip_continue]]]">Conditional</animation>
+				<animation effect="slide" end="-160,0" time="0" condition="![[[$PARAM[shown_recent] + !$PARAM[flip_recent]] | [!$PARAM[shown_recent] + $PARAM[flip_recent]]] + $PARAM[recent_gate]]">Conditional</animation>
+				<left>1130</left>
+				<top>0</top>
+				<width>300</width>
+				<height>36</height>
+				<font>font_small</font>
+				<textcolor>text</textcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<align>center</align>
+				<aligny>center</aligny>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
+				<label>31891</label>
+				<!-- The same click logic as the Recently Added tab, for this page.
+				     Each focus names its source: a row whose path has gone empty
+				     keeps the items it had (seen on Kodi 21.3), so a count alone
+				     could send the focus to the other source's hidden row. -->
+				<onclick condition="Skin.HasSetting(continue_open) + $EXP[watch_page]">Skin.Reset(continue_open)</onclick>
+				<onclick condition="!Skin.HasSetting(continue_open)">Skin.SetBool(continue_open)</onclick>
+				<onclick>Skin.SetString(home_panel,watch)</onclick>
+				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[watch_page]] + String.IsEqual(Skin.String(watchlist_source),tag) + Integer.IsGreater(Container(9231).NumItems,0)">SetFocus(9231)</onclick>
+				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[watch_page]] + String.IsEqual(Skin.String(watchlist_source),tag) + Integer.IsEqual(Container(9231).NumItems,0) + Integer.IsGreater(Container(9233).NumItems,0)">SetFocus(9233)</onclick>
+				<onclick condition="[!Skin.HasSetting(continue_open) | !$EXP[watch_page]] + String.IsEqual(Skin.String(watchlist_source),list)">SetFocus(9235)</onclick>
+				<onleft condition="Control.IsVisible(9213)">9213</onleft>
+				<onleft condition="!Control.IsVisible(9213) + Control.IsVisible(9211)">9211</onleft>
 				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9100)">9100</ondown>
 				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9110)">9110</ondown>
 				<ondown condition="$EXP[bar_above_menu] + Control.IsVisible(9120)">9120</ondown>
@@ -1275,7 +1368,7 @@
 				<include content="HomeCornerBar"><param name="id_bar" value="9950"/><param name="flip_fav" value="Control.HasFocus(7123)"/><param name="flip_addons" value="Control.HasFocus(7109)"/><param name="flip_power" value="Control.HasFocus(7112)"/><param name="flip_lists" value="Control.HasFocus(7136)"/><param name="flip_stats" value="Control.HasFocus(7139)"/><param name="id_sleep" value="9951"/><param name="id_sleep_btn" value="9952"/><param name="id_resume" value="9953"/><param name="id_queue" value="9954"/><param name="id_stats" value="9955"/><param name="id_lists" value="9956"/><param name="id_fav" value="9957"/><param name="id_addons" value="9958"/><param name="id_settings" value="9959"/><param name="id_power" value="9960"/><param name="align" value="left"/><param name="left" value="40"/><param name="visible" value="$EXP[corner_bar_left]"/></include>
 				<include content="HomeCornerBar"><param name="id_bar" value="9970"/><param name="flip_fav" value="Control.HasFocus(7123)"/><param name="flip_addons" value="Control.HasFocus(7109)"/><param name="flip_power" value="Control.HasFocus(7112)"/><param name="flip_lists" value="Control.HasFocus(7136)"/><param name="flip_stats" value="Control.HasFocus(7139)"/><param name="id_sleep" value="9971"/><param name="id_sleep_btn" value="9972"/><param name="id_resume" value="9973"/><param name="id_queue" value="9974"/><param name="id_stats" value="9975"/><param name="id_lists" value="9976"/><param name="id_fav" value="9977"/><param name="id_addons" value="9978"/><param name="id_settings" value="9979"/><param name="id_power" value="9980"/><param name="align" value="center"/><param name="left" value="260"/><param name="visible" value="$EXP[corner_bar_centre]"/></include>
 				<include content="HomeFooter"><param name="flip_version" value="Control.HasFocus(7105)"/></include>
-				<include content="HomeContinueTabs"><param name="flip_continue" value="Control.HasFocus(7128)"/><param name="flip_recent" value="Control.HasFocus(7144)"/><param name="shown_continue" value="!Skin.HasSetting(hide_continue)"/><param name="shown_recent" value="!Skin.HasSetting(hide_recent)"/><param name="recent_gate" value="[[!Skin.HasSetting(hide_continue) + !Control.HasFocus(7128)] | [Skin.HasSetting(hide_continue) + Control.HasFocus(7128)]]"/></include>
+				<include content="HomeContinueTabs"><param name="flip_continue" value="Control.HasFocus(7128)"/><param name="flip_recent" value="Control.HasFocus(7144)"/><param name="shown_continue" value="!Skin.HasSetting(hide_continue)"/><param name="shown_recent" value="!Skin.HasSetting(hide_recent)"/><param name="recent_gate" value="[[!Skin.HasSetting(hide_continue) + !Control.HasFocus(7128)] | [Skin.HasSetting(hide_continue) + Control.HasFocus(7128)]]"/><param name="shown_watch" value="!Skin.HasSetting(hide_continue) + $EXP[watch_on]"/></include>
 				<!-- Region outlines: one per region, on the rows that change it. -->
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_all] | $EXP[stage_region_background]"/><param name="left" value="10"/><param name="top" value="10"/><param name="width" value="1900"/><param name="height" value="1060"/></include>
 				<include content="StageRegion"><param name="when" value="$EXP[stage_region_caption] + String.IsEqual(Skin.String(bg_label_position),topleft)"/><param name="left" value="20"/><param name="top" value="20"/><param name="width" value="900"/><param name="height" value="100"/></include>

@@ -764,7 +764,8 @@ def _replace(helper, seq, body, if_match):
     <returns>200 with the stored list, and the new ETag.</returns>
     <remarks>
     The list's Radarr tie, Port by Time length and creation number are kept. A
-    rename carries the Add To List target with it, as Rename on the TV does.
+    rename carries the Add To List target with it, as Rename on the TV does,
+    and so do the settings that name a list (service.py:_list_renamed).
     </remarks>
     """
     if not isinstance(body, dict):
@@ -780,6 +781,7 @@ def _replace(helper, seq, body, if_match):
         with helper._lists_lock:
             _check_match(_current_etag(helper), if_match)
             lst = _find(helper._lists, seq)
+            before = lst["name"]
             if helper._lists_last == lst["name"]:
                 helper._lists_last = name
             lst["name"] = name
@@ -788,6 +790,9 @@ def _replace(helper, seq, body, if_match):
                 lst["items"] = items
         _save(helper)
         lists, etag = _snapshot(helper)
+    if before != name:
+        # WATCHLIST-FIX: settings that name the list follow it, as on the TV.
+        helper._list_renamed(before, name)
     _log("list %d changed over the API" % seq)
     return 200, _list_record(helper, _find(lists, seq)), {"ETag": etag}
 
@@ -820,6 +825,8 @@ def _delete(helper, seq, if_match):
             helper._lists_sel = min(helper._lists_sel, len(helper._lists))
         _save(helper)
         _lists, etag = _snapshot(helper)
+    # WATCHLIST-FIX: settings that named the list are cleared, as on the TV.
+    helper._list_renamed(lst["name"], "")
     _log("list %d deleted over the API" % seq)
     return 204, None, {"ETag": etag}
 
