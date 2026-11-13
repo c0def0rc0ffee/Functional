@@ -319,7 +319,7 @@
 				     not showing, for the reason given on group 9200: a hidden
 				     container is not processed, a parked one keeps up. -->
 				<control type="group">
-					<animation effect="slide" end="0,3000" time="0" condition="$EXP[recent_page]">Conditional</animation>
+					<animation effect="slide" end="0,3000" time="0" condition="$EXP[recent_page] | $EXP[watch_page]">Conditional</animation>
 					<control type="label">
 						<left>60</left>
 						<top>368</top>
@@ -1031,6 +1031,403 @@
 							</control>
 						</focusedlayout>
 						<content target="videos" limit="12">special://skin/playlists/recent_episodes.xsp</content>
+					</control>
+				</control>
+				<!-- Page 3: the Watchlist (WATCHLIST, item 22). For a tag, films
+				     and shows carrying it as library rows (service.py sets their
+				     paths); for a list, one row of its items in the list's order,
+				     as slots the service publishes. -->
+				<control type="group">
+					<animation effect="slide" end="0,3000" time="0" condition="!$EXP[watch_page]">Conditional</animation>
+					<control type="label">
+						<left>60</left>
+						<top>368</top>
+						<width>600</width>
+						<height>34</height>
+						<font>font_med</font>
+						<textcolor>$VAR[AccentColor]</textcolor>
+						<label>31891</label>
+					</control>
+					<control type="label">
+						<left>60</left>
+						<top>406</top>
+						<width>500</width>
+						<height>24</height>
+						<font>font_small</font>
+						<textcolor>text_dim</textcolor>
+						<label>31087</label>
+						<visible>String.IsEqual(Skin.String(watchlist_source),tag)</visible>
+					</control>
+					<control type="label">
+						<left>960</left>
+						<top>406</top>
+						<width>500</width>
+						<height>24</height>
+						<font>font_small</font>
+						<textcolor>text_dim</textcolor>
+						<label>31090</label>
+						<visible>String.IsEqual(Skin.String(watchlist_source),tag)</visible>
+					</control>
+					<control type="list" id="9231">
+						<visible allowhiddenfocus="true">String.IsEqual(Skin.String(watchlist_source),tag)</visible>
+						<left>56</left>
+						<top>432</top>
+						<width>900</width>
+						<height>274</height>
+						<orientation>horizontal</orientation>
+						<onup>Skin.Reset(continue_open)</onup>
+						<onup condition="Control.IsVisible(9215)">9215</onup>
+						<onup condition="Control.IsVisible(9214)">9214</onup>
+						<onup condition="Control.IsVisible(9213)">9213</onup>
+						<onup condition="Control.IsVisible(9212)">9212</onup>
+						<onup condition="Control.IsVisible(9211)">9211</onup>
+						<onup condition="Control.IsVisible(9210)">9210</onup>
+						<onup>9000</onup>
+						<ondown>Skin.Reset(continue_open)</ondown>
+						<ondown condition="Control.IsVisible(9215)">9215</ondown>
+						<ondown condition="Control.IsVisible(9214)">9214</ondown>
+						<ondown condition="Control.IsVisible(9213)">9213</ondown>
+						<ondown condition="Control.IsVisible(9212)">9212</ondown>
+						<ondown condition="Control.IsVisible(9211)">9211</ondown>
+						<ondown condition="Control.IsVisible(9210)">9210</ondown>
+						<ondown>9000</ondown>
+						<onback>Skin.Reset(continue_open)</onback>
+						<onback condition="Control.IsVisible(9215)">9215</onback>
+						<onback condition="Control.IsVisible(9214)">9214</onback>
+						<onback condition="Control.IsVisible(9213)">9213</onback>
+						<onback condition="Control.IsVisible(9212)">9212</onback>
+						<onback condition="Control.IsVisible(9211)">9211</onback>
+						<onback condition="Control.IsVisible(9210)">9210</onback>
+						<onback>9000</onback>
+						<onleft>9231</onleft>
+						<onright>9233</onright>
+						<scrolltime tween="cubic" easing="out">200</scrolltime>
+						<itemlayout height="274" width="150">
+							<control type="image">
+								<left>4</left>
+								<top>4</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>4</left>
+								<top>4</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+							</control>
+							<control type="label">
+								<left>4</left>
+								<top>220</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>4</left>
+								<top>246</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text_dim</textcolor>
+								<label>$INFO[ListItem.Year]</label>
+							</control>
+						</itemlayout>
+						<focusedlayout height="274" width="150">
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>148</width>
+								<height>218</height>
+								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+								<visible>Control.HasFocus(9231)</visible>
+							</control>
+							<control type="image">
+								<left>4</left>
+								<top>4</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>4</left>
+								<top>4</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+							</control>
+							<control type="label">
+								<left>4</left>
+								<top>220</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>white</textcolor>
+								<scroll>true</scroll>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>4</left>
+								<top>246</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<scroll>true</scroll>
+								<label>$INFO[ListItem.Year]</label>
+							</control>
+						</focusedlayout>
+						<content target="videos" limit="12">$INFO[Window(home).Property(watchlist_movies_path)]</content>
+					</control>
+					<control type="list" id="9233">
+						<visible allowhiddenfocus="true">String.IsEqual(Skin.String(watchlist_source),tag)</visible>
+						<left>956</left>
+						<top>432</top>
+						<width>900</width>
+						<height>274</height>
+						<orientation>horizontal</orientation>
+						<onup>Skin.Reset(continue_open)</onup>
+						<onup condition="Control.IsVisible(9215)">9215</onup>
+						<onup condition="Control.IsVisible(9214)">9214</onup>
+						<onup condition="Control.IsVisible(9213)">9213</onup>
+						<onup condition="Control.IsVisible(9212)">9212</onup>
+						<onup condition="Control.IsVisible(9211)">9211</onup>
+						<onup condition="Control.IsVisible(9210)">9210</onup>
+						<onup>9000</onup>
+						<ondown>Skin.Reset(continue_open)</ondown>
+						<ondown condition="Control.IsVisible(9215)">9215</ondown>
+						<ondown condition="Control.IsVisible(9214)">9214</ondown>
+						<ondown condition="Control.IsVisible(9213)">9213</ondown>
+						<ondown condition="Control.IsVisible(9212)">9212</ondown>
+						<ondown condition="Control.IsVisible(9211)">9211</ondown>
+						<ondown condition="Control.IsVisible(9210)">9210</ondown>
+						<ondown>9000</ondown>
+						<onback>Skin.Reset(continue_open)</onback>
+						<onback condition="Control.IsVisible(9215)">9215</onback>
+						<onback condition="Control.IsVisible(9214)">9214</onback>
+						<onback condition="Control.IsVisible(9213)">9213</onback>
+						<onback condition="Control.IsVisible(9212)">9212</onback>
+						<onback condition="Control.IsVisible(9211)">9211</onback>
+						<onback condition="Control.IsVisible(9210)">9210</onback>
+						<onback>9000</onback>
+						<onleft>9231</onleft>
+						<onright>9233</onright>
+						<scrolltime tween="cubic" easing="out">200</scrolltime>
+						<itemlayout height="274" width="150">
+							<control type="image">
+								<left>4</left>
+								<top>4</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>4</left>
+								<top>4</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+							</control>
+							<control type="label">
+								<left>4</left>
+								<top>220</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>4</left>
+								<top>246</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text_dim</textcolor>
+								<label>$INFO[ListItem.Year]</label>
+							</control>
+						</itemlayout>
+						<focusedlayout height="274" width="150">
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>148</width>
+								<height>218</height>
+								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+								<visible>Control.HasFocus(9233)</visible>
+							</control>
+							<control type="image">
+								<left>4</left>
+								<top>4</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>4</left>
+								<top>4</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(poster)]</texture>
+							</control>
+							<control type="label">
+								<left>4</left>
+								<top>220</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>white</textcolor>
+								<scroll>true</scroll>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>4</left>
+								<top>246</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<scroll>true</scroll>
+								<label>$INFO[ListItem.Year]</label>
+							</control>
+						</focusedlayout>
+						<content target="videos" limit="12">$INFO[Window(home).Property(watchlist_tvshows_path)]</content>
+					</control>
+					<!-- The list's name over its row. -->
+					<control type="label">
+						<left>60</left>
+						<top>406</top>
+						<width>1800</width>
+						<height>24</height>
+						<font>font_small</font>
+						<textcolor>text_dim</textcolor>
+						<label>$INFO[Skin.String(watchlist_list)]</label>
+						<visible>String.IsEqual(Skin.String(watchlist_source),list)</visible>
+					</control>
+					<control type="list" id="9235">
+						<visible allowhiddenfocus="true">String.IsEqual(Skin.String(watchlist_source),list)</visible>
+						<left>56</left>
+						<top>432</top>
+						<width>1800</width>
+						<height>274</height>
+						<orientation>horizontal</orientation>
+						<onup>Skin.Reset(continue_open)</onup>
+						<onup condition="Control.IsVisible(9215)">9215</onup>
+						<onup condition="Control.IsVisible(9214)">9214</onup>
+						<onup condition="Control.IsVisible(9213)">9213</onup>
+						<onup condition="Control.IsVisible(9212)">9212</onup>
+						<onup condition="Control.IsVisible(9211)">9211</onup>
+						<onup condition="Control.IsVisible(9210)">9210</onup>
+						<onup>9000</onup>
+						<ondown>Skin.Reset(continue_open)</ondown>
+						<ondown condition="Control.IsVisible(9215)">9215</ondown>
+						<ondown condition="Control.IsVisible(9214)">9214</ondown>
+						<ondown condition="Control.IsVisible(9213)">9213</ondown>
+						<ondown condition="Control.IsVisible(9212)">9212</ondown>
+						<ondown condition="Control.IsVisible(9211)">9211</ondown>
+						<ondown condition="Control.IsVisible(9210)">9210</ondown>
+						<ondown>9000</ondown>
+						<onback>Skin.Reset(continue_open)</onback>
+						<onback condition="Control.IsVisible(9215)">9215</onback>
+						<onback condition="Control.IsVisible(9214)">9214</onback>
+						<onback condition="Control.IsVisible(9213)">9213</onback>
+						<onback condition="Control.IsVisible(9212)">9212</onback>
+						<onback condition="Control.IsVisible(9211)">9211</onback>
+						<onback condition="Control.IsVisible(9210)">9210</onback>
+						<onback>9000</onback>
+						<onleft>9235</onleft>
+						<onright>9235</onright>
+						<scrolltime tween="cubic" easing="out">200</scrolltime>
+						<itemlayout height="274" width="150">
+							<control type="image">
+								<left>4</left>
+								<top>4</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>4</left>
+								<top>4</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Icon]</texture>
+							</control>
+							<control type="label">
+								<left>4</left>
+								<top>220</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>4</left>
+								<top>246</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text_dim</textcolor>
+								<label>$INFO[ListItem.Label2]</label>
+							</control>
+						</itemlayout>
+						<focusedlayout height="274" width="150">
+							<control type="image">
+								<left>0</left>
+								<top>0</top>
+								<width>148</width>
+								<height>218</height>
+								<texture colordiffuse="$VAR[AccentColor]" border="4">border.png</texture>
+								<visible>Control.HasFocus(9235)</visible>
+							</control>
+							<control type="image">
+								<left>4</left>
+								<top>4</top>
+								<width>140</width>
+								<height>210</height>
+								<texture colordiffuse="grey_mid">white.png</texture>
+							</control>
+							<control type="image">
+								<left>4</left>
+								<top>4</top>
+								<width>140</width>
+								<height>210</height>
+								<aspectratio>scale</aspectratio>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Icon]</texture>
+							</control>
+							<control type="label">
+								<left>4</left>
+								<top>220</top>
+								<width>140</width>
+								<height>26</height>
+								<font>font_small</font>
+								<textcolor>white</textcolor>
+								<scroll>true</scroll>
+								<label>$INFO[ListItem.Label]</label>
+							</control>
+							<control type="label">
+								<left>4</left>
+								<top>246</top>
+								<width>140</width>
+								<height>24</height>
+								<font>font_small</font>
+								<textcolor>text</textcolor>
+								<scroll>true</scroll>
+								<label>$INFO[ListItem.Label2]</label>
+							</control>
+						</focusedlayout>
+						<content>
+							<include content="WatchlistItems"/>
+						</content>
 					</control>
 				</control>
 			</control>

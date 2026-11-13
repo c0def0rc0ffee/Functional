@@ -3338,3 +3338,64 @@ msgstr ""
 msgctxt "#31890"
 msgid "Hide from Continue Watching"
 msgstr ""
+
+# Watchlist tab, item 22. 13/11/2026.
+msgctxt "#31891"
+msgid "WATCHLIST"
+msgstr ""
+
+msgctxt "#31892"
+msgid "Watchlist Tab:"
+msgstr ""
+
+msgctxt "#31893"
+msgid "Off"
+msgstr ""
+
+msgctxt "#31894"
+msgid "Tag"
+msgstr ""
+
+msgctxt "#31895"
+msgid "List"
+msgstr ""
+
+msgctxt "#31896"
+msgid "Adds a Watchlist tab to the Continue Watching pop up: films and shows with a tag you choose, or one of your lists in its own order.[CR]Where: Home screen, the tab at the screen edge and the pop up it opens."
+msgstr ""
+
+msgctxt "#31897"
+msgid "Watchlist Tag:"
+msgstr ""
+
+msgctxt "#31898"
+msgid "The tag the Watchlist reads. Titles carrying it in the library show in the tab, newest added first; tags set in Jellyfin come across with Jellyfin for Kodi.[CR]Where: Home screen, the Watchlist pop up."
+msgstr ""
+
+msgctxt "#31899"
+msgid "Watch later"
+msgstr ""
+
+msgctxt "#31900"
+msgid "Watchlist List:"
+msgstr ""
+
+msgctxt "#31901"
+msgid "Which of your lists the Watchlist shows. Its films and episodes play from the tab; a whole show or season opens its page.[CR]Where: Home screen, the Watchlist pop up."
+msgstr ""
+
+msgctxt "#31902"
+msgid "None chosen"
+msgstr ""
+
+msgctxt "#31903"
+msgid "Choose the Watchlist list"
+msgstr ""
+
+msgctxt "#31904"
+msgid "There are no lists yet"
+msgstr ""
+
+msgctxt "#31905"
+msgid "That show is no longer in the library"
+msgstr ""

@@ -721,6 +721,66 @@
 					<onleft>7000</onleft>
 					<onright>7022</onright>
 				</control>
+				<!-- WATCHLIST (item 22): the third tab of the pop up. Off by default. -->
+				<control type="button" id="7183">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31892] $VAR[WatchlistSourceLabel]</label>
+					<enable>!Skin.HasSetting(hide_continue)</enable>
+					<onleft>7000</onleft>
+					<!-- Off, Tag, List, Off. -->
+					<onclick condition="String.IsEmpty(Skin.String(watchlist_source))">Skin.SetString(watchlist_source,tag)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(watchlist_source),tag)">Skin.SetString(watchlist_source,list)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(watchlist_source),list)">Skin.Reset(watchlist_source)</onclick>
+					<onright>7022</onright>
+				</control>
+				<!-- The tag a Tag source reads; empty means the default, Watch later. -->
+				<control type="button" id="7184">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31897] $VAR[WatchlistTagLabel]</label>
+					<enable>!Skin.HasSetting(hide_continue) + String.IsEqual(Skin.String(watchlist_source),tag)</enable>
+					<onleft>7000</onleft>
+					<onclick>Skin.SetString(watchlist_tag)</onclick>
+					<onright>7022</onright>
+				</control>
+				<!-- The named list a List source shows, picked by the helper. -->
+				<control type="button" id="7185">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31900] $VAR[WatchlistListLabel]</label>
+					<enable>!Skin.HasSetting(hide_continue) + String.IsEqual(Skin.String(watchlist_source),list)</enable>
+					<onleft>7000</onleft>
+					<onclick>Skin.SetString(watchlist_command,pick)</onclick>
+					<onright>7022</onright>
+				</control>
 
 				<control type="label" id="7064">
 					<width>680</width>
