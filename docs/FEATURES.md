@@ -12,7 +12,7 @@ Everything the skin does, screen by screen. Every setting named here lives in **
 - **Coming up** list of Engage's next slots down the left, with a countdown on the slot that plays next (the minutes left and a bar that empties) while Engage's countdown setting is on
 - Resume button when media is playing; queue button with item count when items are queued
 - **Sleep timer** from the power menu: at a set time, when the video playing now finishes, or after a number of episodes, with a countdown on Home and on the OSD
-- **Continue Watching** pop-up behind an edge tab: in-progress movies and episodes, plus a **Next Up** row with the next unwatched episode of every show you are part way through, each row with a press-and-hold Resume / Mark as watched / Mark as unwatched menu. A **Recently Added** tab beside it opens the same pop-up on a page of the newest movies and episodes
+- **Continue Watching** pop-up behind an edge tab: in-progress movies and episodes, plus a **Next Up** row with the next unwatched episode of every show you are part way through, each row with a press-and-hold Resume / Mark as watched / Mark as unwatched menu, and optionally **Hide**, which keeps a title or a Next Up show out until it is played again (off by default). A **Recently Added** tab beside it opens the same pop-up on a page of the newest movies and episodes
 - Optional logo, version footer, loading splash, and date/time, all toggleable
 
 ## Backgrounds

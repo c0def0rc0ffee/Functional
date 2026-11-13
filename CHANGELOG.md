@@ -11,6 +11,20 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.29 (13/11/2026)
+
+- New: titles can be hidden from Continue Watching. A new switch, Allow
+  Hiding from Continue Watching on the Home Screen page, off by default,
+  adds Hide to the press and hold menu of the Continue Watching pop up. A
+  hidden film or episode stays out of its row until it is played again;
+  on a Next Up row it hides the show until any of its episodes is played.
+  Switching it off shows them all again. Nothing is written to the
+  library.
+- Changed: Next Up is now a row of library items, so a press and hold on
+  it opens the same menu as the rows above (Resume, Mark as watched, Mark
+  as unwatched, and Hide when that is on), and a click plays as theirs
+  do. Its shows now run A to Z.
+
 ## 0.23.28 (13/11/2026)
 
 - New: the Coming up list counts down to the slot that plays next. While
