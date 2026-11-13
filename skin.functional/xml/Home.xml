@@ -497,7 +497,8 @@
 								<label>$INFO[ListItem.Year]</label>
 							</control>
 						</focusedlayout>
-						<content target="videos" limit="12">special://skin/playlists/continue_movies.xsp</content>
+						<!-- HIDE-CONTINUE: the helper's copy while titles are hidden. -->
+						<content target="videos" limit="12">$VAR[ContinueMoviesPath]</content>
 					</control>
 
 					<control type="list" id="9203">
@@ -631,14 +632,16 @@
 								<label>$INFO[ListItem.Season,S]$INFO[ListItem.Episode,E, · ]$INFO[ListItem.TVShowTitle]</label>
 							</control>
 						</focusedlayout>
-						<content target="videos" limit="12">special://skin/playlists/continue_episodes.xsp</content>
+						<content target="videos" limit="12">$VAR[ContinueEpisodesPath]</content>
 					</control>
 
 					<!-- Next Up: the next unwatched episode of each show part way
-					     through, as fixed slots (NextUp.N.*, service.py:update_next_up)
-					     because Kodi has no library node for it. Static items, so
-					     the episode id rides on an item property and a click goes
-					     through continue_command like the press and hold menu. -->
+					     through. Kodi has no library node for it, so the helper
+					     finds the episodes and writes a playlist of exactly those
+					     (NEXTUP-LIBRARY, service.py:update_next_up). They are real
+					     library items, so press and hold opens the same menu as the
+					     rows above, Hide included, and a click plays like theirs.
+					     Kodi orders a playlist itself: shows A to Z. -->
 					<control type="label">
 						<visible>!Skin.HasSetting(hide_nextup)</visible>
 						<left>60</left>
@@ -707,7 +710,7 @@
 								<width>140</width>
 								<height>210</height>
 								<aspectratio>scale</aspectratio>
-								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Icon]</texture>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
 							</control>
 							<control type="label">
 								<left>4</left>
@@ -725,7 +728,7 @@
 								<height>24</height>
 								<font>font_small</font>
 								<textcolor>text_dim</textcolor>
-								<label>$INFO[ListItem.Label2]</label>
+								<label>$INFO[ListItem.Season,S]$INFO[ListItem.Episode,E, · ]$INFO[ListItem.TVShowTitle]</label>
 							</control>
 						</itemlayout>
 
@@ -751,7 +754,7 @@
 								<width>140</width>
 								<height>210</height>
 								<aspectratio>scale</aspectratio>
-								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Icon]</texture>
+								<texture fallback="DefaultVideoCover.png" background="true">$INFO[ListItem.Art(tvshow.poster)]</texture>
 							</control>
 							<control type="label">
 								<left>4</left>
@@ -771,12 +774,10 @@
 								<font>font_small</font>
 								<textcolor>text</textcolor>
 								<scroll>true</scroll>
-								<label>$INFO[ListItem.Label2]</label>
+								<label>$INFO[ListItem.Season,S]$INFO[ListItem.Episode,E, · ]$INFO[ListItem.TVShowTitle]</label>
 							</control>
 						</focusedlayout>
-						<content>
-							<include content="NextUpRows"/>
-						</content>
+						<content target="videos" limit="12">$INFO[Window(home).Property(nextup_xsp)]</content>
 					</control>
 				</control>
 
