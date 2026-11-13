@@ -5048,9 +5048,13 @@ class FunctionalHelper(xbmc.Monitor):
     # real library items with Kodi's own click and menu.
     # </summary>
 
-    MORE_LIKE_ORDER = {"collection": ("year", "ascending"),
+    # MORE-LIKE-FIX (review of 13/11/2026): Kodi applies only the rules of a
+    # path's playlist and the row sorts itself newest first (its content tag),
+    # so every choice says the order the viewer actually gets.
+    MORE_LIKE_ORDER = {"collection": ("year", "descending"),
                        "director": ("year", "descending"),
-                       "genre": ("random", "ascending")}
+                       "genre": ("year", "descending")}
+    MORE_LIKE_YEARS = 5           # a genre match keeps to this many years either side
 
     def update_info_like(self):
         """
@@ -5103,6 +5107,14 @@ class FunctionalHelper(xbmc.Monitor):
         rules = {"and": [{"field": field, "operator": "is", "value": [value]},
                          {"field": "title", "operator": "isnot",
                           "value": [xbmc.getInfoLabel("ListItem.Title")]}]}
+        year = self._safe_int(xbmc.getInfoLabel("ListItem.Year"), 0)
+        if choice == "genre" and year > 0:
+            # MORE-LIKE-FIX: the genre alone matched thousands of titles on a
+            # big library and gave every film of that genre the same twelve
+            # newest ones; the years around the item's own keep it close.
+            span = self.MORE_LIKE_YEARS
+            rules["and"] += [{"field": "year", "operator": "greaterthan", "value": [str(year - span - 1)]},
+                             {"field": "year", "operator": "lessthan", "value": [str(year + span + 1)]}]
         method, direction = self.MORE_LIKE_ORDER[choice]
         return videodb_url(kind, rules, method, direction)
 
