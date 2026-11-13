@@ -54,6 +54,7 @@ The background is not limited to the home screen:
   - Episode air dates and movie release years shown automatically by content type
 - Info bar position switchable between top and bottom; live-tunable top/bottom clearance
 - **Studio or network logo**: an optional logo on the information screen, top right, from Kodi's Studio Icons pack (off by default). Switching it on offers to install the pack; switching it off offers to leave it, disable it or uninstall it
+- **More like this**: an optional row on the information screen of up to twelve titles from your library with the same collection, director or genre, newest first (off by default)
 
 ## Slide-Out Library Options
 

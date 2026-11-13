@@ -11,6 +11,20 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.33 (13/11/2026)
+
+- New: a More like this row on the information screen. More Like This,
+  at the foot of the Visible Fields list on the Library page, Off by
+  default, picks Same Collection, Same Director or Same Genre: up to
+  twelve titles from your library under a shortened plot, newest first.
+  A show uses its genre, and a genre match keeps to five years either
+  side of the film.
+- Fixed: rows read through a filtered library path (Continue Watching
+  while titles are hidden, Next Up, the Watchlist, the Home rows) could
+  show a More entry or come out in title order; each now sorts and
+  limits itself. A Home row of titles in progress still runs A to Z
+  while any title is hidden from Continue Watching.
+
 ## 0.23.32 (13/11/2026)
 
 - New: the studio or TV network as a logo at the top right of the
