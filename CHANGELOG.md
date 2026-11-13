@@ -11,6 +11,18 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.28 (13/11/2026)
+
+- New: the Coming up list counts down to the slot that plays next. While
+  Engage's countdown switch is on (Engage 1.11.11 or later) and the next
+  slot is within its window, its line shows the minutes left and a thin
+  bar that empties as it nears.
+- New: the skip pill can be set per show: the default, Intros and Recaps,
+  With Credits, or No Pill. The info screen's per show button reads This
+  Show while the pill is on and asks which choice to change. A show set to
+  No Pill asks the server nothing. The Playback page's switch still turns
+  the pill off for every show, and it stays off by default.
+
 ## 0.23.27 (11/11/2026)
 
 - Fixed: TV episodes could get stuck sorted by rating. Kodi keeps one

@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.27" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.28" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,8 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>Fixed: TV episodes could get stuck sorted by rating. Kodi keeps one sort for every episode list, so choosing Rating in one show sorted them all that way, and the Sort menu had no way back. The Sort menu now has an Episode choice in episode lists, which puts every show back in season and episode order.</news>
+		<news>New: the Coming up list counts down to the slot that plays next. While Engage's countdown switch is on (Engage 1.11.11 or later) and the next slot is within its window, its line shows the minutes left and a thin bar that empties as it nears.
+New: the skip pill can be set per show: the default, Intros and Recaps, With Credits, or No Pill. The info screen's per show button reads This Show while the pill is on and asks which choice to change. A show set to No Pill asks the server nothing. The Playback page's switch still turns the pill off for every show, and it stays off by default.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
