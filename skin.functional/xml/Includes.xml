@@ -2498,42 +2498,6 @@
 			</control>
 		</definition>
 	</include>
-	<!-- <summary>One Next Up slot: a static row bound to the NextUp.N.*
-	     properties service.py:update_next_up publishes. The episode id rides
-	     on an item property because a static item has no ListItem.DBID; a
-	     click names the slot on the continue_command channel and the service
-	     resolves it to the episode it published there.</summary>
-	     <param name="n">1-based slot number.</param> -->
-	<include name="NextUpRow">
-		<param name="n" />
-		<definition>
-			<item>
-				<label>$INFO[Window(home).Property(NextUp.$PARAM[n].Label)]</label>
-				<label2>$INFO[Window(home).Property(NextUp.$PARAM[n].Sub)]</label2>
-				<icon>$INFO[Window(home).Property(NextUp.$PARAM[n].Thumb)]</icon>
-				<property name="dbid">$INFO[Window(home).Property(NextUp.$PARAM[n].DBID)]</property>
-				<onclick>Skin.SetString(continue_command,nextup:$PARAM[n])</onclick>
-				<visible>!String.IsEmpty(Window(home).Property(NextUp.$PARAM[n].Label))</visible>
-			</item>
-		</definition>
-	</include>
-	<!-- <summary>The twelve Next Up slots, NEXTUP_MAX in service.py.</summary> -->
-	<include name="NextUpRows">
-		<definition>
-			<include content="NextUpRow"><param name="n" value="1" /></include>
-			<include content="NextUpRow"><param name="n" value="2" /></include>
-			<include content="NextUpRow"><param name="n" value="3" /></include>
-			<include content="NextUpRow"><param name="n" value="4" /></include>
-			<include content="NextUpRow"><param name="n" value="5" /></include>
-			<include content="NextUpRow"><param name="n" value="6" /></include>
-			<include content="NextUpRow"><param name="n" value="7" /></include>
-			<include content="NextUpRow"><param name="n" value="8" /></include>
-			<include content="NextUpRow"><param name="n" value="9" /></include>
-			<include content="NextUpRow"><param name="n" value="10" /></include>
-			<include content="NextUpRow"><param name="n" value="11" /></include>
-			<include content="NextUpRow"><param name="n" value="12" /></include>
-		</definition>
-	</include>
 	<!-- <summary>The 60 left-column and 200 right-column slots of the Lists
 	     screen, so the window file stays readable.</summary> -->
 	<include name="ListsRows">
@@ -2968,6 +2932,7 @@
 		<param name="command" />
 		<param name="onup" />
 		<param name="ondown" />
+		<param name="shown" default="true" />
 		<definition>
 			<control type="image">
 				<left>0</left>
@@ -2975,7 +2940,7 @@
 				<width>600</width>
 				<height>60</height>
 				<texture colordiffuse="bg_panel">white.png</texture>
-				<visible>$EXP[continue_menu]</visible>
+				<visible>$EXP[continue_menu] + $PARAM[shown]</visible>
 			</control>
 			<control type="button" id="$PARAM[id]">
 				<left>0</left>
@@ -2992,7 +2957,7 @@
 				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 				<texturenofocus>-</texturenofocus>
 				<label>$PARAM[label]</label>
-				<visible>$EXP[continue_menu]</visible>
+				<visible>$EXP[continue_menu] + $PARAM[shown]</visible>
 				<onup>$PARAM[onup]</onup>
 				<ondown>$PARAM[ondown]</ondown>
 				<onclick>Skin.SetString(continue_command,$PARAM[command])</onclick>
@@ -3007,6 +2972,20 @@
 	<variable name="ContextMenuItemLabel">
 		<value condition="$EXP[continue_menu]">$INFO[Window(home).Property(continue_label)]</value>
 		<value>$INFO[ListItem.Label]</value>
+	</variable>
+
+	<!-- <summary>HIDE-CONTINUE: the playlist behind each Continue row. The
+	     helper's own copy, which leaves out hidden titles, while the
+	     switch is on and something of that kind is hidden; otherwise the
+	     skin's playlist, so with the switch off Home is exactly as it
+	     was.</summary> -->
+	<variable name="ContinueMoviesPath">
+		<value condition="Skin.HasSetting(continue_hide) + !String.IsEmpty(Window(home).Property(continue_movies_path))">$INFO[Window(home).Property(continue_movies_path)]</value>
+		<value>special://skin/playlists/continue_movies.xsp</value>
+	</variable>
+	<variable name="ContinueEpisodesPath">
+		<value condition="Skin.HasSetting(continue_hide) + !String.IsEmpty(Window(home).Property(continue_episodes_path))">$INFO[Window(home).Property(continue_episodes_path)]</value>
+		<value>special://skin/playlists/continue_episodes.xsp</value>
 	</variable>
 
 	<!-- <summary>"Resume from HH:MM:SS" for the Continue Watching menu, or

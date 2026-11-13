@@ -3325,3 +3325,16 @@ msgstr ""
 msgctxt "#31887"
 msgid "Skip Pill: %s"
 msgstr ""
+
+# Hide from Continue Watching, item 39. 13/11/2026.
+msgctxt "#31888"
+msgid "Allow Hiding from Continue Watching"
+msgstr ""
+
+msgctxt "#31889"
+msgid "Adds Hide to the press and hold menu of the Continue Watching pop up. A hidden title stays out of its row until it is played again; on a Next Up row it hides the show. Switching this off shows them all again.[CR]Where: Home screen, the Continue Watching pop up, press and hold on a row."
+msgstr ""
+
+msgctxt "#31890"
+msgid "Hide from Continue Watching"
+msgstr ""

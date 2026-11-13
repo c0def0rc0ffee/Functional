@@ -164,7 +164,19 @@
 				<param name="label" value="$LOCALIZE[16104]" />
 				<param name="command" value="unwatched" />
 				<param name="onup" value="961" />
-				<param name="ondown" value="962" />
+				<param name="ondown" value="963" />
+			</include>
+			<!-- HIDE-CONTINUE: only with Skin.HasSetting(continue_hide). On a
+			     Next Up row it hides the show, on the others the title, until
+			     it is played again (service.py:_continue_hide). -->
+			<include content="ContinueContextButton">
+				<param name="id" value="963" />
+				<param name="top" value="290" />
+				<param name="label" value="$LOCALIZE[31890]" />
+				<param name="command" value="hide" />
+				<param name="onup" value="962" />
+				<param name="ondown" value="963" />
+				<param name="shown" value="Skin.HasSetting(continue_hide)" />
 			</include>
 
 			<!-- Backdrop strip behind the menu list. Kodi resizes id 999

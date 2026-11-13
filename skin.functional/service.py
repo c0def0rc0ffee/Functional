@@ -1200,6 +1200,194 @@ def show_skip_rule(global_on, global_credits, card_rule, choice):
     return True, credits and not card_rule
 
 
+# ---- HIDE-CONTINUE, item 39 phase I (13/11/2026) ---------------------------
+# <summary>
+# Titles hidden from the Continue Watching pop-up until they are played
+# again. The Continue rows are live smart playlist containers, which cannot
+# drop one row, so the helper writes its own copy of each playlist with a
+# rule per hidden file and Home reads that copy while the switch is on.
+# Next Up rows are the service's own slots, so a hidden show is skipped
+# there by its shows.json style keys. Nothing here writes to the library.
+# </summary>
+
+HIDDEN_KINDS = {"movie": "movies", "episode": "episodes"}
+
+
+def parse_hidden_doc(text):
+    """
+    <summary>Read the text of continue_hidden.json.</summary>
+    <param name="text">The file's text, a byte order mark allowed.</param>
+    <returns>The document with a files object and a shows object.</returns>
+    <exception cref="ValueError">The text is not a JSON object, or either member is not an object.</exception>
+    <remarks>
+    A missing member is added empty, so a file written by hand with only
+    one of them still reads. Records are kept as written: a save changes
+    only what it was asked to.
+    </remarks>
+    """
+    data = json.loads(text.lstrip("\ufeff"))
+    if not isinstance(data, dict):
+        raise ValueError("continue_hidden.json is not an object")
+    for member in ("files", "shows"):
+        data.setdefault(member, {})
+        if not isinstance(data[member], dict):
+            raise ValueError("continue_hidden.json %s is not an object" % member)
+    return data
+
+
+def file_rule(path, negate=False):
+    """
+    <summary>
+    A JSON smart playlist rule matching exactly one file, or every file but it.
+    </summary>
+    <param name="path">The file as VideoLibrary.Get*Details gives it.</param>
+    <param name="negate">True for the rule that refuses the file instead.</param>
+    <returns>A rule object, or None for an empty path.</returns>
+    <remarks>
+    HIDE-URL (review of 13/11/2026). Kodi keeps a library file as a folder
+    and a name. For an ordinary file the name is the last part of the path;
+    for a plugin item such as Jellyfin for Kodi's the name is the whole URL.
+    Which one a library holds cannot be told from the path alone, so the
+    rule accepts either the whole path as the name, or the folder and the
+    last part together. Never the last part alone: two episodes called
+    S01E02.mkv in different folders would both match. The pairing needs
+    nested rules, which a playlist file cannot hold and a videodb URL's
+    JSON playlist can (checked on Kodi 21.3).
+    </remarks>
+    """
+    path = (path or "").strip()
+    if not path:
+        return None
+    op = "isnot" if negate else "is"
+    whole = {"field": "filename", "operator": op, "value": [path]}
+    cut_at = max(path.rfind("/"), path.rfind("\\")) + 1
+    if path.startswith("plugin://") or not 0 < cut_at < len(path):
+        return whole
+    pair = [{"field": "path", "operator": op, "value": [path[:cut_at]]},
+            {"field": "filename", "operator": op, "value": [path[cut_at:]]}]
+    if negate:
+        return {"and": [whole, {"or": pair}]}
+    return {"or": [whole, {"and": pair}]}
+
+
+VIDEODB_BASES = {"movies": "videodb://movies/titles/",
+                 "episodes": "videodb://tvshows/titles/-1/-1/-1/",
+                 "tvshows": "videodb://tvshows/titles/"}
+
+
+def videodb_url(kind, rules, method, direction, limit=12):
+    """
+    <summary>A library path that lists one kind through a JSON smart playlist.</summary>
+    <param name="kind">"movies", "episodes" or "tvshows".</param>
+    <param name="rules">The playlist's rules object, such as {"and": [...]}.</param>
+    <param name="method">Kodi's order field, such as "lastplayed" or "tvshow".</param>
+    <param name="direction">"ascending" or "descending".</param>
+    <param name="limit">Most rows to return.</param>
+    <returns>The videodb:// path with the playlist in its xsp option.</returns>
+    <remarks>
+    A container reloads when its path changes and only then, so the same
+    rules give the same path and leave the row alone, and any change gives
+    a new one. Nothing is written to disk.
+    </remarks>
+    """
+    doc = {"type": kind, "rules": rules, "limit": limit,
+           "order": {"method": method, "direction": direction}}
+    return VIDEODB_BASES[kind] + "?xsp=" + urllib.parse.quote(
+        json.dumps(doc, separators=(",", ":"), sort_keys=True), safe="")
+
+
+def hidden_files_of(doc, dbtype):
+    """
+    <summary>The hidden files of one kind, in the order they were hidden.</summary>
+    <param name="doc">The continue_hidden.json document.</param>
+    <param name="dbtype">"movie" or "episode".</param>
+    <returns>A list of paths.</returns>
+    """
+    rows = []
+    for path, rec in (doc.get("files") or {}).items():
+        if isinstance(rec, dict) and rec.get("type") == dbtype:
+            rows.append((rec.get("at") or 0, path))
+    return [path for _at, path in sorted(rows)]
+
+
+def hidden_url(dbtype, files):
+    """
+    <summary>
+    The Continue Watching row of one kind, leaving out the given files.
+    </summary>
+    <param name="dbtype">"movie" or "episode".</param>
+    <param name="files">The hidden files of that kind.</param>
+    <returns>The videodb path, or "" when nothing is hidden.</returns>
+    <remarks>
+    The same rule, order and limit as the skin's continue_movies.xsp and
+    continue_episodes.xsp, plus one refusal per hidden file. The limit
+    applies after the rules, so hiding a title lets the thirteenth one up.
+    Kept in step with those files by tests/test_hide_continue.py.
+    </remarks>
+    """
+    refusals = [r for r in (file_rule(f, negate=True) for f in files) if r]
+    if not refusals:
+        return ""
+    rules = {"and": [{"field": "inprogress", "operator": "true", "value": []}] + refusals}
+    return videodb_url(HIDDEN_KINDS[dbtype], rules, "lastplayed", "descending")
+
+
+def nextup_url(files):
+    """
+    <summary>The Next Up row: exactly the given episodes.</summary>
+    <param name="files">Each episode's file, as VideoLibrary.GetEpisodes gives it.</param>
+    <returns>The videodb path, or "" for no episodes.</returns>
+    <remarks>
+    NEXTUP-LIBRARY. A smart playlist cannot keep the helper's order, newest
+    played show first, so it asks Kodi for shows A to Z, which at least
+    never moves while nothing changes.
+    </remarks>
+    """
+    wanted = [r for r in (file_rule(f) for f in files) if r]
+    if not wanted:
+        return ""
+    return videodb_url("episodes", {"or": wanted}, "tvshow", "ascending")
+
+
+def hidden_show(doc, keys):
+    """
+    <summary>True when a show is hidden from Next Up under any of its keys.</summary>
+    <param name="doc">The continue_hidden.json document.</param>
+    <param name="keys">The show's keys from show_keys.</param>
+    <returns>True or False.</returns>
+    """
+    shows = doc.get("shows") or {}
+    return any(key in shows for key in keys or [])
+
+
+def unhide_played(doc, path, show_keys_played):
+    """
+    <summary>
+    Bring back whatever a play has made current again, in place.
+    </summary>
+    <param name="doc">The continue_hidden.json document, changed in place.</param>
+    <param name="path">The file that started, or "" when not known.</param>
+    <param name="show_keys_played">The keys of the show it belongs to, or an empty list.</param>
+    <returns>True when anything was brought back.</returns>
+    <remarks>
+    "Until it is played again" (roadmap item 39): the file itself comes
+    back to its Continue row, and any episode of a hidden show brings the
+    show back to Next Up, since playing one is what moves the show along.
+    </remarks>
+    """
+    changed = False
+    files = doc.get("files") or {}
+    if path and path in files:
+        del files[path]
+        changed = True
+    shows = doc.get("shows") or {}
+    for key in show_keys_played or []:
+        if key in shows:
+            del shows[key]
+            changed = True
+    return changed
+
+
 def _next_card_dialog_class(helper):
     """
     <summary>
@@ -1723,8 +1911,8 @@ class FunctionalHelper(xbmc.Monitor):
 
     # Continue Watching pop-up on Home (see update_continue_watching)
     CONTINUE_LISTS = ("9201", "9203", "9205")  # Home.xml container ids: movies, episodes, next up
-    NEXTUP_LIST = "9205"           # the Next Up row, static slots (see update_next_up)
-    NEXTUP_MAX = 12                # slots the NextUpRows include provides
+    NEXTUP_LIST = "9205"           # the Next Up row (see update_next_up)
+    NEXTUP_MAX = 12                # the row's limit, as Home.xml's content limit
     NEXTUP_REFRESH_SECS = 300      # safety net; library events and a stop force it sooner
 
     CAST_MAX = 8  # portraits the full-screen info card has room for
@@ -1851,12 +2039,19 @@ class FunctionalHelper(xbmc.Monitor):
         self._continue_focus_key = None  # (dbtype, dbid) of the row described
         self._continue_focused = False   # continue_focus property is "1"
         self._continue_action_thread = None  # press and hold action worker
+        self._continue_focus_list = ""   # HIDE-CONTINUE: container id of that row
+        # HIDE-CONTINUE: continue_hidden.json, read and written under the lock.
+        self._hidden_lock = threading.Lock()
+        self._hidden = None              # the document, None until first read
+        self._hidden_stamp = None        # (size, mtime_ns) of what was read
+        self._hidden_frozen = False      # a damaged file could not be set aside
+        self._hidden_played = deque()    # Player.OnAVStart items, for the loop
+        self._hidden_switch = None       # continue_hide as last seen by Next Up
         # Next Up row in the Continue Watching pop-up (see update_next_up).
         self._nextup_lock = threading.Lock()
         self._nextup_last = 0.0          # when the last lookup started, 0 forces one
         self._nextup_thread = None
-        self._nextup_items = []          # [{dbid, label, sub, thumb}] as published
-        self._nextup_slots_used = 0
+        self._nextup_items = []          # [{dbid, file}] as published (NEXTUP-LIBRARY)
         # Age filter (see update_age_command)
         self._accent_custom_seen = None  # last accent_custom value turned into a highlight
         self._tiles_seen = None          # last (toggles, addon, slots) the tiles were published from
@@ -2116,6 +2311,9 @@ class FunctionalHelper(xbmc.Monitor):
             self._card_pending = True
             # SKIP-PILL: the same, update_skip_pill acts on the loop.
             self._skip_pending = True
+            # HIDE-CONTINUE: what started, for update_continue_watching to
+            # bring back if it was hidden. Only the item, no lookup here.
+            self._hidden_note_play(data)
         if method in ("Player.OnPlay", "Player.OnAVStart") and self._sleep_queue_check is not None:
             # LISTS-TIME-SLEEP: something started during the warning, so
             # somebody is there or the evening has moved on. Kodi's own
@@ -4214,9 +4412,15 @@ class FunctionalHelper(xbmc.Monitor):
         still running is dropped and logged rather than queued.
         </remarks>
         """
+        if self._hidden_played:
+            self._hidden_start_unhide()
         cmd = self._take_command("continue_command")
         if cmd:
             dbtype, dbid = self._continue_focus_key or ("", 0)
+            if cmd == "hide":
+                # HIDE-CONTINUE: the action needs to know which row it was:
+                # a Next Up row hides the show, the others the file.
+                cmd = "hide:" + self._continue_focus_list
             # Dropped here, on the loop, so the next tick re-reads the
             # resume time of whatever row is focused now.
             self._continue_focus_key = None
@@ -4252,15 +4456,11 @@ class FunctionalHelper(xbmc.Monitor):
 
         dbtype = xbmc.getInfoLabel("ListItem.DBTYPE").strip().lower()
         dbid = self._safe_int(xbmc.getInfoLabel("ListItem.DBID"), 0)
-        if xbmc.getInfoLabel("System.CurrentControlId") == self.NEXTUP_LIST:
-            # The Next Up rows are static items, so the library id rides on
-            # an item property rather than ListItem.DBID (see NextUpRow).
-            dbtype = "episode"
-            dbid = self._safe_int(xbmc.getInfoLabel("ListItem.Property(dbid)"), 0)
         key = (dbtype, dbid)
         if key == self._continue_focus_key:
             return
         self._continue_focus_key = key
+        self._continue_focus_list = xbmc.getInfoLabel("System.CurrentControlId")
         win.clearProperty("continue_resume")
         win.setProperty("continue_label", xbmc.getInfoLabel("ListItem.Label"))
         if dbtype not in ("movie", "episode") or dbid <= 0:
@@ -4321,13 +4521,11 @@ class FunctionalHelper(xbmc.Monitor):
         Run one entry of the pop-up's press-and-hold menu. Called on the
         action thread, never on the loop.
         </summary>
-        <param name="cmd">continue_command value: resume, watched, unwatched, play, or nextup:N for a click on Next Up slot N.</param>
+        <param name="cmd">continue_command value: resume, watched, unwatched, play, or hide:CONTROLID.</param>
         <param name="dbtype">"movie" or "episode" of the row the menu was opened on.</param>
         <param name="dbid">Library id of that row.</param>
         <remarks>
-        A nextup:N click resolves the slot to the episode the service last
-        published there and plays it from the start; the row is static, so
-        the id cannot come from ListItem.DBID. "watched" bumps the play count and clears the resume point, which is
+        "watched" bumps the play count and clears the resume point, which is
         what Kodi's own "Mark as watched" does; "unwatched" zeroes both.
         The row leaves the pop-up through Kodi's own VideoLibrary.OnUpdate
         handling, which its directory provider honours within a second for
@@ -4339,21 +4537,15 @@ class FunctionalHelper(xbmc.Monitor):
         tick re-reads the resume time of whatever row is focused now.
         </remarks>
         """
-        if cmd.startswith("nextup:"):
-            with self._nextup_lock:
-                items = list(self._nextup_items)
-            slot = self._safe_int(cmd[7:], 0) - 1
-            if not 0 <= slot < len(items):
-                _dlog("next up: slot %r is empty, ignored" % cmd)
-                return
-            dbtype, dbid, cmd = "episode", items[slot]["dbid"], "play"
         if dbtype not in ("movie", "episode") or dbid <= 0:
             _dlog("continue watching: %s ignored, no item captured" % cmd)
             return
         kind = "Movie" if dbtype == "movie" else "Episode"
         idkey = dbtype + "id"
         _dlog("continue watching: %s %s %d" % (cmd, dbtype, dbid))
-        if cmd == "resume":
+        if cmd.startswith("hide:"):
+            self._continue_hide(dbtype, dbid, cmd[5:] == self.NEXTUP_LIST)
+        elif cmd == "resume":
             _jsonrpc("Player.Open", {"item": {idkey: dbid}, "options": {"resume": True}})
         elif cmd == "play":
             _jsonrpc("Player.Open", {"item": {idkey: dbid}})
@@ -4386,6 +4578,237 @@ class FunctionalHelper(xbmc.Monitor):
                 _jsonrpc("VideoLibrary.Set%sDetails" % kind, {idkey: dbid, "playcount": 0})
         else:
             _dlog("continue command ignored: %r" % cmd)
+
+    # ---- HIDE-CONTINUE, item 39 phase I (13/11/2026) -------------------------
+    # <summary>
+    # Hide from Continue Watching: the press and hold menu's fourth row while
+    # Skin.HasSetting(continue_hide) is on. The store is continue_hidden.json
+    # in the skin's data folder; the module helpers above say what is in it.
+    # Home reads continue_movies_path and continue_episodes_path only while the
+    # switch is on, so switching it off shows every row again at once and
+    # leaves the store for the next time it is on.
+    # </summary>
+
+    HIDDEN_FILE = "special://profile/addon_data/skin.functional/continue_hidden.json"
+
+    def _hidden_path(self):
+        """<summary>Absolute path of continue_hidden.json, creating its folder.</summary>
+        <returns>Filesystem path as a string.</returns>"""
+        folder = xbmcvfs.translatePath("special://profile/addon_data/skin.functional/")
+        if not xbmcvfs.exists(folder):
+            xbmcvfs.mkdirs(folder)
+        return xbmcvfs.translatePath(self.HIDDEN_FILE)
+
+    def _hidden_load(self):
+        """
+        <summary>
+        Bring self._hidden up to date with continue_hidden.json. Call with
+        _hidden_lock held.
+        </summary>
+        <remarks>
+        The same care as _shows_load: read again when the file's size or
+        change time moves, a missing file is an empty store, and a file that
+        cannot be read is renamed aside under a timestamped name, never
+        removed or written over. If even the rename fails the store is
+        frozen: it reads as empty and refuses to save.
+        </remarks>
+        """
+        path = self._hidden_path()
+        stamp = self._file_stamp(path)
+        if self._hidden is not None and stamp == self._hidden_stamp:
+            return
+        self._hidden, self._hidden_stamp, self._hidden_frozen = (
+            {"version": 1, "files": {}, "shows": {}}, stamp, False)
+        if stamp is None:
+            return
+        try:
+            with open(path, encoding="utf-8-sig") as handle:
+                self._hidden = parse_hidden_doc(handle.read())
+            return
+        except Exception:  # noqa: BLE001, any failure to read means damaged
+            _dlog("continue_hidden.json unreadable:\n" + traceback.format_exc(),
+                  xbmc.LOGWARNING)
+        aside = path + time.strftime(".bad-%Y%m%d-%H%M%S")
+        n = 1
+        while os.path.exists(aside if n == 1 else "%s-%d" % (aside, n)):
+            n += 1
+        aside = aside if n == 1 else "%s-%d" % (aside, n)
+        try:
+            os.rename(path, aside)
+            self._hidden_stamp = None
+            _dlog("continue_hidden.json set aside as %s" % os.path.basename(aside),
+                  xbmc.LOGWARNING)
+        except OSError:
+            self._hidden_frozen = True
+            _dlog("continue_hidden.json could not be set aside, so nothing will "
+                  "be saved over it", xbmc.LOGERROR)
+
+    def _hidden_save(self):
+        """
+        <summary>Write self._hidden to continue_hidden.json. Call with _hidden_lock held.</summary>
+        <returns>True when the file was written.</returns>
+        <remarks>Written beside itself and renamed into place, so a crash
+        mid write leaves the old file whole.</remarks>
+        """
+        if self._hidden_frozen:
+            return False
+        path = self._hidden_path()
+        part = path + ".part"
+        try:
+            with open(part, "w", encoding="utf-8") as handle:
+                json.dump(self._hidden, handle, indent=1, sort_keys=True)
+            os.replace(part, path)
+        except OSError:
+            _dlog("continue_hidden.json not written:\n" + traceback.format_exc(),
+                  xbmc.LOGERROR)
+            return False
+        self._hidden_stamp = self._file_stamp(path)
+        return True
+
+    def _hidden_publish(self):
+        """
+        <summary>
+        Point Home's two Continue rows at paths that leave out what is
+        hidden. Call with _hidden_lock held.
+        </summary>
+        <remarks>
+        HIDE-URL. A kind with nothing hidden clears its property, so Home
+        goes back to the skin's own playlist. A kind whose hidden files did
+        not change keeps the very same path, so its row is not reloaded and
+        does not jump back to its first title.
+        </remarks>
+        """
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        for dbtype, kind in HIDDEN_KINDS.items():
+            url = hidden_url(dbtype, hidden_files_of(self._hidden or {}, dbtype))
+            prop = "continue_%s_path" % kind
+            if not url:
+                win.clearProperty(prop)
+            elif win.getProperty(prop) != url:
+                win.setProperty(prop, url)
+
+    def hidden_startup(self):
+        """
+        <summary>Once at start up: point Home at the playlists for what is already hidden.</summary>
+        """
+        try:
+            with self._hidden_lock:
+                self._hidden_load()
+                self._hidden_publish()
+        except Exception:  # noqa: BLE001
+            _dlog("hide continue: start up failed:\n" + traceback.format_exc(),
+                  xbmc.LOGERROR)
+
+    def _continue_hide(self, dbtype, dbid, from_nextup):
+        """
+        <summary>
+        Hide one row: its file from the Continue rows, or for a Next Up row
+        its show from Next Up. Runs on the action thread.
+        </summary>
+        <param name="dbtype">"movie" or "episode".</param>
+        <param name="dbid">Library id of the row.</param>
+        <param name="from_nextup">True when the menu was opened on the Next Up row.</param>
+        <remarks>
+        Kept by file and by show key, never by library id: Jellyfin for Kodi
+        hands a dropped row's number to the next item added (LISTS-ID-CHECK).
+        </remarks>
+        """
+        if from_nextup:
+            resp = _jsonrpc("VideoLibrary.GetEpisodeDetails",
+                            {"episodeid": dbid, "properties": ["tvshowid"]})
+            details = (resp.get("result") or {}).get("episodedetails") or {}
+            keys, title = self._show_keys_for(self._safe_int(details.get("tvshowid"), 0))
+            if not keys:
+                _dlog("hide continue: episode %d has no show to hide" % dbid)
+                return
+            with self._hidden_lock:
+                self._hidden_load()
+                self._hidden["shows"][keys[0]] = {"title": title, "at": int(time.time())}
+                saved = self._hidden_save()
+            _dlog("hide continue: show %s hidden from Next Up (%s)"
+                  % (keys[0], "saved" if saved else "not saved"))
+            self._nextup_last = 0.0
+            return
+        kind = "Movie" if dbtype == "movie" else "Episode"
+        resp = _jsonrpc("VideoLibrary.Get%sDetails" % kind,
+                        {dbtype + "id": dbid, "properties": ["file", "title"]})
+        details = (resp.get("result") or {}).get(dbtype + "details") or {}
+        path = details.get("file") or ""
+        if not path:
+            _dlog("hide continue: %s %d has no file to hide" % (dbtype, dbid))
+            return
+        with self._hidden_lock:
+            self._hidden_load()
+            self._hidden["files"][path] = {
+                "type": dbtype, "title": details.get("title") or details.get("label") or "",
+                "at": int(time.time())}
+            saved = self._hidden_save()
+            self._hidden_publish()
+        _dlog("hide continue: %s %d hidden (%s)" % (dbtype, dbid, "saved" if saved else "not saved"))
+
+    def _hidden_note_play(self, data):
+        """
+        <summary>
+        Notification thread: queue the item a Player.OnAVStart names, so the
+        loop can bring it back if it was hidden.
+        </summary>
+        <param name="data">The announcement's JSON text.</param>
+        """
+        try:
+            item = (json.loads(data or "{}") or {}).get("item") or {}
+        except ValueError:
+            return
+        dbtype = item.get("type")
+        dbid = self._safe_int(item.get("id"), 0)
+        if dbtype in ("movie", "episode") and dbid > 0:
+            self._hidden_played.append((dbtype, dbid))
+
+    def _hidden_start_unhide(self):
+        """
+        <summary>
+        Loop: hand the plays queued by _hidden_note_play to a daemon thread,
+        unless nothing is hidden at all, in which case they are dropped.
+        </summary>
+        """
+        items = []
+        while self._hidden_played:
+            items.append(self._hidden_played.popleft())
+        with self._hidden_lock:
+            doc = self._hidden or {}
+            if not doc.get("files") and not doc.get("shows") and self._hidden_stamp is None:
+                return
+        threading.Thread(target=self._hidden_unhide_worker, args=(items,),
+                         name="functional-unhide", daemon=True).start()
+
+    def _hidden_unhide_worker(self, items):
+        """
+        <summary>
+        Daemon thread body: bring back each played item, and the show of each
+        played episode, then rewrite the playlists if anything changed.
+        </summary>
+        <param name="items">(dbtype, dbid) pairs from Player.OnAVStart.</param>
+        """
+        try:
+            for dbtype, dbid in items:
+                kind = "Movie" if dbtype == "movie" else "Episode"
+                props = ["file", "tvshowid"] if dbtype == "episode" else ["file"]
+                resp = _jsonrpc("VideoLibrary.Get%sDetails" % kind,
+                                {dbtype + "id": dbid, "properties": props})
+                details = (resp.get("result") or {}).get(dbtype + "details") or {}
+                keys = []
+                if dbtype == "episode":
+                    keys, _title = self._show_keys_for(
+                        self._safe_int(details.get("tvshowid"), 0))
+                with self._hidden_lock:
+                    self._hidden_load()
+                    if unhide_played(self._hidden, details.get("file") or "", keys):
+                        self._hidden_save()
+                        self._hidden_publish()
+                        self._nextup_last = 0.0
+                        _dlog("hide continue: %s %d played, shown again" % (dbtype, dbid))
+        except Exception:  # noqa: BLE001
+            _dlog("hide continue: unhide failed:\n" + traceback.format_exc(),
+                  xbmc.LOGERROR)
 
     # ---- Colophon (the hidden screen, custom window 1154) --------------------
 
@@ -4639,7 +5062,7 @@ class FunctionalHelper(xbmc.Monitor):
         <summary>
         Keep the Next Up row of the Continue Watching pop-up current: the
         next unwatched episode of each show the viewer is part way through,
-        most recently played show first, as NextUp.N.* Home properties.
+        as a playlist the row reads (_nextup_publish).
         </summary>
         <remarks>
         Fast ticker, cheap when nothing is due. A lookup runs on a daemon
@@ -4648,20 +5071,25 @@ class FunctionalHelper(xbmc.Monitor):
         episode is exactly what moves a show along. Hidden by hide_continue
         or hide_nextup, in which case the slots are cleared once and nothing
         is queried until the row is shown again. Kodi has no library node for
-        "next unwatched per show", so this is the one Continue row served as
-        fixed slots rather than as a smart playlist container; a click and
-        the press and hold menu go through continue_command like the other
-        two rows. NextUp.Count follows the convention _publish_cast documents:
+        "next unwatched per show", so the helper finds the episodes and writes
+        a playlist of exactly those; a click and the press and hold menu then
+        work as on the other two rows. NextUp.Count follows the convention _publish_cast documents:
         cleared means not looked up, "0" means looked up and empty.
         </remarks>
         """
         hidden = (xbmc.getCondVisibility("Skin.HasSetting(hide_continue)")
                   or xbmc.getCondVisibility("Skin.HasSetting(hide_nextup)"))
         if hidden:
-            if self._nextup_slots_used or self._nextup_items:
+            if self._nextup_items or xbmcgui.Window(HOME_WINDOW_ID).getProperty("NextUp.Count"):
                 self._nextup_publish([], looked_up=False)
             self._nextup_last = 0.0
             return
+        switch = xbmc.getCondVisibility("Skin.HasSetting(continue_hide)")
+        if switch != self._hidden_switch:
+            # HIDE-CONTINUE: a show hidden from Next Up comes back the moment
+            # the switch goes off, and goes again when it comes back on.
+            self._hidden_switch = switch
+            self._nextup_last = 0.0
         if time.time() - self._nextup_last < self.NEXTUP_REFRESH_SECS:
             return
         if self._nextup_thread is not None and self._nextup_thread.is_alive():
@@ -4693,29 +5121,26 @@ class FunctionalHelper(xbmc.Monitor):
                 "filter": {"field": "inprogress", "operator": "true", "value": ""},
                 "sort": {"method": "lastplayed", "order": "descending"},
                 "limits": {"start": 0, "end": self.NEXTUP_MAX * 2},
-                "properties": ["title", "art"]})
+                "properties": ["title", "art", "uniqueid", "year"]})
             shows = _result_rows(resp, "tvshows")
+            hidden = {}
+            if xbmc.getCondVisibility("Skin.HasSetting(continue_hide)"):
+                with self._hidden_lock:
+                    self._hidden_load()
+                    hidden = self._hidden
             items = []
             for show in shows:
                 if len(items) >= self.NEXTUP_MAX:
                     break
+                if hidden and hidden_show(hidden, show_keys(
+                        show.get("uniqueid"), show.get("title"), show.get("year"))):
+                    continue
                 episode = self._nextup_episode(show.get("tvshowid"))
                 if episode is None:
                     continue
-                art = episode.get("art") or {}
                 items.append({
                     "dbid": self._safe_int(episode.get("episodeid"), 0),
-                    "label": episode.get("title") or "",
-                    # Marker first: the caption box is 140 wide, and with
-                    # the show name leading, "Breaking Bad S5E14" was cut to
-                    # "Breaking Ba..." so the row never said which episode.
-                    "sub": "S{1}E{2} \u00b7 {0}".format(
-                        show.get("title") or episode.get("showtitle") or "",
-                        self._safe_int(episode.get("season"), 0),
-                        self._safe_int(episode.get("episode"), 0)),
-                    "thumb": (art.get("tvshow.poster") or art.get("season.poster")
-                              or (show.get("art") or {}).get("poster")
-                              or art.get("thumb") or ""),
+                    "file": episode.get("file") or "",
                 })
             self._nextup_publish(items)
             _dlog("next up: {0} row(s) from {1} show(s) in progress".format(
@@ -4750,7 +5175,7 @@ class FunctionalHelper(xbmc.Monitor):
                 {"field": "season", "operator": "greaterthan", "value": "0"}]},
             "sort": {"method": "episode", "order": "ascending"},
             "limits": {"start": 0, "end": 1},
-            "properties": ["title", "season", "episode", "showtitle", "art", "resume"]})
+            "properties": ["title", "season", "episode", "showtitle", "resume", "file"]})
         episodes = _result_rows(resp, "episodes")
         if not episodes:
             return None
@@ -4763,28 +5188,27 @@ class FunctionalHelper(xbmc.Monitor):
     def _nextup_publish(self, items, looked_up=True):
         """
         <summary>
-        Write the NextUp.N.* slots and NextUp.Count, clearing slots that
-        were used last time and are empty now.
+        Point Home's Next Up row at exactly these episodes, and set NextUp.Count.
         </summary>
-        <param name="items">Records from _nextup_worker, in row order.</param>
+        <param name="items">Records from _nextup_worker, {dbid, file}, in the order found.</param>
         <param name="looked_up">False clears NextUp.Count (row hidden, nothing known) instead of writing "0".</param>
+        <remarks>
+        NEXTUP-LIBRARY (13/11/2026): the row used to be twelve static slots,
+        which Kodi gives no press and hold menu. A library path naming the
+        episodes by file makes them library items like the Continue rows.
+        The same episodes give the same path, so the row only reloads when
+        they change. An episode with no file cannot be named and is left out.
+        </remarks>
         """
         win = xbmcgui.Window(HOME_WINDOW_ID)
+        items = [it for it in items if it.get("file")]
+        url = nextup_url([it["file"] for it in items])
         with self._nextup_lock:
             self._nextup_items = list(items)
-            used_before = self._nextup_slots_used
-            for i in range(max(len(items), used_before)):
-                n = i + 1
-                if i < len(items):
-                    it = items[i]
-                    win.setProperty("NextUp.%d.Label" % n, it["label"])
-                    win.setProperty("NextUp.%d.Sub" % n, it["sub"])
-                    win.setProperty("NextUp.%d.Thumb" % n, it["thumb"])
-                    win.setProperty("NextUp.%d.DBID" % n, str(it["dbid"]))
-                else:
-                    for key in ("Label", "Sub", "Thumb", "DBID"):
-                        win.clearProperty("NextUp.%d.%s" % (n, key))
-            self._nextup_slots_used = len(items)
+            if not url:
+                win.clearProperty("nextup_path")
+            elif win.getProperty("nextup_path") != url:
+                win.setProperty("nextup_path", url)
             if looked_up:
                 win.setProperty("NextUp.Count", str(len(items)))
             else:
@@ -11628,6 +12052,8 @@ def run():
         return
     # Once, after the grace: a file write and one Home property.
     helper.write_dedication()
+    # HIDE-CONTINUE: Home's Continue rows leave out what was hidden before.
+    helper.hidden_startup()
     # START-BADGE: a badge left up by a service that stopped mid count would
     # never be taken down by this one, which never raised it. Written only
     # when there is something to clear, and after the grace like the rest.
