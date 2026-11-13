@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!--
+  <summary>
+  Films in a random order, for a Home row (item 46). Kodi draws a new order each time the row loads.
+  </summary>
+-->
+<smartplaylist type="movies">
+    <name>widget_random_movies</name>
+    <match>all</match>
+    <order direction="ascending">random</order>
+    <limit>15</limit>
+</smartplaylist>

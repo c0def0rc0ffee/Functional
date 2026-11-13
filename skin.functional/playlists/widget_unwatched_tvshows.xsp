@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!--
+  <summary>
+  Shows with no episode watched, newest added first, for a Home row (item 46).
+  </summary>
+-->
+<smartplaylist type="tvshows">
+    <name>widget_unwatched_tvshows</name>
+    <match>all</match>
+    <rule field="numwatched" operator="is">
+        <value>0</value>
+    </rule>
+    <order direction="descending">dateadded</order>
+    <limit>15</limit>
+</smartplaylist>

@@ -175,6 +175,8 @@
 		<include content="HomeWeather"/>
 		<include content="HomeClock"/>
 		<include content="HomeMenu"/>
+		<!-- HOME-WIDGETS: the poster rows under the menu, item 46. -->
+		<include content="HomeWidgetRows"/>
 
 		<!-- CORNER-BAR-INSTANCES: the corner bar (sleep countdown, now
 		     playing banner, queue and the round icons), instantiated once per
