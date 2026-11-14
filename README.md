@@ -73,6 +73,7 @@ Nine pages of skin settings, a line under the page list on what the focused sett
 - **Accent colours**: eight presets or any colour you pick, and Halloween and Christmas themes
 - **Skip Intro pill** for intros and recaps your Jellyfin server has marked (needs the Intro Skipper or TheIntroDB server plugin; off by default)
 - **Your own main menu**: eight slots, each any skin screen or any Favourite, at the top, centre or bottom
+- **Optional extras**, each off until you switch it on: Hide from Continue Watching, a Watchlist tab, Home rows, a studio or network logo, More like this, and an actor page
 
 Every feature in detail: [docs/FEATURES.md](docs/FEATURES.md). Every setting, page by page: [docs/SETTINGS.md](docs/SETTINGS.md).
 
