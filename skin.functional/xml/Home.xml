@@ -27,6 +27,8 @@
 		     background copies, so each id exists once in this window. -->
 		<include content="BgCaptions"/>
 		<include content="BgStepButtons"/>
+		<!-- HOME-HERO: the focused row item's logo, item 20. -->
+		<include content="HomeHero"/>
 
 		<include content="HomeStatsColumn"/>
 		<!-- ENGAGE-LIST: the next few Engage slots as a list down the left of

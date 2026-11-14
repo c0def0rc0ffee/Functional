@@ -78,6 +78,10 @@ update_home_bg()
     the folder slideshow stand down once that fanart is up. The edge buttons
     keep the follow going. Each source's list and place are kept while the
     switch is on, and the picture on screen stays while a list is fetched.
+    HOME-HERO: Home draws the focused row item's own fanart and logo itself;
+    for rows fed by a named list, which have no library art, update_hero
+    and the list row publishers add Widget.R.N.Fanart and .Logo and
+    Watchlist.N.Fanart and .Logo while Skin.HasSetting(home_hero) is on.
 
 update_bg_command()
     Watches Skin.String(bg_command). "pick_genre" opens a select dialog of the
@@ -1370,6 +1374,33 @@ def watchlist_url(kind, tag):
     return videodb_url(kind, rules, "dateadded", "descending")
 
 
+# HOME-HERO, item 20: the library call that gives a list record its art.
+HERO_DETAILS = {                  # dbtype: (method, id key, result key)
+    "movie": ("VideoLibrary.GetMovieDetails", "movieid", "moviedetails"),
+    "episode": ("VideoLibrary.GetEpisodeDetails", "episodeid", "episodedetails"),
+    "tvshow": ("VideoLibrary.GetTVShowDetails", "tvshowid", "tvshowdetails"),
+    "season": ("VideoLibrary.GetSeasonDetails", "seasonid", "seasondetails"),
+}
+
+
+def hero_art(art):
+    """
+    <summary>The fanart and logo the Home hero shows for one library entry.</summary>
+    <param name="art">The entry's art map from the library, or None.</param>
+    <returns>(fanart, logo), each "" when the entry has none.</returns>
+    <remarks>
+    HOME-HERO, item 20. Episodes and seasons carry their show's pictures
+    as tvshow.fanart and tvshow.clearlogo, so those stand in when the
+    entry has none of its own, the same order the skin's HeroFanart and
+    HeroLogo variables use for library rows.
+    </remarks>
+    """
+    art = art or {}
+    fanart = art.get("fanart") or art.get("tvshow.fanart") or ""
+    logo = art.get("clearlogo") or art.get("tvshow.clearlogo") or ""
+    return fanart, logo
+
+
 def hidden_show(doc, keys):
     """
     <summary>True when a show is hidden from Next Up under any of its keys.</summary>
@@ -2085,6 +2116,10 @@ class FunctionalHelper(xbmc.Monitor):
         self._widget_state = {1: False, 2: False, 3: False}
         self._widget_items = {r: [None] * 12 for r in (1, 2, 3)}
         self._widget_last = 0.0
+        # HOME-HERO: the switch as last seen (None so the first tick forces
+        # the list rows to publish) and art looked up per list record.
+        self._hero_shown = None
+        self._hero_art = {}              # (dbtype, dbid) -> (fanart, logo)
         # Next Up row in the Continue Watching pop-up (see update_next_up).
         self._nextup_lock = threading.Lock()
         self._nextup_last = 0.0          # when the last lookup started, 0 forces one
@@ -4978,8 +5013,12 @@ class FunctionalHelper(xbmc.Monitor):
                 win.setProperty("Watchlist.%d.Label" % n, it["label"])
                 win.setProperty("Watchlist.%d.Sub" % n, self._list_item_sub(it))
                 win.setProperty("Watchlist.%d.Thumb" % n, it["thumb"])
+                # HOME-HERO: the art Home shows behind the menu for this slot.
+                fanart, logo = self._record_hero(it)
+                win.setProperty("Watchlist.%d.Fanart" % n, fanart)
+                win.setProperty("Watchlist.%d.Logo" % n, logo)
             else:
-                for key in ("Label", "Sub", "Thumb"):
+                for key in ("Label", "Sub", "Thumb", "Fanart", "Logo"):
                     win.clearProperty("Watchlist.%d.%s" % (n, key))
         if listed:
             win.setProperty("Watchlist.Count", str(len(items)))
@@ -5322,13 +5361,85 @@ class FunctionalHelper(xbmc.Monitor):
                 win.setProperty(key + "Label", it["label"])
                 win.setProperty(key + "Sub", self._list_item_sub(it))
                 win.setProperty(key + "Thumb", it["thumb"])
+                # HOME-HERO: the art Home shows behind the menu for this slot.
+                fanart, logo = self._record_hero(it)
+                win.setProperty(key + "Fanart", fanart)
+                win.setProperty(key + "Logo", logo)
             else:
-                for name in ("Label", "Sub", "Thumb"):
+                for name in ("Label", "Sub", "Thumb", "Fanart", "Logo"):
                     win.clearProperty(key + name)
         if listed:
             win.setProperty("Widget.%d.Count" % row, str(len(items)))
         else:
             win.clearProperty("Widget.%d.Count" % row)
+
+    # ---- HOME-HERO, item 20 phase H (14/11/2026) ----------------------------
+    # <summary>
+    # Title under the cursor on Home: the focused row item's fanart behind
+    # the menu and its logo. Home reads library rows' art straight from the
+    # list item (HeroFanart and HeroLogo in Includes.xml); only rows fed by
+    # a named list need this service, because their static slots carry no
+    # art. With the switch off nothing here does anything but read it.
+    # </summary>
+
+    HERO_CACHE_MAX = 200          # list records whose art is kept
+
+    def update_hero(self):
+        """
+        <summary>Fast ticker: when Skin.HasSetting(home_hero) flips, make the list rows publish again.</summary>
+        <remarks>
+        Setting the list rows' last read times to 0 makes update_watchlist and
+        update_widgets read their lists on their next pass, which writes the
+        art in or, with the switch off, clears it. Rows fed by the library
+        are untouched. The kept art goes when the switch goes off.
+        </remarks>
+        """
+        on = xbmc.getCondVisibility("Skin.HasSetting(home_hero)")
+        if on == self._hero_shown:
+            return
+        self._hero_shown = on
+        self._watch_last = 0.0
+        self._widget_last = 0.0
+        if not on:
+            self._hero_art.clear()
+
+    def _record_hero(self, it):
+        """
+        <summary>The fanart and logo for one list record, looked up once and kept.</summary>
+        <param name="it">A clean list record.</param>
+        <returns>(fanart, logo); ("", "") with the switch off or for a record the library cannot place.</returns>
+        <remarks>
+        One library call per record the first time, on the ticker, at most
+        twelve per row. A call that gets no answer is not kept, so it is
+        tried again on the next read; an error answer (the library has no
+        such entry) is kept as empty. Kept art is not refreshed after a
+        rescan until the switch goes off or the store, emptied when it
+        passes HERO_CACHE_MAX, starts again.
+        </remarks>
+        """
+        if not self._hero_shown:
+            return "", ""
+        call = HERO_DETAILS.get(it.get("dbtype"))
+        if call is None or not it.get("dbid"):
+            return "", ""
+        key = (it["dbtype"], it["dbid"])
+        if key in self._hero_art:
+            return self._hero_art[key]
+        method, id_key, result_key = call
+        resp = _jsonrpc(method, {id_key: it["dbid"], "properties": ["art"]})
+        result = (resp or {}).get("result")
+        if not isinstance(result, dict):
+            if (resp or {}).get("error"):
+                # HOME-HERO-FIX: the library answered and has no such entry,
+                # so it is kept as empty rather than asked about every read.
+                result = {}
+            else:
+                return "", ""
+        art = hero_art((result.get(result_key) or {}).get("art"))
+        if len(self._hero_art) >= self.HERO_CACHE_MAX:
+            self._hero_art.clear()
+        self._hero_art[key] = art
+        return art
 
     def _play_list_record(self, it):
         """
@@ -12695,6 +12806,8 @@ def run():
         helper.update_tile_command,
         helper.update_favourites,
         helper.update_continue_watching,
+        # HOME-HERO: one condition read unless the switch has just flipped.
+        helper.update_hero,
         # WATCHLIST: three skin strings compared unless a list is due a read.
         helper.update_watchlist,
         # HOME-WIDGETS: three skin strings compared unless a list row is due a read.
