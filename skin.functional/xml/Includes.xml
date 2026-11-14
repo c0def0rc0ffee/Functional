@@ -104,6 +104,13 @@
 	<!-- HOME-WIDGETS (item 46): while any Home row is on, the menu lays out
 	     at the top to make room for the rows, whatever menu_position says;
 	     with every row off (the default) these two read as they always did. -->
+	<!-- HOME-HERO (item 20): the switch, and focus on a pop up row or a Home row. -->
+	<expression name="hero_popup_focus">Skin.HasSetting(home_hero) + Window.IsActive(home) + [Control.HasFocus(9201) | Control.HasFocus(9203) | Control.HasFocus(9205) | Control.HasFocus(9221) | Control.HasFocus(9223) | Control.HasFocus(9231) | Control.HasFocus(9233) | Control.HasFocus(9235)]</expression>
+	<expression name="hero_rows_focus">Skin.HasSetting(home_hero) + Window.IsActive(home) + [Control.HasFocus(9252) | Control.HasFocus(9253) | Control.HasFocus(9254) | Control.HasFocus(9255) | Control.HasFocus(9256) | Control.HasFocus(9257) | Control.HasFocus(9262) | Control.HasFocus(9263) | Control.HasFocus(9264) | Control.HasFocus(9265) | Control.HasFocus(9266) | Control.HasFocus(9267)]</expression>
+	<!-- HOME-HERO: a row item has focus with the switch on. HOME-HERO-FIX: whether
+	     or not it has fanart, so a title with none never seems to own the
+	     background picture behind it (the plain plate in SkinBackground). -->
+	<expression name="hero_showing">$EXP[hero_popup_focus] | $EXP[hero_rows_focus]</expression>
 	<expression name="widgets_on">!String.IsEmpty(Skin.String(widget1)) | !String.IsEmpty(Skin.String(widget2)) | !String.IsEmpty(Skin.String(widget3))</expression>
 	<!-- HOME-WIDGETS-NAV: a corner bar on the bottom edge sits between the
 	     rows and the tabs in the focus order; on the top edge it sits
@@ -767,6 +774,23 @@
 	     screen has been played. home_bg_watched is published by
 	     service.py:_set_bg_props for every library mode and is empty for an
 	     item never played, a static image or a folder. -->
+	<!-- HOME-HERO (item 20): the focused row item's pictures. Its own first,
+	     then its show's (episodes and seasons), then what the helper
+	     published on a list slot. HeroTitle stands in when there is no logo. -->
+	<variable name="HeroFanart">
+		<value condition="!String.IsEmpty(ListItem.Art(fanart))">$INFO[ListItem.Art(fanart)]</value>
+		<value condition="!String.IsEmpty(ListItem.Art(tvshow.fanart))">$INFO[ListItem.Art(tvshow.fanart)]</value>
+		<value>$INFO[ListItem.Property(fanart)]</value>
+	</variable>
+	<variable name="HeroLogo">
+		<value condition="!String.IsEmpty(ListItem.Art(clearlogo))">$INFO[ListItem.Art(clearlogo)]</value>
+		<value condition="!String.IsEmpty(ListItem.Art(tvshow.clearlogo))">$INFO[ListItem.Art(tvshow.clearlogo)]</value>
+		<value>$INFO[ListItem.Property(logo)]</value>
+	</variable>
+	<variable name="HeroTitle">
+		<value condition="!String.IsEmpty(ListItem.TVShowTitle)">$INFO[ListItem.TVShowTitle]</value>
+		<value>$INFO[ListItem.Label]</value>
+	</variable>
 	<variable name="BgCaptionText">
 		<value condition="!String.IsEmpty(Skin.String(bg_lastplayed)) + !String.IsEmpty(Window(home).Property(home_bg_watched))">$INFO[Window(home).Property(home_bg_label)]  ·  $INFO[Window(home).Property(home_bg_watched)]</value>
 		<value>$INFO[Window(home).Property(home_bg_label)]</value>
@@ -1392,6 +1416,9 @@
 				<label>$INFO[Window(home).Property(Watchlist.$PARAM[n].Label)]</label>
 				<label2>$INFO[Window(home).Property(Watchlist.$PARAM[n].Sub)]</label2>
 				<icon>$INFO[Window(home).Property(Watchlist.$PARAM[n].Thumb)]</icon>
+				<!-- HOME-HERO: the slot's art, published while home_hero is on. -->
+				<property name="fanart">$INFO[Window(home).Property(Watchlist.$PARAM[n].Fanart)]</property>
+				<property name="logo">$INFO[Window(home).Property(Watchlist.$PARAM[n].Logo)]</property>
 				<onclick>Skin.SetString(watchlist_command,play:$PARAM[n])</onclick>
 				<visible>!String.IsEmpty(Window(home).Property(Watchlist.$PARAM[n].Label))</visible>
 			</item>
@@ -1497,6 +1524,9 @@
 				<label>$INFO[Window(home).Property(Widget.$PARAM[r].$PARAM[n].Label)]</label>
 				<label2>$INFO[Window(home).Property(Widget.$PARAM[r].$PARAM[n].Sub)]</label2>
 				<icon>$INFO[Window(home).Property(Widget.$PARAM[r].$PARAM[n].Thumb)]</icon>
+				<!-- HOME-HERO: the slot's art, published while home_hero is on. -->
+				<property name="fanart">$INFO[Window(home).Property(Widget.$PARAM[r].$PARAM[n].Fanart)]</property>
+				<property name="logo">$INFO[Window(home).Property(Widget.$PARAM[r].$PARAM[n].Logo)]</property>
 				<onclick>Skin.SetString(widget_command,play:$PARAM[r]:$PARAM[n])</onclick>
 				<visible>!String.IsEmpty(Window(home).Property(Widget.$PARAM[r].$PARAM[n].Label))</visible>
 			</item>
@@ -2054,6 +2084,34 @@
 				<include content="FolderSlideshow"><param name="ms" value="300000"/><param name="when" value="String.IsEqual(Skin.String(bg_slideshow_interval),300)"/><param name="flip_zoom" value="$PARAM[flip_zoom]"/></include>
 
 
+				<!-- HOME-HERO (item 20): the focused Home row item's fanart, over
+				     whichever background is set and under the dim, so it reads
+				     like any background picture. Home only, by hero_showing. -->
+				<!-- HOME-HERO-FIX: a plain plate in the skin's own background
+				     colour under the hero, so a title with no fanart shows
+				     nothing from the slideshow that could pass for its own. -->
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<texture colordiffuse="bg">white.png</texture>
+					<visible>$EXP[hero_showing] + !$EXP[bg_video_showing]</visible>
+					<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
+				</control>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>1920</width>
+					<height>1080</height>
+					<aspectratio>scale</aspectratio>
+					<fadetime>400</fadetime>
+					<texture background="true">$VAR[HeroFanart]</texture>
+					<!-- HOME-HERO-FIX: never over a video playing behind Home. -->
+					<visible>$EXP[hero_showing] + !$EXP[bg_video_showing]</visible>
+					<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
+				</control>
+
 				<!-- Dim overlay over whichever background is showing -->
 				<control type="image">
 					<left>0</left>
@@ -2063,7 +2121,8 @@
 					<!-- Folder mode dims via colordiffuse on the multiimage itself, so
 					     it's excluded here to avoid double-dimming. -->
 					<texture colordiffuse="$VAR[BgOverlayColor]">white.png</texture>
-					<visible>[!String.IsEmpty(Window(home).Property(home_bg_fanart)) | [String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))]] + !$EXP[bg_video_showing]</visible>
+					<!-- HOME-HERO: the hero is dimmed too, whatever the mode. -->
+					<visible>[[!String.IsEmpty(Window(home).Property(home_bg_fanart)) | [String.IsEqual(Skin.String(bg_mode),image) + !String.IsEmpty(Skin.String(home_background))]] + !$EXP[bg_video_showing]] | [$EXP[hero_showing] + !$EXP[bg_video_showing]]</visible>
 				</control>
 
 				<!-- THEME-SEASON: last, so the cemetery covers whatever

@@ -864,6 +864,12 @@
 				<onright>9311</onright>
 				<visible>!String.IsEmpty(Window(home).Property(home_bg_label)) + String.IsEqual(Skin.String(bg_label_position),$PARAM[pos])</visible>
 				<animation effect="fade" time="400" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
+				<!-- HOME-HERO-FIX: the caption names the background, which the
+				     hero covers, so it fades out while the hero shows. Faded,
+				     not hidden: a row's Down still reaches its button, and
+				     with focus off the row the hero goes and the caption is back. -->
+				<animation effect="fade" start="100" end="0" time="300" condition="$EXP[hero_showing] + !Skin.HasSetting(reduce_motion)">Conditional</animation>
+				<animation effect="fade" start="100" end="0" time="0" condition="$EXP[hero_showing] + Skin.HasSetting(reduce_motion)">Conditional</animation>
 				<animation effect="slide" end="$PARAM[by1]" time="0" condition="$PARAM[shift1]">Conditional</animation>
 				<animation effect="slide" end="$PARAM[by2]" time="0" condition="$PARAM[shift2]">Conditional</animation>
 				<control type="label">
@@ -917,6 +923,82 @@
 	     is down there, else y 980 to 1020. Bottom Left goes to y 870
 	     to 910 with the bar at bottom left, because the version
 	     line has itself moved up to y 920 to 960 by then. -->
+	<!-- <summary>HOME-HERO (item 20): the focused row item's logo, or its
+	     title when it has none. The fanart is drawn by SkinBackground.</summary>
+	     <remarks>Top left while a pop up row has focus, above the band (not
+	     with the tab at the top, where the band covers that corner); under the rows while a Home row has focus, since the
+	     rows hold the menu at the top, and left out when all three rows are
+	     on and fill that space. Both move right of Engage's Coming Up list
+	     the way the rows do.</remarks> -->
+	<include name="HomeHero">
+		<definition>
+			<control type="group">
+				<left>60</left>
+				<top>175</top>
+				<width>900</width>
+				<height>170</height>
+				<!-- HOME-HERO-FIX: between the logo box and the tall band's top
+				     edge (y 356); moved down for a top corner bar, and left out
+				     where the band would then cover it, or covers that corner
+				     with the tab at the top. -->
+				<visible>$EXP[hero_showing] + $EXP[hero_popup_focus] + !$EXP[continue_tab_top] + ![$EXP[corner_bar_top] + $EXP[panel_tall]]</visible>
+				<animation effect="fade" time="300" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
+				<animation effect="slide" end="500,0" time="0" condition="$EXP[engage_list_shown]">Conditional</animation>
+				<animation effect="slide" end="0,80" time="0" condition="$EXP[corner_bar_top]">Conditional</animation>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>640</width>
+					<height>170</height>
+					<aspectratio align="left" aligny="top">keep</aspectratio>
+					<fadetime>200</fadetime>
+					<texture background="true">$VAR[HeroLogo]</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>900</width>
+					<height>170</height>
+					<aligny>top</aligny>
+					<font>font_big</font>
+					<textcolor>white</textcolor>
+					<shadowcolor>FF000000</shadowcolor>
+					<label>$VAR[HeroTitle]</label>
+					<visible>String.IsEmpty(ListItem.Art(clearlogo)) + String.IsEmpty(ListItem.Art(tvshow.clearlogo)) + String.IsEmpty(ListItem.Property(logo))</visible>
+				</control>
+			</control>
+			<control type="group">
+				<left>60</left>
+				<top>770</top>
+				<width>900</width>
+				<height>170</height>
+				<visible>$EXP[hero_showing] + $EXP[hero_rows_focus] + [String.IsEmpty(Skin.String(widget1)) | String.IsEmpty(Skin.String(widget2)) | String.IsEmpty(Skin.String(widget3))]</visible>
+				<animation effect="fade" time="300" condition="!Skin.HasSetting(reduce_motion)">VisibleChange</animation>
+				<animation effect="slide" end="500,0" time="0" condition="$EXP[engage_list_shown]">Conditional</animation>
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>640</width>
+					<height>170</height>
+					<aspectratio align="left" aligny="bottom">keep</aspectratio>
+					<fadetime>200</fadetime>
+					<texture background="true">$VAR[HeroLogo]</texture>
+				</control>
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>900</width>
+					<height>170</height>
+					<aligny>bottom</aligny>
+					<font>font_big</font>
+					<textcolor>white</textcolor>
+					<shadowcolor>FF000000</shadowcolor>
+					<label>$VAR[HeroTitle]</label>
+					<visible>String.IsEmpty(ListItem.Art(clearlogo)) + String.IsEmpty(ListItem.Art(tvshow.clearlogo)) + String.IsEmpty(ListItem.Property(logo))</visible>
+				</control>
+			</control>
+		</definition>
+	</include>
 	<include name="BgCaptions">
 		<param name="flip_add" default="false"/>
 		<definition>
