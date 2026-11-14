@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.34" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.35" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New: an actor page. Cast Opens Actor Page, at the foot of the Visible Fields list on the Library page, Off by default: selecting someone in the cast on the information screen opens a page over it with their photo and name and every film and show of theirs in your library, newest first. Back returns to the title you came from. Off, a cast portrait opens the library filtered to them as before.</news>
+		<news>New: the focused title as the Home backdrop. Focused Title as Backdrop, at the foot of the Home Screen page, Off by default: while a Home row or a row of the Continue Watching pop up has focus, that title's fanart fills the background and its logo shows, top left over the pop up and under the Home rows. A title with no fanart gets a plain background and its name. The background caption fades while it shows.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

@@ -3,7 +3,7 @@
 <p align="center"><a href="#quick-start">Quick start</a> · <a href="#highlights">Highlights</a> · <a href="INSTALL.md">Install guide</a> · <a href="docs/FEATURES.md">Every feature</a> · <a href="docs/SETTINGS.md">Settings</a> · <a href="CHANGELOG.md">Changelog</a></p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.23.34-blue" alt="Version 0.23.34">
+  <img src="https://img.shields.io/badge/version-0.23.35-blue" alt="Version 0.23.35">
   <img src="https://img.shields.io/badge/licence-GPL--2.0--or--later-green" alt="GPL 2.0 or later licence">
   <img src="https://img.shields.io/badge/python-3-3776AB?logo=python&logoColor=white" alt="Python 3 helper service">
   <img src="https://img.shields.io/badge/Kodi-21%20Omega-17B2E7?logo=kodi&logoColor=white" alt="Kodi 21 Omega">
@@ -73,7 +73,7 @@ Nine pages of skin settings, a line under the page list on what the focused sett
 - **Accent colours**: eight presets or any colour you pick, and Halloween and Christmas themes
 - **Skip Intro pill** for intros and recaps your Jellyfin server has marked (needs the Intro Skipper or TheIntroDB server plugin; off by default)
 - **Your own main menu**: eight slots, each any skin screen or any Favourite, at the top, centre or bottom
-- **Optional extras**, each off until you switch it on: Hide from Continue Watching, a Watchlist tab, Home rows, a studio or network logo, More like this, and an actor page
+- **Optional extras**, each off until you switch it on: Hide from Continue Watching, a Watchlist tab, Home rows, a studio or network logo, More like this, an actor page, and the focused title as the Home backdrop
 
 Every feature in detail: [docs/FEATURES.md](docs/FEATURES.md). Every setting, page by page: [docs/SETTINGS.md](docs/SETTINGS.md).
 

@@ -11,6 +11,15 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.35 (14/11/2026)
+
+- New: the focused title as the Home backdrop. Focused Title as
+  Backdrop, at the foot of the Home Screen page, Off by default: while a
+  Home row or a row of the Continue Watching pop up has focus, that
+  title's fanart fills the background and its logo shows, top left over
+  the pop up and under the Home rows. A title with no fanart gets a plain
+  background and its name. The background caption fades while it shows.
+
 ## 0.23.34 (13/11/2026)
 
 - New: an actor page. Cast Opens Actor Page, at the foot of the Visible
