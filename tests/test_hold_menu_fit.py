@@ -18,6 +18,7 @@ Usage:
 """
 
 import os
+import sys
 import unittest
 import xml.etree.ElementTree as ET
 
@@ -78,6 +79,38 @@ class HoldMenuFit(unittest.TestCase):
                         found[include.get("name")] = c.findtext("visible") or ""
         self.assertIn("ListItem.SetId", found["CollectionContextButton"])
         self.assertIn("String.IsEqual(ListItem.DBTYPE,tvshow)", found["ShowPlayContextButton"])
+
+
+class HoldMenuFocus(unittest.TestCase):
+    """<summary>HOLD-MENU-FOCUS: the menu opens on its first row, and Down walks every row in order.</summary>"""
+
+    def setUp(self):
+        """<summary>Parse the hold menu window.</summary>"""
+        self.root = ET.parse(os.path.join(XML, "DialogContextMenu.xml")).getroot()
+
+    def test_opens_on_kodis_first_entry_without_skin_rows(self):
+        """<summary>With none of 950 to 953 or 960 showing, onload focuses 1001, Kodi's first cloned row.</summary>"""
+        loads = [(o.get("condition") or "", (o.text or "").strip()) for o in self.root.findall("onload")]
+        first = [c for c, action in loads if action == "SetFocus(1001)"]
+        self.assertEqual(len(first), 1)
+        for cid in ("950", "951", "952", "953", "960"):
+            self.assertIn("!Control.IsVisible(%s)" % cid, first[0])
+
+    def test_down_from_the_skin_rows_lands_on_kodis_first_entry(self):
+        """<summary>953, the lowest skin row, goes Down to 1001 rather than to grouplist 996.</summary>"""
+        use = [i for i in self.root.iter("include") if i.get("content") == "ShowPlayContextButton"][0]
+        params = {p.get("name"): p.get("value") for p in use.findall("param")}
+        self.assertEqual(params["ondown"], "1001")
+
+    def test_down_from_kodis_last_entry_wraps_to_the_skin_rows(self):
+        """<summary>Grouplist 996 goes Down to 950, whose hidden chain reaches the first skin row showing, or 1001.</summary>"""
+        self.assertEqual((control(self.root, "996").findtext("ondown") or "").strip(), "950")
+
+    def test_checker_knows_kodi_creates_1001(self):
+        """<summary>The navigation check counts 1001 as present in this window only.</summary>"""
+        sys.path.insert(0, os.path.join(HERE, "..", "checks"))
+        import skin_checks
+        self.assertEqual(skin_checks.RUNTIME_IDS, {"DialogContextMenu.xml": ("1001",)})
 
 
 if __name__ == "__main__":

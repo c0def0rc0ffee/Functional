@@ -225,7 +225,9 @@ class HoldMenuTests(unittest.TestCase):
         params = {p.get("name"): p.get("value") for p in use.findall("param")}
         self.assertEqual(params.get("id"), "953")
         self.assertEqual(params.get("onup"), "952")
-        self.assertEqual(params.get("ondown"), "996")
+        # HOLD-MENU-FOCUS: Down goes to Kodi's first entry, 1001, not to the
+        # grouplist, which brought back the entry used last time.
+        self.assertEqual(params.get("ondown"), "1001")
 
     def test_visible_condition_has_every_required_term(self):
         """<summary>Visibility needs the setting, the videos window, a tvshow, a positive DBID and not a parent folder.</summary>"""
