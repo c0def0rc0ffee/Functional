@@ -188,17 +188,32 @@
 				<param name="shown" value="Skin.HasSetting(continue_hide)" />
 			</include>
 
-			<!-- Backdrop strip behind the menu list. Kodi resizes id 999
-			     (BACKGROUND_IMAGE) itself, to this declared height less the
-			     grouplist's maximum plus the height of the rows it added. The
-			     height here must therefore EQUAL the grouplist maximum below:
-			     at 780 against 660 every menu carried a 120 px empty band. -->
+			<!-- HOLD-MENU-FIT, 15/11/2026: id 999 (BACKGROUND_IMAGE) is now
+			     only what Kodi measures the menu by, and draws nothing. Kodi
+			     resizes it to this declared height less the grouplist's
+			     maximum plus the height of the rows it added, and places the
+			     whole dialog so that 999's HEIGHT fits on screen
+			     (CGUIDialogContextMenu::SetPosition and GetHeight). It knows
+			     nothing of the 110 px heading above 999 or of the skin rows 950
+			     to 953 between them, so each skin row that showed pushed Kodi's
+			     last entry 60 px lower, off the bottom of a long menu, where
+			     focus could still reach it. The declared height is therefore
+			     the grouplist maximum (660) plus the heading (110) plus room
+			     for the most skin rows that show at once, three (950, 951 and
+			     either 952 on a film or 953 on a show): 660 + 110 + 180 = 950.
+			     Kodi centres the dialog on the library list and clamps it to
+			     the screen by that height, so every menu, long or short, ends
+			     above the bottom edge (seen live with three skin rows on an
+			     eleven entry show menu). The extra would draw as an empty
+			     band, so 999 is fully
+			     transparent and each of Kodi's rows paints its own panel
+			     (button 1000's texturenofocus). -->
 			<control type="image" id="999">
 				<left>0</left>
 				<top>110</top>
 				<width>600</width>
-				<height>660</height>
-				<texture colordiffuse="bg_panel">white.png</texture>
+				<height>950</height>
+				<texture colordiffuse="00FFFFFF">white.png</texture>
 				<visible>!$EXP[continue_menu]</visible>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(951)">Conditional</animation>
@@ -254,7 +269,8 @@
 			<aligny>center</aligny>
 			<textoffsetx>30</textoffsetx>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-			<texturenofocus>-</texturenofocus>
+			<!-- HOLD-MENU-FIT: each row paints the panel, as 999 no longer does. -->
+			<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
 		</control>
 
 	</controls>
