@@ -133,9 +133,18 @@
 				<param name="id" value="952" />
 				<param name="top" value="110" />
 				<param name="onup" value="951" />
-				<param name="ondown" value="996" />
+				<param name="ondown" value="953" />
 				<param name="shift1" value="Control.IsVisible(950)" />
 				<param name="shift2" value="Control.IsVisible(951)" />
+			</include>
+
+			<!-- SHOW-PLAY (item 32): Play This Show on a library show, under
+			     the rows above; hidden, Kodi follows its onup and ondown. -->
+			<include content="ShowPlayContextButton">
+				<param name="id" value="953" />
+				<param name="top" value="110" />
+				<param name="onup" value="952" />
+				<param name="ondown" value="996" />
 			</include>
 
 			<!-- Continue Watching (Home pop-up): three skin rows stand in for
@@ -194,6 +203,7 @@
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(951)">Conditional</animation>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(952)">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(953)">Conditional</animation>
 			</control>
 
 			<!-- The actual menu items grouplist (Kodi clones button id=1000 into here) -->
@@ -214,6 +224,7 @@
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(951)">Conditional</animation>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(952)">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(953)">Conditional</animation>
 				<onleft>996</onleft>
 				<onright>996</onright>
 				<!-- Plain, not conditional: a condition on a grouplist's onup is
@@ -223,7 +234,8 @@
 				     Lists rows are hidden Kodi follows 951's own onup, reaches
 				     950 pointing at itself and stops, so Up at the top of the
 				     menu simply holds. -->
-				<onup>952</onup>
+				<!-- SHOW-PLAY: 953 first; hidden, Kodi follows its onup to 952. -->
+				<onup>953</onup>
 			</control>
 
 		</control>

@@ -1401,6 +1401,39 @@ def hero_art(art):
     return fanart, logo
 
 
+# SHOW-PLAY, item 32: where each choice starts in the show's queue.
+SHOW_PLAY_CHOICES = ("next", "first", "queue")
+
+
+def show_start_index(items, mode):
+    """
+    <summary>Where to start playing a show's queued episodes.</summary>
+    <param name="items">The video queue after the show was added, in order, each with season, episode and playcount.</param>
+    <param name="mode">"first" for the first episode, "next" for the next one to watch.</param>
+    <returns>The queue position to play from, or None when there is nothing to play (no episodes, or every one watched for "next").</returns>
+    <remarks>
+    SHOW-PLAY, item 32. Specials (season 0) are skipped for both, as Next
+    Up does. "next" is the episode after the last one watched, so a
+    rewatched early episode does not send the viewer back; with nothing
+    watched it is the first, and when the last watched is the final
+    episode it is the first unwatched one left, if any.
+    </remarks>
+    """
+    regular = [i for i, it in enumerate(items or []) if int(it.get("season") or 0) > 0]
+    if not regular:
+        return None
+    if mode == "first":
+        return regular[0]
+    watched = [i for i in regular if int(items[i].get("playcount") or 0) > 0]
+    if not watched:
+        return regular[0]
+    after = [i for i in regular if i > watched[-1]]
+    if after:
+        return after[0]
+    unwatched = [i for i in regular if int(items[i].get("playcount") or 0) == 0]
+    return unwatched[0] if unwatched else None
+
+
 def hidden_show(doc, keys):
     """
     <summary>True when a show is hidden from Next Up under any of its keys.</summary>
@@ -3121,6 +3154,86 @@ class FunctionalHelper(xbmc.Monitor):
             if isinstance(value, dict) and "cast" in value:
                 return value.get("cast") or []
         return []
+
+    # ---- SHOW-PLAY, item 32 phase L (15/11/2026) ----------------------------
+    # <summary>
+    # Kodi's library window opens a show on OK itself and a skin cannot
+    # change that, so the play choices live in the show's hold menu: one
+    # row, Play This Show, which asks Next Unwatched Episode, From the First
+    # Episode or Add to the Queue. With the switch off the row never shows
+    # and nothing here runs.
+    # </summary>
+
+    VIDEO_PLAYLIST = 1
+
+    def update_show_command(self):
+        """<summary>Fast ticker: answer show_command, "pick:TVSHOWID", with the choice in the dialog slot.</summary>"""
+        cmd = self._take_command("show_command")
+        if not cmd.startswith("pick:"):
+            return
+        show_id = self._safe_int(cmd[5:], 0)
+        if show_id <= 0:
+            return
+        title = xbmcgui.Window(HOME_WINDOW_ID).getProperty("show_play_title")
+        self._spawn_dialog(lambda: self._show_play_pick(show_id, title))
+
+    def _show_play_pick(self, show_id, title):
+        """
+        <summary>Ask which way to play a show, then do it. Runs in the dialog slot.</summary>
+        <param name="show_id">The show's library id.</param>
+        <param name="title">The show's name for the question's heading.</param>
+        <remarks>
+        SHOW-PLAY-FIX (review of 15/11/2026): the show's episodes are read
+        from the library first, in season and episode order with specials
+        left out as Next Up does, and the queue is touched only once there
+        is something to play, so a show with none leaves the queue as it
+        was. They go into the queue by episode id in one call, never by
+        walking the show's folder, which could add an All Seasons copy.
+        Next and first clear the queue first, as Kodi's own Play does;
+        Add to the Queue appends and starts nothing. Next resumes a part
+        watched episode.
+        </remarks>
+        """
+        heading = title or _L(31957)
+        dialog = xbmcgui.Dialog()
+        choice = dialog.select(heading, [_L(31958), _L(31959), _L(31960)])
+        if choice < 0:
+            return
+        mode = SHOW_PLAY_CHOICES[choice]
+        resp = _jsonrpc("VideoLibrary.GetEpisodes", {
+            "tvshowid": show_id, "properties": ["season", "episode", "playcount"],
+            "sort": {"method": "episode", "order": "ascending"}})
+        episodes = sorted(
+            [e for e in ((resp or {}).get("result") or {}).get("episodes") or []
+             if int(e.get("season") or 0) > 0 and e.get("episodeid")],
+            key=lambda e: (int(e.get("season") or 0), int(e.get("episode") or 0)))
+        if not episodes:
+            dialog.notification(heading, _L(31975), xbmcgui.NOTIFICATION_INFO)
+            _dlog("show play: show %d has no episodes to play" % show_id)
+            return
+        position = None
+        if mode != "queue":
+            position = show_start_index(episodes, mode)
+            if position is None:
+                dialog.notification(heading, _L(31962), xbmcgui.NOTIFICATION_INFO)
+                _dlog("show play: show %d all watched" % show_id)
+                return
+        playlist = {"playlistid": self.VIDEO_PLAYLIST}
+        if mode != "queue":
+            _jsonrpc("Playlist.Clear", playlist)
+        added = _jsonrpc("Playlist.Add", dict(playlist, item=[
+            {"episodeid": e["episodeid"]} for e in episodes]))
+        if (added or {}).get("result") != "OK":
+            dialog.notification(heading, _L(31976), xbmcgui.NOTIFICATION_WARNING)
+            _dlog("show play: queueing show %d failed: %r" % (show_id, added))
+            return
+        if mode == "queue":
+            dialog.notification(heading, _L(31961), xbmcgui.NOTIFICATION_INFO)
+            _dlog("show play: queued show %d, %d episodes" % (show_id, len(episodes)))
+            return
+        _jsonrpc("Player.Open", {"item": {"playlistid": self.VIDEO_PLAYLIST, "position": position},
+                                 "options": {"resume": mode == "next"}})
+        _dlog("show play: show %d %s from position %d of %d" % (show_id, mode, position, len(episodes)))
 
     def update_cast_command(self):
         """
@@ -12819,6 +12932,8 @@ def run():
         helper.update_info_studio,
         # MORE-LIKE: one string read while the row is Off.
         helper.update_info_like,
+        # SHOW-PLAY: one string read unless the hold menu row was pressed.
+        helper.update_show_command,
         helper.update_cast_command,
         helper.update_cache_command,
         # Fast ticker: the countdown has to move once a second, and the
