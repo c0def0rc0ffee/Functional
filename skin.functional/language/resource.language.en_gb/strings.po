@@ -3552,3 +3552,20 @@ msgstr ""
 msgctxt "#31943"
 msgid "While a Home row or a Continue Watching pop up row has focus, the title under the cursor fills the background with its fanart and shows its logo. Off, the background stays as set.[CR]Where: Home."
 msgstr ""
+
+# Decade and several genres, item 33. 15/11/2026. (31944 to 31964: items 42 and 32.)
+msgctxt "#31965"
+msgid "Decade and Several Genres"
+msgstr ""
+
+msgctxt "#31966"
+msgid "Adds a Decade row to the library's slide out, from the 2020s back to Before 1950, and lets the genre picker tick several genres: titles in any ticked genre show. Both stack with Search; Decade and Age replace each other.[CR]Where: the library, the slide out filters."
+msgstr ""
+
+msgctxt "#31967"
+msgid "Decade:"
+msgstr ""
+
+msgctxt "#31968"
+msgid "Before 1950"
+msgstr ""

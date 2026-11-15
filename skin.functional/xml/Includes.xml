@@ -1374,6 +1374,12 @@
 
 	<!-- <summary>Edge the Continue Watching tab sits on, for the Skin
 	     Settings button. Empty means bottom.</summary> -->
+	<!-- <summary>DECADE-GENRES: the Decade row's value.</summary> -->
+	<variable name="DecadeFilterLabel">
+		<value condition="String.IsEmpty(Skin.String(decade_filter))">$LOCALIZE[31398]</value>
+		<value condition="String.IsEqual(Skin.String(decade_filter),pre1950)">$LOCALIZE[31968]</value>
+		<value>$INFO[Skin.String(decade_filter)]s</value>
+	</variable>
 	<!-- <summary>Value half of the "Age" button in the library filter menu:
 	     "Any", or "20+ years". Kept short: the sub button is 380 wide and a
 	     longer caption scrolled.</summary> -->
@@ -3755,6 +3761,234 @@
 	              through controls that cannot take focus).
 	     path:    the genres node to populate from.
 	     visible: which content type this column serves. -->
+	<!-- <summary>DECADE-GENRES (item 33): one row of the ticking genre
+	     picker, from the GenrePick.N.* slots service.py publishes while the
+	     picker is open with Skin.HasSetting(filter_extras) on. OK hands the
+	     row's slot number to the service, which adds it to the genres in force or
+	     takes it out and reloads the node; the picker stays open. A library
+	     genres node cannot carry a tick, which is why these rows are the
+	     helper's own.</summary>
+	     <param name="n">1 based slot number.</param> -->
+	<include name="GenrePickItem">
+		<param name="n" />
+		<definition>
+			<item>
+				<label>$INFO[Window(home).Property(GenrePick.$PARAM[n].Label)]</label>
+				<property name="ticked">$INFO[Window(home).Property(GenrePick.$PARAM[n].Ticked)]</property>
+				<!-- The slot number rides with the command, so ticking two rows
+				     inside a second is two commands, not one repeated. -->
+				<onclick>Skin.SetString(genre_command,__toggle__:$PARAM[n])</onclick>
+				<visible>!String.IsEmpty(Window(home).Property(GenrePick.$PARAM[n].Label))</visible>
+			</item>
+		</definition>
+	</include>
+	<!-- <summary>DECADE-GENRES: the 120 slots, GENRE_PICK_MAX in service.py.</summary> -->
+	<include name="GenrePickItems">
+		<definition>
+			<include content="GenrePickItem"><param name="n" value="1" /></include>
+			<include content="GenrePickItem"><param name="n" value="2" /></include>
+			<include content="GenrePickItem"><param name="n" value="3" /></include>
+			<include content="GenrePickItem"><param name="n" value="4" /></include>
+			<include content="GenrePickItem"><param name="n" value="5" /></include>
+			<include content="GenrePickItem"><param name="n" value="6" /></include>
+			<include content="GenrePickItem"><param name="n" value="7" /></include>
+			<include content="GenrePickItem"><param name="n" value="8" /></include>
+			<include content="GenrePickItem"><param name="n" value="9" /></include>
+			<include content="GenrePickItem"><param name="n" value="10" /></include>
+			<include content="GenrePickItem"><param name="n" value="11" /></include>
+			<include content="GenrePickItem"><param name="n" value="12" /></include>
+			<include content="GenrePickItem"><param name="n" value="13" /></include>
+			<include content="GenrePickItem"><param name="n" value="14" /></include>
+			<include content="GenrePickItem"><param name="n" value="15" /></include>
+			<include content="GenrePickItem"><param name="n" value="16" /></include>
+			<include content="GenrePickItem"><param name="n" value="17" /></include>
+			<include content="GenrePickItem"><param name="n" value="18" /></include>
+			<include content="GenrePickItem"><param name="n" value="19" /></include>
+			<include content="GenrePickItem"><param name="n" value="20" /></include>
+			<include content="GenrePickItem"><param name="n" value="21" /></include>
+			<include content="GenrePickItem"><param name="n" value="22" /></include>
+			<include content="GenrePickItem"><param name="n" value="23" /></include>
+			<include content="GenrePickItem"><param name="n" value="24" /></include>
+			<include content="GenrePickItem"><param name="n" value="25" /></include>
+			<include content="GenrePickItem"><param name="n" value="26" /></include>
+			<include content="GenrePickItem"><param name="n" value="27" /></include>
+			<include content="GenrePickItem"><param name="n" value="28" /></include>
+			<include content="GenrePickItem"><param name="n" value="29" /></include>
+			<include content="GenrePickItem"><param name="n" value="30" /></include>
+			<include content="GenrePickItem"><param name="n" value="31" /></include>
+			<include content="GenrePickItem"><param name="n" value="32" /></include>
+			<include content="GenrePickItem"><param name="n" value="33" /></include>
+			<include content="GenrePickItem"><param name="n" value="34" /></include>
+			<include content="GenrePickItem"><param name="n" value="35" /></include>
+			<include content="GenrePickItem"><param name="n" value="36" /></include>
+			<include content="GenrePickItem"><param name="n" value="37" /></include>
+			<include content="GenrePickItem"><param name="n" value="38" /></include>
+			<include content="GenrePickItem"><param name="n" value="39" /></include>
+			<include content="GenrePickItem"><param name="n" value="40" /></include>
+			<include content="GenrePickItem"><param name="n" value="41" /></include>
+			<include content="GenrePickItem"><param name="n" value="42" /></include>
+			<include content="GenrePickItem"><param name="n" value="43" /></include>
+			<include content="GenrePickItem"><param name="n" value="44" /></include>
+			<include content="GenrePickItem"><param name="n" value="45" /></include>
+			<include content="GenrePickItem"><param name="n" value="46" /></include>
+			<include content="GenrePickItem"><param name="n" value="47" /></include>
+			<include content="GenrePickItem"><param name="n" value="48" /></include>
+			<include content="GenrePickItem"><param name="n" value="49" /></include>
+			<include content="GenrePickItem"><param name="n" value="50" /></include>
+			<include content="GenrePickItem"><param name="n" value="51" /></include>
+			<include content="GenrePickItem"><param name="n" value="52" /></include>
+			<include content="GenrePickItem"><param name="n" value="53" /></include>
+			<include content="GenrePickItem"><param name="n" value="54" /></include>
+			<include content="GenrePickItem"><param name="n" value="55" /></include>
+			<include content="GenrePickItem"><param name="n" value="56" /></include>
+			<include content="GenrePickItem"><param name="n" value="57" /></include>
+			<include content="GenrePickItem"><param name="n" value="58" /></include>
+			<include content="GenrePickItem"><param name="n" value="59" /></include>
+			<include content="GenrePickItem"><param name="n" value="60" /></include>
+			<include content="GenrePickItem"><param name="n" value="61" /></include>
+			<include content="GenrePickItem"><param name="n" value="62" /></include>
+			<include content="GenrePickItem"><param name="n" value="63" /></include>
+			<include content="GenrePickItem"><param name="n" value="64" /></include>
+			<include content="GenrePickItem"><param name="n" value="65" /></include>
+			<include content="GenrePickItem"><param name="n" value="66" /></include>
+			<include content="GenrePickItem"><param name="n" value="67" /></include>
+			<include content="GenrePickItem"><param name="n" value="68" /></include>
+			<include content="GenrePickItem"><param name="n" value="69" /></include>
+			<include content="GenrePickItem"><param name="n" value="70" /></include>
+			<include content="GenrePickItem"><param name="n" value="71" /></include>
+			<include content="GenrePickItem"><param name="n" value="72" /></include>
+			<include content="GenrePickItem"><param name="n" value="73" /></include>
+			<include content="GenrePickItem"><param name="n" value="74" /></include>
+			<include content="GenrePickItem"><param name="n" value="75" /></include>
+			<include content="GenrePickItem"><param name="n" value="76" /></include>
+			<include content="GenrePickItem"><param name="n" value="77" /></include>
+			<include content="GenrePickItem"><param name="n" value="78" /></include>
+			<include content="GenrePickItem"><param name="n" value="79" /></include>
+			<include content="GenrePickItem"><param name="n" value="80" /></include>
+			<include content="GenrePickItem"><param name="n" value="81" /></include>
+			<include content="GenrePickItem"><param name="n" value="82" /></include>
+			<include content="GenrePickItem"><param name="n" value="83" /></include>
+			<include content="GenrePickItem"><param name="n" value="84" /></include>
+			<include content="GenrePickItem"><param name="n" value="85" /></include>
+			<include content="GenrePickItem"><param name="n" value="86" /></include>
+			<include content="GenrePickItem"><param name="n" value="87" /></include>
+			<include content="GenrePickItem"><param name="n" value="88" /></include>
+			<include content="GenrePickItem"><param name="n" value="89" /></include>
+			<include content="GenrePickItem"><param name="n" value="90" /></include>
+			<include content="GenrePickItem"><param name="n" value="91" /></include>
+			<include content="GenrePickItem"><param name="n" value="92" /></include>
+			<include content="GenrePickItem"><param name="n" value="93" /></include>
+			<include content="GenrePickItem"><param name="n" value="94" /></include>
+			<include content="GenrePickItem"><param name="n" value="95" /></include>
+			<include content="GenrePickItem"><param name="n" value="96" /></include>
+			<include content="GenrePickItem"><param name="n" value="97" /></include>
+			<include content="GenrePickItem"><param name="n" value="98" /></include>
+			<include content="GenrePickItem"><param name="n" value="99" /></include>
+			<include content="GenrePickItem"><param name="n" value="100" /></include>
+			<include content="GenrePickItem"><param name="n" value="101" /></include>
+			<include content="GenrePickItem"><param name="n" value="102" /></include>
+			<include content="GenrePickItem"><param name="n" value="103" /></include>
+			<include content="GenrePickItem"><param name="n" value="104" /></include>
+			<include content="GenrePickItem"><param name="n" value="105" /></include>
+			<include content="GenrePickItem"><param name="n" value="106" /></include>
+			<include content="GenrePickItem"><param name="n" value="107" /></include>
+			<include content="GenrePickItem"><param name="n" value="108" /></include>
+			<include content="GenrePickItem"><param name="n" value="109" /></include>
+			<include content="GenrePickItem"><param name="n" value="110" /></include>
+			<include content="GenrePickItem"><param name="n" value="111" /></include>
+			<include content="GenrePickItem"><param name="n" value="112" /></include>
+			<include content="GenrePickItem"><param name="n" value="113" /></include>
+			<include content="GenrePickItem"><param name="n" value="114" /></include>
+			<include content="GenrePickItem"><param name="n" value="115" /></include>
+			<include content="GenrePickItem"><param name="n" value="116" /></include>
+			<include content="GenrePickItem"><param name="n" value="117" /></include>
+			<include content="GenrePickItem"><param name="n" value="118" /></include>
+			<include content="GenrePickItem"><param name="n" value="119" /></include>
+			<include content="GenrePickItem"><param name="n" value="120" /></include>
+		</definition>
+	</include>
+	<!-- <summary>DECADE-GENRES: the ticking picker list, in the same place
+	     as GenrePickerList, which shows instead while the switch is off.</summary> -->
+	<include name="GenrePickerTicked">
+		<definition>
+			<control type="list" id="9505">
+				<!-- DECADE-GENRES-FIX: only once the helper has filled the slots;
+				     until then (just after a start) the plain picker stands in. -->
+				<visible>Skin.HasSetting(filter_extras) + !String.IsEmpty(Window(home).Property(GenrePick.1.Label))</visible>
+				<left>610</left>
+				<top>232</top>
+				<width>660</width>
+				<height>630</height>
+				<onleft>9505</onleft>
+				<onright>9503</onright>
+				<onup>9502</onup>
+				<ondown>9502</ondown>
+				<onback>8004</onback>
+				<pagecontrol>9503</pagecontrol>
+				<scrolltime tween="cubic" easing="out">200</scrolltime>
+				<itemlayout height="70" width="660">
+					<control type="label">
+						<left>24</left>
+						<top>0</top>
+						<width>560</width>
+						<height>70</height>
+						<font>font_reg</font>
+						<textcolor>text</textcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<control type="image">
+						<left>600</left>
+						<top>19</top>
+						<width>32</width>
+						<height>32</height>
+						<texture colordiffuse="$VAR[AccentColor]">tick.png</texture>
+						<visible>!String.IsEmpty(ListItem.Property(ticked))</visible>
+					</control>
+				</itemlayout>
+				<focusedlayout height="70" width="660">
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>660</width>
+						<height>70</height>
+						<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+						<visible>Control.HasFocus(9505)</visible>
+					</control>
+					<control type="image">
+						<left>0</left>
+						<top>0</top>
+						<width>660</width>
+						<height>70</height>
+						<texture colordiffuse="40FFFFFF">white.png</texture>
+						<visible>!Control.HasFocus(9505)</visible>
+					</control>
+					<control type="label">
+						<left>24</left>
+						<top>0</top>
+						<width>560</width>
+						<height>70</height>
+						<font>font_reg</font>
+						<textcolor>$VAR[AccentTextColor]</textcolor>
+						<aligny>center</aligny>
+						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<control type="image">
+						<left>600</left>
+						<top>19</top>
+						<width>32</width>
+						<height>32</height>
+						<texture colordiffuse="$VAR[AccentTextColor]">tick.png</texture>
+						<visible>!String.IsEmpty(ListItem.Property(ticked))</visible>
+					</control>
+				</focusedlayout>
+				<content>
+					<include content="GenrePickItems" />
+				</content>
+			</control>
+		</definition>
+	</include>
+
 	<include name="GenrePickerList">
 		<param name="id" />
 		<param name="otherid" />

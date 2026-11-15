@@ -1401,6 +1401,41 @@ def hero_art(art):
     return fanart, logo
 
 
+# DECADE-GENRES, item 33: the slide out's Decade values, newest first.
+DECADES = ("2020", "2010", "2000", "1990", "1980", "1970", "1960", "1950", "pre1950")
+
+
+def decade_rule(decade):
+    """
+    <summary>The smart playlist year rule for one Decade value.</summary>
+    <param name="decade">A value from DECADES, or anything else for none.</param>
+    <returns>A "year between" rule, or None.</returns>
+    <remarks>
+    DECADE-GENRES, item 33. A range rather than a "less than", so a
+    decade read back off the path is never taken for the Age filter's
+    "older than" rule: Before 1950 is the years 0 to 1949.
+    </remarks>
+    """
+    if decade == "pre1950":
+        return {"field": "year", "operator": "between", "value": ["0", "1949"]}
+    if decade in DECADES:
+        start = int(decade)
+        return {"field": "year", "operator": "between", "value": [str(start), str(start + 9)]}
+    return None
+
+
+def decade_from_values(values):
+    """
+    <summary>The Decade value a "year between" rule stands for.</summary>
+    <param name="values">The rule's two values.</param>
+    <returns>A value from DECADES, or "" when the range is not one of them.</returns>
+    """
+    for decade in DECADES:
+        if decade_rule(decade)["value"] == [str(v) for v in (values or [])]:
+            return decade
+    return ""
+
+
 def hidden_show(doc, keys):
     """
     <summary>True when a show is hidden from Next Up under any of its keys.</summary>
@@ -2165,6 +2200,10 @@ class FunctionalHelper(xbmc.Monitor):
         self._nav_sort_due = 0.0     # when to force the default sort (0 = idle)
         self._sort_want_ticks = 0    # ticks update_sort_direction has waited for a new method
         self._genre_names = {}       # (dbtype, genreid) -> genre label
+        # DECADE-GENRES: (names, ticked) the picker slots hold; None when empty.
+        self._genre_pick_state = None
+        # DECADE-GENRES-FIX: (time, node asked for, its genres) of the last pick.
+        self._genre_pending = None
         self._genre_fetched = set()  # dbtypes whose genre list we already pulled
         self._genre_thread = None
         self._genre_retry_at = 0.0   # no genre fetch before this time, set after a failure
@@ -8530,6 +8569,8 @@ class FunctionalHelper(xbmc.Monitor):
                 self._nav_genre = None
                 self._nav_sort_due = 0.0
                 _set_home_property("genre_active", "")
+            if self._genre_pick_state is not None:
+                self._genre_pick_publish("")  # DECADE-GENRES: clear the slots
             return
 
         path = (xbmc.getInfoLabel("Container.FolderPath") or "").strip()
@@ -8537,6 +8578,17 @@ class FunctionalHelper(xbmc.Monitor):
         if genre != self._nav_genre:
             self._nav_genre = genre
             _set_home_property("genre_active", genre)
+        self._genre_pick_publish(path)
+        # DECADE-GENRES-FIX: the first time a picker list shows, Kodi has not
+        # always laid its rows out when the Genre button moves focus there, so
+        # focus lands nowhere; put it on whichever list is showing once
+        # nothing has it (the ticking one, or the plain one for the content).
+        if (xbmc.getCondVisibility("Skin.HasSetting(genre_menu_open)")
+                and not xbmc.getInfoLabel("System.CurrentControlId").strip()):
+            for list_id in (9505, 9501, 9500):
+                if xbmc.getCondVisibility("Control.IsVisible(%d)" % list_id):
+                    xbmc.executebuiltin("SetFocus(%d)" % list_id)
+                    break
 
         if path != self._nav_path:
             self._nav_path = path
@@ -8549,6 +8601,46 @@ class FunctionalHelper(xbmc.Monitor):
                 # No default to force here, so report the sort Kodi itself
                 # remembered for this node instead of the last button pressed.
                 self._sync_sort_active()
+
+    GENRE_PICK_MAX = 120   # DECADE-GENRES: slots the GenrePickItems include provides
+
+    def _genre_pick_publish(self, path):
+        """
+        <summary>Fill or clear the ticking genre picker's GenrePick.N.* slots.</summary>
+        <param name="path">Container.FolderPath.</param>
+        <remarks>
+        DECADE-GENRES, item 33. Only while Skin.HasSetting(filter_extras) is
+        on and a video window is up: the genres of the kind on screen, A to
+        Z, each with Ticked "1" when it is in the node's genre rule. Filled
+        before the picker opens, so the list already has rows when the Genre
+        button moves focus into it (an empty list cannot take focus).
+        Written only when that changes and cleared once when the window
+        closes or the switch goes off, so a steady screen costs one condition
+        read a tick. The names come from the genre map the Genre label
+        already keeps, fetched off the loop.
+        </remarks>
+        """
+        state = None
+        if xbmc.getCondVisibility("Skin.HasSetting(filter_extras)") and path:
+            dbtype = "tvshow" if (path or "").lower().startswith("videodb://tvshows") else "movie"
+            self._start_genre_fetch(dbtype)
+            names = sorted({n for (t, _gid), n in list(self._genre_names.items()) if t == dbtype},
+                           key=lambda n: n.lower())[:self.GENRE_PICK_MAX]
+            state = (tuple(names), tuple(sorted(self._genres_for_path(path))))
+        if state == self._genre_pick_state:
+            return
+        used_before = len(self._genre_pick_state[0]) if self._genre_pick_state else 0
+        self._genre_pick_state = state
+        names, ticked = state if state else ((), ())
+        win = xbmcgui.Window(HOME_WINDOW_ID)
+        for i in range(max(len(names), used_before)):
+            key = "GenrePick.%d." % (i + 1)
+            if i < len(names):
+                win.setProperty(key + "Label", names[i])
+                win.setProperty(key + "Ticked", "1" if names[i] in ticked else "")
+            else:
+                win.clearProperty(key + "Label")
+                win.clearProperty(key + "Ticked")
 
     def _genre_for_path(self, path):
         """
@@ -8565,8 +8657,9 @@ class FunctionalHelper(xbmc.Monitor):
         """
         match = self.GENRE_PATH_RE.match(path or "")
         if not match:
-            # An age filtered node carries its genre inside the playlist.
-            return self._age_rule_from_path(path, "genre")
+            # An age filtered node carries its genre inside the playlist;
+            # DECADE-GENRES: several, comma joined, for the label.
+            return ", ".join(v for v in self._rule_from_path(path, "genre")[1] if v)
         dbtype = "movie" if match.group(1).lower() == "movies" else "tvshow"
         genre_id = int(match.group(2))
         # Ask for the list first, whether or not a name is already cached:
@@ -8611,11 +8704,17 @@ class FunctionalHelper(xbmc.Monitor):
             # folder name until the next library event.
             rows = _result_rows(
                 _jsonrpc("VideoLibrary.GetGenres", {"type": dbtype}), "genres")
+            fresh = {}
             for row in rows:
                 gid = row.get("genreid")
                 label = (row.get("label") or "").strip()
                 if gid is not None and label:
-                    self._genre_names[(dbtype, int(gid))] = label
+                    fresh[(dbtype, int(gid))] = label
+            # DECADE-GENRES-FIX: replace this kind's names, so a genre gone
+            # from the library leaves the ticking picker too.
+            for key in [k for k in self._genre_names if k[0] == dbtype]:
+                del self._genre_names[key]
+            self._genre_names.update(fresh)
             _dlog("genres: cached {0} {1} genres".format(len(rows), dbtype))
         except Exception:  # noqa: BLE001
             # Allow a later retry rather than being stuck on FolderName.
@@ -10799,7 +10898,7 @@ class FunctionalHelper(xbmc.Monitor):
             kind = "movies"
         else:
             kind = self._random_kind(path)
-        genre = self._genre_for_path(path)
+        genre = self._genres_for_path(path)
         if self._random_thread is not None and self._random_thread.is_alive():
             return  # a pick is already on its way
         self._random_thread = threading.Thread(
@@ -10828,7 +10927,7 @@ class FunctionalHelper(xbmc.Monitor):
         Thread body: fetch one random title, start it, say what was picked.
         </summary>
         <param name="kind">"movies" or "tvshows".</param>
-        <param name="genre">Genre name to restrict to, empty for the whole library type.</param>
+        <param name="genre">Genre name or list of names to restrict to, empty for the whole library type.</param>
         <remarks>
         The TV side picks a random episode rather than a random show, since
         a show is not something Kodi can play. Nothing found (an empty genre,
@@ -10859,7 +10958,7 @@ class FunctionalHelper(xbmc.Monitor):
         One random movie or episode, optionally restricted to a genre.
         </summary>
         <param name="kind">"movies" or "tvshows".</param>
-        <param name="genre">Genre name for a "genre is" filter, empty for none.</param>
+        <param name="genre">Genre name for a "genre is" filter, empty for none; DECADE-GENRES: or a list of names, which Kodi reads as any of them.</param>
         <returns>(id key, database id, display label) or None when nothing matched.</returns>
         <remarks>
         Kept separate from _fetch_genre_library / _fetch_random_library on
@@ -10941,9 +11040,9 @@ class FunctionalHelper(xbmc.Monitor):
             kind = cmd[6:]
             years = self._safe_int(xbmc.getInfoLabel("Skin.String(age_filter)"), 0)
             path = (xbmc.getInfoLabel("Container.FolderPath") or "").strip()
-            genre = self._genre_for_path(path)
+            genre = self._genres_for_path(path)
             text = self._age_rule_from_path(path, "title")
-            target = self._age_node(kind, years, genre, text)
+            target = self._age_node(kind, years, genre, text, self._decade_filter())
             _dlog("age filter: {0} older than {1}y genre {2!r} search {3!r} -> {4}".format(
                 kind, years, genre, text, target[:80]))
             # Container.Update rather than ActivateWindow: the video window is
@@ -10970,10 +11069,15 @@ class FunctionalHelper(xbmc.Monitor):
         # search over a list that was not filtered. Only an episodes
         # playlist counts at that depth.
         kinds = ("episodes",) if self.SHOW_CHILD_RE.match(path) else None
-        cutoff = self._safe_int(self._age_rule_from_path(path, "year", kinds), 0)
+        operator, values = self._rule_from_path(path, "year", kinds)
+        cutoff = self._safe_int(values[0], 0) if operator == "lessthan" and values else 0
         want = str(time.localtime().tm_year - cutoff) if cutoff else ""
         if xbmc.getInfoLabel("Skin.String(age_filter)").strip() != want:
             _set_skin_string("age_filter", want)
+        # DECADE-GENRES: a "year between" rule is the Decade row's.
+        decade = decade_from_values(values) if operator == "between" else ""
+        if xbmc.getInfoLabel("Skin.String(decade_filter)").strip() != decade:
+            _set_skin_string("decade_filter", decade)
         # Same idea for the search text: the menu row shows what the node on
         # screen is actually filtered by, not what was last typed. At the
         # collections level the text is the "set contains" rule and the Show
@@ -11902,6 +12006,8 @@ class FunctionalHelper(xbmc.Monitor):
         self._theme_prop("theme_crow", state)
 
     GENRE_ALL = "__all__"  # genre_command value for the picker's "All" row
+    GENRE_TOGGLE = "__toggle__"  # DECADE-GENRES: "__toggle__:N" ticks or unticks picker slot N
+    GENRE_PENDING_SECS = 3.0     # DECADE-GENRES-FIX: how long a node asked for counts as in force
 
     def update_genre_command(self):
         """
@@ -11928,10 +12034,30 @@ class FunctionalHelper(xbmc.Monitor):
             _dlog("genre: not a library node, ignored: {0}".format(path[:80]))
             return
         kind = "tvshows" if path.lower().startswith("videodb://tvshows") else "movies"
-        genre = "" if value == self.GENRE_ALL else value
+        if value == self.GENRE_TOGGLE or value.startswith(self.GENRE_TOGGLE + ":"):
+            # DECADE-GENRES: the ticked row adds its genre to the list in
+            # force, or takes it out; the picker stays open. The row sends
+            # its slot number, so two rows ticked inside a second are two
+            # different commands for _take_command's repeat guard.
+            slot = self._safe_int(value[len(self.GENRE_TOGGLE) + 1:], 0)
+            name = xbmcgui.Window(HOME_WINDOW_ID).getProperty("GenrePick.%d.Label" % slot) if slot > 0 else ""
+            if not name:
+                return
+            # DECADE-GENRES-FIX: Container.Update lands a moment later, so a
+            # second tick before it builds on the list the first asked for,
+            # not on the node still on screen.
+            pending = self._genre_pending
+            if pending and time.time() - pending[0] < self.GENRE_PENDING_SECS and path != pending[1]:
+                genre = list(pending[2])
+            else:
+                genre = self._genres_for_path(path)
+            genre = [g for g in genre if g != name] if name in genre else genre + [name]
+        else:
+            genre = "" if value == self.GENRE_ALL else value
         years = self._safe_int(xbmc.getInfoLabel("Skin.String(age_filter)"), 0)
         text = self._age_rule_from_path(path, "title")
-        target = self._age_node(kind, years, genre, text)
+        target = self._age_node(kind, years, genre, text, self._decade_filter())
+        self._genre_pending = (time.time(), target, list(genre) if isinstance(genre, list) else ([genre] if genre else []))
         _dlog("genre: {0} {1!r} older than {2}y search {3!r} -> {4}".format(
             kind, genre, years, text, target[:100]))
         xbmc.executebuiltin("Container.Update({0})".format(target))
@@ -12021,12 +12147,13 @@ class FunctionalHelper(xbmc.Monitor):
         else:
             kind = "tvshows" if xbmc.getCondVisibility("Container.Content(tvshows)") else "movies"
             years = self._safe_int(xbmc.getInfoLabel("Skin.String(age_filter)"), 0)
-            target = self._age_node(kind, years, self._genre_for_path(path), text)
+            target = self._age_node(kind, years, self._genres_for_path(path), text,
+                                    self._decade_filter())
         _dlog("search: {0!r} -> {1}".format(text, target[:100]))
         xbmc.executebuiltin("Container.Update({0})".format(target))
         self._age_last_path = None
 
-    def _age_node(self, kind, years, genre, text=""):
+    def _age_node(self, kind, years, genre, text="", decade=""):
         """
         <summary>
         Build the node to open for an age threshold, an optional genre and
@@ -12034,8 +12161,9 @@ class FunctionalHelper(xbmc.Monitor):
         </summary>
         <param name="kind">"movies" or "tvshows".</param>
         <param name="years">Threshold in years, 0 for none.</param>
-        <param name="genre">Genre name to keep, "" for none.</param>
+        <param name="genre">Genre name to keep, "" for none, or a list of names (DECADE-GENRES: titles in any of them).</param>
         <param name="text">Text the title must contain, "" for none.</param>
+        <param name="decade">A DECADES value, "" for none (DECADE-GENRES).</param>
         <returns>A videodb smart playlist URL; with no rule at all, the plain titles node, or the genre's own node when only the genre is known so the normal Genre controls take over again.</returns>
         <remarks>
         "Older than N years" is a year strictly below the current year
@@ -12044,17 +12172,22 @@ class FunctionalHelper(xbmc.Monitor):
         and age the screen already shows.
         </remarks>
         """
-        if years <= 0 and genre and not text:
+        genres = [genre] if isinstance(genre, str) else list(genre or [])
+        genres = [g for g in genres if g]
+        if years <= 0 and len(genres) == 1 and not text and not decade_rule(decade):
             dbtype = "movie" if kind == "movies" else "tvshow"
             for (gtype, gid), name in self._genre_names.items():
-                if gtype == dbtype and name == genre:
+                if gtype == dbtype and name == genres[0]:
                     return "videodb://{0}/genres/{1}/".format(kind, gid)
         rules = []
         if years > 0:
             cutoff = time.localtime().tm_year - years
             rules.append({"field": "year", "operator": "lessthan", "value": [str(cutoff)]})
-        if genre:
-            rules.append({"field": "genre", "operator": "is", "value": [genre]})
+        if decade_rule(decade):
+            rules.append(decade_rule(decade))
+        if genres:
+            # DECADE-GENRES: one rule with several values is "any of these".
+            rules.append({"field": "genre", "operator": "is", "value": genres})
         if text:
             rules.append({"field": "title", "operator": "contains", "value": [text]})
         if not rules:
@@ -12065,6 +12198,56 @@ class FunctionalHelper(xbmc.Monitor):
 
     # A node below one show: its seasons, or a season's episodes.
     SHOW_CHILD_RE = re.compile(r"^videodb://tvshows/titles/-?\d+/", re.IGNORECASE)
+
+    @staticmethod
+    def _rule_from_path(path, field, kinds=None):
+        """
+        <summary>The operator and every value of one rule in the xsp playlist a videodb URL carries.</summary>
+        <param name="path">Container.FolderPath.</param>
+        <param name="field">Rule field, such as "year" or "genre".</param>
+        <param name="kinds">Playlist types that count; None accepts any.</param>
+        <returns>(operator, values); ("", []) when the path carries no such rule.</returns>
+        <remarks>DECADE-GENRES, item 33: a decade is a range and several genres are several values, which the first value alone cannot tell apart.</remarks>
+        """
+        if "xsp=" not in (path or ""):
+            return "", []
+        try:
+            raw = urllib.parse.parse_qs(urllib.parse.urlparse(path).query).get("xsp", [""])[0]
+            playlist = json.loads(raw)
+            if kinds is not None and playlist.get("type") not in kinds:
+                return "", []
+            rules = (playlist.get("rules") or {}).get("and") or []
+        except (ValueError, TypeError, AttributeError):
+            return "", []
+        for rule in rules:
+            if isinstance(rule, dict) and rule.get("field") == field:
+                values = rule.get("value") or []
+                if not isinstance(values, list):
+                    values = [values]
+                return str(rule.get("operator") or ""), [str(v) for v in values]
+        return "", []
+
+    @staticmethod
+    def _decade_filter():
+        """<summary>The Decade row's value, a DECADES entry or "" (DECADE-GENRES).</summary>"""
+        # DECADE-GENRES-FIX: with the switch off no decade is kept, so one
+        # left from before cannot narrow a node with no row to undo it.
+        if not xbmc.getCondVisibility("Skin.HasSetting(filter_extras)"):
+            return ""
+        value = xbmc.getInfoLabel("Skin.String(decade_filter)").strip()
+        return value if value in DECADES else ""
+
+    def _genres_for_path(self, path):
+        """
+        <summary>Every genre the node on screen is narrowed to.</summary>
+        <param name="path">Container.FolderPath.</param>
+        <returns>A list of genre names; empty for none.</returns>
+        <remarks>DECADE-GENRES, item 33: a genre node gives its one genre, a filtered node every value of its genre rule.</remarks>
+        """
+        if self.GENRE_PATH_RE.match(path or ""):
+            name = self._genre_for_path(path)
+            return [name] if name else []
+        return [v for v in self._rule_from_path(path, "genre")[1] if v]
 
     @staticmethod
     def _age_rule_from_path(path, field, kinds=None):

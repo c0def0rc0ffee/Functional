@@ -55,6 +55,7 @@ Toggle settings show an accent **dot** when on. Most changes apply immediately; 
 - The studio or network logo on the film and show information screen, from Kodi's Studio Icons pack (off by default). Switching it on offers to install the pack; switching it off offers to leave, disable or uninstall it
 - A More like this row on the info screens: the same collection, director or genre (off by default)
 - Cast Opens Actor Page, at the foot of Visible Fields: selecting someone in the cast opens a page with their photo, name and every film and show of theirs in the library, newest first; Back returns to the title, and playing from it closes the page and the information screen. Off, a cast click opens the library filtered to them as before (off by default)
+- Decade and Several Genres: the slide out gains a Decade row (2020s back to Before 1950) and the genre picker ticks several genres, showing titles in any of them; both stack with Search, and Decade and Age replace each other (off by default)
 
 ## Lists and Favourites
 
