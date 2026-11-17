@@ -1396,6 +1396,41 @@
 		<value condition="String.IsEqual(Skin.String(more_like),genre)">$LOCALIZE[31936]</value>
 		<value>$LOCALIZE[31893]</value>
 	</variable>
+	<!-- <summary>DECLUTTER, 17/11/2026: the value shown on the Declutter After
+	     row. Empty is the default of one minute.</summary> -->
+	<variable name="DeclutterDelayLabel">
+		<value condition="String.IsEqual(Skin.String(declutter_delay),30)">$LOCALIZE[31970]</value>
+		<value condition="String.IsEqual(Skin.String(declutter_delay),120)">$LOCALIZE[31972]</value>
+		<value condition="String.IsEqual(Skin.String(declutter_delay),300)">$LOCALIZE[31973]</value>
+		<value condition="String.IsEqual(Skin.String(declutter_delay),600)">$LOCALIZE[31974]</value>
+		<value>$LOCALIZE[31971]</value>
+	</variable>
+	<!-- <summary>DECLUTTER: true once nobody has pressed a key or moved the
+	     mouse for the delay Skin.String(declutter_delay) names.</summary>
+	     <remarks>System.IdleTime takes a literal number of seconds, so each
+	     choice is its own branch. Anything unrecognised reads as the one
+	     minute default.</remarks> -->
+	<expression name="declutter_idle">[String.IsEqual(Skin.String(declutter_delay),30) + System.IdleTime(30)] | [String.IsEqual(Skin.String(declutter_delay),120) + System.IdleTime(120)] | [String.IsEqual(Skin.String(declutter_delay),300) + System.IdleTime(300)] | [String.IsEqual(Skin.String(declutter_delay),600) + System.IdleTime(600)] | [!String.IsEqual(Skin.String(declutter_delay),30) + !String.IsEqual(Skin.String(declutter_delay),120) + !String.IsEqual(Skin.String(declutter_delay),300) + !String.IsEqual(Skin.String(declutter_delay),600) + System.IdleTime(60)]</expression>
+	<!-- <summary>DECLUTTER: true while Home should be faded to its background:
+	     the switch is on, the idle time has passed, the Continue Watching
+	     pop up is closed and no modal dialog sits over Home.</summary> -->
+	<expression name="declutter_on">Skin.HasSetting(declutter) + $EXP[declutter_idle] + !Skin.HasSetting(continue_open) + !System.HasActiveModalDialog</expression>
+	<!-- <summary>DECLUTTER: the fade a Home piece carries. Placed inside the
+	     piece's own group in Home.xml, never inside a shared include, so the
+	     settings stage is untouched.</summary>
+	     <param name="keep">A condition that is true while this piece stays
+	     on screen; false for the pieces that always go.</param>
+	     <remarks>A fade, not a visible condition, so a focused control keeps
+	     its focus while unseen. Not reversible: the moment input resets the
+	     idle clock the animation resets and the piece is back at once. Under
+	     reduce_motion the fade takes no time.</remarks> -->
+	<include name="DeclutterFade">
+		<param name="keep" default="false"/>
+		<definition>
+			<animation effect="fade" start="100" end="0" time="1500" reversible="false" condition="$EXP[declutter_on] + ![$PARAM[keep]] + !Skin.HasSetting(reduce_motion)">Conditional</animation>
+			<animation effect="fade" start="100" end="0" time="0" reversible="false" condition="$EXP[declutter_on] + ![$PARAM[keep]] + Skin.HasSetting(reduce_motion)">Conditional</animation>
+		</definition>
+	</include>
 	<variable name="WatchlistTagLabel">
 		<value condition="!String.IsEmpty(Skin.String(watchlist_tag))">$INFO[Skin.String(watchlist_tag)]</value>
 		<value>$LOCALIZE[31899]</value>
