@@ -7,7 +7,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.37" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.38" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -28,9 +28,9 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New: Declutter When Idle, on the Home Screen page, Off by default: after a set time with no key pressed (30 seconds to 10 minutes, 1 minute until you choose), Home fades to its background and rests like a screensaver. The clock, date and weather and the stats stay unless you untick them; the Coming up list, background captions, corner bar and logo stay only if you tick them. Any key or mouse movement brings it all back. Kodi's own screensaver needs a longer delay than this.
-New: Play This Show. Play Choices for Shows, on the Library page, Off by default: a show's hold menu in the library gains Play This Show, which plays the next unwatched episode, plays from the first episode, or adds the whole show to the queue. OK still opens the show.
-Fixed: the hold menu keeps every entry on screen whatever skin rows show above it, opens on the first row, and walks every row in order on Down and round the wrap.</news>
+		<news>Changed: while Home is decluttered, the round buttons and the greeting always go. Keep Corner Bar now keeps only what is playing, the queue and the sleep countdown, and a kept clock shows the time alone.
+New: Coming Up While Decluttered, under Keep Coming Up List: how many of the next slots stay while Home rests, All (the default), 1, 2, 3 or 5, each with its day heading.
+New: Dim While Decluttered, under Declutter After: how dark the background goes while Home rests, As Usual (the default), none, 25%, 50%, 75% or 90%.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
