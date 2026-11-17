@@ -212,5 +212,154 @@ class StageUntouched(unittest.TestCase):
             self.assertNotIn("declutter_on", text, name)
 
 
+class CirclesAndGreeting(unittest.TestCase):
+    """<summary>CIRCLES-FADE and GREETING-DECLUTTER, 18/11/2026: the round buttons and the greeting always go, even when their row or the clock is kept.</summary>"""
+
+    CIRCLES = ("stats", "lists", "fav", "addons", "settings", "power")
+
+    def test_every_round_button_carries_the_fade(self):
+        """<summary>Each of the six round buttons in HomeCornerBar fades on circles_fade, and no pill does.</summary>"""
+        bar = named("Includes_Home.xml", "include", "HomeCornerBar")
+        faded = set()
+        for el in bar.iter("control"):
+            for inc in el.findall("include"):
+                if inc.get("content") == "HomeCircleFade":
+                    param = inc.find("param")
+                    self.assertEqual(param.get("value"), "$PARAM[circles_fade]")
+                    faded.add(el.get("id"))
+        self.assertEqual(faded, {"$PARAM[id_%s]" % c for c in self.CIRCLES})
+
+    def test_circle_fade_is_off_unless_asked(self):
+        """<summary>circles_fade defaults to false and the fade honours reduce_motion.</summary>"""
+        bar = named("Includes_Home.xml", "include", "HomeCornerBar")
+        defaults = {p.get("name"): p.get("default") for p in bar.findall("param")}
+        self.assertEqual(defaults.get("circles_fade"), "false")
+        fade = named("Includes_Home.xml", "include", "HomeCircleFade")
+        times = sorted(a.get("time") for a in fade.iter("animation"))
+        self.assertEqual(times, ["0", "1500"])
+        for a in fade.iter("animation"):
+            self.assertIn("$PARAM[when]", a.get("condition"))
+            self.assertEqual(a.get("reversible"), "false")
+
+    def test_home_passes_declutter_and_stage_does_not(self):
+        """<summary>Home's three corner bars pass the declutter condition; the stage's three pass nothing.</summary>"""
+        home = [i for i in root("Home.xml").iter("include") if i.get("content") == "HomeCornerBar"]
+        self.assertEqual(len(home), 3)
+        for inc in home:
+            params = {p.get("name"): p.get("value") for p in inc.findall("param")}
+            self.assertEqual(params.get("circles_fade"), "$EXP[declutter_on]")
+        stage = [i for i in root("Includes_Home.xml").iter("include") if i.get("content") == "HomeCornerBar"]
+        self.assertTrue(stage)
+        for inc in stage:
+            self.assertNotIn("circles_fade", {p.get("name") for p in inc.findall("param")})
+
+    def test_greeting_gives_way_on_home_only(self):
+        """<summary>greeting_room is false while Home is decluttered, and only on Home, so the stage keeps its greeting.</summary>"""
+        room = named("Includes.xml", "expression", "greeting_room").text
+        self.assertIn("![$EXP[declutter_on] + Window.IsActive(home)]", room)
+        flipped = named("Includes.xml", "expression", "greeting_room_flipped").text
+        self.assertNotIn("declutter", flipped)
+
+
+def service_module():
+    """
+    <summary>service.py with the Kodi stubs in place, loaded the way the Coming up tests load it.</summary>
+    <returns>The service module.</returns>
+    """
+    import sys
+    sys.path.insert(0, HERE)
+    import test_lists_api as T  # installs the Kodi stubs, imports service
+    return T.service
+
+
+def cycle_of(cid, setting):
+    """
+    <summary>The values one cycling settings button walks through, starting from empty.</summary>
+    <param name="cid">The button id.</param>
+    <param name="setting">The Skin.String it cycles.</param>
+    <returns>The values in order, "" for empty, ending when the walk is back at empty.</returns>
+    """
+    steps = {}
+    for click in control(cid).findall("onclick"):
+        cond, act = click.get("condition"), click.text
+        start = "" if cond.startswith("String.IsEmpty") else cond.split(",")[1].rstrip(")")
+        steps[start] = "" if act.startswith("Skin.Reset") else act.split(",")[1].rstrip(")")
+        assert setting in cond and setting in act, (cid, cond, act)
+    walk, value = [""], steps[""]
+    while value != "":
+        walk.append(value)
+        value = steps[value]
+    return walk
+
+
+class ComingUpCount(unittest.TestCase):
+    """<summary>DECLUTTER-COUNT, 18/11/2026: Coming Up While Decluttered keeps the next few slots and their headings.</summary>"""
+
+    def test_ranks_keep_whole_slots(self):
+        """<summary>An item and its item2 share a rank, a heading takes the slot under it, an Ends At line the slot before.</summary>"""
+        service = service_module()
+        window = [{"kind": k} for k in
+                  ("item", "item2", "heading", "slot", "slot", "ends", "heading", "slot", "pad", "", "")]
+        self.assertEqual(service.coming_up_ranks(window),
+                         ["1", "1", "2", "2", "3", "3", "4", "4", "4", "4", "4"])
+        self.assertEqual(service.coming_up_ranks([{"kind": ""}, {"kind": ""}]), ["", ""])
+
+    def test_rank_is_published(self):
+        """<summary>update_coming_up_lines writes Rank beside Kind, Label, When and Sep.</summary>"""
+        text = read(os.path.join(HERE, "..", "skin.functional", "service.py"))
+        self.assertIn('for field in ("kind", "label", "when", "sep", "rank"):', text)
+        self.assertIn("coming_up_ranks(window)", text)
+
+    def test_row_cycles_and_needs_coming_up_kept(self):
+        """<summary>7198 cycles All, 1, 2, 3, 5 and is greyed until Declutter and Keep Coming Up List are both on.</summary>"""
+        self.assertEqual(cycle_of("7198", "declutter_comingup_count"), ["", "1", "2", "3", "5"])
+        self.assertEqual(control("7198").find("enable").text,
+                         "Skin.HasSetting(declutter) + Skin.HasSetting(declutter_keep_comingup)")
+        label = named("Includes.xml", "variable", "DeclutterComingUpLabel")
+        conds = {v.get("condition") for v in label.findall("value") if v.get("condition")}
+        self.assertEqual(conds, {"String.IsEqual(Skin.String(declutter_comingup_count),%d)" % n for n in (1, 2, 3, 5)})
+
+    def test_every_line_fades_past_the_count(self):
+        """<summary>ComingUpLine's line group fades on each count only while decluttered, honouring reduce_motion.</summary>"""
+        line = named("Includes.xml", "include", "ComingUpLine")
+        anims = [a for a in line.iter("animation") if "declutter_comingup_count" in (a.get("condition") or "")]
+        self.assertEqual(sorted(a.get("time") for a in anims), ["0", "1500"])
+        for a in anims:
+            cond = a.get("condition")
+            self.assertTrue(cond.startswith("$EXP[declutter_on] + "), cond)
+            for n in (1, 2, 3, 5):
+                self.assertIn("Integer.IsGreater(Window(home).Property(ComingUp.$PARAM[line].Rank),%d)" % n, cond)
+
+
+class DeclutterDim(unittest.TestCase):
+    """<summary>DECLUTTER-DIM, 18/11/2026: Dim While Decluttered sets the background dim on Home while decluttered.</summary>"""
+
+    LEVELS = ("0", "25", "50", "75", "90")
+
+    def test_row_cycles(self):
+        """<summary>7217 cycles As Usual, then 0, 25, 50, 75 and 90, and is greyed while Declutter is off.</summary>"""
+        self.assertEqual(cycle_of("7217", "declutter_dim"), [""] + list(self.LEVELS))
+        self.assertEqual(control("7217").find("enable").text, "Skin.HasSetting(declutter)")
+
+    def test_dim_wins_on_home_only(self):
+        """<summary>Both background dim variables open with one value per level, each gated on declutter_home.</summary>"""
+        home = named("Includes.xml", "expression", "declutter_home").text
+        self.assertEqual(home, "$EXP[declutter_on] + Window.IsActive(home)")
+        for name in ("BgOverlayColor", "BgImageDiffuse"):
+            values = named("Includes.xml", "variable", name).findall("value")
+            first = [v.get("condition") for v in values[:5]]
+            self.assertEqual(first, ["$EXP[declutter_home] + String.IsEqual(Skin.String(declutter_dim),%s)" % n
+                                     for n in self.LEVELS], name)
+            self.assertFalse(any("declutter" in (v.get("condition") or "") for v in values[5:]), name)
+
+    def test_help_and_preview_know_the_rows(self):
+        """<summary>Both new rows have a help line and sit in the no preview list.</summary>"""
+        help_xml = read(os.path.join(XML, "Includes_SettingsHelp.xml"))
+        for cid, string in (("7198", "31987"), ("7217", "31990")):
+            self.assertIn('<value condition="Control.HasFocus(%s)">$LOCALIZE[%s]</value>' % (cid, string), help_xml)
+            self.assertIn("Control.HasFocus(%s)" % cid, named("Includes_SettingsHelp.xml", "expression", "settings_help_shown").text)
+            self.assertIn("Control.HasFocus(%s)" % cid, named("Includes_SettingsPreview.xml", "expression", "settings_preview_none").text)
+
+
 if __name__ == "__main__":
     unittest.main()

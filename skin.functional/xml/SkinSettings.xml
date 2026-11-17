@@ -948,6 +948,30 @@
 					<onleft>7000</onleft>
 					<onright>7022</onright>
 				</control>
+				<!-- DECLUTTER-DIM, 18/11/2026. Cycle: As Usual (empty, the default), 0, 25, 50, 75, 90. -->
+				<control type="button" id="7217">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31988] $VAR[DeclutterDimLabel]</label>
+					<enable>Skin.HasSetting(declutter)</enable>
+					<onclick condition="String.IsEmpty(Skin.String(declutter_dim))">Skin.SetString(declutter_dim,0)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_dim),0)">Skin.SetString(declutter_dim,25)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_dim),25)">Skin.SetString(declutter_dim,50)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_dim),50)">Skin.SetString(declutter_dim,75)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_dim),75)">Skin.SetString(declutter_dim,90)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_dim),90)">Skin.Reset(declutter_dim)</onclick>
+					<onleft>7000</onleft>
+					<onright>7022</onright>
+				</control>
 				<control type="radiobutton" id="7192">
 					<width>680</width>
 					<height>60</height>
@@ -1014,6 +1038,29 @@
 					<selected>Skin.HasSetting(declutter_keep_comingup)</selected>
 					<enable>Skin.HasSetting(declutter)</enable>
 					<onclick>Skin.ToggleSetting(declutter_keep_comingup)</onclick>
+					<onleft>7000</onleft>
+					<onright>7022</onright>
+				</control>
+				<!-- DECLUTTER-COUNT, 18/11/2026. Cycle: All (empty, the default), 1, 2, 3, 5. -->
+				<control type="button" id="7198">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31984] $VAR[DeclutterComingUpLabel]</label>
+					<enable>Skin.HasSetting(declutter) + Skin.HasSetting(declutter_keep_comingup)</enable>
+					<onclick condition="String.IsEmpty(Skin.String(declutter_comingup_count))">Skin.SetString(declutter_comingup_count,1)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_comingup_count),1)">Skin.SetString(declutter_comingup_count,2)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_comingup_count),2)">Skin.SetString(declutter_comingup_count,3)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_comingup_count),3)">Skin.SetString(declutter_comingup_count,5)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_comingup_count),5)">Skin.Reset(declutter_comingup_count)</onclick>
 					<onleft>7000</onleft>
 					<onright>7022</onright>
 				</control>

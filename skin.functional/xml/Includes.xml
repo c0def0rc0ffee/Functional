@@ -142,7 +142,11 @@
 	<expression name="greeting_part_evening">String.IsEqual(Window(home).Property(greeting_part),evening)</expression>
 	<!-- Room for the greeting: with the main menu at the top, a row of five
 	     or more tiles reaches the clock, so the time shows alone there. -->
-	<expression name="greeting_room">Skin.HasSetting(show_greeting) + [!$EXP[menu_top] | !Integer.IsGreater(Window(home).Property(Tile.Count),4)]</expression>
+	<!-- GREETING-DECLUTTER, 18/11/2026: the greeting also gives way while
+	     Home is decluttered, whatever its own switch says, so a kept clock
+	     shows the time alone. Window.IsActive(home) keeps the settings
+	     stage, which shares this line, out of it. -->
+	<expression name="greeting_room">Skin.HasSetting(show_greeting) + [!$EXP[menu_top] | !Integer.IsGreater(Window(home).Property(Tile.Count),4)] + ![$EXP[declutter_on] + Window.IsActive(home)]</expression>
 	<!-- STAGE: the same room rule with the greeting switch read the other way round, for the flipped clock line. -->
 	<expression name="greeting_room_flipped">!Skin.HasSetting(show_greeting) + [!$EXP[menu_top] | !Integer.IsGreater(Window(home).Property(Tile.Count),4)]</expression>
 	<variable name="HomeClockLine">
@@ -327,6 +331,13 @@
 			</control>
 			<control type="group">
 				<visible>$EXP[engage_list_shown] + !String.IsEmpty(Window(home).Property(ComingUp.$PARAM[line].Kind)) + [$PARAM[when]]</visible>
+				<!-- DECLUTTER-COUNT, 18/11/2026: while Home is decluttered with a count
+				     chosen, a line belonging past that many slots fades. ComingUp.L.Rank
+				     (service.py:coming_up_ranks) is the slot a line belongs to, so a
+				     heading goes with its first slot and an Ends At line with the slot
+				     before it. This include is drawn on Home only. -->
+				<animation effect="fade" start="100" end="0" time="1500" reversible="false" condition="$EXP[declutter_on] + !Skin.HasSetting(reduce_motion) + [[[String.IsEqual(Skin.String(declutter_comingup_count),1) + Integer.IsGreater(Window(home).Property(ComingUp.$PARAM[line].Rank),1)]] | [[String.IsEqual(Skin.String(declutter_comingup_count),2) + Integer.IsGreater(Window(home).Property(ComingUp.$PARAM[line].Rank),2)]] | [[String.IsEqual(Skin.String(declutter_comingup_count),3) + Integer.IsGreater(Window(home).Property(ComingUp.$PARAM[line].Rank),3)]] | [[String.IsEqual(Skin.String(declutter_comingup_count),5) + Integer.IsGreater(Window(home).Property(ComingUp.$PARAM[line].Rank),5)]]]">Conditional</animation>
+				<animation effect="fade" start="100" end="0" time="0" reversible="false" condition="$EXP[declutter_on] + Skin.HasSetting(reduce_motion) + [[[String.IsEqual(Skin.String(declutter_comingup_count),1) + Integer.IsGreater(Window(home).Property(ComingUp.$PARAM[line].Rank),1)]] | [[String.IsEqual(Skin.String(declutter_comingup_count),2) + Integer.IsGreater(Window(home).Property(ComingUp.$PARAM[line].Rank),2)]] | [[String.IsEqual(Skin.String(declutter_comingup_count),3) + Integer.IsGreater(Window(home).Property(ComingUp.$PARAM[line].Rank),3)]] | [[String.IsEqual(Skin.String(declutter_comingup_count),5) + Integer.IsGreater(Window(home).Property(ComingUp.$PARAM[line].Rank),5)]]]">Conditional</animation>
 				<left>0</left>
 				<top>$PARAM[top]</top>
 				<width>480</width>
@@ -1283,6 +1294,13 @@
 	     conditions come first because they are the more specific case.
 	     Both no dim steps are 00FFFFFF for the reason at VideoDimColor.</summary> -->
 	<variable name="BgOverlayColor">
+		<!-- DECLUTTER-DIM, 18/11/2026: while Home is decluttered, Dim While
+		     Decluttered wins; As Usual (empty) falls through to the levels below. -->
+		<value condition="$EXP[declutter_home] + String.IsEqual(Skin.String(declutter_dim),0)">00FFFFFF</value>
+		<value condition="$EXP[declutter_home] + String.IsEqual(Skin.String(declutter_dim),25)">40000000</value>
+		<value condition="$EXP[declutter_home] + String.IsEqual(Skin.String(declutter_dim),50)">80000000</value>
+		<value condition="$EXP[declutter_home] + String.IsEqual(Skin.String(declutter_dim),75)">C0000000</value>
+		<value condition="$EXP[declutter_home] + String.IsEqual(Skin.String(declutter_dim),90)">E6000000</value>
 		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),0)">00FFFFFF</value>
 		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),25)">40000000</value>
 		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),50)">80000000</value>
@@ -1302,6 +1320,13 @@
 	     overlay, which doesn't reliably sit over a background multiimage).
 	     Same home / off-home split as BgOverlayColor above. -->
 	<variable name="BgImageDiffuse">
+		<!-- DECLUTTER-DIM, 18/11/2026: while Home is decluttered, Dim While
+		     Decluttered wins; As Usual (empty) falls through to the levels below. -->
+		<value condition="$EXP[declutter_home] + String.IsEqual(Skin.String(declutter_dim),0)">FFFFFFFF</value>
+		<value condition="$EXP[declutter_home] + String.IsEqual(Skin.String(declutter_dim),25)">FFBFBFBF</value>
+		<value condition="$EXP[declutter_home] + String.IsEqual(Skin.String(declutter_dim),50)">FF808080</value>
+		<value condition="$EXP[declutter_home] + String.IsEqual(Skin.String(declutter_dim),75)">FF404040</value>
+		<value condition="$EXP[declutter_home] + String.IsEqual(Skin.String(declutter_dim),90)">FF1A1A1A</value>
 		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),0)">FFFFFFFF</value>
 		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),25)">FFBFBFBF</value>
 		<value condition="[Skin.HasSetting(bg_all_windows) + !Window.IsActive(home)] + String.IsEqual(Skin.String(bg_windows_dim),50)">FF808080</value>
@@ -1414,6 +1439,27 @@
 	<!-- <summary>DECLUTTER: true while Home should be faded to its background:
 	     the switch is on, the idle time has passed, the Continue Watching
 	     pop up is closed and no modal dialog sits over Home.</summary> -->
+	<!-- <summary>DECLUTTER-DIM: declutter_on, and Home is the window showing, so the
+	     settings stage and other windows that share the background never take the
+	     decluttered dim.</summary> -->
+	<expression name="declutter_home">$EXP[declutter_on] + Window.IsActive(home)</expression>
+	<!-- <summary>DECLUTTER-COUNT: the label of the Coming Up While Decluttered row.</summary> -->
+	<variable name="DeclutterComingUpLabel">
+		<value condition="String.IsEqual(Skin.String(declutter_comingup_count),1)">$LOCALIZE[31986] 1</value>
+		<value condition="String.IsEqual(Skin.String(declutter_comingup_count),2)">$LOCALIZE[31986] 2</value>
+		<value condition="String.IsEqual(Skin.String(declutter_comingup_count),3)">$LOCALIZE[31986] 3</value>
+		<value condition="String.IsEqual(Skin.String(declutter_comingup_count),5)">$LOCALIZE[31986] 5</value>
+		<value>$LOCALIZE[31985]</value>
+	</variable>
+	<!-- <summary>DECLUTTER-DIM: the label of the Dim While Decluttered row.</summary> -->
+	<variable name="DeclutterDimLabel">
+		<value condition="String.IsEqual(Skin.String(declutter_dim),0)">$LOCALIZE[31154]</value>
+		<value condition="String.IsEqual(Skin.String(declutter_dim),25)">25%</value>
+		<value condition="String.IsEqual(Skin.String(declutter_dim),50)">50%</value>
+		<value condition="String.IsEqual(Skin.String(declutter_dim),75)">75%</value>
+		<value condition="String.IsEqual(Skin.String(declutter_dim),90)">90%</value>
+		<value>$LOCALIZE[31989]</value>
+	</variable>
 	<expression name="declutter_on">Skin.HasSetting(declutter) + $EXP[declutter_idle] + !Skin.HasSetting(continue_open) + !System.HasActiveModalDialog</expression>
 	<!-- <summary>DECLUTTER: the fade a Home piece carries. Placed inside the
 	     piece's own group in Home.xml, never inside a shared include, so the
