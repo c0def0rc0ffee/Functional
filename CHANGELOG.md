@@ -11,6 +11,18 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.38 (18/11/2026)
+
+- Changed: while Home is decluttered, the round buttons and the greeting
+  always go. Keep Corner Bar now keeps only what is playing, the queue
+  and the sleep countdown, and a kept clock shows the time alone.
+- New: Coming Up While Decluttered, under Keep Coming Up List: how many
+  of the next slots stay while Home rests, All (the default), 1, 2, 3 or
+  5, each with its day heading.
+- New: Dim While Decluttered, under Declutter After: how dark the
+  background goes while Home rests, As Usual (the default), none, 25%,
+  50%, 75% or 90%.
+
 ## 0.23.37 (17/11/2026)
 
 - New: Declutter When Idle, on the Home Screen page, Off by default:
