@@ -40,7 +40,10 @@ Toggle settings show an accent **dot** when on. Most changes apply immediately; 
 - A Watchlist tab beside Continue Watching and Recently Added, showing a tag or one of your lists (off by default)
 - Up to three rows of posters under the main menu, each with its own source; while any is on the menu sits at the top (off by default)
 - Focused Title as Backdrop: while a Home row or a pop up row has focus, the title under the cursor fills the background with its fanart and shows its logo (off by default)
-- Declutter When Idle: after 30 seconds to 10 minutes with no key pressed, Home fades to its background and keeps only the pieces you tick, the clock and stats by default; any key or mouse movement brings it all back (off by default)
+- Declutter When Idle: with no key pressed for a while, Home fades to its background and keeps only the pieces you tick; any key or mouse movement brings it all back, and that first press still does its usual job (off by default)
+  - **Declutter After**: 30 seconds, 1, 2, 5 or 10 minutes, 1 minute until you choose. Kodi's own screensaver needs a longer delay than this, or it starts first
+  - **Keep** rows: Clock, Date and Weather and Stats (both kept by default); Coming Up List, Background Captions, Corner Bar, and Logo and Version (all off by default)
+  - The menu, the Home rows, the focused title's logo and the Continue Watching tabs always go
 - Logo, date and time, weather widget, greeting beside the clock (off by default), footer and loading splash
 - The sleep timer and its countdown
 
