@@ -864,6 +864,203 @@
 					<onright>7022</onright>
 				</control>
 
+				<!-- DECLUTTER, 17/11/2026: after a set idle time Home fades to its
+				     background, keeping only the pieces ticked here. Off by default.
+				     The fade itself is the DeclutterFade include on each piece in
+				     Home.xml; the clock and the stats are kept by default, so their
+				     settings are stored inverted (declutter_drop_*). -->
+				<control type="label" id="7199">
+					<width>680</width>
+					<height>64</height>
+					<textoffsety>24</textoffsety>
+					<font>font_small</font>
+					<textcolor>text_dim</textcolor>
+					<label>31965</label>
+				</control>
+				<control type="radiobutton" id="7190">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31966</label>
+					<selected>Skin.HasSetting(declutter)</selected>
+					<onclick>Skin.ToggleSetting(declutter)</onclick>
+					<onleft>7000</onleft>
+					<onright>7022</onright>
+				</control>
+				<!-- Cycle: 1 minute (empty, the default), 2, 5, 10 minutes, 30 seconds. -->
+				<control type="button" id="7191">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31968] $VAR[DeclutterDelayLabel]</label>
+					<enable>Skin.HasSetting(declutter)</enable>
+					<onclick condition="String.IsEmpty(Skin.String(declutter_delay))">Skin.SetString(declutter_delay,120)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_delay),120)">Skin.SetString(declutter_delay,300)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_delay),300)">Skin.SetString(declutter_delay,600)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_delay),600)">Skin.SetString(declutter_delay,30)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(declutter_delay),30)">Skin.Reset(declutter_delay)</onclick>
+					<onleft>7000</onleft>
+					<onright>7022</onright>
+				</control>
+				<control type="radiobutton" id="7192">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31975</label>
+					<selected>!Skin.HasSetting(declutter_drop_clock)</selected>
+					<enable>Skin.HasSetting(declutter)</enable>
+					<onclick>Skin.ToggleSetting(declutter_drop_clock)</onclick>
+					<onleft>7000</onleft>
+					<onright>7022</onright>
+				</control>
+				<control type="radiobutton" id="7193">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31976</label>
+					<selected>!Skin.HasSetting(declutter_drop_stats)</selected>
+					<enable>Skin.HasSetting(declutter)</enable>
+					<onclick>Skin.ToggleSetting(declutter_drop_stats)</onclick>
+					<onleft>7000</onleft>
+					<onright>7022</onright>
+				</control>
+				<control type="radiobutton" id="7194">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31977</label>
+					<selected>Skin.HasSetting(declutter_keep_comingup)</selected>
+					<enable>Skin.HasSetting(declutter)</enable>
+					<onclick>Skin.ToggleSetting(declutter_keep_comingup)</onclick>
+					<onleft>7000</onleft>
+					<onright>7022</onright>
+				</control>
+				<control type="radiobutton" id="7195">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31978</label>
+					<selected>Skin.HasSetting(declutter_keep_captions)</selected>
+					<enable>Skin.HasSetting(declutter)</enable>
+					<onclick>Skin.ToggleSetting(declutter_keep_captions)</onclick>
+					<onleft>7000</onleft>
+					<onright>7022</onright>
+				</control>
+				<control type="radiobutton" id="7196">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31979</label>
+					<selected>Skin.HasSetting(declutter_keep_cornerbar)</selected>
+					<enable>Skin.HasSetting(declutter)</enable>
+					<onclick>Skin.ToggleSetting(declutter_keep_cornerbar)</onclick>
+					<onleft>7000</onleft>
+					<onright>7022</onright>
+				</control>
+				<control type="radiobutton" id="7197">
+					<width>680</width>
+					<height>60</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>20</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<textureradioonfocus colordiffuse="white">dot.png</textureradioonfocus>
+					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
+					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
+					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
+					<label>31980</label>
+					<selected>Skin.HasSetting(declutter_keep_logo)</selected>
+					<enable>Skin.HasSetting(declutter)</enable>
+					<onclick>Skin.ToggleSetting(declutter_keep_logo)</onclick>
+					<onleft>7000</onleft>
+					<onright>7022</onright>
+				</control>
+
 				<control type="label" id="7064">
 					<width>680</width>
 					<height>64</height>

@@ -3552,3 +3552,72 @@ msgstr ""
 msgctxt "#31943"
 msgid "While a Home row or a Continue Watching pop up row has focus, the title under the cursor fills the background with its fanart and shows its logo. Off, the background stays as set.[CR]Where: Home."
 msgstr ""
+
+# Declutter, 17/11/2026: Home fades to its background when idle.
+msgctxt "#31965"
+msgid "DECLUTTER"
+msgstr ""
+
+msgctxt "#31966"
+msgid "Declutter When Idle"
+msgstr ""
+
+msgctxt "#31967"
+msgid "After the set time with no key pressed and no mouse movement, Home fades to its background and keeps only the pieces you tick below. Any key or mouse movement brings it all back, and that first press also does its usual job. Kodi's own screensaver needs a longer delay than this, or it starts first.[CR]Where: Home."
+msgstr ""
+
+msgctxt "#31968"
+msgid "Declutter After:"
+msgstr ""
+
+msgctxt "#31969"
+msgid "How long Home waits with no key pressed and no mouse movement before it declutters.[CR]Where: Home."
+msgstr ""
+
+msgctxt "#31970"
+msgid "30 Seconds"
+msgstr ""
+
+msgctxt "#31971"
+msgid "1 Minute"
+msgstr ""
+
+msgctxt "#31972"
+msgid "2 Minutes"
+msgstr ""
+
+msgctxt "#31973"
+msgid "5 Minutes"
+msgstr ""
+
+msgctxt "#31974"
+msgid "10 Minutes"
+msgstr ""
+
+msgctxt "#31975"
+msgid "Keep Clock, Date and Weather"
+msgstr ""
+
+msgctxt "#31976"
+msgid "Keep Stats"
+msgstr ""
+
+msgctxt "#31977"
+msgid "Keep Coming Up List"
+msgstr ""
+
+msgctxt "#31978"
+msgid "Keep Background Captions"
+msgstr ""
+
+msgctxt "#31979"
+msgid "Keep Corner Bar"
+msgstr ""
+
+msgctxt "#31980"
+msgid "Keep Logo and Version"
+msgstr ""
+
+msgctxt "#31981"
+msgid "Ticked, this stays on screen while Home is decluttered. The menu, the Home rows, the focused title's logo and the Continue Watching tabs always go.[CR]Where: Home."
+msgstr ""
