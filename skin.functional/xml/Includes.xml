@@ -3147,6 +3147,55 @@
 		</definition>
 	</include>
 
+	<!-- SHOW-PLAY (item 32): the hold menu row Play This Show on a library
+	     show, under the Lists and Collection rows, which it follows down a
+	     slot for each that shows. It names the show to service.py, which
+	     asks which way to play it. Only with Skin.HasSetting(show_play_menu). -->
+	<include name="ShowPlayContextButton">
+		<param name="id" />
+		<param name="top" />
+		<param name="onup" />
+		<param name="ondown" />
+		<definition>
+			<control type="image">
+				<left>0</left>
+				<top>$PARAM[top]</top>
+				<width>600</width>
+				<height>60</height>
+				<texture colordiffuse="bg_panel">white.png</texture>
+				<visible>Control.IsVisible($PARAM[id])</visible>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(951)">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(952)">Conditional</animation>
+			</control>
+			<control type="button" id="$PARAM[id]">
+				<left>0</left>
+				<top>$PARAM[top]</top>
+				<width>600</width>
+				<height>60</height>
+				<font>font_reg</font>
+				<textcolor>text</textcolor>
+				<disabledcolor>disabled</disabledcolor>
+				<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<textoffsetx>30</textoffsetx>
+				<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+				<texturenofocus>-</texturenofocus>
+				<label>31956</label>
+				<visible>Skin.HasSetting(show_play_menu) + Window.IsActive(videos) + String.IsEqual(ListItem.DBTYPE,tvshow) + Integer.IsGreater(ListItem.DBID,0) + !ListItem.IsParentFolder</visible>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(951)">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(952)">Conditional</animation>
+				<onup>$PARAM[onup]</onup>
+				<ondown>$PARAM[ondown]</ondown>
+				<onclick>SetProperty(show_play_title,$ESCINFO[ListItem.Label],10000)</onclick>
+				<onclick>Skin.SetString(show_command,pick:$INFO[ListItem.DBID])</onclick>
+				<onclick>Action(Close)</onclick>
+			</control>
+		</definition>
+	</include>
+
 	<!-- ContinueContextButton: one of the three rows DialogContextMenu shows
 	     for a Continue Watching item on Home.
 	     <summary>A static button drawn where Kodi's grouplist 996 normally

@@ -69,8 +69,8 @@ def target(control, tag, env):
 
 def test_setting_row():
     """
-    <summary>Row 7215 is a radiobutton last in grouplist 7021 after 7214, with
-    the label, selected state, click and left link; 7316 goes up to it.</summary>
+    <summary>Row 7215 is a radiobutton in grouplist 7021 straight after 7214, with
+    the label, selected state, click and left link; 7316 goes up to the list's last row.</summary>
     """
     print("running test_setting_row")
     root = ET.parse(os.path.join(XML, "SkinSettings.xml")).getroot()
@@ -79,7 +79,7 @@ def test_setting_row():
     ids = [c.get("id") for c in group.findall("control")] if group is not None else []
     check("7215" in ids and "7214" in ids and ids.index("7215") == ids.index("7214") + 1,
           "row 7215 is inside 7021 straight after 7214")
-    check(bool(ids) and ids[-1] == "7215", "7215 is the list's last row")
+    # SHOW-PLAY (item 32) added 7216 after it, so 7215 need not be last.
     row = by_id(root, "7215")
     check(row is not None and row.get("type") == "radiobutton", "7215 is a radiobutton")
     if row is not None:
@@ -90,7 +90,7 @@ def test_setting_row():
               "7215 click toggles the switch")
         check((row.findtext("onleft") or "").strip() == "7230", "left from 7215 goes to 7230")
     last = by_id(root, "7316")
-    check(last is not None and (last.findtext("onup") or "").strip() == "7215", "7316 onup is 7215")
+    check(last is not None and (last.findtext("onup") or "").strip() == ids[-1], "7316 onup is the list's last row")
 
 
 def test_help_preview_strings():

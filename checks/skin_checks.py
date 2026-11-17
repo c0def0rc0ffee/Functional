@@ -317,6 +317,13 @@ def check_strings():
     return findings
 
 
+# HOLD-MENU-FOCUS, 15/11/2026: ids Kodi itself creates in a window when it
+# opens, which no skin file declares. The context menu clones its rows from
+# template 1000 as ids 1001 upward (GUIDialogContextMenu BUTTON_START), and
+# 1001, its first entry, is a navigation and focus target there.
+RUNTIME_IDS = {"DialogContextMenu.xml": ("1001",)}
+
+
 def check_navigation(trees):
     """<summary>Every navigation target and id reference resolves once includes are expanded.</summary>
     <param name="trees">Parsed files.</param>
@@ -338,6 +345,8 @@ def check_navigation(trees):
             for control in expanded.iter("control"):
                 if control.get("id") and control.get("id").strip():
                     ids[control.get("id").strip()] += 1
+            for cid in RUNTIME_IDS.get(fname, ()):
+                ids.setdefault(cid, 0)  # present, but never counted as a duplicate
             for cid, count in ids.items():
                 if count > 1 and (fname, cid) not in ALLOW_DUPLICATE_IDS:
                     findings.append("{0}: control id {1} appears {2} times".format(name, cid, count))
