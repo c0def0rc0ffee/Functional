@@ -798,6 +798,35 @@ def coming_up_next_line(lines, offset):
     return ""
 
 
+def coming_up_ranks(window):
+    """
+    <summary>
+    Which slot of the shown Coming up list each line belongs to, counting from the top.
+    </summary>
+    <param name="window">The shown lines, as coming_up_window gives them.</param>
+    <returns>One string per line: "1" for the first slot's lines, "2" for the second's and
+    so on, "" for a line before any slot that is not a heading.</returns>
+    <remarks>
+    DECLUTTER-COUNT, 18/11/2026. Home.xml fades every line whose rank is past the
+    Coming Up While Decluttered count, so whole slots go together: an item and its
+    item2 line share a rank, a heading takes the rank of the slot under it, and an
+    Ends At line or a pad takes the rank of the slot before it.
+    </remarks>
+    """
+    ranks = []
+    seen = 0
+    for line in window:
+        kind = line["kind"]
+        if kind in ("item", "slot"):
+            seen += 1
+            ranks.append(str(seen))
+        elif kind == "heading":
+            ranks.append(str(seen + 1))
+        else:
+            ranks.append(str(seen) if seen else "")
+    return ranks
+
+
 def coming_up_stops(lines, room):
     """
     <summary>
@@ -5851,8 +5880,11 @@ class FunctionalHelper(xbmc.Monitor):
                 home.setProperty("ComingUp.Scrolled", scrolled)
             else:
                 home.clearProperty("ComingUp.Scrolled")
+        # DECLUTTER-COUNT, 18/11/2026: ComingUp.L.Rank, the slot each line belongs to.
+        for line, rank in zip(window, coming_up_ranks(window)):
+            line["rank"] = rank
         for number, line in enumerate(window, 1):
-            for field in ("kind", "label", "when", "sep"):
+            for field in ("kind", "label", "when", "sep", "rank"):
                 key = "ComingUp.{0}.{1}".format(number, field.capitalize())
                 value = line[field]
                 if home.getProperty(key) != value:

@@ -42,8 +42,10 @@ Toggle settings show an accent **dot** when on. Most changes apply immediately; 
 - Focused Title as Backdrop: while a Home row or a pop up row has focus, the title under the cursor fills the background with its fanart and shows its logo (off by default)
 - Declutter When Idle: with no key pressed for a while, Home fades to its background and keeps only the pieces you tick; any key or mouse movement brings it all back, and that first press still does its usual job (off by default)
   - **Declutter After**: 30 seconds, 1, 2, 5 or 10 minutes, 1 minute until you choose. Kodi's own screensaver needs a longer delay than this, or it starts first
+  - **Dim While Decluttered**: how dark the background goes while Home is decluttered: As Usual (the Background page's Dim, the default), none, 25%, 50%, 75% or 90%
   - **Keep** rows: Clock, Date and Weather and Stats (both kept by default); Coming Up List, Background Captions, Corner Bar, and Logo and Version (all off by default)
-  - The menu, the Home rows, the focused title's logo and the Continue Watching tabs always go
+  - **Coming Up While Decluttered**: with Keep Coming Up List on, how many of the next slots stay, each with its day heading: All (the default), 1, 2, 3 or 5
+  - The menu, the Home rows, the focused title's logo, the Continue Watching tabs, the greeting and the round Favourites, Add-ons, Settings and Power buttons always go; Keep Corner Bar keeps only what is playing, the queue and the sleep countdown
 - Logo, date and time, weather widget, greeting beside the clock (off by default), footer and loading splash
 - The sleep timer and its countdown
 

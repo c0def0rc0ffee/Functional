@@ -221,6 +221,8 @@
 		     coordinates. -->
 		<control type="group" id="9190">
 		<include content="DeclutterFade"><param name="keep" value="Skin.HasSetting(declutter_keep_cornerbar)"/></include>
+		<!-- CIRCLES-FADE, 18/11/2026: the round buttons go while Home is
+		     decluttered even when Keep Corner Bar holds the pills. -->
 		<include content="HomeCornerBar">
 			<param name="id_bar" value="9100"/>
 			<param name="id_sleep" value="9097"/>
@@ -236,6 +238,7 @@
 			<param name="align" value="right"/>
 			<param name="left" value="480"/>
 			<param name="visible" value="$EXP[corner_bar_right]"/>
+			<param name="circles_fade" value="$EXP[declutter_on]"/>
 		</include>
 
 		<include content="HomeCornerBar">
@@ -253,6 +256,7 @@
 			<param name="align" value="left"/>
 			<param name="left" value="40"/>
 			<param name="visible" value="$EXP[corner_bar_left]"/>
+			<param name="circles_fade" value="$EXP[declutter_on]"/>
 		</include>
 
 		<include content="HomeCornerBar">
@@ -270,6 +274,7 @@
 			<param name="align" value="center"/>
 			<param name="left" value="260"/>
 			<param name="visible" value="$EXP[corner_bar_centre]"/>
+			<param name="circles_fade" value="$EXP[declutter_on]"/>
 		</include>
 		</control>
 
