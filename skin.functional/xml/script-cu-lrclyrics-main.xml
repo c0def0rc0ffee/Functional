@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  <summary>
+  MUSIC-LYRICS (item 42): CU LRC Lyrics' lyrics window. Kodi uses this file
+  in place of the add-on's whenever CU LRC Lyrics opens its window on the
+  music screen, so it has two looks. With Skin.HasSetting(music_lyrics) on,
+  Functional's: the lyrics as a centred column over a dimmed
+  visualisation, the line being sung large and white, the lines around it
+  dim, with no panel, header or logo. Off (the default), a plain panel with
+  a header, close to the add-on's own window, so a viewer who already uses
+  CU LRC Lyrics sees no change until the switch goes on.
+  </summary>
+  <remarks>
+  The add-on needs list 110 (it fills it and moves the selection with the
+  song for timed lyrics) and label 200 (it writes the source there); both
+  keep their ids and types, and one list serves both looks through
+  conditional layouts. A click anywhere closes the window, as the add-on's
+  own file does; the lyrics come back with the next song or the add-on's
+  button. Up and Down scroll untimed lyrics, and the menu key opens the
+  add-on's own choices (other lyrics found, sync, delete). The source line
+  shows while the music OSD or the song info is up; the hint that other
+  lyrics were found always shows. The list's scroll time is not gated on
+  Reduce Motion, which Kodi cannot vary per condition.
+  </remarks>
+-->
+<window>
+	<defaultcontrol always="true">110</defaultcontrol>
+	<animation effect="fade" start="0" end="100" time="300" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
+	<animation effect="fade" start="100" end="0" time="200" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
+	<controls>
+
+		<!-- The whole visualisation dimmed, so a bright one never swallows
+		     the words. -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texture colordiffuse="99000000">white.png</texture>
+		</control>
+
+		<!-- Switch off: the plain panel and header, close to the add-on's own. -->
+		<control type="group">
+			<visible>!Skin.HasSetting(music_lyrics)</visible>
+			<control type="image">
+				<left>300</left>
+				<top>80</top>
+				<width>1320</width>
+				<height>820</height>
+				<texture colordiffuse="bg_dialog">white.png</texture>
+			</control>
+			<control type="image">
+				<left>300</left>
+				<top>80</top>
+				<width>1320</width>
+				<height>70</height>
+				<texture colordiffuse="$VAR[AccentColor]">white.png</texture>
+			</control>
+			<control type="label">
+				<left>340</left>
+				<top>80</top>
+				<width>1240</width>
+				<height>70</height>
+				<font>font_med</font>
+				<aligny>center</aligny>
+				<textcolor>$VAR[AccentTextColor]</textcolor>
+				<label>$INFO[MusicPlayer.Artist,, · ]$INFO[MusicPlayer.Title]</label>
+			</control>
+		</control>
+
+		<!-- A click outside the words closes the window, as the add-on's
+		     own file does. -->
+		<control type="button">
+			<left>0</left>
+			<top>0</top>
+			<width>1920</width>
+			<height>1080</height>
+			<texturefocus />
+			<texturenofocus />
+			<disabledcolor>disabled</disabledcolor>
+			<onclick>Action(close)</onclick>
+		</control>
+
+		<!-- Required by the add-on: the lyrics, one line per item, with the
+		     selection on the line being sung. Seven lines show; the
+		     selected one sits in the middle once the song is under way. -->
+		<control type="list" id="110">
+			<left>310</left>
+			<top>250</top>
+			<width>1300</width>
+			<height>560</height>
+			<scrolltime tween="cubic" easing="out">300</scrolltime>
+			<orientation>vertical</orientation>
+			<itemlayout height="80" width="1300">
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>1300</width>
+					<height>80</height>
+					<font>font_med</font>
+					<align>center</align>
+					<aligny>center</aligny>
+					<textcolor>text_dim</textcolor>
+					<shadowcolor>FF000000</shadowcolor>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</itemlayout>
+			<focusedlayout height="80" width="1300" condition="Skin.HasSetting(music_lyrics)">
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>1300</width>
+					<height>80</height>
+					<font>font_big</font>
+					<align>center</align>
+					<aligny>center</aligny>
+					<scroll>true</scroll>
+					<textcolor>white</textcolor>
+					<shadowcolor>FF000000</shadowcolor>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</focusedlayout>
+			<focusedlayout height="80" width="1300">
+				<control type="label">
+					<left>0</left>
+					<top>0</top>
+					<width>1300</width>
+					<height>80</height>
+					<font>font_med</font>
+					<align>center</align>
+					<aligny>center</aligny>
+					<scroll>true</scroll>
+					<textcolor>$VAR[AccentColor]</textcolor>
+					<shadowcolor>FF000000</shadowcolor>
+					<label>$INFO[ListItem.Label]</label>
+				</control>
+			</focusedlayout>
+		</control>
+
+		<!-- Other lyrics were found for this song: say how to choose them. -->
+		<control type="label">
+			<left>310</left>
+			<top>830</top>
+			<width>1300</width>
+			<height>30</height>
+			<font>font_small</font>
+			<align>center</align>
+			<aligny>center</aligny>
+			<textcolor>text_dim</textcolor>
+			<shadowcolor>FF000000</shadowcolor>
+			<label>31964</label>
+			<visible>!String.IsEmpty(Window(Home).Property(culrc.haslist)) + ![Window.IsActive(musicosd) | Player.ShowInfo]</visible>
+		</control>
+
+		<!-- Where the lyrics came from, and how many were found, while the
+		     music OSD or the song info is up. -->
+		<control type="label">
+			<left>310</left>
+			<top>830</top>
+			<width>1300</width>
+			<height>30</height>
+			<font>font_small</font>
+			<align>center</align>
+			<aligny>center</aligny>
+			<textcolor>text_dim</textcolor>
+			<shadowcolor>FF000000</shadowcolor>
+			<label>$LOCALIZE[21870]: $INFO[Control.GetLabel(200)]</label>
+			<visible>!String.IsEmpty(Control.GetLabel(200)) + [Window.IsActive(musicosd) | Player.ShowInfo]</visible>
+		</control>
+
+		<!-- Required by the add-on: the source, written by CU LRC Lyrics and
+		     read by the line above. -->
+		<control type="label" id="200">
+			<left>0</left>
+			<top>0</top>
+			<width>1</width>
+			<height>1</height>
+			<visible>false</visible>
+		</control>
+
+	</controls>
+</window>

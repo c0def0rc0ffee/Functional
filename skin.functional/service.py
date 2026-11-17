@@ -5401,6 +5401,99 @@ class FunctionalHelper(xbmc.Monitor):
         _dlog("studio logo: switch %s, pack %s" % ("on" if on else "off",
               "enabled" if enabled else "installed" if installed else "missing"))
 
+    # ---- MUSIC-LYRICS, item 42 phase N (15/11/2026) -------------------------
+    # <summary>
+    # Lyrics on the music screen come from CU LRC Lyrics, which draws its
+    # own window there; the skin ships that window
+    # (xml/script-cu-lrclyrics-main.xml), which Kodi uses in place of the
+    # add-on's: Functional's look with the switch on, a plain panel close
+    # to the add-on's own with it off. This section answers the switch: on, it offers to
+    # install and set up CU LRC Lyrics; off, to leave, disable or
+    # uninstall it. With the switch untouched nothing here runs.
+    # </summary>
+
+    LYRICS_ADDON = "script.cu.lrclyrics"
+
+    def update_lyrics_command(self):
+        """<summary>Fast ticker: answer lyrics_command, "on" or "off", with the offer in the dialog slot.</summary>"""
+        cmd = self._take_command("lyrics_command")
+        if cmd not in ("on", "off"):
+            return
+        if self._dialog_thread is not None and self._dialog_thread.is_alive():
+            _dlog("lyrics: switched %s while another dialog was open; "
+                  "no offer this time" % cmd)
+        else:
+            self._spawn_dialog(lambda: self._lyrics_offer(cmd == "on"))
+
+    def _lyrics_offer(self, on):
+        """
+        <summary>
+        Runs in the dialog slot after the switch is pressed: switched on,
+        offer to install, enable and set up CU LRC Lyrics as needed;
+        switched off with it installed, offer to leave, disable or
+        uninstall it.
+        </summary>
+        <param name="on">True when the press switched the lyrics on.</param>
+        <remarks>
+        The install goes through Kodi's InstallAddon, which asks again in
+        Kodi's own words; this waits up to a minute for it to land before
+        the set up question, and stops quietly if the switch went off in
+        the meantime or tells the viewer when it never landed (a declined
+        Kodi prompt looks the same). Set up turns on CU LRC Lyrics' own service
+        setting, so it starts with Kodi and shows lyrics whenever the
+        music screen is up, and starts it once now. Kodi has no call that
+        uninstalls an add-on, so Uninstall opens Kodi's page of lyrics
+        add-ons, as the studio logo does for its pack.
+        </remarks>
+        """
+        addon_id = self.LYRICS_ADDON
+        dialog = xbmcgui.Dialog()
+        installed = xbmc.getCondVisibility("System.HasAddon(%s)" % addon_id)
+        enabled = installed and xbmc.getCondVisibility("System.AddonIsEnabled(%s)" % addon_id)
+        if on:
+            if not installed:
+                if not dialog.yesno(_L(31947), _L(31948)):
+                    dialog.notification(_L(31947), _L(31949), xbmcgui.NOTIFICATION_INFO)
+                    return
+                xbmc.executebuiltin("InstallAddon(%s)" % addon_id)
+                monitor = xbmc.Monitor()
+                for _ in range(60):
+                    if xbmc.getCondVisibility("System.HasAddon(%s)" % addon_id):
+                        break
+                    if monitor.waitForAbort(1):
+                        return
+                else:
+                    _dlog("lyrics: CU LRC Lyrics not installed after a minute")
+                    dialog.notification(_L(31947), _L(31949), xbmcgui.NOTIFICATION_INFO)
+                    return
+                if not xbmc.getCondVisibility("Skin.HasSetting(music_lyrics)"):
+                    # MUSIC-LYRICS-FIX: switched off again while the install ran.
+                    _dlog("lyrics: switched off during the install, no set up")
+                    return
+                enabled = xbmc.getCondVisibility("System.AddonIsEnabled(%s)" % addon_id)
+            if not enabled:
+                if not dialog.yesno(_L(31947), _L(31950)):
+                    return
+                _jsonrpc("Addons.SetAddonEnabled", {"addonid": addon_id, "enabled": True})
+            try:
+                other = xbmcaddon.Addon(addon_id)
+                ready = other.getSettingBool("service")
+            except RuntimeError:
+                _dlog("lyrics: CU LRC Lyrics settings could not be read")
+                return
+            if not ready and dialog.yesno(_L(31947), _L(31951)):
+                other.setSettingBool("service", True)
+                xbmc.executebuiltin("RunScript(%s)" % addon_id)
+        elif installed:
+            choice = dialog.select(_L(31952), [_L(31928), _L(31929), _L(31930)])
+            if choice == 1:
+                _jsonrpc("Addons.SetAddonEnabled", {"addonid": addon_id, "enabled": False})
+            elif choice == 2:
+                xbmc.executebuiltin("ActivateWindow(addonbrowser,addons://user/xbmc.python.lyrics/,return)")
+                dialog.notification(_L(31947), _L(31954), xbmcgui.NOTIFICATION_INFO, 8000)
+        _dlog("lyrics: switch %s, CU LRC Lyrics %s" % (
+            "on" if on else "off", "enabled" if enabled else "installed" if installed else "missing"))
+
     # ---- HOME-WIDGETS, item 46 phase T (13/11/2026) --------------------------
     # <summary>
     # Up to three poster rows on Home, each switched on by choosing a source
@@ -12934,6 +13027,8 @@ def run():
         helper.update_info_like,
         # SHOW-PLAY: one string read unless the hold menu row was pressed.
         helper.update_show_command,
+        # MUSIC-LYRICS: one string read unless the switch was just pressed.
+        helper.update_lyrics_command,
         helper.update_cast_command,
         helper.update_cache_command,
         # Fast ticker: the countdown has to move once a second, and the

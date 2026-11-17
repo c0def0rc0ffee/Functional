@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.35" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.36" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New: the focused title as the Home backdrop. Focused Title as Backdrop, at the foot of the Home Screen page, Off by default: while a Home row or a row of the Continue Watching pop up has focus, that title's fanart fills the background and its logo shows, top left over the pop up and under the Home rows. A title with no fanart gets a plain background and its name. The background caption fades while it shows.</news>
+		<news>New: lyrics on the music screen. Lyrics on the Music Screen, on the Add-ons page, Off by default: CU LRC Lyrics' lyrics show in the skin's own look, a centred column over a dimmed visualisation with the line being sung large and the lines around it dim. Switching it on offers to install CU LRC Lyrics and start it with Kodi; switching it off offers to leave, disable or uninstall it. Off, anyone already using CU LRC Lyrics sees a plain panel like the add-on's own.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

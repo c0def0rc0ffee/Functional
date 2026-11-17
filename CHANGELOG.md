@@ -11,6 +11,16 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.36 (17/11/2026)
+
+- New: lyrics on the music screen. Lyrics on the Music Screen, on the
+  Add-ons page, Off by default: CU LRC Lyrics' lyrics show in the skin's
+  own look, a centred column over a dimmed visualisation with the line
+  being sung large and the lines around it dim. Switching it on offers to
+  install CU LRC Lyrics and start it with Kodi; switching it off offers to
+  leave, disable or uninstall it. Off, anyone already using CU LRC Lyrics
+  sees a plain panel like the add-on's own.
+
 ## 0.23.35 (14/11/2026)
 
 - New: the focused title as the Home backdrop. Focused Title as
