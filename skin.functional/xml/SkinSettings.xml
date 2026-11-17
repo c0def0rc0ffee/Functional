@@ -964,7 +964,7 @@
 					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
 					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
 					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31975</label>
+					<label>31982</label>
 					<selected>!Skin.HasSetting(declutter_drop_clock)</selected>
 					<enable>Skin.HasSetting(declutter)</enable>
 					<onclick>Skin.ToggleSetting(declutter_drop_clock)</onclick>
@@ -987,7 +987,7 @@
 					<textureradioonnofocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioonnofocus>
 					<textureradioofffocus colordiffuse="$VAR[AccentColor]">dot.png</textureradioofffocus>
 					<textureradiooffnofocus colordiffuse="grey_mid">dot.png</textureradiooffnofocus>
-					<label>31976</label>
+					<label>31983</label>
 					<selected>!Skin.HasSetting(declutter_drop_stats)</selected>
 					<enable>Skin.HasSetting(declutter)</enable>
 					<onclick>Skin.ToggleSetting(declutter_drop_stats)</onclick>
