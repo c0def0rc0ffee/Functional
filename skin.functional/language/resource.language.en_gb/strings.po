@@ -3595,6 +3595,51 @@ msgctxt "#31964"
 msgid "Other lyrics were found: press Menu to choose"
 msgstr ""
 
+# Play choices for shows, item 32. 15/11/2026. (31944 to 31954: item 42.)
+msgctxt "#31955"
+msgid "Play Choices for Shows"
+msgstr ""
+
+msgctxt "#31956"
+msgid "Play This Show"
+msgstr ""
+
+msgctxt "#31957"
+msgid "Play This Show"
+msgstr ""
+
+msgctxt "#31958"
+msgid "Next Unwatched Episode"
+msgstr ""
+
+msgctxt "#31959"
+msgid "From the First Episode"
+msgstr ""
+
+msgctxt "#31960"
+msgid "Add to the Queue"
+msgstr ""
+
+msgctxt "#31961"
+msgid "Added to the queue"
+msgstr ""
+
+msgctxt "#31962"
+msgid "Every episode has been watched"
+msgstr ""
+
+msgctxt "#31963"
+msgid "Adds Play This Show to a show's hold menu in the library: play the next unwatched episode, play from the first episode, or add the whole show to the queue. OK still opens the show.[CR]Where: the library, a show's hold menu."
+msgstr ""
+
+msgctxt "#31975"
+msgid "This show has no episodes to play"
+msgstr ""
+
+msgctxt "#31976"
+msgid "The show could not be queued"
+msgstr ""
+
 # Declutter, 17/11/2026: Home fades to its background when idle.
 msgctxt "#31965"
 msgid "DECLUTTER"

@@ -17,6 +17,11 @@
 	<onload condition="Control.IsVisible(952) + !Control.IsVisible(950) + !Control.IsVisible(951)">SetFocus(952)</onload>
 	<!-- Continue Watching rows (960 to 962) replace Kodi's list entirely. -->
 	<onload condition="Control.IsVisible(960)">SetFocus(960)</onload>
+	<!-- HOLD-MENU-FOCUS, 15/11/2026: with no skin row showing, open on
+	     Kodi's first entry. Kodi clones its rows from template 1000 as ids
+	     1001 upward (GUIDialogContextMenu BUTTON_START) and could open on
+	     one further down, Manage on "* All seasons", say. -->
+	<onload condition="!Control.IsVisible(950) + !Control.IsVisible(951) + !Control.IsVisible(952) + !Control.IsVisible(953) + !Control.IsVisible(960)">SetFocus(1001)</onload>
 	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowOpen</animation>
 	<animation effect="fade" time="150" condition="!Skin.HasSetting(reduce_motion)">WindowClose</animation>
 	<!-- Origin MUST stay at 0,0. Kodi repositions this window itself, centred
@@ -133,9 +138,22 @@
 				<param name="id" value="952" />
 				<param name="top" value="110" />
 				<param name="onup" value="951" />
-				<param name="ondown" value="996" />
+				<param name="ondown" value="953" />
 				<param name="shift1" value="Control.IsVisible(950)" />
 				<param name="shift2" value="Control.IsVisible(951)" />
+			</include>
+
+			<!-- SHOW-PLAY (item 32): Play This Show on a library show, under
+			     the rows above; hidden, Kodi follows its onup and ondown.
+			     HOLD-MENU-FOCUS: Down goes to 1001, Kodi's first entry, not
+			     to grouplist 996, which brought back the entry used last
+			     time (Manage on a season, say). The rows above reach it
+			     through their own ondown chain when this one is hidden. -->
+			<include content="ShowPlayContextButton">
+				<param name="id" value="953" />
+				<param name="top" value="110" />
+				<param name="onup" value="952" />
+				<param name="ondown" value="1001" />
 			</include>
 
 			<!-- Continue Watching (Home pop-up): three skin rows stand in for
@@ -179,21 +197,37 @@
 				<param name="shown" value="Skin.HasSetting(continue_hide)" />
 			</include>
 
-			<!-- Backdrop strip behind the menu list. Kodi resizes id 999
-			     (BACKGROUND_IMAGE) itself, to this declared height less the
-			     grouplist's maximum plus the height of the rows it added. The
-			     height here must therefore EQUAL the grouplist maximum below:
-			     at 780 against 660 every menu carried a 120 px empty band. -->
+			<!-- HOLD-MENU-FIT, 15/11/2026: id 999 (BACKGROUND_IMAGE) is now
+			     only what Kodi measures the menu by, and draws nothing. Kodi
+			     resizes it to this declared height less the grouplist's
+			     maximum plus the height of the rows it added, and places the
+			     whole dialog so that 999's HEIGHT fits on screen
+			     (CGUIDialogContextMenu::SetPosition and GetHeight). It knows
+			     nothing of the 110 px heading above 999 or of the skin rows 950
+			     to 953 between them, so each skin row that showed pushed Kodi's
+			     last entry 60 px lower, off the bottom of a long menu, where
+			     focus could still reach it. The declared height is therefore
+			     the grouplist maximum (660) plus the heading (110) plus room
+			     for the most skin rows that show at once, three (950, 951 and
+			     either 952 on a film or 953 on a show): 660 + 110 + 180 = 950.
+			     Kodi centres the dialog on the library list and clamps it to
+			     the screen by that height, so every menu, long or short, ends
+			     above the bottom edge (seen live with three skin rows on an
+			     eleven entry show menu). The extra would draw as an empty
+			     band, so 999 is fully
+			     transparent and each of Kodi's rows paints its own panel
+			     (button 1000's texturenofocus). -->
 			<control type="image" id="999">
 				<left>0</left>
 				<top>110</top>
 				<width>600</width>
-				<height>660</height>
-				<texture colordiffuse="bg_panel">white.png</texture>
+				<height>950</height>
+				<texture colordiffuse="00FFFFFF">white.png</texture>
 				<visible>!$EXP[continue_menu]</visible>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(951)">Conditional</animation>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(952)">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(953)">Conditional</animation>
 			</control>
 
 			<!-- The actual menu items grouplist (Kodi clones button id=1000 into here) -->
@@ -214,6 +248,7 @@
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(950)">Conditional</animation>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(951)">Conditional</animation>
 				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(952)">Conditional</animation>
+				<animation effect="slide" end="0,60" time="0" condition="Control.IsVisible(953)">Conditional</animation>
 				<onleft>996</onleft>
 				<onright>996</onright>
 				<!-- Plain, not conditional: a condition on a grouplist's onup is
@@ -223,7 +258,13 @@
 				     Lists rows are hidden Kodi follows 951's own onup, reaches
 				     950 pointing at itself and stops, so Up at the top of the
 				     menu simply holds. -->
-				<onup>952</onup>
+				<!-- SHOW-PLAY: 953 first; hidden, Kodi follows its onup to 952. -->
+				<onup>953</onup>
+				<!-- HOLD-MENU-FOCUS: Down from Kodi's last entry wraps to the top
+				     skin row, 950, following the hidden rows' own ondown to the
+				     first that shows, and to 1001 when none does. Plain, for the
+				     same reason as onup above. -->
+				<ondown>950</ondown>
 			</control>
 
 		</control>
@@ -242,7 +283,8 @@
 			<aligny>center</aligny>
 			<textoffsetx>30</textoffsetx>
 			<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
-			<texturenofocus>-</texturenofocus>
+			<!-- HOLD-MENU-FIT: each row paints the panel, as 999 no longer does. -->
+			<texturenofocus colordiffuse="bg_panel">white.png</texturenofocus>
 		</control>
 
 	</controls>
