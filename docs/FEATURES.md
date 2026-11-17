@@ -124,6 +124,7 @@ Custom-styled to match the skin: File Manager, Event Log, System Info, Add-on In
 ## Music
 
 - Dedicated music OSD with album art, track title, artist, album, and progress bar
+- **Lyrics** (optional): with CU LRC Lyrics installed, the song's lyrics on the music screen in the skin's own look, the line being sung large and the lines around it dim; the switch on the Add-ons page offers to install and set it up
 - Video and music playlist views with header showing item count, total time, and current-item finish time
 - Playlist controls: Play All, Shuffle, Repeat, Save, Clear
 

@@ -2530,10 +2530,6 @@ msgctxt "#31689"
 msgid "JELLYSTAT"
 msgstr ""
 
-msgctxt "#31690"
-msgid "No add-on settings to show."
-msgstr ""
-
 msgctxt "#31691"
 msgid "Move to another list"
 msgstr ""
@@ -3551,6 +3547,52 @@ msgstr ""
 
 msgctxt "#31943"
 msgid "While a Home row or a Continue Watching pop up row has focus, the title under the cursor fills the background with its fanart and shows its logo. Off, the background stays as set.[CR]Where: Home."
+msgstr ""
+
+# Lyrics on the music screen, item 42. 15/11/2026.
+msgctxt "#31944"
+msgid "LYRICS"
+msgstr ""
+
+msgctxt "#31945"
+msgid "Lyrics on the Music Screen"
+msgstr ""
+
+msgctxt "#31946"
+msgid "Shows CU LRC Lyrics' lyrics in the skin's own look, the line being sung large; off, they keep a plain panel like the add-on's own. Switching on offers to install CU LRC Lyrics and start it with Kodi; off offers to leave, disable or uninstall it.[CR]Where: the music screen."
+msgstr ""
+
+msgctxt "#31947"
+msgid "CU LRC Lyrics"
+msgstr ""
+
+msgctxt "#31948"
+msgid "The lyrics come from the CU LRC Lyrics add-on, which is not installed. Install it now from the Kodi repository?"
+msgstr ""
+
+msgctxt "#31949"
+msgid "Lyrics show once CU LRC Lyrics is installed"
+msgstr ""
+
+msgctxt "#31950"
+msgid "CU LRC Lyrics is installed but switched off. Switch it on?"
+msgstr ""
+
+msgctxt "#31951"
+msgid "CU LRC Lyrics shows lyrics only while it runs. Start it with Kodi from now on?"
+msgstr ""
+
+msgctxt "#31952"
+msgid "CU LRC Lyrics is still installed"
+msgstr ""
+
+msgctxt "#31954"
+msgid "Choose CU LRC Lyrics, then Uninstall"
+msgstr ""
+
+
+msgctxt "#31964"
+msgid "Other lyrics were found: press Menu to choose"
 msgstr ""
 
 # Declutter, 17/11/2026: Home fades to its background when idle.
