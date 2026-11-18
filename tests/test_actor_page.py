@@ -79,7 +79,7 @@ def test_setting_row():
     ids = [c.get("id") for c in group.findall("control")] if group is not None else []
     check("7215" in ids and "7214" in ids and ids.index("7215") == ids.index("7214") + 1,
           "row 7215 is inside 7021 straight after 7214")
-    # SHOW-PLAY (item 32) added 7216 after it, so 7215 need not be last.
+    # Later rows follow 7215 (items 32 and 33), so it need not be last.
     row = by_id(root, "7215")
     check(row is not None and row.get("type") == "radiobutton", "7215 is a radiobutton")
     if row is not None:

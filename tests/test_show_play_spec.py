@@ -194,11 +194,14 @@ class SettingsRowTests(unittest.TestCase):
         for sid in list(range(31955, 31964)) + [31975, 31976]:
             self.assertTrue(T.STRINGS.get(sid), "string %d should exist and have text" % sid)
 
-    def test_last_row_7316_goes_up_to_7216(self):
-        """<summary>Control 7316 in SkinSettings.xml has onup 7216.</summary>"""
-        row = control(parse("SkinSettings.xml"), "7316")
+    def test_last_row_7316_goes_up_to_the_last_library_row(self):
+        """<summary>Control 7316 in SkinSettings.xml goes up to the last row of grouplist 7021, which follows 7216 (later items add rows after it).</summary>"""
+        root = parse("SkinSettings.xml")
+        row = control(root, "7316")
         self.assertIsNotNone(row)
-        self.assertIn("7216", [e.text for e in row.findall("onup")])
+        ids = [c.get("id") for c in control(root, "7021").findall("control")]
+        self.assertIn("7216", ids)
+        self.assertEqual([e.text for e in row.findall("onup")], [ids[-1]])
 
 
 class HoldMenuTests(unittest.TestCase):

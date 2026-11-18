@@ -1100,6 +1100,9 @@
 				     is what keeps it out of add-on folders and smart playlists
 				     that also report movies or tvshows content: a pick there
 				     would jump out of the folder into the library. -->
+				<!-- DECADE-GENRES: with the Library page's switch on, the picker
+				     ticks rows (several genres, titles in any of them) and
+				     stays open; see GenrePickerList. -->
 				<control type="button" id="8005">
 					<visible>Skin.HasSetting(filter_menu_open) + [Container.Content(movies) | Container.Content(tvshows)] + String.StartsWith(Container.FolderPath,videodb://)</visible>
 					<width>380</width>
@@ -1116,8 +1119,10 @@
 					<label>$LOCALIZE[31204] $VAR[GenreFilterLabel]</label>
 					<onclick>Skin.SetBool(genre_menu_open)</onclick>
 					<!-- Focus the list that is actually up for this content. -->
-					<onclick condition="Container.Content(tvshows)">SetFocus(9501)</onclick>
-					<onclick condition="!Container.Content(tvshows)">SetFocus(9500)</onclick>
+					<onclick condition="[!Skin.HasSetting(filter_extras) | String.IsEmpty(Window(home).Property(GenrePick.1.Label))] + Container.Content(tvshows)">SetFocus(9501)</onclick>
+					<onclick condition="[!Skin.HasSetting(filter_extras) | String.IsEmpty(Window(home).Property(GenrePick.1.Label))] + !Container.Content(tvshows)">SetFocus(9500)</onclick>
+					<!-- DECADE-GENRES-FIX: open on the first row, not the one last used. -->
+					<onclick condition="Skin.HasSetting(filter_extras) + !String.IsEmpty(Window(home).Property(GenrePick.1.Label))">SetFocus(9505,0)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onright>51</onright>
 					<onup>10</onup>
@@ -1186,12 +1191,54 @@
 					<onclick condition="String.IsEqual(Skin.String(age_filter),30)">Skin.SetString(age_filter,40)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(age_filter),40)">Skin.SetString(age_filter,50)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(age_filter),50)">Skin.Reset(age_filter)</onclick>
+					<!-- DECADE-GENRES: Age replaces a decade, and the other way round. -->
+					<onclick>Skin.Reset(decade_filter)</onclick>
 					<onclick condition="Container.Content(tvshows)">Skin.SetString(age_command,apply_tvshows)</onclick>
 					<onclick condition="!Container.Content(tvshows)">Skin.SetString(age_command,apply_movies)</onclick>
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
 					<onright>51</onright>
 					<onup>8006</onup>
+					<ondown>8013</ondown>
+				</control>
+
+				<!-- DECADE-GENRES (item 33): Decade, only with the Library page's
+				     switch on. Cycles Any, 2020s down to 1950s, Before 1950, and
+				     asks the service for the node as Age does: the decade is a
+				     "year between" rule stacked with the genre and search in
+				     force, and it clears Age (Age clears it in turn). Hidden,
+				     the menu chain passes it by on its own onup and ondown. -->
+				<control type="button" id="8013">
+					<visible>Skin.HasSetting(filter_menu_open) + Skin.HasSetting(filter_extras) + [Container.Content(movies) | Container.Content(tvshows)] + String.StartsWith(Container.FolderPath,videodb://)</visible>
+					<width>380</width>
+					<height>50</height>
+					<font>font_reg</font>
+					<textcolor>text</textcolor>
+					<disabledcolor>disabled</disabledcolor>
+					<focusedcolor>$VAR[AccentTextColor]</focusedcolor>
+					<align>left</align>
+					<aligny>center</aligny>
+					<textoffsetx>70</textoffsetx>
+					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
+					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
+					<label>$LOCALIZE[31993] $VAR[DecadeFilterLabel]</label>
+					<onclick condition="String.IsEmpty(Skin.String(decade_filter))">Skin.SetString(decade_filter,2020)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(decade_filter),2020)">Skin.SetString(decade_filter,2010)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(decade_filter),2010)">Skin.SetString(decade_filter,2000)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(decade_filter),2000)">Skin.SetString(decade_filter,1990)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(decade_filter),1990)">Skin.SetString(decade_filter,1980)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(decade_filter),1980)">Skin.SetString(decade_filter,1970)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(decade_filter),1970)">Skin.SetString(decade_filter,1960)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(decade_filter),1960)">Skin.SetString(decade_filter,1950)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(decade_filter),1950)">Skin.SetString(decade_filter,pre1950)</onclick>
+					<onclick condition="String.IsEqual(Skin.String(decade_filter),pre1950)">Skin.Reset(decade_filter)</onclick>
+					<onclick>Skin.Reset(age_filter)</onclick>
+					<onclick condition="Container.Content(tvshows)">Skin.SetString(age_command,apply_tvshows)</onclick>
+					<onclick condition="!Container.Content(tvshows)">Skin.SetString(age_command,apply_movies)</onclick>
+					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
+					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
+					<onright>51</onright>
+					<onup>8007</onup>
 					<ondown>8012</ondown>
 				</control>
 
@@ -1233,7 +1280,7 @@
 					<onfocus>Skin.SetBool(left_menu_open)</onfocus>
 					<onfocus>Skin.Reset(genre_menu_open)</onfocus>
 					<onright>51</onright>
-					<onup>8007</onup>
+					<onup>8013</onup>
 					<ondown>8014</ondown>
 				</control>
 				<control type="button" id="8014">
@@ -1629,14 +1676,17 @@
 				<param name="id" value="9500"/>
 				<param name="otherid" value="9501"/>
 				<param name="path" value="videodb://movies/genres/"/>
-				<param name="visible" value="!Container.Content(tvshows)"/>
+				<param name="visible" value="!Container.Content(tvshows) + [!Skin.HasSetting(filter_extras) | String.IsEmpty(Window(home).Property(GenrePick.1.Label))]"/>
 			</include>
 			<include content="GenrePickerList">
 				<param name="id" value="9501"/>
 				<param name="otherid" value="9500"/>
 				<param name="path" value="videodb://tvshows/genres/"/>
-				<param name="visible" value="Container.Content(tvshows)"/>
+				<param name="visible" value="Container.Content(tvshows) + [!Skin.HasSetting(filter_extras) | String.IsEmpty(Window(home).Property(GenrePick.1.Label))]"/>
 			</include>
+			<!-- DECADE-GENRES: the ticking list stands in for both while the
+			     Library page's Decade and Several Genres switch is on. -->
+			<include content="GenrePickerTicked"/>
 
 			<control type="scrollbar" id="9503">
 				<left>1290</left>
@@ -1650,8 +1700,10 @@
 				     own Left and Right lead straight back here, so focus was
 				     stuck on the scrollbar. For navigation the first line
 				     whose condition holds wins; the two are exact opposites. -->
+				<onleft condition="Skin.HasSetting(filter_extras) + !String.IsEmpty(Window(home).Property(GenrePick.1.Label))">9505</onleft>
 				<onleft condition="Container.Content(tvshows)">9501</onleft>
 				<onleft condition="!Container.Content(tvshows)">9500</onleft>
+				<onright condition="Skin.HasSetting(filter_extras) + !String.IsEmpty(Window(home).Property(GenrePick.1.Label))">9505</onright>
 				<onright condition="Container.Content(tvshows)">9501</onright>
 				<onright condition="!Container.Content(tvshows)">9500</onright>
 				<texturesliderbackground colordiffuse="grey_mid">white.png</texturesliderbackground>
@@ -1689,7 +1741,10 @@
 				<onclick>Skin.Reset(genre_menu_open)</onclick>
 				<onclick>Skin.Reset(filter_menu_open)</onclick>
 				<onclick>Skin.SetString(genre_command,__all__)</onclick>
+				<!-- DECADE-GENRES: to the ticking list while the switch is on. -->
+				<onup condition="Skin.HasSetting(filter_extras) + !String.IsEmpty(Window(home).Property(GenrePick.1.Label))">9505</onup>
 				<onup>9500</onup>
+				<ondown condition="Skin.HasSetting(filter_extras) + !String.IsEmpty(Window(home).Property(GenrePick.1.Label))">9505</ondown>
 				<ondown>9500</ondown>
 				<onleft>9502</onleft>
 				<onright>9502</onright>

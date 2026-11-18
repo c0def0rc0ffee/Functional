@@ -3737,3 +3737,20 @@ msgstr ""
 msgctxt "#31990"
 msgid "How dark the background is while Home is decluttered. As Usual keeps the Dim level from the Background page.[CR]Where: Home."
 msgstr ""
+
+# Decade and several genres, item 33. 15/11/2026. (31965 to 31990: declutter.)
+msgctxt "#31991"
+msgid "Decade and Several Genres"
+msgstr ""
+
+msgctxt "#31992"
+msgid "Adds a Decade row to the library's slide out, from the 2020s back to Before 1950, and lets the genre picker tick several genres: titles in any ticked genre show. Both stack with Search; Decade and Age replace each other.[CR]Where: the library, the slide out filters."
+msgstr ""
+
+msgctxt "#31993"
+msgid "Decade:"
+msgstr ""
+
+msgctxt "#31994"
+msgid "Before 1950"
+msgstr ""
