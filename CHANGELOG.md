@@ -11,6 +11,14 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.39 (18/11/2026)
+
+- New: Decade and Several Genres, on the Library page, Off by default:
+  the library's slide out gains a Decade row, from the 2020s back to
+  Before 1950, and the genre picker ticks several genres, showing titles
+  in any of them. Both stack with Search; Decade and Age replace each
+  other. Random play keeps to the ticked genres.
+
 ## 0.23.38 (18/11/2026)
 
 - Changed: while Home is decluttered, the round buttons and the greeting
