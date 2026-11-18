@@ -25,12 +25,25 @@
 		     button (9300 to 9304, one per position) and the previous and
 		     next buttons at the edges (9310, 9311). Drawn here, above both
 		     background copies, so each id exists once in this window. -->
-		<include content="BgCaptions"/>
-		<include content="BgStepButtons"/>
+		<!-- DECLUTTER, 17/11/2026: each piece of Home sits in a group carrying
+		     the DeclutterFade include, which fades it out after the idle time
+		     set on the Home Screen settings page unless its Keep row is
+		     ticked. The background itself never fades. -->
+		<control type="group">
+			<include content="DeclutterFade"><param name="keep" value="Skin.HasSetting(declutter_keep_captions)"/></include>
+			<include content="BgCaptions"/>
+			<include content="BgStepButtons"/>
+		</control>
 		<!-- HOME-HERO: the focused row item's logo, item 20. -->
-		<include content="HomeHero"/>
+		<control type="group">
+			<include content="DeclutterFade"/>
+			<include content="HomeHero"/>
+		</control>
 
-		<include content="HomeStatsColumn"/>
+		<control type="group">
+			<include content="DeclutterFade"><param name="keep" value="!Skin.HasSetting(declutter_drop_stats)"/></include>
+			<include content="HomeStatsColumn"/>
+		</control>
 		<!-- ENGAGE-LIST: the next few Engage slots as a list down the left of
 		     the screen, the larger companion of the COMING UP block in the
 		     stats column (ENGAGE-NEXT above). Its own setting,
@@ -93,6 +106,7 @@
 		<control type="group">
 			<visible>$EXP[engage_list_shown]</visible>
 			<animation effect="slide" end="0,80" time="0" condition="$EXP[corner_bar_top]">Conditional</animation>
+			<include content="DeclutterFade"><param name="keep" value="Skin.HasSetting(declutter_keep_comingup)"/></include>
 			<animation effect="slide" end="0,-160" time="0" condition="$EXP[engage_list_rise]">Conditional</animation>
 			<animation effect="slide" end="0,-80" time="0" condition="$EXP[engage_list_lift]">Conditional</animation>
 			<left>60</left>
@@ -173,12 +187,21 @@
 			</control>
 		</control>
 
-		<include content="HomeLogo"/>
-		<include content="HomeWeather"/>
-		<include content="HomeClock"/>
-		<include content="HomeMenu"/>
-		<!-- HOME-WIDGETS: the poster rows under the menu, item 46. -->
-		<include content="HomeWidgetRows"/>
+		<control type="group">
+			<include content="DeclutterFade"><param name="keep" value="Skin.HasSetting(declutter_keep_logo)"/></include>
+			<include content="HomeLogo"/>
+		</control>
+		<control type="group">
+			<include content="DeclutterFade"><param name="keep" value="!Skin.HasSetting(declutter_drop_clock)"/></include>
+			<include content="HomeWeather"/>
+			<include content="HomeClock"/>
+		</control>
+		<control type="group">
+			<include content="DeclutterFade"/>
+			<include content="HomeMenu"/>
+			<!-- HOME-WIDGETS: the poster rows under the menu, item 46. -->
+			<include content="HomeWidgetRows"/>
+		</control>
 
 		<!-- CORNER-BAR-INSTANCES: the corner bar (sleep countdown, now
 		     playing banner, queue and the round icons), instantiated once per
@@ -197,6 +220,9 @@
 		     of its own, so it takes the window's and the bars keep their
 		     coordinates. -->
 		<control type="group" id="9190">
+		<include content="DeclutterFade"><param name="keep" value="Skin.HasSetting(declutter_keep_cornerbar)"/></include>
+		<!-- CIRCLES-FADE, 18/11/2026: the round buttons go while Home is
+		     decluttered even when Keep Corner Bar holds the pills. -->
 		<include content="HomeCornerBar">
 			<param name="id_bar" value="9100"/>
 			<param name="id_sleep" value="9097"/>
@@ -212,6 +238,7 @@
 			<param name="align" value="right"/>
 			<param name="left" value="480"/>
 			<param name="visible" value="$EXP[corner_bar_right]"/>
+			<param name="circles_fade" value="$EXP[declutter_on]"/>
 		</include>
 
 		<include content="HomeCornerBar">
@@ -229,6 +256,7 @@
 			<param name="align" value="left"/>
 			<param name="left" value="40"/>
 			<param name="visible" value="$EXP[corner_bar_left]"/>
+			<param name="circles_fade" value="$EXP[declutter_on]"/>
 		</include>
 
 		<include content="HomeCornerBar">
@@ -246,10 +274,14 @@
 			<param name="align" value="center"/>
 			<param name="left" value="260"/>
 			<param name="visible" value="$EXP[corner_bar_centre]"/>
+			<param name="circles_fade" value="$EXP[declutter_on]"/>
 		</include>
 		</control>
 
-		<include content="HomeFooter"/>
+		<control type="group">
+			<include content="DeclutterFade"><param name="keep" value="Skin.HasSetting(declutter_keep_logo)"/></include>
+			<include content="HomeFooter"/>
+		</control>
 		<!-- Continue Watching: in-progress movies and episodes, newest played
 		     first, as a pop-up panel behind a small tab at one screen edge
 		     chosen by Skin.String(continue_tab): bottom (the default), top,
@@ -1439,7 +1471,10 @@
 			</control>
 		</control>
 
-		<include content="HomeContinueTabs"/>
+		<control type="group">
+			<include content="DeclutterFade"/>
+			<include content="HomeContinueTabs"/>
+		</control>
 
 	</controls>
 </window>

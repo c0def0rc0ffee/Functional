@@ -329,10 +329,18 @@ def _atom(text, env):
     <param name="env">The state.</param>
     <returns>True or False.</returns>
     <exception cref="ValueError">When the condition is not one the reader knows.</exception>
+    <remarks>GREETING-DECLUTTER, 18/11/2026: greeting_room now reads the
+    declutter condition, so these sweeps meet System.IdleTime, a modal
+    dialog test and Window.IsActive(home). They model Home in use: no idle
+    time has passed, no dialog is open and Home is the active window.</remarks>
     """
     t = text.strip()
     if t == "Weather.IsFetched":
         return False
+    if re.fullmatch(r"System\.IdleTime\(\d+\)", t) or t == "System.HasActiveModalDialog":
+        return False
+    if t == "Window.IsActive(home)":
+        return True
     m = re.fullmatch(r"System\.HasAddon\(([\w.]+)\)", t)
     if m:
         return m.group(1) in getattr(env, "addons", ())

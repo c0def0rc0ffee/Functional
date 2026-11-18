@@ -1221,7 +1221,7 @@
 					<textoffsetx>70</textoffsetx>
 					<texturefocus colordiffuse="$VAR[AccentColor]">white.png</texturefocus>
 					<texturenofocus colordiffuse="grey_mid">white.png</texturenofocus>
-					<label>$LOCALIZE[31967] $VAR[DecadeFilterLabel]</label>
+					<label>$LOCALIZE[31993] $VAR[DecadeFilterLabel]</label>
 					<onclick condition="String.IsEmpty(Skin.String(decade_filter))">Skin.SetString(decade_filter,2020)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(decade_filter),2020)">Skin.SetString(decade_filter,2010)</onclick>
 					<onclick condition="String.IsEqual(Skin.String(decade_filter),2010)">Skin.SetString(decade_filter,2000)</onclick>

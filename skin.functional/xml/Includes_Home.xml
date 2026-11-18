@@ -1110,6 +1110,10 @@
 	  <param name="align">left, center or right: which edge of the box the row packs against.</param>
 	  <param name="left">x of the box, chosen so the packed edge lands on a 40px margin.</param>
 	  <param name="visible">Condition selecting this alignment's instance.</param>
+	  <param name="circles_fade">CIRCLES-FADE: a condition that fades the round
+	  buttons (Stats, Lists, Favourites, Add-ons, Settings, Power) while true.
+	  Home passes its declutter condition; the settings stage passes nothing,
+	  so there it is false and the buttons never fade.</param>
 	  <remarks>
 	  Instantiated three times by Home.xml, once per horizontal alignment,
 	  because a grouplist's <align> takes neither a condition nor a variable
@@ -1134,6 +1138,18 @@
 	  30px of slack here is deliberate. Resize nothing without redoing that sum.
 	  </remarks>
 	-->
+	<!-- <summary>CIRCLES-FADE: the fade one round corner button carries.</summary>
+	     <param name="when">A condition that fades the button while true.</param>
+	     <remarks>Not reversible, so the button is back the moment the
+	     condition clears; instant under reduce_motion. A fade, so a focused
+	     button keeps its focus and the row keeps its layout.</remarks> -->
+	<include name="HomeCircleFade">
+		<param name="when" default="false"/>
+		<definition>
+			<animation effect="fade" start="100" end="0" time="1500" reversible="false" condition="$PARAM[when] + !Skin.HasSetting(reduce_motion)">Conditional</animation>
+			<animation effect="fade" start="100" end="0" time="0" reversible="false" condition="$PARAM[when] + Skin.HasSetting(reduce_motion)">Conditional</animation>
+		</definition>
+	</include>
 	<include name="HomeCornerBar">
 		<param name="flip_fav" default="false"/>
 		<param name="flip_addons" default="false"/>
@@ -1154,6 +1170,7 @@
 		<param name="align" default="right" />
 		<param name="left" default="480" />
 		<param name="visible" default="true" />
+		<param name="circles_fade" default="false" />
 		<definition>
 			<control type="grouplist" id="$PARAM[id_bar]">
 				<visible>$PARAM[visible]</visible>
@@ -1304,6 +1321,7 @@
 				<!-- Stats page as a corner icon: off by default, only with
 				     script.jellystat installed, independent of the menu entry. -->
 				<control type="button" id="$PARAM[id_stats]">
+					<include content="HomeCircleFade"><param name="when" value="$PARAM[circles_fade]"/></include>
 					<visible>System.HasAddon(script.jellystat) + [[Skin.HasSetting(show_stats_icon) + !$PARAM[flip_stats]] | [!Skin.HasSetting(show_stats_icon) + $PARAM[flip_stats]]]</visible>
 					<width>70</width>
 					<height>70</height>
@@ -1317,6 +1335,7 @@
 				     Lists entry in the main menu (hide_lists), so either, both or
 				     neither can show. -->
 				<control type="button" id="$PARAM[id_lists]">
+					<include content="HomeCircleFade"><param name="when" value="$PARAM[circles_fade]"/></include>
 					<visible>[[Skin.HasSetting(show_lists_icon) + !$PARAM[flip_lists]] | [!Skin.HasSetting(show_lists_icon) + $PARAM[flip_lists]]]</visible>
 					<width>70</width>
 					<height>70</height>
@@ -1327,6 +1346,7 @@
 				</control>
 
 				<control type="button" id="$PARAM[id_fav]">
+					<include content="HomeCircleFade"><param name="when" value="$PARAM[circles_fade]"/></include>
 					<visible>[[!Skin.HasSetting(hide_favourites) + !$PARAM[flip_fav]] | [Skin.HasSetting(hide_favourites) + $PARAM[flip_fav]]]</visible>
 					<width>70</width>
 					<height>70</height>
@@ -1337,6 +1357,7 @@
 				</control>
 
 				<control type="button" id="$PARAM[id_addons]">
+					<include content="HomeCircleFade"><param name="when" value="$PARAM[circles_fade]"/></include>
 					<visible>[[!Skin.HasSetting(hide_addons) + !$PARAM[flip_addons]] | [Skin.HasSetting(hide_addons) + $PARAM[flip_addons]]]</visible>
 					<width>70</width>
 					<height>70</height>
@@ -1347,6 +1368,7 @@
 				</control>
 
 				<control type="button" id="$PARAM[id_settings]">
+					<include content="HomeCircleFade"><param name="when" value="$PARAM[circles_fade]"/></include>
 					<width>70</width>
 					<height>70</height>
 					<disabledcolor>disabled</disabledcolor>
@@ -1356,6 +1378,7 @@
 				</control>
 
 				<control type="button" id="$PARAM[id_power]">
+					<include content="HomeCircleFade"><param name="when" value="$PARAM[circles_fade]"/></include>
 					<visible>[[!Skin.HasSetting(hide_power) + !$PARAM[flip_power]] | [Skin.HasSetting(hide_power) + $PARAM[flip_power]]]</visible>
 					<width>70</width>
 					<height>70</height>

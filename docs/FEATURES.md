@@ -15,6 +15,7 @@ Everything the skin does, screen by screen. Every setting named here lives in **
 - **Continue Watching** pop-up behind an edge tab: in-progress movies and episodes, plus a **Next Up** row with the next unwatched episode of every show you are part way through, each row with a press-and-hold Resume / Mark as watched / Mark as unwatched menu, and optionally **Hide**, which keeps a title or a Next Up show out until it is played again (off by default). A **Recently Added** tab beside it opens the same pop-up on a page of the newest movies and episodes, and an optional **Watchlist** tab shows the titles carrying a tag you choose, or one of your Lists in its own order (off by default)
 - **Home rows**: up to three rows of posters under the main menu, each with its own source (recently added, in progress, unwatched, random films or one of your Lists); while any is on the menu sits at the top (off by default)
 - **Focused title as backdrop** (optional): while a Home row or a row of the Continue Watching pop up has focus, that title's fanart fills the background and its logo shows, top left over the pop up and under the Home rows; a title with no fanart gets a plain background and its name
+- **Declutter when idle** (optional): after a set time with no key pressed (30 seconds to 10 minutes, 1 minute until you choose), Home fades to its background so it rests like a screensaver. The clock, date and weather and the stats stay unless you untick them; the Coming up list, background captions, corner bar and logo stay only if you tick them; the menu, Home rows, focused title logo, Continue Watching tabs, greeting and round buttons always go, so a kept corner bar shows only what is playing, the queue and the sleep countdown. A kept Coming up list can be cut to the next 1, 2, 3 or 5 slots, and the background can take its own dim level while Home rests. Any key or mouse movement brings it all back at once, and that first press still does its usual job. Kodi's own screensaver needs a longer delay than this, or it starts first (off by default)
 - Optional logo, version footer, loading splash, and date/time, all toggleable
 
 ## Backgrounds
@@ -57,6 +58,7 @@ The background is not limited to the home screen:
 - **Studio or network logo**: an optional logo on the information screen, top right, from Kodi's Studio Icons pack (off by default). Switching it on offers to install the pack; switching it off offers to leave it, disable it or uninstall it
 - **More like this**: an optional row on the information screen of up to twelve titles from your library with the same collection, director or genre, newest first (off by default)
 - **Actor page** (optional): select someone in the cast on the information screen to see their photo, name and every film and show of theirs in your library, newest first; Back returns to the title, and Play closes the page and the information screen
+- **Play This Show** (optional): in a show's hold menu, play the next unwatched episode, play from the first, or add the whole show to the queue, every episode in order with specials left out
 
 ## Slide-Out Library Options
 
@@ -124,6 +126,7 @@ Custom-styled to match the skin: File Manager, Event Log, System Info, Add-on In
 ## Music
 
 - Dedicated music OSD with album art, track title, artist, album, and progress bar
+- **Lyrics** (optional): with CU LRC Lyrics installed, the song's lyrics on the music screen in the skin's own look, the line being sung large and the lines around it dim; the switch on the Add-ons page offers to install and set it up
 - Video and music playlist views with header showing item count, total time, and current-item finish time
 - Playlist controls: Play All, Shuffle, Repeat, Save, Clear
 

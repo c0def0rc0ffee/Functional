@@ -40,6 +40,12 @@ Toggle settings show an accent **dot** when on. Most changes apply immediately; 
 - A Watchlist tab beside Continue Watching and Recently Added, showing a tag or one of your lists (off by default)
 - Up to three rows of posters under the main menu, each with its own source; while any is on the menu sits at the top (off by default)
 - Focused Title as Backdrop: while a Home row or a pop up row has focus, the title under the cursor fills the background with its fanart and shows its logo (off by default)
+- Declutter When Idle: with no key pressed for a while, Home fades to its background and keeps only the pieces you tick; any key or mouse movement brings it all back, and that first press still does its usual job (off by default)
+  - **Declutter After**: 30 seconds, 1, 2, 5 or 10 minutes, 1 minute until you choose. Kodi's own screensaver needs a longer delay than this, or it starts first
+  - **Dim While Decluttered**: how dark the background goes while Home is decluttered: As Usual (the Background page's Dim, the default), none, 25%, 50%, 75% or 90%
+  - **Keep** rows: Clock, Date and Weather and Stats (both kept by default); Coming Up List, Background Captions, Corner Bar, and Logo and Version (all off by default)
+  - **Coming Up While Decluttered**: with Keep Coming Up List on, how many of the next slots stay, each with its day heading: All (the default), 1, 2, 3 or 5
+  - The menu, the Home rows, the focused title's logo, the Continue Watching tabs, the greeting and the round Favourites, Add-ons, Settings and Power buttons always go; Keep Corner Bar keeps only what is playing, the queue and the sleep countdown
 - Logo, date and time, weather widget, greeting beside the clock (off by default), footer and loading splash
 - The sleep timer and its countdown
 
@@ -55,6 +61,7 @@ Toggle settings show an accent **dot** when on. Most changes apply immediately; 
 - The studio or network logo on the film and show information screen, from Kodi's Studio Icons pack (off by default). Switching it on offers to install the pack; switching it off offers to leave, disable or uninstall it
 - A More like this row on the info screens: the same collection, director or genre (off by default)
 - Cast Opens Actor Page, at the foot of Visible Fields: selecting someone in the cast opens a page with their photo, name and every film and show of theirs in the library, newest first; Back returns to the title, and playing from it closes the page and the information screen. Off, a cast click opens the library filtered to them as before (off by default)
+- Play Choices for Shows: a show's hold menu in the library gains Play This Show, which plays the next unwatched episode, plays from the first episode, or adds the whole show to the queue; OK still opens the show (off by default)
 - Decade and Several Genres: the slide out gains a Decade row (2020s back to Before 1950) and the genre picker ticks several genres, showing titles in any of them; both stack with Search, and Decade and Age replace each other (off by default)
 
 ## Lists and Favourites
@@ -88,7 +95,8 @@ Ties one list to a Radarr server, so that list gets a **Remove from Radarr** but
 
 ## Add-ons
 
-Settings for other add-ons on the same box. Each section shows only when its add-on is installed, and the page says so when neither is.
+Settings for other add-ons on the same box. The JellyStat and Engage sections show only when their add-on is installed; Lyrics always shows.
 
 - **JellyStat**: JellyStat's figures under the stats, and **Let JellyStat manage the lists** (on by default)
 - **Engage and Coming up**: the next Engage slot under the stats, the next few Engage slots down the left, and the Coming up list's switches for when queued slots really start, an Ends At line after each run, and scrolling through the week with Down. The countdown to the slot that plays next has no switch here: it shows whenever Engage's own **Count down to the next slot in Coming up** setting is on
+- **Lyrics**: **Lyrics on the Music Screen** shows CU LRC Lyrics' lyrics in the skin's own look, the line being sung large; off, they keep a plain panel like the add-on's own. Switching on offers to install CU LRC Lyrics and start it with Kodi; off offers to leave, disable or uninstall it (off by default)

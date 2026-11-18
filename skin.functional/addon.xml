@@ -6,7 +6,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.35" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.38" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -27,7 +27,9 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>New: the focused title as the Home backdrop. Focused Title as Backdrop, at the foot of the Home Screen page, Off by default: while a Home row or a row of the Continue Watching pop up has focus, that title's fanart fills the background and its logo shows, top left over the pop up and under the Home rows. A title with no fanart gets a plain background and its name. The background caption fades while it shows.</news>
+		<news>Changed: while Home is decluttered, the round buttons and the greeting always go. Keep Corner Bar now keeps only what is playing, the queue and the sleep countdown, and a kept clock shows the time alone.
+New: Coming Up While Decluttered, under Keep Coming Up List: how many of the next slots stay while Home rests, All (the default), 1, 2, 3 or 5, each with its day heading.
+New: Dim While Decluttered, under Declutter After: how dark the background goes while Home rests, As Usual (the default), none, 25%, 50%, 75% or 90%.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>

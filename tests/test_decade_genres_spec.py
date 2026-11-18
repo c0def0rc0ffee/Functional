@@ -123,21 +123,20 @@ def make_helper():
 class SettingsSpec(unittest.TestCase):
     """<summary>Requirement 1: the setting, its row, help, preview and strings.</summary>"""
 
-    def test_row_follows_7215_in_grouplist_7021(self):
-        """<summary>Radiobutton 7217 sits in grouplist 7021 straight after 7215 with label 31965.</summary>"""
+    def test_row_follows_7216_in_grouplist_7021(self):
+        """<summary>Radiobutton 7218 sits in grouplist 7021 straight after 7216 with label 31991.</summary>"""
         root = parse("SkinSettings.xml")
         group = control(root, "7021")
         self.assertEqual(group.get("type"), "grouplist")
         ids = [c.get("id") for c in group.findall("control")]
-        self.assertEqual(ids[ids.index("7215") + 1], "7217")
-        self.assertNotIn("7216", ids)
-        row = control(root, "7217")
+        self.assertEqual(ids[ids.index("7216") + 1], "7218")
+        row = control(root, "7218")
         self.assertEqual(row.get("type"), "radiobutton")
-        self.assertEqual(row.findtext("label").strip(), "31965")
+        self.assertEqual(row.findtext("label").strip(), "31991")
 
     def test_row_reads_and_toggles_filter_extras(self):
         """<summary>The row is selected by and toggles Skin.HasSetting(filter_extras).</summary>"""
-        row = control(parse("SkinSettings.xml"), "7217")
+        row = control(parse("SkinSettings.xml"), "7218")
         self.assertEqual(row.findtext("selected").strip(), "Skin.HasSetting(filter_extras)")
         self.assertEqual(row.findtext("onclick").strip(), "Skin.ToggleSetting(filter_extras)")
 
@@ -154,25 +153,25 @@ class SettingsSpec(unittest.TestCase):
         self.assertEqual(found, [])
 
     def test_help_text_and_help_list(self):
-        """<summary>Help 31966 is given for 7217 and 7217 is in settings_help_shown.</summary>"""
+        """<summary>Help 31992 is given for 7218 and 7218 is in settings_help_shown.</summary>"""
         root = parse("Includes_SettingsHelp.xml")
         hit = [(v.text or "").strip() for v in root.iter("value")
-               if v.get("condition") == "Control.HasFocus(7217)"]
-        self.assertEqual(hit, ["$LOCALIZE[31966]"])
-        self.assertIn("Control.HasFocus(7217)", W.EXPRESSIONS["settings_help_shown"])
+               if v.get("condition") == "Control.HasFocus(7218)"]
+        self.assertEqual(hit, ["$LOCALIZE[31992]"])
+        self.assertIn("Control.HasFocus(7218)", W.EXPRESSIONS["settings_help_shown"])
 
     def test_preview_none(self):
-        """<summary>7217 is in settings_preview_none.</summary>"""
-        self.assertIn("Control.HasFocus(7217)", W.EXPRESSIONS["settings_preview_none"])
+        """<summary>7218 is in settings_preview_none.</summary>"""
+        self.assertIn("Control.HasFocus(7218)", W.EXPRESSIONS["settings_preview_none"])
 
     def test_strings_exist(self):
-        """<summary>Strings 31965 to 31968 exist and are not empty.</summary>"""
-        for sid in range(31965, 31969):
+        """<summary>Strings 31991 to 31994 exist and are not empty.</summary>"""
+        for sid in range(31991, 31995):
             self.assertTrue(T.STRINGS.get(sid), "string %d missing" % sid)
 
-    def test_7316_goes_up_to_7217(self):
-        """<summary>The onup of 7316 is 7217.</summary>"""
-        self.assertEqual(control(parse("SkinSettings.xml"), "7316").findtext("onup").strip(), "7217")
+    def test_7316_goes_up_to_7218(self):
+        """<summary>The onup of 7316 is 7218.</summary>"""
+        self.assertEqual(control(parse("SkinSettings.xml"), "7316").findtext("onup").strip(), "7218")
 
 
 class DecadeHelpersSpec(unittest.TestCase):
@@ -803,7 +802,7 @@ class SlideOutSpec(unittest.TestCase):
     def test_8013_label(self):
         """<summary>The label is the Decade string then the decade variable.</summary>"""
         self.assertEqual(control(self.nav, "8013").findtext("label").strip(),
-                         "$LOCALIZE[31967] $VAR[DecadeFilterLabel]")
+                         "$LOCALIZE[31993] $VAR[DecadeFilterLabel]")
 
     def test_8013_cycle_order(self):
         """<summary>Clicks step from empty through 2020 to pre1950 and then reset.</summary>"""

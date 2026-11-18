@@ -11,6 +11,45 @@
 
 Newest first. Releases before 0.12.0 are described in their GitHub release notes.
 
+## 0.23.38 (18/11/2026)
+
+- Changed: while Home is decluttered, the round buttons and the greeting
+  always go. Keep Corner Bar now keeps only what is playing, the queue
+  and the sleep countdown, and a kept clock shows the time alone.
+- New: Coming Up While Decluttered, under Keep Coming Up List: how many
+  of the next slots stay while Home rests, All (the default), 1, 2, 3 or
+  5, each with its day heading.
+- New: Dim While Decluttered, under Declutter After: how dark the
+  background goes while Home rests, As Usual (the default), none, 25%,
+  50%, 75% or 90%.
+
+## 0.23.37 (17/11/2026)
+
+- New: Declutter When Idle, on the Home Screen page, Off by default:
+  after a set time with no key pressed (30 seconds to 10 minutes, 1
+  minute until you choose), Home fades to its background and rests like
+  a screensaver. The clock, date and weather and the stats stay unless
+  you untick them; the Coming up list, background captions, corner bar
+  and logo stay only if you tick them. Any key or mouse movement brings
+  it all back. Kodi's own screensaver needs a longer delay than this.
+- New: Play This Show. Play Choices for Shows, on the Library page, Off
+  by default: a show's hold menu in the library gains Play This Show,
+  which plays the next unwatched episode, plays from the first episode,
+  or adds the whole show to the queue. OK still opens the show.
+- Fixed: the hold menu keeps every entry on screen whatever skin rows
+  show above it, opens on the first row, and walks every row in order on
+  Down and round the wrap.
+
+## 0.23.36 (17/11/2026)
+
+- New: lyrics on the music screen. Lyrics on the Music Screen, on the
+  Add-ons page, Off by default: CU LRC Lyrics' lyrics show in the skin's
+  own look, a centred column over a dimmed visualisation with the line
+  being sung large and the lines around it dim. Switching it on offers to
+  install CU LRC Lyrics and start it with Kodi; switching it off offers to
+  leave, disable or uninstall it. Off, anyone already using CU LRC Lyrics
+  sees a plain panel like the add-on's own.
+
 ## 0.23.35 (14/11/2026)
 
 - New: the focused title as the Home backdrop. Focused Title as
