@@ -7,7 +7,7 @@
   window properties and strings fed.
   </summary>
 -->
-<addon id="skin.functional" version="0.23.38" name="Functional" provider-name="c0def0rc0ffee">
+<addon id="skin.functional" version="0.23.39" name="Functional" provider-name="c0def0rc0ffee">
 	<requires>
 		<!-- Kodi 21 (Omega) GUI version, matches the Flatpak build in use.
 		     This is the value that installed cleanly before today. -->
@@ -28,9 +28,7 @@
 		<description lang="en_GB">Functional. Built for clarity: gallery library views, configurable accent colour, slide-out filters, side-by-side library stats on home, and a tight video OSD.</description>
 		<platform>all</platform>
 		<license>GPL-2.0-or-later</license>
-		<news>Changed: while Home is decluttered, the round buttons and the greeting always go. Keep Corner Bar now keeps only what is playing, the queue and the sleep countdown, and a kept clock shows the time alone.
-New: Coming Up While Decluttered, under Keep Coming Up List: how many of the next slots stay while Home rests, All (the default), 1, 2, 3 or 5, each with its day heading.
-New: Dim While Decluttered, under Declutter After: how dark the background goes while Home rests, As Usual (the default), none, 25%, 50%, 75% or 90%.</news>
+		<news>New: Decade and Several Genres, on the Library page, Off by default: the library's slide out gains a Decade row, from the 2020s back to Before 1950, and the genre picker ticks several genres, showing titles in any of them. Both stack with Search; Decade and Age replace each other. Random play keeps to the ticked genres.</news>
 		<assets>
 			<icon>icon.png</icon>
 			<fanart>fanart.jpg</fanart>
